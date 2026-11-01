@@ -810,7 +810,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   } catch (e) {}
   try { var _eb = JSON.parse(localStorage.getItem('smb-binfo') || '{}'); Object.keys(_eb).forEach(function (c) { if (!BOATS[c] && _eb[c] && typeof _eb[c] === 'object') BOATS[c] = { name: _eb[c].name || c, crew: _eb[c].crew || '', giro: _eb[c].giro || '', extra: true }; }); } catch (e) {}
   fillBoatDays();
-  if (S.shift && (!BOATS[S.shift.boat] || !PROGRAM[S.shift.day])) S.shift = null;
+  if (S.shift && (!BOATS[S.shift.boat] || !/^\d{4}-\d{2}-\d{2}$/.test(S.shift.day || ''))) S.shift = null;
+  if (S.shift) ensureDay(S.shift.day);
   var view = 'turno', spoken = '', draft = null, docOpen = -1, viewDay = null;
   var GPS = { state: 'off', speed: null, last: null, id: null, dt: null };
 
@@ -867,7 +868,17 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
   /* ---------- stato del turno ---------- */
   function boat() { return S.shift ? BOATS[S.shift.boat] : null; }
-  function boatDay() { return S.shift ? PROGRAM[S.shift.day].boats[S.shift.boat] : null; }
+  // Giorno senza programma (es. domenica): turno con solo le consegne aggiunte in giornata
+  function ensureDay(k) {
+    if (!PROGRAM[k]) { var dp = dateParts(k); PROGRAM[k] = { short: DNALL[dp.dow].slice(0, 3) + ' ' + dp.n, label: DNALL[dp.dow] + ' ' + dp.n + ' ' + MONTHS[dp.m], boats: {}, virt: true }; if (DAYKEYS.indexOf(k) < 0) { DAYKEYS.push(k); DAYKEYS.sort(); } }
+    return PROGRAM[k];
+  }
+  function boatDay() {
+    if (!S.shift) return null;
+    var d = ensureDay(S.shift.day);
+    if (!d.boats[S.shift.boat]) d.boats[S.shift.boat] = { stops: [], onCall: false, off: false, extraOnly: true };
+    return d.boats[S.shift.boat];
+  }
   function stops() { var b = boatDay(); return b ? b.stops.concat(S.shift && S.shift.extra ? S.shift.extra : []) : []; }
   function curIdx() {
     var st = stops(); if (!S.shift) return -1;
@@ -986,8 +997,12 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
   /* ---------- turno ---------- */
   function startShift(code) {
-    var day = pickDay(), bd = PROGRAM[day].boats[code];
-    if (!bd || bd.off) { scanMsg(BOATS[code].name + ' non ha servizio ' + PROGRAM[day].label.toLowerCase() + '.', true); return; }
+    // il turno è sempre di oggi: niente tappe di altri giorni nel navigatore
+    var day = todayKey(), pd = ensureDay(day), bd = pd.boats[code], hasTasks = !!(X.my && X.my.length);
+    if (!bd || bd.off) {
+      if (!hasTasks) { scanMsg(BOATS[code].name + ' non ha servizio oggi.', true); return; }
+      pd.boats[code] = { stops: [], onCall: false, off: false, extraOnly: true };
+    }
     var go = function () {
       S.shift = { boat: code, day: day, start: Date.now(), done: {}, step: 0, pre: [], km: 0, trip: 0, end: null, who: SESSION ? SESSION.name : '' };
       save(); closeSheet(); view = 'guida'; spoken = '';
@@ -1838,6 +1853,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
             var fx = null; cl('rpc_task_update', { p_task: t.id, p_status: sh.done[base + idx].status === 'ok' ? 'fatta' : 'problema', p_reason: sh.done[base + idx].reason || null, p_lat: fx, p_lng: fx });
           }
         });
+        var openIds = {}; r.open.forEach(function (t) { openIds[t.id] = 1; });
+        sh.extra.forEach(function (x, k) { if (x.id && !openIds[x.id] && !x.cancelled && !sh.done[(boatDay() ? boatDay().stops.length : 0) + k]) { x.cancelled = true; changed = true; } });
         (r.cancelled || []).forEach(function (id) {
           sh.extra.forEach(function (x, k) { if (x.id === id && !x.cancelled && !sh.done[(boatDay() ? boatDay().stops.length : 0) + k]) { x.cancelled = true; changed = true; } });
         });
@@ -1852,6 +1869,13 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     try { if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 600]); } catch (e) {}
   }
   setInterval(function () { if (tok() && !document.hidden) loadMyTasks(); }, 45000);
+  function midnightCheck() {
+    if (!S.shift || !S.shift.day || S.shift.day >= todayKey()) return;
+    try { endShift(); } catch (e) { S.shift = null; save(); render(); }
+    setTimeout(function () { toast('È passata mezzanotte: il turno di ieri è stato chiuso'); }, 400);
+  }
+  setInterval(midnightCheck, 60000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) midnightCheck(); });
 
   function loadMgr(withOpts) {
     if (!tok() || !isMgr()) return;
@@ -2721,7 +2745,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01c';
+  var APP_V = '2026-11-01d';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4568,7 +4592,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   if (SESSION) gpsApply();
   render();
   if (SESSION) { loadContacts(); loadAdmin(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); loadProgram(); sendPendingReqs(); pushInit(); loadDdt(); if (isOff()) loadXT().then(render); }); }
-  updCheck();
+  updCheck(); setTimeout(midnightCheck, 1500);
 })();
 </script>
 
