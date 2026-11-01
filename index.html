@@ -257,6 +257,17 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 .tbempty{flex:1;display:grid;place-items:center;text-align:center;color:#8FA3B0;letter-spacing:.1em;padding:40px 10px}
 .tbfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:8px;font-size:.72em;color:#8FA3B0;letter-spacing:.04em}
 @media (max-width:620px){.tbnav .tbf{order:3;width:100%;justify-content:center}.tbhd{display:none}.tbr{grid-template-columns:4.6em minmax(0,1fr) 5.5em;grid-template-areas:"o d c" "o b s" "k k k";row-gap:4px}.tbo{grid-area:o}.tbd{grid-area:d}.tbc{grid-area:c}.tbb{grid-area:b}.tbs{grid-area:s;text-align:right}.tbr>span:last-child{grid-area:k}.tbk{padding:8px 0}}
+.tc .wabody{padding-bottom:90px}
+.wab.tcm{padding:6px 9px 16px 10px}.wab.tcm.mine{align-self:flex-end;background:#DCF8C6;border-radius:10px 0 10px 10px}
+.wab.tcm.mine::before{left:auto;right:-7px;border-left:0;border-right:8px solid transparent;border-top-color:#DCF8C6}
+.tcw{font-style:normal;font-size:12.5px;font-weight:700;color:#128C7E}.tcb{white-space:pre-wrap;font-size:15.5px;color:#111;word-break:break-word}
+.tcbar{position:absolute;left:0;right:0;bottom:0;display:flex;gap:6px;align-items:flex-end;padding:8px 8px max(8px,env(safe-area-inset-bottom,0px));background:#F0F0F0}
+.tcbar textarea{flex:1;border:0;border-radius:22px;padding:11px 14px;font:inherit;font-size:16px;resize:none;max-height:120px;outline:0;background:#fff;color:#111}
+.tcbar .asgo{background:#128C7E;width:46px;height:46px}
+body.chatopen .nav,body.chatopen .nokia{display:none}
+.tcpick{display:flex;flex-direction:column;gap:2px;max-height:45vh;overflow-y:auto;margin:6px 0}
+.tcpick label{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--line,#eef0f3);font-size:16px}
+.tcpick input{width:20px;height:20px}.waav.sm{width:32px;height:32px;font-size:13px}
 </style><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap">
 </head><body>
 <title>San Marco Boat</title>
@@ -1427,7 +1438,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var key = ST2.y + '-' + ST2.m; if (ST2.dk !== key) stLoad();
     var d = ST2.dk === key ? ST2.d : null, MN = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
     var lbl = ST2.m ? MN[ST2.m - 1].replace(/^./, function (c) { return c.toUpperCase(); }) + ' ' + ST2.y : 'Tutto il ' + ST2.y;
-    var h = '<div class="wrap stw"><h2>Statistiche</h2><div class="ldnav"><button class="btn sm" data-act="stmv" data-n="-1" aria-label="Prima">‹</button><b>' + esc(lbl) + '</b><button class="btn sm" data-act="stmv" data-n="1" aria-label="Dopo">›</button></div>' +
+    var h = '<div class="wrap stw"><h2>📊 Statistiche</h2><div class="ldnav"><button class="btn sm" data-act="stmv" data-n="-1" aria-label="Prima">‹</button><b>' + esc(lbl) + '</b><button class="btn sm" data-act="stmv" data-n="1" aria-label="Dopo">›</button></div>' +
       '<div class="seg2 stseg"><button data-act="stper" data-p="m"' + (ST2.m ? ' aria-pressed="true"' : '') + '>Mese</button><button data-act="stper" data-p="y"' + (!ST2.m ? ' aria-pressed="true"' : '') + '>Anno</button></div>';
     if (!d) return h + '<p class="muted">Carico…</p></div>';
     var totMin = d.hours.reduce(function (s, x) { return s + x.min; }, 0), dl = d.delay || {}, pct = dl.n ? Math.round(dl.ontime / dl.n * 100) : null;
@@ -1496,7 +1507,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var nextK = keys.filter(function (d) { return d > k; })[0], prevK = keys.filter(function (d) { return d < k && d >= todayKey(); }).pop();
     if (!prevK && k > todayKey()) prevK = todayKey();
     var dp = dateParts(k), title = (isToday ? 'Oggi · ' : '') + DNALL[dp.dow] + ' ' + dp.n + ' ' + MONTHS[dp.m];
-    var h = '<div class="tb" id="tbBoard"><div class="tbtop"><div class="tbt"><b>PARTENZE CUCINA</b><span>' + esc(title.toUpperCase()) + '</span></div><div class="tbclk" id="tbClk">' + hm(Date.now()) + '</div></div>' +
+    var h = '<div class="tb" id="tbBoard"><div class="tbtop"><div class="tbt"><b>👨‍🍳 PARTENZE CUCINA</b><span>' + esc(title.toUpperCase()) + '</span></div><div class="tbclk" id="tbClk">' + hm(Date.now()) + '</div></div>' +
       '<div class="tbnav"><button data-act="cuday" data-k="' + (prevK || '') + '"' + (prevK ? '' : ' disabled') + '>‹ Giorno prima</button>' +
       '<span class="tbf">' + ['', 'PATANA', 'TOPPETTA', 'ARDEMAR'].filter(function (c) { return !c || BOATS[c]; }).map(function (c) { return '<button data-act="cuboat" data-c="' + c + '"' + ((CU2.boat || '') === c ? ' aria-pressed="true"' : '') + '>' + (c ? esc(BOATS[c].name) : 'Tutte') + '</button>'; }).join('') + '</span>' +
       '<button data-act="cuday" data-k="' + (nextK || '') + '"' + (nextK ? '' : ' disabled') + '>Giorno dopo ›</button></div>';
@@ -2473,10 +2484,10 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var h = viewImpost0(), i = h.indexOf('<!--sec-->'), j = h.indexOf('<!--/sec-->');
     if (i < 0 || j < 0) return h;
     var sec = h.slice(i, j + 11); h = h.slice(0, i) + h.slice(j + 11);
-    return h.replace('<h2>Impostazioni</h2>', '<h2>Impostazioni</h2>' + sec);
+    return h.replace('<h2>⚙️ Impostazioni</h2>', '<h2>⚙️ Impostazioni</h2>' + sec);
   }
   function viewImpost0() {
-    return '<div class="wrap"><h2>Impostazioni</h2>' +
+    return '<div class="wrap"><h2>⚙️ Impostazioni</h2>' +
       '<div class="card"><h3>Accesso</h3><p class="muted">Sei entrato come <b>' + esc(SESSION ? SESSION.name : '') + '</b>' + (SESSION && SESSION.role === 'admin' ? ' (admin)' : '') + '.</p><button class="btn" data-act="logout">Esci</button></div>' +
       '<div class="card"><h3>Colore dello sfondo</h3><p class="muted">Scegli il colore che ti piace di più. Il testo si adatta da solo per restare leggibile. La schermata GPS resta sempre nera.</p><div class="swatches">' + BGS.map(function (c) { return '<button class="sw" data-act="bg" data-c="' + c[0] + '" aria-pressed="' + ((S.bg || '#FFFFFF').toUpperCase() === c[0] ? 'true' : 'false') + '"><i style="background:' + c[0] + '"></i>' + c[1] + '</button>'; }).join('') + '</div><label class="hint" for="bgIn">Oppure scegli un colore a piacere</label><input id="bgIn" type="color" value="' + esc((S.bg || '#FFFFFF').toLowerCase()) + '" style="width:100%;height:48px;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:4px"></div>' +
       (isFullAcc() ? secCard('<p class="muted">Scegli un PIN tuo, da 4 a 8 cifre. Non dirlo a nessuno.</p>' +
@@ -3591,7 +3602,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     return order.map(function (k) { return by[k]; });
   }
   function viewOre() {
-    var h = '<div class="wrap"><h2>Ore lavorate</h2><p class="muted">Le ore di ogni dipendente si scrivono da sole dai turni: dall’avvio alla chiusura del turno nell’app.</p>';
+    var h = '<div class="wrap"><button class="aslink" data-act="nav" data-v="stat">‹ Statistiche</button><h2>Ore lavorate</h2><p class="muted">Le ore di ogni dipendente si scrivono da sole dai turni: dall’avvio alla chiusura del turno nell’app.</p>';
     if (!tok()) return h + '<div class="note"><b>Serve la connessione.</b> Esci e rientra con il tuo PIN quando sei online.</div></div>';
     h += '<div class="row"><button class="btn sm" data-act="hrprev" aria-label="Mese precedente">◀</button><h3>' + MESI[HRS.m - 1] + ' ' + HRS.y + '</h3><button class="btn sm" data-act="hrnext" aria-label="Mese successivo">▶</button></div>';
     if (!HRS.data) return h + '<div class="note">' + (HRS.err ? esc(HRS.err) : 'Carico le ore…') + '</div>' + (HRS.err ? '<button class="btn" data-act="hrreload">Riprova</button>' : '') + '</div>';
@@ -3784,7 +3795,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function setBg(hex) { S.bg = hex; save(); applyBg(hex); }
   applyBg(S.bg);
   function viewAltro() {
-    var items = [['stat', 'Statistiche', 'Ore lavorate, consegne, puntualità, barche e DDT firmati'], ['ore', 'Ore lavorate', 'Tabella mensile delle ore di ogni dipendente'], ['cucina', 'Uscite dalla cucina', 'Orari in cui i carichi devono essere pronti'], ['impost', 'Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
+    var items = [['stat', '📊 Statistiche', 'Ore lavorate, consegne, puntualità, barche e DDT firmati'], ['cucina', '👨‍🍳 Uscite dalla cucina', 'Orari in cui i carichi devono essere pronti'], ['impost', '⚙️ Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
     return '<div class="wrap"><h2>Altro</h2>' + items.map(function (x) {
       return '<button class="card" data-act="nav" data-v="' + x[0] + '" style="text-align:left;display:flex;flex-direction:column;gap:2px"><b>' + x[1] + '</b><span class="muted">' + x[2] + '</span></button>';
     }).join('') + '</div>';
@@ -3877,6 +3888,74 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (PUSH.state === 'unsupported') return '<div class="note">Questo browser non supporta le notifiche push. Gli avvisi arrivano comunque qui dentro, ad app aperta.</div>';
     return '';
   }
+  /* ---------- Chat del team: ognuno può scrivere a uno o più colleghi ---------- */
+  var TC = { list: null, open: null, msgs: null, team: null, busy: false, sending: false };
+  function loadTC() {
+    if (!tok() || TC.busy) return Promise.resolve(); TC.busy = true;
+    return cl('rpc_chat_list', {}).then(function (r) { TC.busy = false; if (Array.isArray(r)) { var ch = JSON.stringify(r) !== JSON.stringify(TC.list); TC.list = r; tcBadge(); if (ch && view === 'notifiche' && !TC.open && !NTC.open && !document.querySelector('#layer .sheet')) render(); } }).catch(function () { TC.busy = false; });
+  }
+  function loadTCmsgs() {
+    if (!TC.open) return Promise.resolve();
+    var id = TC.open;
+    return cl('rpc_chat_msgs', { p_chat: id }).then(function (r) {
+      if (!r || !r.items || TC.open !== id) return;
+      var ch = JSON.stringify(r.items) !== JSON.stringify(TC.msgs); TC.msgs = r.items;
+      if (ch && view === 'notifiche') { var b = $('waBody'), atEnd = !b || b.scrollHeight - b.scrollTop - b.clientHeight < 80; var ta = $('tcIn'), txt = ta ? ta.value : ''; render(); var ta2 = $('tcIn'); if (ta2) ta2.value = txt; if (atEnd) { var b2 = $('waBody'); if (b2) b2.scrollTop = b2.scrollHeight; } }
+    });
+  }
+  setInterval(function () { if (!document.hidden && tok()) { if (view === 'notifiche' && TC.open) loadTCmsgs(); else loadTC(); } }, 5000);
+  function tcBadge() {
+    var b = document.querySelector('#dial .ditem[data-v="notifiche"]'); if (!b) return;
+    var n = (TC.list || []).reduce(function (s, c) { return s + (+c.unread || 0); }, 0) + (NT.unread || 0);
+    var e = b.querySelector('.dbadge'); if (e) e.remove();
+    if (n > 0) { var x = document.createElement('b'); x.className = 'dbadge'; x.textContent = n > 9 ? '9+' : n; b.appendChild(x); }
+  }
+  function tcName(c) { if (c.title) return c.title; var me = SESSION ? SESSION.name : ''; var o = (c.members || []).filter(function (m) { return m.name !== me; }).map(function (m) { return m.name; }); return o.join(', ') || 'Chat'; }
+  function tcGroup(c) { return !!c.title || (c.members || []).length > 2; }
+  function tcAvatar(c, big) { var nm = tcName(c); return '<span class="waav" style="background:' + (tcGroup(c) ? '#128C7E' : '#34B7F1') + '">' + (tcGroup(c) ? '👥' : esc(ntInit(nm))) + '</span>'; }
+  function tcView() {
+    var c = (TC.list || []).filter(function (x) { return x.id === TC.open; })[0] || { id: TC.open, members: [] };
+    var grp = tcGroup(c), lastDay = '';
+    var h = '<div class="wa tc"><div class="wahd"><button class="wabk" data-act="tcback" aria-label="Indietro">‹</button>' + tcAvatar(c) + '<span class="wanm"><b>' + esc(tcName(c)) + '</b><small>' + esc((c.members || []).map(function (m) { return m.name.split(' ')[0]; }).join(', ')) + '</small></span></div><div class="wabody" id="waBody">';
+    if (!TC.msgs) h += '<div class="wadate"><span>Carico…</span></div>';
+    else if (!TC.msgs.length) h += '<div class="wadate"><span>Scrivi il primo messaggio</span></div>';
+    (TC.msgs || []).forEach(function (m) {
+      var dl = ntDayLbl(m.at); if (dl !== lastDay) { lastDay = dl; h += '<div class="wadate"><span>' + esc(dl) + '</span></div>'; }
+      var tm = new Date(m.at).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+      h += '<div class="wab tcm' + (m.mine ? ' mine' : '') + '"><div class="watx">' + (grp && !m.mine ? '<em class="tcw">' + esc(m.who) + '</em>' : '') + '<span class="tcb">' + esc(m.body) + '</span></div><i class="watm">' + tm + (m.mine ? ' ✓✓' : '') + '</i></div>';
+    });
+    setTimeout(function () { var b = $('waBody'); if (b && !TC.scrolled) { b.scrollTop = b.scrollHeight; TC.scrolled = true; } }, 30);
+    return h + '</div><div class="tcbar"><textarea id="tcIn" rows="1" placeholder="Scrivi un messaggio" aria-label="Messaggio"></textarea><button class="asgo" data-act="tcsend" aria-label="Invia">➤</button></div></div>';
+  }
+  function tcSend() {
+    var ta = $('tcIn'), v = ta ? ta.value.trim() : ''; if (!v || !TC.open || TC.sending) return;
+    TC.sending = true; ta.value = '';
+    TC.msgs = (TC.msgs || []).concat([{ id: 'tmp', body: v, at: new Date().toISOString(), who: SESSION.name, mine: true }]); render(); var b = $('waBody'); if (b) b.scrollTop = b.scrollHeight;
+    cl('rpc_chat_send', { p_chat: TC.open, p_body: v }).then(function (r) { TC.sending = false; if (!r || !r.ok) toast('Messaggio non inviato'); loadTCmsgs(); loadTC(); }).catch(function () { TC.sending = false; toast('Serve la connessione'); });
+  }
+  function tcNewSheet() {
+    var go = function () {
+      openSheet('<h2>Nuova chat</h2><p class="muted">Scegli con chi parlare. Con più persone diventa un gruppo.</p><div class="tcpick">' + (TC.team || []).filter(function (p) { return !p.me; }).map(function (p) {
+        return '<label><input type="checkbox" value="' + esc(p.id) + '" class="tcck"><span class="waav sm" style="background:#34B7F1">' + esc(ntInit(p.name)) + '</span>' + esc(p.name) + '</label>';
+      }).join('') + '</div><input class="field" id="tcTitle" maxlength="60" placeholder="Nome del gruppo (facoltativo)" style="text-transform:none"><p class="muted" id="tcMsg" style="min-height:1.2em"></p><div class="btns"><button class="btn primary" data-act="tccreate">Inizia la chat</button><button class="btn quiet" data-act="close">Annulla</button></div>');
+    };
+    if (TC.team) go(); else cl('rpc_team_list', {}).then(function (r) { TC.team = r || []; go(); });
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'tcnew') tcNewSheet();
+    else if (a === 'tccreate') {
+      var ids = Array.prototype.map.call(document.querySelectorAll('.tcck:checked'), function (x) { return x.value; });
+      if (!ids.length) { $('tcMsg').textContent = 'Scegli almeno una persona.'; return; }
+      cl('rpc_chat_create', { p_members: ids, p_title: ($('tcTitle').value || '').trim() || null }).then(function (r) { if (r && r.ok) { closeSheet(); TC.open = r.id; TC.msgs = null; TC.scrolled = false; loadTC().then(loadTCmsgs); render(); } else $('tcMsg').textContent = 'Non sono riuscito a creare la chat.'; });
+    }
+    else if (a === 'tcopen') { TC.open = el.getAttribute('data-id'); TC.msgs = null; TC.scrolled = false; render(); loadTCmsgs().then(loadTC); }
+    else if (a === 'tcback') { TC.open = null; TC.msgs = null; render(); loadTC(); }
+    else if (a === 'tcsend') tcSend();
+    else if (a === 'nav' && el.getAttribute('data-v') === 'notifiche') { TC.open = null; loadTC(); }
+  });
+  document.addEventListener('keydown', function (e) { if (e.target && e.target.id === 'tcIn' && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); tcSend(); } });
+  document.addEventListener('input', function (e) { var t = e.target; if (t && t.id === 'tcIn') { t.style.height = 'auto'; t.style.height = Math.min(120, t.scrollHeight) + 'px'; } });
   /* ---------- Notifiche come chat (stile WhatsApp): una conversazione per trasportatore ---------- */
   var NTC = { open: null };
   function ntKind(x) { return /^DDT/.test(x.title || '') ? 'ddt' : x.kind; }
@@ -3901,7 +3980,9 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   var NOKIA = '<button class="nokia" data-act="rubopen" aria-label="Rubrica: numeri di tutti"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 6h24a4 4 0 0 1 4 4v44a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V10a4 4 0 0 1 4-4z" fill="#2B3A33"/><rect x="21" y="12" width="22" height="15" rx="2" fill="#B8D88B"/><path d="M24 22l3-4 3 3 3-5 4 6" stroke="#2B3A33" stroke-width="1.6" fill="none"/><g fill="#CFD8D3"><circle cx="25" cy="35" r="2.6"/><circle cx="32" cy="35" r="2.6"/><circle cx="39" cy="35" r="2.6"/><circle cx="25" cy="42" r="2.6"/><circle cx="32" cy="42" r="2.6"/><circle cx="39" cy="42" r="2.6"/><circle cx="25" cy="49" r="2.6"/><circle cx="32" cy="49" r="2.6"/><circle cx="39" cy="49" r="2.6"/></g></svg></button>';
   function viewNotifiche() {
-    var chats = ntChats();
+    if (TC.open) return tcView();
+    if (!TC.list) loadTC();
+    var chats = isMgr() ? ntChats() : [];
     if (NTC.open) {
       var c = chats.filter(function (x) { return x.who === NTC.open; })[0];
       if (c) {
@@ -3917,14 +3998,25 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       }
       NTC.open = null;
     }
-    var h = '<div class="wrap wal"><h2>Notifiche</h2>' + pushBlock() + (NT.err ? '<div class="note">Non riesco a caricare le notifiche: serve la connessione.</div>' : '');
-    if (!chats.length) h += '<div class="card"><p class="muted">Nessun messaggio per ora.</p></div>';
-    h += '<ul class="walist">' + chats.map(function (c) {
+    var h = '<div class="wrap wal"><div class="row"><h2>' + (isMgr() ? 'Notifiche' : 'Chat') + '</h2><button class="btn sm primary" data-act="tcnew">✎ Nuova chat</button></div>' + (isMgr() ? pushBlock() : '') + (isMgr() && NT.err ? '<div class="note">Non riesco a caricare le notifiche: serve la connessione.</div>' : '');
+    var rows = [];
+    (TC.list || []).forEach(function (c) {
+      var l = c.last, d = new Date(l ? l.at : c.last_at), today = d.toDateString() === new Date().toDateString();
+      rows.push({ at: l ? l.at : c.last_at, html: '<li><button data-act="tcopen" data-id="' + esc(c.id) + '">' + tcAvatar(c) + '<span class="walm"><b>' + esc(tcName(c)) + '</b><span>' + (l ? esc((l.mine ? 'Tu' : l.who.split(' ')[0]) + ': ' + l.body) : '<i>nessun messaggio</i>') + '</span></span>' +
+        '<span class="wart"><small class="' + (+c.unread ? 'un' : '') + '">' + (today ? d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })) + '</small>' + (+c.unread ? '<b class="wau">' + c.unread + '</b>' : '') + '</span></button></li>' });
+    });
+    chats.forEach(function (c) { rows.push({ at: c.last.at, html: ntRow(c) }); });
+    rows.sort(function (a, b) { return a.at < b.at ? 1 : -1; });
+    if (!rows.length) h += '<div class="card"><p class="muted">Nessuna conversazione. Tocca “Nuova chat” per scrivere a un collega.</p></div>';
+    h += '<ul class="walist">' + rows.map(function (r) { return r.html; }).join('') + '</ul>';
+    return h + '</div>' + NOKIA;
+  }
+  function ntRow(c) {
+    return [c].map(function (c) {
       var m = ntMsg(c.last), col = c.boat ? bcol(c.boat) : '#25D366', d = new Date(c.last.at), today = d.toDateString() === new Date().toDateString();
       return '<li><button data-act="ntopen" data-w="' + esc(c.who) + '"><span class="waav" style="background:' + col + '">' + esc(ntInit(c.who)) + '</span><span class="walm"><b>' + esc(c.who) + '</b><span><i class="wami ' + m.cls + '">' + m.ic + '</i> ' + esc(m.t) + '</span></span>' +
         '<span class="wart"><small class="' + (c.unread ? 'un' : '') + '">' + (today ? d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })) + '</small>' + (c.unread ? '<b class="wau">' + c.unread + '</b>' : '') + '</span></button></li>';
-    }).join('') + '</ul>';
-    return h + '</div>' + NOKIA;
+    }).join('');
   }
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
@@ -3944,7 +4036,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02j';
+  var APP_V = '2026-11-02k';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -5178,11 +5270,11 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var NAV_ADMIN = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['stat', 'Statistiche'], ['barca', 'Barche'], ['contatti', 'Contatti']];
   var NAV_FULL = [['logistica', 'Logistica'], ['barca', 'Barche'], ['turno', 'Turno'], ['notifiche', 'Notifiche'], ['altro', 'Altro']];
   var NAV_MGR = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['turno', 'Turno'], ['barca', 'Barca'], ['contatti', 'Contatti']];
-  var NAV = [['turno', 'Turno'], ['programma', 'Programma'], ['barca', 'Barche']];
-  var NAV_OFF = [['cucina', 'Cucina'], ['programma', 'Programma'], ['ddt', 'DDT'], ['contatti', 'Contatti']];
+  var NAV = [['turno', 'Turno'], ['programma', 'Programma'], ['barca', 'Barche'], ['notifiche', 'Chat']];
+  var NAV_OFF = [['cucina', 'Cucina'], ['programma', 'Programma'], ['ddt', 'DDT'], ['notifiche', 'Chat'], ['contatti', 'Contatti']];
   function render() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
-    if (isOff() && ['ddt', 'contatti', 'impost', 'programma', 'cucina'].indexOf(view) < 0) view = 'ddt';
+    if (isOff() && ['ddt', 'contatti', 'impost', 'programma', 'cucina', 'notifiche'].indexOf(view) < 0) view = 'ddt';
     if (!isOff() && isAdm && ['turno', 'guida', 'richieste', 'ddt'].indexOf(view) >= 0) view = 'logistica';
     if (isAdm && ['turno', 'guida', 'richieste'].indexOf(view) >= 0) view = 'logistica';
     if (!isAdm && view === 'admin') view = isFull ? 'logistica' : 'turno';
@@ -5190,7 +5282,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (view === 'nuovo') view = 'logistica';
     if (view === 'logistica' && !isMgr()) view = 'turno';
     if (view === 'ore' && !isAdm && !isFull) view = 'turno';
-    if (view === 'notifiche' && !isMgr()) view = 'turno';
+
     var hk = (view === 'programma' && viewDay) || (S.shift ? S.shift.day : pickDay());
     document.documentElement.classList.toggle('hw', hk === '2026-10-31');
     $('brandLogo').innerHTML = logo(34);
@@ -5199,6 +5291,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var cur = view === 'guida' ? 'turno' : view;
     if (view === 'pin' && !isFullAcc()) { view = 'impost'; cur = 'impost'; }
     if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat'].indexOf(cur) >= 0) cur = 'altro';
+    if (isAdm && cur === 'ore') cur = 'stat';
     if (view === 'stat' && !isMgr()) view = 'turno';
     if (isMgr() && cur === 'contatti') cur = 'notifiche';
     if (isMgr() && !isOff() && ['programma', 'ddt', 'murano'].indexOf(cur) >= 0) cur = 'logistica';
@@ -5207,6 +5300,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var NV = isOff() ? NAV_OFF : isAdm ? NAV_ADMIN : isFull ? NAV_FULL : (isMgr() ? NAV_MGR : NAV);
     drawDial(NV, cur);
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
+    document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
     var fn = { admin: viewAdmin, turno: viewTurno, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, murano: viewMurano, cucina: viewCucina, stat: viewStat }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
