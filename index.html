@@ -268,6 +268,7 @@ body.chatopen .nav,body.chatopen .nokia{display:none}
 .tcpick{display:flex;flex-direction:column;gap:2px;max-height:45vh;overflow-y:auto;margin:6px 0}
 .tcpick label{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--line,#eef0f3);font-size:16px}
 .tcpick input{width:20px;height:20px}.waav.sm{width:32px;height:32px;font-size:13px}
+.rqbtn.dd2{flex-direction:column;align-items:flex-start;gap:2px;padding:14px 16px;background:#1655C8;color:#fff;border-color:#1655C8;letter-spacing:.04em}.rqbtn.dd2 span{font-weight:400;font-size:13px;letter-spacing:0;opacity:.9}
 </style><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap">
 </head><body>
 <title>San Marco Boat</title>
@@ -3106,7 +3107,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     else if (a === 'ldmove') { var n = +el.getAttribute('data-n'); LD.day = ldShift(LD.day || todayKey(), LD.mode === 'giorno' ? n : 7 * n); render(); }
     else if (a === 'ldtoday') { LD.day = todayKey(); render(); }
     else if (a === 'ldpick') { LD.day = el.getAttribute('data-k'); LD.mode = 'giorno'; render(); }
-    else if (a === 'nav' && el.getAttribute('data-v') === 'barca') setTimeout(ldRefresh, 300);
+    else if (a === 'nav' && el.getAttribute('data-v') === 'barca') { BF.dati = false; setTimeout(ldRefresh, 300); }
   });
   function coordHint(s) { var c = parseCoord(s.coord); return !s.coord || !s.coord.trim() ? 'Senza coordinate la mappa non mostra il punto.' : !c && isShortMapsLink(s.coord) ? (RESFAIL[s.coord] ? '⚠ Non riesco ad aprire questo link. Su Google Maps tieni premuto sul punto e copia le coordinate che compaiono in alto.' : RESOLVING[s.coord] ? 'Apro il link di Google Maps…' : 'Link di Google Maps') : c ? '✓ Punto riconosciuto: ' + c[0].toFixed(5) + ', ' + c[1].toFixed(5) : '⚠ Coordinate non riconosciute'; }
   function mgSet(el) {
@@ -3707,7 +3708,13 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var code = curBoatCode(), ed = isEditor();
     if (!code) return '<div class="wrap"><div class="empty"><h2>Nessuna barca assegnata</h2><p>Inizia il turno per vedere scheda, motore e documenti della tua barca.</p><button class="btn primary" data-act="scan">Inizia turno</button></div></div>';
     var b = BOATS[code], mine = S.shift && S.shift.boat === code, E = BF.edit && BF.edit.code === code ? BF.edit : null, none = '<span class="muted">Da inserire</span>';
-    var h = '<div class="wrap">' + (isMgr() ? '<h2>Barche</h2>' + fleetBlock() + '<button class="btn rqbtn" data-act="nav" data-v="richieste">🧰 Richieste per le barche' + (S.requests.filter(function (r) { return !r.closed; }).length ? ' <b>' + S.requests.filter(function (r) { return !r.closed; }).length + '</b>' : '') + ' ›</button><h3>Documenti e scheda di ogni barca</h3>' : '');
+    if (isMgr() && !BF.dati) {
+      var nrq = S.requests.filter(function (r) { return !r.closed; }).length;
+      return '<div class="wrap"><h2>Barche</h2>' + fleetBlock() +
+        '<button class="btn rqbtn dd2" data-act="bdati">📋 DATI E DOCUMENTI <span>scheda, motore e documenti di ogni barca ›</span></button>' +
+        '<button class="btn rqbtn" data-act="nav" data-v="richieste">🧰 Richieste per le barche' + (nrq ? ' <b>' + nrq + '</b>' : '') + ' ›</button></div>';
+    }
+    var h = '<div class="wrap">' + (isMgr() ? '<button class="aslink" data-act="bdatix">‹ Barche</button><h2>📋 Dati e documenti</h2>' : '');
     if (ed) h += '<div class="chips" role="group" aria-label="Barca">' + boatCodes().map(function (k) { return '<button class="chip" data-act="bsel" data-c="' + k + '" aria-pressed="' + (k === code ? 'true' : 'false') + '">' + esc(BOATS[k].name) + '</button>'; }).join('') + '</div>';
     function kv(list) {
       return '<dl class="kv">' + list.map(function (f) {
@@ -4036,7 +4043,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02k';
+  var APP_V = '2026-11-02l';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -5401,6 +5408,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var a = el.getAttribute('data-act'), sh = S.shift;
     if (a === 'veil') { if (e.target === el) closeSheet(); return; }
     if (a === 'nav') { view = el.getAttribute('data-v'); if (view !== 'richieste') draft = null; if (view === 'admin') adminOpen = null; render(); if (view === 'contatti') loadContacts(); if (view === 'admin') loadAdmin(); if (view === 'logistica' || view === 'nuovo') loadMgr(true); if (view === 'programma') { loadMgr(false); if (isOff()) Promise.all([loadDdt(), loadXT()]).then(function () { if (view === 'programma') render(); }); } if (view === 'ore') loadHrs(); if (view === 'notifiche') { NT.hl = {}; loadNotif(); } if (view === 'ddt') loadDdt(); if (view === 'barca') { loadFiles(curBoatCode()); loadBoatInfo(); } return; }
+    if (a === 'bdati') { BF.dati = true; render(); window.scrollTo(0, 0); Array.prototype.forEach.call(document.querySelectorAll('main,.main,#app'), function (m) { m.scrollTop = 0; }); loadFiles(curBoatCode()); return; }
+    if (a === 'bdatix') { BF.dati = false; BF.edit = null; render(); return; }
     if (a === 'bsel') { BF.sel = el.getAttribute('data-c'); BF.edit = null; render(); loadFiles(BF.sel); return; }
     if (a === 'bedit') { BF.edit = { code: curBoatCode(), vals: {} }; render(); return; }
     if (a === 'becancel') { BF.edit = null; render(); return; }
