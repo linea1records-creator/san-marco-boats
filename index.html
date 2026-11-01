@@ -1,4 +1,10 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.bfl{list-style:none;margin:10px 0;padding:0;display:flex;flex-direction:column;gap:2px;max-height:46vh;overflow:auto}
+.bfl li{display:flex;gap:12px;padding:8px 4px;border-bottom:1px solid var(--line,#e5e5e5)}
+.bfl li.bfnew{background:rgba(255,190,60,.14);border-radius:8px}
+.bft{font-variant-numeric:tabular-nums;font-weight:700;min-width:92px}
+.bfn{display:flex;flex-direction:column;gap:2px}
+.bfc .row{align-items:center}
+</style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -999,10 +1005,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function startShift(code) {
     // il turno è sempre di oggi: niente tappe di altri giorni nel navigatore
     var day = todayKey(), pd = ensureDay(day), bd = pd.boats[code], hasTasks = !!(X.my && X.my.length);
-    if (!bd || bd.off) {
-      if (!hasTasks) { scanMsg(BOATS[code].name + ' non ha servizio oggi.', true); return; }
-      pd.boats[code] = { stops: [], onCall: false, off: false, extraOnly: true };
-    }
+    // nessun servizio oggi: si parte lo stesso, con le consegne straordinarie o una meta libera
+    if (!bd || bd.off) pd.boats[code] = { stops: [], onCall: false, off: false, extraOnly: true };
     var go = function () {
       S.shift = { boat: code, day: day, start: Date.now(), done: {}, step: 0, pre: [], km: 0, trip: 0, end: null, who: SESSION ? SESSION.name : '' };
       save(); closeSheet(); view = 'guida'; spoken = '';
@@ -1118,11 +1122,116 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (S.shift || !X.my.length) return '';
     return '<section class="card" style="display:flex;flex-direction:column;gap:8px"><h3>Consegne straordinarie per te</h3><ul class="stl">' + X.my.map(function (t) { return '<li><div><b>' + esc(t.name) + '</b>' + (t.t ? ' <span class="muted">alle ' + esc(t.t) + '</span>' : '') + (t.note ? '<div class="muted">' + esc(t.note) + '</div>' : '') + '<div class="muted">Da ' + esc(t.by) + '</div></div>' + (t.urgency !== 'normale' ? '<span class="pill ' + (t.urgency === 'emergenza' ? 'bad' : 'go') + '">' + URGL[t.urgency] + '</span>' : '') + '</li>'; }).join('') + '</ul><div class="hint">Compariranno nel cruscotto appena inizi il turno.</div></section>';
   }
+  /* ---------- Spiegazione del programma di domani (dalle 12 alle 2 di notte, appena apri l'app) ---------- */
+  function myBoatCode() {
+    if (!SESSION || !SESSION.name) return null;
+    var me = ddtNorm(SESSION.name).split(' ')[0];
+    return boatCodes().filter(function (c) { var cr = ddtNorm(BOATS[c].crew).split(' ')[0]; return c !== 'TULLIO' && cr && cr === me; })[0] || null;
+  }
+  function briefKey() {
+    var now = new Date(), h = now.getHours(); if (!(h >= 12 || h < 2)) return null;
+    var d = new Date(Date.now() - 2 * 3600e3); d.setDate(d.getDate() + 1);
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  function briefFor(k, code) {
+    var P = PROGRAM[k], bd = P && P.boats[code], b = BOATS[code], who = (SESSION.name || '').split(' ')[0];
+    if (!P) return null;
+    var head = 'Ciao ' + who + ', ecco domani, ' + P.label.toLowerCase() + ', sulla ' + b.name + '.';
+    if (!bd || bd.off) return { text: head + ' La ' + b.name + ' non è in servizio: giornata libera, salvo chiamate.', html: '<p class="big">La <b>' + esc(b.name) + '</b> non è in servizio.</p><p class="muted">Giornata libera, salvo chiamate della logistica.</p>' };
+    var st = (bd.stops || []).filter(function (z) { return !z.cancelled; });
+    if (!st.length) return { text: head + ' Non hai un giro fisso: sei reperibile per le emergenze, tieni il telefono acceso.', html: '<p class="big">Nessun giro fisso: <b>sei reperibile</b> per le emergenze.</p><p class="muted">Tieni il telefono acceso: se arriva una consegna te la segnalo subito.</p>' };
+    // tappe che non ci sono negli altri giorni del programma: le novità
+    var usual = {};
+    DAYKEYS.forEach(function (o) { if (o === k || !PROGRAM[o] || !PROGRAM[o].boats[code]) return; (PROGRAM[o].boats[code].stops || []).forEach(function (z) { usual[ddtNorm(z.name)] = 1; }); });
+    var hasOther = Object.keys(usual).length > 0;
+    var first = st[0], last = st[st.length - 1];
+    var nNew = 0;
+    var rows = st.map(function (z) {
+      var isNew = hasOther && !usual[ddtNorm(z.name)]; if (isNew) nNew++;
+      return '<li' + (isNew ? ' class="bfnew"' : '') + '><span class="bft">' + esc(z.t ? stopTime(z) : '––:––') + '</span><span class="bfn"><b>' + esc(z.name) + '</b>' + (isNew ? ' <span class="pill go">Novità</span>' : '') + (z.note ? '<span class="muted">' + esc(z.note) + '</span>' : '') + '</span></li>';
+    }).join('');
+    var notes = st.filter(function (z) { return z.note; });
+    var text = head + ' Hai ' + st.length + (st.length === 1 ? ' tappa' : ' tappe') + '. Parti ' + (first.t ? 'alle ' + first.t + ' ' : '') + 'da ' + first.name +
+      (st.length > 1 ? ' e finisci ' + (last.t ? 'alle ' + last.t + ' ' : '') + 'a ' + last.name : '') + '.' +
+      (nNew ? ' Attenzione alle novità: ' + st.filter(function (z) { return hasOther && !usual[ddtNorm(z.name)]; }).map(function (z) { return z.name + (z.t ? ' alle ' + z.t : ''); }).join(', ') + '.' : '') +
+      (notes.length ? ' Note: ' + notes.map(function (z) { return z.name + ', ' + z.note; }).join('; ') + '.' : '') +
+      (bd.onCall ? ' Dopo il giro resti reperibile.' : '');
+    var html = '<p class="big">' + st.length + (st.length === 1 ? ' tappa' : ' tappe') + ' · si parte ' + (first.t ? 'alle <b>' + esc(first.t) + '</b> ' : '') + 'da <b>' + esc(first.name) + '</b>' +
+      (st.length > 1 ? ', fine ' + (last.t ? 'alle <b>' + esc(last.t) + '</b> ' : '') + 'a <b>' + esc(last.name) + '</b>' : '') + '.</p>' +
+      (nNew ? '<div class="note"><b>Novità rispetto al solito:</b> ' + st.filter(function (z) { return hasOther && !usual[ddtNorm(z.name)]; }).map(function (z) { return esc(z.name) + (z.t ? ' (' + esc(stopTime(z)) + ')' : ''); }).join(', ') + '</div>' : '') +
+      '<ol class="bfl">' + rows + '</ol>' + (bd.onCall ? '<p class="muted">Dopo il giro resti reperibile per le emergenze.</p>' : '');
+    return { text: text, html: html };
+  }
+  function briefSig(k, code) { var bd = PROGRAM[k] && PROGRAM[k].boats[code]; return k + '|' + code + '|' + JSON.stringify(bd ? [bd.off, bd.onCall, (bd.stops || []).map(function (z) { return [z.t, z.name, z.note]; })] : null); }
+  var BRIEF = null;
+  function briefOpen(k, code) {
+    var r = briefFor(k, code); if (!r) return false;
+    BRIEF = { k: k, code: code, text: r.text };
+    openSheet('<h2>Domani · ' + esc(PROGRAM[k].label) + '</h2><p class="muted">' + esc(BOATS[code].name) + ' · programma di ' + esc((SESSION.name || '').split(' ')[0]) + '</p>' + r.html +
+      '<div class="btns"><button class="btn" data-act="briefsay">🔊 Ascolta</button><button class="btn primary" data-act="briefok">Ho capito</button></div>');
+    try { localStorage.setItem('smb-brief', briefSig(k, code)); } catch (e) {}
+    return true;
+  }
+  // appena apri l'app (o arriva un programma nuovo) te lo spiega una volta; se cambia, te lo rispiega
+  function briefMaybe() {
+    if (!SESSION || S.shift || isOff() || CUSTTOK) return;
+    var k = briefKey(), code = myBoatCode(); if (!k || !code || !PROGRAM[k]) return;
+    if (document.querySelector('#layer .sheet')) return;
+    var seen = ''; try { seen = localStorage.getItem('smb-brief') || ''; } catch (e) {}
+    if (seen === briefSig(k, code)) return;
+    briefOpen(k, code);
+  }
+  function briefCard() {
+    if (S.shift) return '';
+    var k = briefKey(), code = myBoatCode(); if (!k || !code || !PROGRAM[k]) return '';
+    var bd = PROGRAM[k].boats[code], n = bd && !bd.off ? (bd.stops || []).length : 0;
+    return '<section class="card bfc"><div class="row"><div><h3>Domani · ' + esc(PROGRAM[k].label) + '</h3><b>' + esc(BOATS[code].name) + '</b> · ' + (!bd || bd.off ? 'non in servizio' : n ? n + ' tappe' + (bd.stops[0].t ? ', dalle ' + esc(bd.stops[0].t) : '') : 'reperibile') + '</div><button class="btn sm" data-act="brief">Spiegamelo</button></div></section>';
+  }
+  setInterval(function () { if (!document.hidden && view === 'turno') briefMaybe(); }, 60000);
+
+  /* ---------- Navigazione libera: senza consegne puoi comunque partire e scegliere una meta ---------- */
+  function freeCard() {
+    var names = Object.keys(COORDS).sort(function (a, b) { return a.localeCompare(b, 'it'); });
+    return '<section class="card" style="display:flex;flex-direction:column;gap:8px"><h3>Naviga verso una meta</h3>' +
+      '<input class="field txt" id="freeIn" list="freeNames" autocomplete="off" placeholder="Nome del posto, coordinate o link di Google Maps" style="text-transform:none">' +
+      '<datalist id="freeNames">' + names.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist>' +
+      '<button class="btn primary" data-act="freego">Naviga</button><div class="hint">La meta si aggiunge al cruscotto: quando arrivi tocca “Sono arrivato”.</div></section>';
+  }
+  function freeAdd(name, ll) {
+    var sh = S.shift; if (!sh) return;
+    sh.extra = sh.extra || [];
+    if (ll) COORDS[name] = ll;
+    sh.extra.push({ id: null, local: true, name: name, t: '', note: 'Meta libera', extra: true, urgency: 'normale', lat: ll ? ll[0] : null, lng: ll ? ll[1] : null });
+    save(); view = 'guida'; spoken = ''; render(); toast('Rotta per ' + name);
+  }
+  function freeGo() {
+    var inp = $('freeIn'), v = inp ? inp.value.trim() : ''; if (!v) { toast('Scrivi dove vuoi andare'); return; }
+    var nv = ddtNorm(v), hit = Object.keys(COORDS).filter(function (n) { return ddtNorm(n) === nv; })[0] || Object.keys(COORDS).filter(function (n) { return ddtNorm(n).indexOf(nv) === 0; })[0];
+    if (hit) { freeAdd(hit, COORDS[hit]); return; }
+    var ll = parseCoord(v); if (ll) { freeAdd('Meta ' + ll[0].toFixed(4) + ', ' + ll[1].toFixed(4), ll); return; }
+    if (isShortMapsLink(v)) {
+      toast('Apro il link di Google Maps…');
+      fetch(SB_URL + '/functions/v1/task-from-text', { method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ token: tok(), resolve: v }) })
+        .then(function (r) { return r.json(); }).then(function (j) { if (j && j.ok && j.lat != null) freeAdd('Meta ' + (+j.lat).toFixed(4) + ', ' + (+j.lng).toFixed(4), [+j.lat, +j.lng]); else toast('Non riesco ad aprire il link: copia le coordinate da Google Maps'); })
+        .catch(function () { toast('Connessione assente: incolla le coordinate'); });
+      return;
+    }
+    toast('Non conosco “' + v + '”: scegli un posto della lista o incolla le coordinate');
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
+    var a = el.getAttribute('data-act');
+    if (a === 'brief') { var k = briefKey(), c = myBoatCode(); if (k && c) briefOpen(k, c); }
+    else if (a === 'briefsay') { if (BRIEF) { var v0 = S.voice; S.voice = true; say(BRIEF.text); S.voice = v0; } }
+    else if (a === 'briefok') { try { speechSynthesis.cancel(); } catch (x) {} closeSheet(); }
+    else if (a === 'freego') freeGo();
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target && e.target.id === 'freeIn') { e.preventDefault(); freeGo(); } });
   function viewTurno() {
     if (!S.shift) {
-      return '<div class="wrap">' + myTasksCard() + '<section class="hero">' +
+      return '<div class="wrap">' + briefCard() + myTasksCard() + '<section class="hero">' +
         '<button class="startbtn" data-act="scan" aria-label="Inizia turno">' + logo(120) + '</button>' +
-        '<h1>Inizia turno</h1><p>Scegli la tua barca e parti. L’app ti guida in ogni tappa.</p></section>' +
+        '<h1>Inizia turno</h1><p>Scegli la tua barca e parti. L’app ti guida in ogni tappa; anche senza consegne puoi navigare verso una meta.</p></section>' +
         '<button class="btn primary" data-act="scan">Inizia turno</button>' +
         '</div>';
     }
@@ -1133,7 +1242,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<div class="clock" id="clock">' + dur(Date.now() - S.shift.start) + '</div>' + (c.total ? statsHtml(c) : '') + '</div>' +
       (s ? '<div class="card"><h3>Prossima tappa</h3><div><b style="font-size:22px">' + esc(s.name) + '</b>' + (s.note ? '<div class="muted">' + esc(s.note) + '</div>' : '') + '</div><div class="row"><span class="pill go">' + (s.t ? 'Alle ' + esc(stopTime(s)) : 'Orario da definire') + '</span><span class="muted">Tappa ' + (i + 1) + ' di ' + c.total + '</span></div></div>' +
         '<button class="btn primary" data-act="guide">Continua: tappa ' + (i + 1) + '</button>'
-        : '<div class="note"><b>' + (c.total ? 'Giro completato.' : 'Oggi non hai tappe in programma.') + '</b> ' + (bd.onCall ? 'Resta reperibile per le emergenze.' : 'Puoi chiudere il turno.') + '</div><button class="btn primary" data-act="guide">' + (c.total ? 'Vedi riepilogo finale' : 'Vai alla chiusura') + '</button>') +
+        : '<div class="note"><b>' + (c.total ? 'Giro completato.' : 'Oggi non hai tappe in programma.') + '</b> ' + (bd.onCall ? 'Resta reperibile per le emergenze.' : 'Puoi chiudere il turno.') + '</div>' + freeCard() + '<button class="btn" data-act="guide">' + (c.total ? 'Vedi riepilogo finale' : 'Vai alla chiusura') + '</button>') +
       '<button class="btn danger" data-act="endsheet">Termina turno</button></div>';
   }
   /* ---------- Programma: scorri a sinistra per eliminare, tocca l'orario per cambiarlo (responsabile) ---------- */
@@ -1580,7 +1689,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     }
     bar += '</div>';
     var nm = s.maint ? 'Verifica barche' : s.name, L = nm.length, fs = L <= 9 ? 72 : L <= 13 ? 56 : L <= 18 ? 42 : 32, di = s.maint ? null : delayInfo(s.t), nx = nextStop(i);
-    var badge = s.extra && s.urgency && s.urgency !== 'normale' ? '<span class="urg u-' + s.urgency + '">' + (s.urgency === 'emergenza' ? 'EMERGENZA' : 'URGENTE') + '</span>' : (s.extra ? '<span class="urg u-extra">STRAORDINARIA</span>' : '');
+    var badge = s.extra && s.urgency && s.urgency !== 'normale' ? '<span class="urg u-' + s.urgency + '">' + (s.urgency === 'emergenza' ? 'EMERGENZA' : 'URGENTE') + '</span>' : (s.extra ? '<span class="urg u-extra">' + (s.local ? 'META LIBERA' : 'STRAORDINARIA') + '</span>' : '');
     return '<div class="sthead"><span class="lab">Tappa ' + Math.min(dn + 1, n) + ' di ' + n + '</span>' + bar + '</div>' + badge +
       '<b class="gname" style="font-size:' + fs + 'px">' + esc(nm) + '</b>' +
       '<div class="stfoot"><span class="gtime">' + (s.t ? 'ore ' + esc(stopTime(s)) : 'orario da definire') + '</span>' + (di ? '<span class="gdl ' + di[1] + '">' + di[0] + '</span>' : '') + '</div>' +
@@ -1596,7 +1705,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     }
     return '<div class="sthead"><span class="lab">Tappa ' + Math.min(dn + 1, n) + ' di ' + n + '</span>' + bar + '</div></div>';
   }
-  function stopBadge(s) { return s.extra && s.urgency && s.urgency !== 'normale' ? '<span class="urg u-' + s.urgency + '">' + (s.urgency === 'emergenza' ? 'EMERGENZA' : 'URGENTE') + '</span>' : (s.extra ? '<span class="urg u-extra">STRAORDINARIA</span>' : ''); }
+  function stopBadge(s) { return s.extra && s.urgency && s.urgency !== 'normale' ? '<span class="urg u-' + s.urgency + '">' + (s.urgency === 'emergenza' ? 'EMERGENZA' : 'URGENTE') + '</span>' : (s.extra ? '<span class="urg u-extra">' + (s.local ? 'META LIBERA' : 'STRAORDINARIA') + '</span>' : ''); }
   function stopRotta(s, i, all) {
     var nm = s.maint ? 'Verifica barche' : s.name, L = nm.length, fs = L <= 9 ? 92 : L <= 13 ? 70 : L <= 18 ? 52 : 38, di = s.maint ? null : delayInfo(s.t), nx = nextStop(i);
     return stopHead(i, all) + '<div class="rt">' + stopBadge(s) + '<b class="gname" style="font-size:' + fs + 'px">' + esc(nm) + '</b>' +
@@ -1680,8 +1789,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (!S.shift) return viewTurno();
     var b = boat(), bd = boatDay(), all = stops(), i = curIdx(), c = counts();
     if (i < 0) {
-      return '<div class="wrap"><div class="card"><h3>' + (c.total ? 'Giro completato' : 'Nessuna tappa oggi') + '</h3><h2>' + (c.total ? 'Ottimo lavoro!' : (bd.extraOnly ? 'Consegne straordinarie' : 'Solo reperibilità')) + '</h2>' +
-        '<p>' + (c.total ? 'Hai chiuso tutte le tappe di ' + esc(b.name) + '.' : 'Oggi ' + esc(b.name) + ' non ha tappe in programma' + (bd.extraOnly ? ': ti compariranno qui le consegne che la logistica ti assegna.' : '.')) + '</p>' + (c.total ? statsHtml(c) : '') + '</div>' +
+      return '<div class="wrap"><div class="card"><h3>' + (c.total ? 'Giro completato' : 'Nessuna tappa oggi') + '</h3><h2>' + (c.total ? 'Ottimo lavoro!' : (bd.extraOnly ? 'Navigazione libera' : 'Solo reperibilità')) + '</h2>' +
+        '<p>' + (c.total ? 'Hai chiuso tutte le tappe di ' + esc(b.name) + '.' : 'Oggi ' + esc(b.name) + ' non ha tappe in programma: se la logistica ti assegna una consegna compare qui da sola.') + '</p>' + (c.total ? statsHtml(c) : '') + '</div>' + freeCard() +
         (bd.onCall ? '<div class="note big"><b>Emergenze.</b> Resta reperibile finché non chiudi il turno.</div>' : '<div class="note">Quando sei ormeggiato, chiudi il turno.</div>') +
         '<button class="btn primary" data-act="endsheet">Chiudi il turno</button><div class="minirow"><button class="btn" data-act="drvmenu">Menu</button></div></div>';
     }
@@ -2745,7 +2854,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01d';
+  var APP_V = '2026-11-01e';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -3921,7 +4030,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function finish(i, status, reason) {
     S.shift.done[i] = { status: status, reason: reason, t: Date.now() };
     var sp = stops()[i];
-    if (sp) {
+    if (sp && !sp.local) {
       var fx = GPS.last && Date.now() - GPS.last.t < 60000 ? GPS.last : null;
       (fx ? cl('rpc_log_gps', { p_lat: fx.la, p_lng: fx.lo, p_speed: null, p_acc: null }) : Promise.resolve()).then(function () {
         if (sp.extra) cl('rpc_task_update', { p_task: sp.id, p_status: status === 'ok' ? 'fatta' : 'problema', p_reason: reason || null, p_lat: fx ? fx.la : null, p_lng: fx ? fx.lo : null });
@@ -4568,7 +4677,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     SESSION = { role: role, name: name, t: Date.now(), token: token || null, offline: !!offline };
     try { localStorage.setItem(SKEY, JSON.stringify(SESSION)); } catch (e) {}
     loginStep = 'pin'; pinBuf = ''; loginErr = ''; loginNames = []; view = role === 'admin' ? 'admin' : role === 'office' ? 'programma' : 'turno';
-    drawLogin(); render(); gpsApply(); loadContacts(); loadAdmin(); loadMyTasks(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); loadProgram(); sendPendingReqs(); pushInit(); loadDdt(); if (isOff()) loadXT().then(render); }); MG.opts = null; MG.list = null; MG.draft = null; MG.fleet = null;
+    drawLogin(); render(); gpsApply(); loadContacts(); loadAdmin(); loadMyTasks(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); loadProgram().then(briefMaybe); sendPendingReqs(); pushInit(); loadDdt(); if (isOff()) loadXT().then(render); }); MG.opts = null; MG.list = null; MG.draft = null; MG.fleet = null;
   }
   function logout() {
     if (S.shift && !confirm('Hai un turno ancora aperto. Vuoi uscire dal profilo lo stesso?')) return;
@@ -4591,8 +4700,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   if (SESSION && SESSION.role === 'office') view = 'programma';
   if (SESSION) gpsApply();
   render();
-  if (SESSION) { loadContacts(); loadAdmin(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); loadProgram(); sendPendingReqs(); pushInit(); loadDdt(); if (isOff()) loadXT().then(render); }); }
-  updCheck(); setTimeout(midnightCheck, 1500);
+  if (SESSION) { loadContacts(); loadAdmin(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); loadProgram().then(briefMaybe); sendPendingReqs(); pushInit(); loadDdt(); if (isOff()) loadXT().then(render); }); }
+  updCheck(); setTimeout(midnightCheck, 1500); setTimeout(briefMaybe, 1200);
 })();
 </script>
 
