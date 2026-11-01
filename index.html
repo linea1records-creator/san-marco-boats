@@ -12,6 +12,17 @@
 .nxback:active{background:#1A3039}.nxback:disabled{opacity:.35}
 .nxexit{flex:none;height:38px;border:0;border-radius:12px;background:transparent;color:#9FB3B0;box-shadow:0 0 0 1px #3A4D55;font:inherit;font-size:15px;font-weight:600;cursor:pointer}
 .nxexit:active{background:#13232A}
+.seccard{display:flex;flex-direction:column;gap:6px}
+.secrow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 4px;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;list-style:none}
+.secrow::-webkit-details-marker{display:none}
+.seci{font-size:22px;width:32px;text-align:center}.sect{flex:1;display:flex;flex-direction:column}.secc{font-size:24px;opacity:.5;transition:transform .2s}
+details[open] .secc{transform:rotate(90deg)}
+.secbody{display:flex;flex-direction:column;gap:6px;padding:4px 0 6px}
+.pnl{list-style:none;margin:0;padding:0}
+.pnl li{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line,#e5e5e5)}
+.pnw{flex:1;display:flex;flex-direction:column;min-width:0}
+.pnv{font-family:ui-monospace,Menlo,monospace;font-size:22px;letter-spacing:.12em}
+.pnno{font-size:13px;opacity:.6;font-style:italic}
 </style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -1569,15 +1580,85 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
   /* barca */
   /* impostazioni */
+  /* ---------- Sicurezza (solo Pietro): PIN di tutti, in tempo reale ---------- */
+  function isFullAcc() { return !!(SESSION && SESSION.full); }
+  var PN = { d: null, busy: false, err: false, show: true, edit: null };
+  function loadPins() {
+    if (!tok() || !isFullAcc() || PN.busy) return Promise.resolve();
+    PN.busy = true;
+    return cl('rpc_pin_list', {}).then(function (r) { PN.busy = false; if (r && r.emp) { var a = JSON.stringify(PN.d); PN.d = r; PN.err = false; if (view === 'pin' && a !== JSON.stringify(r) && !pnTyping()) render(); } })
+      .catch(function () { PN.busy = false; PN.err = true; if (view === 'pin') render(); });
+  }
+  function pnTyping() { var ae = document.activeElement; return !!(ae && /^(INPUT|SELECT|TEXTAREA)$/.test(ae.tagName)); }
+  setInterval(function () { if (view === 'pin' && !document.hidden) loadPins(); }, 10000);
+  function secCard(pinForm) {
+    var n = PN.d ? PN.d.emp.length + PN.d.cust.length : null;
+    return '<!--sec--><div class="card seccard"><h3>Sicurezza</h3>' +
+      '<button class="secrow" data-act="nav" data-v="pin"><span class="seci">🔑</span><span class="sect"><b>PIN utenti</b><span class="muted">' + (n == null ? 'Dipendenti e clienti' : n + ' account · dipendenti e clienti') + '</span></span><span class="secc">›</span></button>' +
+      '<details class="secdet"><summary class="secrow"><span class="seci">🔒</span><span class="sect"><b>Cambia il mio PIN</b><span class="muted">Da 4 a 8 cifre</span></span><span class="secc">›</span></summary><div class="secbody">' + pinForm + '</div></details></div><!--/sec-->';
+  }
+  function pinCell(p) {
+    if (!p) return '<span class="pnno">non ancora noto</span>';
+    return '<b class="pnv">' + (PN.show ? esc(p) : '••••') + '</b>';
+  }
+  function viewPin() {
+    if (!isFullAcc()) return viewImpost();
+    if (!PN.d && !PN.busy) loadPins();
+    var h = '<div class="wrap"><div class="row"><button class="btn sm" data-act="nav" data-v="impost">‹ Impostazioni</button><button class="btn sm" data-act="pneye">' + (PN.show ? 'Nascondi PIN' : 'Mostra PIN') + '</button></div><h2>PIN utenti</h2>' +
+      '<p class="muted">Sempre aggiornati: se qualcuno cambia il suo PIN lo vedi qui in pochi secondi. Solo tu puoi vedere questa pagina.</p>';
+    if (PN.err && !PN.d) return h + '<div class="note">Serve la connessione per vedere i PIN.</div></div>';
+    if (!PN.d) return h + '<p class="muted">Carico…</p></div>';
+    var unk = 0;
+    h += '<section class="card"><h3>Dipendenti</h3><ul class="pnl">' + PN.d.emp.map(function (x) {
+      if (!x.pin) unk++;
+      return '<li><div class="pnw"><b>' + esc(x.name) + '</b><span class="muted">' + esc(x.role) + (x.last ? ' · ultimo accesso ' + esc(ntWhen(x.last)) : '') + '</span></div>' + pinCell(x.pin) +
+        '<button class="btn sm" data-act="pnset" data-id="' + esc(x.id) + '" data-n="' + esc(x.name) + '">' + (x.pin ? 'Cambia' : 'Imposta') + '</button></li>';
+    }).join('') + '</ul>' + (unk ? '<div class="hint">“Non ancora noto”: il PIN era stato scelto prima di oggi. Compare qui da solo al prossimo accesso di quella persona, oppure toccando Imposta ne dai uno nuovo tu.</div>' : '') + '</section>';
+    return h + custCard() + '</div>';
+  }
+  function pnSheet(id, name) {
+    PN.edit = { id: id, name: name };
+    openSheet('<h2>PIN di ' + esc(name) + '</h2><p class="muted">Scrivi un PIN da 4 a 8 cifre, oppure lascia vuoto e te ne creo uno io.</p>' +
+      '<input class="field" id="pnSetIn" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="Es. 2468" autocomplete="off">' +
+      '<p class="muted" id="pnSetMsg" role="status" style="min-height:1.3em"></p>' +
+      '<div class="btns"><button class="btn quiet" data-act="close">Annulla</button><button class="btn primary" data-act="pnsave">Salva</button></div>');
+  }
+  function pnSave() {
+    var e = PN.edit, inp = $('pnSetIn'), v = inp ? inp.value.trim() : '', m = $('pnSetMsg'); if (!e) return;
+    if (v && !/^\d{4,8}$/.test(v)) { if (m) m.textContent = 'Solo cifre, da 4 a 8.'; return; }
+    cl('rpc_pin_set_emp', { p_emp: e.id, p_pin: v || null }).then(function (r) {
+      if (r && r.ok) { closeSheet(); toast('Nuovo PIN di ' + e.name + ': ' + r.pin); PN.edit = null; loadPins().then(render); }
+      else if (m) m.textContent = r && r.error === 'gia_usato' ? 'Questo PIN lo usa già qualcun altro: scegline un altro.' : 'Non sono riuscito a salvarlo: riprova.';
+    }).catch(function () { if (m) m.textContent = 'Serve la connessione.'; });
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
+    var a = el.getAttribute('data-act');
+    if (a === 'pnset') pnSheet(el.getAttribute('data-id'), el.getAttribute('data-n'));
+    else if (a === 'pnsave') pnSave();
+    else if (a === 'pneye') { PN.show = !PN.show; render(); }
+    else if ((a === 'cupin' || a === 'cuadd' || a === 'curm' || a === 'cupdf') && view === 'pin') setTimeout(function () { loadPins(); }, 1500);
+    else if (a === 'nav' && el.getAttribute('data-v') === 'pin') loadPins();
+  });
   function viewImpost() {
+    var h = viewImpost0(), i = h.indexOf('<!--sec-->'), j = h.indexOf('<!--/sec-->');
+    if (i < 0 || j < 0) return h;
+    var sec = h.slice(i, j + 11); h = h.slice(0, i) + h.slice(j + 11);
+    return h.replace('<h2>Impostazioni</h2>', '<h2>Impostazioni</h2>' + sec);
+  }
+  function viewImpost0() {
     return '<div class="wrap"><h2>Impostazioni</h2>' +
       '<div class="card"><h3>Accesso</h3><p class="muted">Sei entrato come <b>' + esc(SESSION ? SESSION.name : '') + '</b>' + (SESSION && SESSION.role === 'admin' ? ' (admin)' : '') + '.</p><button class="btn" data-act="logout">Esci</button></div>' +
       '<div class="card"><h3>Colore dello sfondo</h3><p class="muted">Scegli il colore che ti piace di più. Il testo si adatta da solo per restare leggibile. La schermata GPS resta sempre nera.</p><div class="swatches">' + BGS.map(function (c) { return '<button class="sw" data-act="bg" data-c="' + c[0] + '" aria-pressed="' + ((S.bg || '#FFFFFF').toUpperCase() === c[0] ? 'true' : 'false') + '"><i style="background:' + c[0] + '"></i>' + c[1] + '</button>'; }).join('') + '</div><label class="hint" for="bgIn">Oppure scegli un colore a piacere</label><input id="bgIn" type="color" value="' + esc((S.bg || '#FFFFFF').toLowerCase()) + '" style="width:100%;height:48px;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:4px"></div>' +
-      '<div class="card"><h3>Cambia PIN</h3><p class="muted">Scegli un PIN tuo, da 4 a 8 cifre. Non dirlo a nessuno.</p>' +
+      (isFullAcc() ? secCard('<p class="muted">Scegli un PIN tuo, da 4 a 8 cifre. Non dirlo a nessuno.</p>' +
       '<label class="muted" for="pnOld">PIN attuale</label><input class="field" id="pnOld" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="current-password">' +
       '<label class="muted" for="pnNew">Nuovo PIN</label><input class="field" id="pnNew" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="new-password">' +
       '<label class="muted" for="pnNew2">Ripeti il nuovo PIN</label><input class="field" id="pnNew2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="new-password">' +
-      '<p class="muted" id="pnMsg" role="status" style="min-height:1.3em"></p><button class="btn" data-act="pinchange">Salva il nuovo PIN</button></div>' +
+      '<p class="muted" id="pnMsg" role="status" style="min-height:1.3em"></p><button class="btn" data-act="pinchange">Salva il nuovo PIN</button>') : '<div class="card"><h3>Cambia PIN</h3><p class="muted">Scegli un PIN tuo, da 4 a 8 cifre. Non dirlo a nessuno.</p>' +
+      '<label class="muted" for="pnOld">PIN attuale</label><input class="field" id="pnOld" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="current-password">' +
+      '<label class="muted" for="pnNew">Nuovo PIN</label><input class="field" id="pnNew" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="new-password">' +
+      '<label class="muted" for="pnNew2">Ripeti il nuovo PIN</label><input class="field" id="pnNew2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="new-password">' +
+      '<p class="muted" id="pnMsg" role="status" style="min-height:1.3em"></p><button class="btn" data-act="pinchange">Salva il nuovo PIN</button></div>') +
       (isOff() ? '' : '<div class="card"><h3>Istruzioni a voce</h3><p class="muted">L’app legge ad alta voce ogni istruzione, così non devi guardare lo schermo mentre guidi.</p>' +
       '<button class="check" data-act="voice" aria-pressed="' + (S.voice ? 'true' : 'false') + '"><i>✓</i><span>Voce attiva</span></button></div>' +
       '<div class="card"><h3>Velocità e chilometri</h3><p class="muted">Il contachilometri usa il GPS del telefono. Se il telefono non lo permette, puoi vedere come appare con valori simulati.</p>' +
@@ -2050,7 +2131,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (!MG.draft) MG.draft = newDraft();
     var d = MG.draft, o = MG.opts, h = '<div class="wrap"><h2>Logistica</h2><p class="muted">Crea tappe, anche urgenti o straordinarie, e scegli chi le fa. Le vede subito nella sua schermata del turno.</p>';
     h += peerCard();
-    if (tok()) h += '<button class="btn primary" data-act="nav" data-v="nuovo">+ Nuovo turno o consegna</button>' + custCard() + fleetCard();
+    if (tok()) h += '<button class="btn primary" data-act="nav" data-v="nuovo">+ Nuovo turno o consegna</button>' + (isFullAcc() ? '' : custCard()) + fleetCard();
     if (!tok()) return h + '<div class="note"><b>Serve la connessione.</b> Esci e rientra con il tuo PIN personale quando sei online.</div></div>';
     if (!o) return h + '<div class="note">' + (MG.err ? esc(MG.err) : 'Carico i dati…') + '</div><button class="btn" data-act="mgreload">Riprova</button></div>';
     h += '<div class="row"><h3>Consegne inviate</h3><button class="btn sm" data-act="mgreload">Aggiorna</button></div>';
@@ -2639,6 +2720,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       var ch = false;
       if (r.full && SESSION.role !== 'admin') { SESSION.role = 'admin'; ch = true; }
       var w = !!r.works; if (!!SESSION.works !== w) { SESSION.works = w; ch = true; }
+      var fu = !!r.full; if (!!SESSION.full !== fu) { SESSION.full = fu; ch = true; }
       if (!!SESSION.locator !== !!r.locator) { SESSION.locator = !!r.locator; ch = true; }
       if (SESSION.locator) { locApply(); loadPeople(); }
       if (ch) { try { localStorage.setItem(SKEY, JSON.stringify(SESSION)); } catch (e) {} }
@@ -2751,7 +2833,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function setBg(hex) { S.bg = hex; save(); applyBg(hex); }
   applyBg(S.bg);
   function viewAltro() {
-    var items = [['ore', 'Ore lavorate', 'Tabella mensile delle ore di ogni dipendente'], ['programma', 'Programma', 'Giri e tappe dei prossimi giorni'], ['nuovo', 'Nuovo turno', 'Chiedi a Claude o aggiungi una consegna'], ['richieste', 'Richieste', 'Richieste per le barche'], ['ddt', 'DDT', 'Documenti di trasporto da consegnare e firmati'], ['contatti', 'Contatti', 'Rubrica dell’azienda'], ['impost', 'Impostazioni', 'Voce e colore dello sfondo']];
+    var items = [['ore', 'Ore lavorate', 'Tabella mensile delle ore di ogni dipendente'], ['programma', 'Programma', 'Giri e tappe dei prossimi giorni'], ['nuovo', 'Nuovo turno', 'Chiedi a Claude o aggiungi una consegna'], ['richieste', 'Richieste', 'Richieste per le barche'], ['ddt', 'DDT', 'Documenti di trasporto da consegnare e firmati'], ['contatti', 'Contatti', 'Rubrica dell’azienda'], ['impost', 'Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
     return '<div class="wrap"><h2>Altro</h2>' + items.map(function (x) {
       return '<button class="card" data-act="nav" data-v="' + x[0] + '" style="text-align:left;display:flex;flex-direction:column;gap:2px"><b>' + x[1] + '</b><span class="muted">' + x[2] + '</span></button>';
     }).join('') + '</div>';
@@ -2864,7 +2946,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01f';
+  var APP_V = '2026-11-01h';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -3229,10 +3311,11 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (!CU.list && !CU.busy) { CU.busy = true; loadCust().then(function () { CU.busy = false; }); }
     var stops = (MG.opts && MG.opts.stops) || [];
     var h = '<section class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Clienti: account con PIN</h3><p class="muted">Ogni cliente entra dalla schermata di accesso con il suo PIN: vede la barca in arrivo, le consegne dei prossimi giorni e può annullarle. Tu e Lisa ricevete un avviso quando annulla.</p><button class="btn" data-act="cupdf">PDF con i PIN di tutti i clienti</button>';
-    if (CU.newPin) h += '<div class="note" role="status"><b>' + esc(CU.newPin.name) + '</b>: PIN <b style="font-size:22px;letter-spacing:.1em">' + esc(CU.newPin.pin) + '</b><br>Annotalo ora: il PIN non si può rivedere (se si perde, se ne crea uno nuovo).<div class="pgla" style="margin-top:8px"><button class="btn sm" data-act="cumsg">Invia indirizzo e PIN</button><button class="btn sm quiet" data-act="cupinok">Fatto</button></div></div>';
+    if (CU.newPin) h += '<div class="note" role="status"><b>' + esc(CU.newPin.name) + '</b>: PIN <b style="font-size:22px;letter-spacing:.1em">' + esc(CU.newPin.pin) + '</b><br>' + (isFullAcc() ? 'Lo ritrovi sempre in Impostazioni › Sicurezza › PIN utenti.' : 'Annotalo ora: il PIN non si può rivedere (se si perde, se ne crea uno nuovo).') + '<div class="pgla" style="margin-top:8px"><button class="btn sm" data-act="cumsg">Invia indirizzo e PIN</button><button class="btn sm quiet" data-act="cupinok">Fatto</button></div></div>';
     h += '<label class="hint" for="cuPhone">Numero da chiamare per i problemi (lo vedono i clienti)</label><div class="pgs"><input id="cuPhone" class="field txt" inputmode="tel" placeholder="Es. 041 1234567" data-cu="phone" value="' + esc(CU.ph == null ? '' : CU.ph) + '"><button class="btn sm" data-act="cuphone">Salva numero</button></div>';
     if (CU.list && CU.list.length) h += CU.list.map(function (c) {
-      return '<div class="pgl"><div><b>' + esc(c.name) + '</b><div class="muted">Tappa: ' + esc(c.stop) + '</div></div><div class="pgla"><button class="btn sm" data-act="cupin" data-id="' + c.id + '" data-n="' + esc(c.name) + '">Nuovo PIN</button><button class="btn sm quiet" data-act="curm" data-id="' + c.id + '" aria-label="Togli ' + esc(c.name) + '">✕</button></div></div>';
+      var cp = view === 'pin' && PN.d ? (PN.d.cust.filter(function (z) { return z.id === c.id; })[0] || {}).pin : undefined;
+      return '<div class="pgl"><div><b>' + esc(c.name) + '</b><div class="muted">Tappa: ' + esc(c.stop) + '</div></div>' + (cp !== undefined ? pinCell(cp) : '') + '<div class="pgla"><button class="btn sm" data-act="cupin" data-id="' + c.id + '" data-n="' + esc(c.name) + '">Nuovo PIN</button><button class="btn sm quiet" data-act="curm" data-id="' + c.id + '" aria-label="Togli ' + esc(c.name) + '">✕</button></div></div>';
     }).join(''); else if (CU.list) h += '<p class="muted">Ancora nessun cliente.</p>';
     h += '<div class="hint">Nuovo cliente</div><input class="field txt" placeholder="Nome (es. Caritas)" aria-label="Nome cliente" data-cu="name" value="' + esc(CU.name) + '">' +
       '<select class="field" data-cu="stop" aria-label="Tappa del cliente" style="text-transform:none"><option value="">Quale tappa è?</option>' + stops.map(function (n) { return '<option' + (CU.stop === n ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select>' +
@@ -3967,12 +4050,13 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     $('today').textContent = new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
     var g = $('gear'); g.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS.gear + '</svg>'; if (view === 'impost') g.setAttribute('aria-current', 'page'); else g.removeAttribute('aria-current');
     var cur = view === 'guida' ? 'turno' : view;
-    if (isFull && ['ore', 'programma', 'richieste', 'contatti', 'impost', 'ddt'].indexOf(cur) >= 0) cur = 'altro';
+    if (view === 'pin' && !isFullAcc()) { view = 'impost'; cur = 'impost'; }
+    if (isFull && ['ore', 'programma', 'richieste', 'contatti', 'impost', 'ddt', 'pin'].indexOf(cur) >= 0) cur = 'altro';
     var NV = isOff() ? NAV_OFF : isAdm ? NAV_ADMIN : isFull ? NAV_FULL : (isMgr() ? NAV_MGR : NAV);
     drawDial(NV, cur);
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurno, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost }[view] || viewTurno;
+    var fn = { admin: viewAdmin, turno: viewTurno, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     var m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); m.scrollTop = (view === 'guida') ? 0 : sc;
     if (view === 'ddt') ddApplySearch();
