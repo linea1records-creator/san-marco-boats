@@ -640,10 +640,10 @@ body.drive .wd .stpanel { flex: 1; justify-content: flex-start; }
 .minirow.drvbtns .btn { flex: 0 0 auto; width: auto; min-width: 84px; padding: 8px 16px; }
 .minirow.drvbtns .gwb { min-width: 48px; padding: 0; }
 body.drive-open .main { padding-bottom: 176px; }
-.mapbox[data-ms="dark"] .mtiles img.tb { filter: invert(1) hue-rotate(180deg) brightness(.82) contrast(.9) saturate(.55); }
-.mapbox[data-ms="blue"] .mtiles img.tb { filter: invert(1) hue-rotate(180deg) brightness(.8) contrast(.95) saturate(.4) sepia(1) hue-rotate(175deg) saturate(2.4); }
-.mapbox[data-ms="green"] .mtiles img.tb { filter: invert(1) hue-rotate(180deg) brightness(.75) contrast(1.05) saturate(.3) sepia(1) hue-rotate(75deg) saturate(2.6); }
-.mapbox[data-ms="light"] .mtiles img.tb { filter: none; }
+.mapbox[data-ms="dark"] .mtiles .mtb { filter: invert(1) hue-rotate(180deg) brightness(.82) contrast(.9) saturate(.55); }
+.mapbox[data-ms="blue"] .mtiles .mtb { filter: invert(1) hue-rotate(180deg) brightness(.8) contrast(.95) saturate(.4) sepia(1) hue-rotate(175deg) saturate(2.4); }
+.mapbox[data-ms="green"] .mtiles .mtb { filter: invert(1) hue-rotate(180deg) brightness(.75) contrast(1.05) saturate(.3) sepia(1) hue-rotate(75deg) saturate(2.6); }
+.mapbox[data-ms="light"] .mtiles .mtb { filter: none; }
 .mapbox[data-ms="light"] { background: #E8E4DC; }
 
 
@@ -867,7 +867,7 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .mapbox { position: relative; flex: 1; min-height: 150px; margin-top: 8px; border-radius: 12px; overflow: hidden; background: #0B1317; box-shadow: inset 0 0 0 1px #2A3C44; }
 .mtiles, .msvg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .mtiles img { position: absolute; width: 256px; height: 256px; max-width: none; user-select: none; -webkit-user-drag: none; }
-.mtiles img.tb { filter: invert(1) hue-rotate(180deg) brightness(.82) contrast(.9) saturate(.55); }
+.mtiles .mtb { filter: invert(1) hue-rotate(180deg) brightness(.82) contrast(.9) saturate(.55); }
 .boatpick { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; min-height: 64px; }
 .boatpick b { font-size: 20px; }
 .swatches { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -884,7 +884,9 @@ body.drive .stpanel .gdl { font-size: 16px; }
 details.card summary { cursor: pointer; }
 .fleetbox { position: relative; height: 280px; border-radius: 12px; overflow: hidden; background: #0B1317; box-shadow: inset 0 0 0 1px #2A3C44; }
 .fleetbox .mtiles img { position: absolute; width: 256px; height: 256px; max-width: none; }
-.fleetbox .mtiles img.tb { filter: invert(1) hue-rotate(180deg) brightness(.82) contrast(.9) saturate(.55); }
+.mtiles .mtb, .mtiles .mts { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
+.mtiles img.tlb { width: 258px; height: 258px; margin: -1px 0 0 -1px; }
+.fleetbox .mtiles .mtb { filter: invert(1) hue-rotate(180deg) brightness(.82) contrast(.9) saturate(.55); }
 .mhud { position: absolute; left: 8px; bottom: 6px; font-size: 13px; color: #F2F7F5; background: rgba(0,0,0,.6); padding: 3px 9px; border-radius: 999px; font-family: var(--font-mono); }
 .mhud b { color: #FFB27A; }
 .mctl { position: absolute; right: 6px; top: 6px; display: flex; flex-direction: column; gap: 6px; }
@@ -3286,6 +3288,10 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var FLEET = { keys: {} };
   function paintTiles(tl, keys, z, x0, y0, W, H, sea) {
     var n = Math.pow(2, z), need = {}, layers = sea ? ['b', 's'] : ['b'];
+    // le tessere stanno in due strati: il filtro colore va sullo strato intero, così non compaiono righe tra una tessera e l'altra
+    var lb = tl.querySelector('.mtb'), ls = tl.querySelector('.mts');
+    if (!lb) { lb = document.createElement('div'); lb.className = 'mtb'; tl.appendChild(lb); }
+    if (!ls) { ls = document.createElement('div'); ls.className = 'mts'; tl.appendChild(ls); }
     for (var tx = Math.floor(x0 / 256); tx <= Math.floor((x0 + W) / 256); tx++) {
       for (var ty = Math.floor(y0 / 256); ty <= Math.floor((y0 + H) / 256); ty++) {
         if (ty < 0 || ty >= n) continue;
@@ -3293,12 +3299,13 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         layers.forEach(function (L) {
           var key = L + z + '/' + wx + '/' + ty + '@' + tx, im = keys[key];
           if (!im) {
-            im = new Image(); im.className = L === 'b' ? 'tb' : 'ts'; im.alt = ''; im.draggable = false;
+            im = new Image(); im.className = L === 'b' ? 'tlb' : 'tls'; im.alt = ''; im.draggable = false;
             im.onerror = function () { im.style.visibility = 'hidden'; };
             im.src = L === 'b' ? 'https://tile.openstreetmap.org/' + z + '/' + wx + '/' + ty + '.png' : 'https://tiles.openseamap.org/seamark/' + z + '/' + wx + '/' + ty + '.png';
             keys[key] = im;
           }
-          if (im.parentNode !== tl) tl.appendChild(im);
+          var host = L === 'b' ? lb : ls;
+          if (im.parentNode !== host) host.appendChild(im);
           im.style.left = Math.round(tx * 256 - x0) + 'px'; im.style.top = Math.round(ty * 256 - y0) + 'px'; need[key] = 1;
         });
       }
@@ -4181,7 +4188,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02o';
+  var APP_V = '2026-11-02q';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
