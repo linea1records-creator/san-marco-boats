@@ -130,6 +130,20 @@ li.on .ddwk{background:#4FC3F7;border-color:#4FC3F7;color:#0B1317}.ddwk.ok{borde
 .mgt{flex:0 0 108px!important;width:108px!important}
 .mgx{flex:none;border:0;background:none;font-size:15px;opacity:.5;padding:10px 2px;cursor:pointer;color:inherit}
 .mgact .btn{width:auto;margin:0}.mgact .btn.primary{flex:1}
+.doclist{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:6px}
+.doclist li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;box-shadow:0 0 0 1px var(--line,#e2e5ea)}
+.doclist li.dmiss{opacity:.55}.dico{font-size:20px;width:24px;text-align:center}.dtx{flex:1;min-width:0;display:flex;flex-direction:column}.dtx small{font-size:12.5px;opacity:.7}
+.doclist .btn{width:auto;margin:0}
+.card.bdet{padding:0 14px;display:block}.bdet summary{display:flex;justify-content:space-between;align-items:center;padding:12px 0;cursor:pointer;list-style:none}.bdet summary::-webkit-details-marker{display:none}.bdet[open] .secc{transform:rotate(90deg)}
+.crq{margin-top:14px}
+.pgc{display:flex;flex-direction:column;gap:8px}.pgch h3{margin:0}
+.pgct{display:flex;gap:4px}.pgct button{border:0;border-radius:8px;padding:6px 10px;background:rgba(127,127,127,.14);color:inherit;font:inherit;font-weight:700;cursor:pointer}.pgct button:disabled{opacity:.3}
+.pgb{padding:8px 0 8px 10px;box-shadow:inset 3px 0 0 var(--bc)}.pgb+.pgb{margin-top:6px}
+.tlv{list-style:none;margin:0;padding:0}
+.tlv li{display:flex;align-items:center;gap:10px;padding:5px 0}.tlv li i{flex:none;width:10px;height:10px;border-radius:50%;background:var(--bc)}
+.tlv li span:last-child{display:flex;flex-direction:column}.tlv small{font-size:12px;opacity:.7}.tlv .mono{min-width:58px}
+.tlv li.tlh{font-size:12px;letter-spacing:.06em;opacity:.55;padding-top:10px;border-bottom:1px solid var(--line,#eef0f3)}
+.pgtray{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 </style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -1840,7 +1854,95 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (rc.length > 1) { DDC = { k: rk, b: rb, i: ri, f: f }; openSheet('<h2>Di quale cliente è il DDT?</h2><p class="muted">' + esc(rs.name) + '</p><div class="btns">' + rc.map(function (cn) { return '<button class="btn" data-act="ddtcli" data-c="' + esc(cn) + '">' + esc(cn) + '</button>'; }).join('') + '<button class="btn quiet" data-act="close">Annulla</button></div>'); return; }
     ddtAttach(rk, rb, ri, f);
   });
+  /* ---------- Trasportatori (Elia, Daffa): Barche = documenti per i controlli + richieste ---------- */
+  function isCrewOnly() { return !!SESSION && !isMgr() && !isOff() && !isFullAcc(); }
+  function viewBarcaCrew() {
+    if (draft) return viewRichieste();
+    var code = BF.sel || (S.shift && S.shift.boat) || myBoatCode() || boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO'; })[0];
+    if (!BF.files[code] && tok() && !BF.loading) { BF.loading = true; setTimeout(function () { BF.loading = false; loadFiles(code); }, 0); }
+    var files = BF.files[code], labels = DOCS.slice(); (files || []).forEach(function (f) { if (labels.indexOf(f.doc) < 0) labels.push(f.doc); });
+    var h = '<div class="wrap"><h2>Barche</h2><h3>Documenti per i controlli</h3>' +
+      '<div class="chips" role="group" aria-label="Barca">' + boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO'; }).map(function (k) { return '<button class="chip" data-act="bselc" data-c="' + k + '" aria-pressed="' + (k === code ? 'true' : 'false') + '">' + esc(BOATS[k].name) + '</button>'; }).join('') + '</div>';
+    if (!tok()) h += '<p class="hint">Serve la connessione per vedere i documenti.</p>';
+    else if (!files) h += '<p class="muted">Carico i documenti…</p>';
+    else h += '<ul class="doclist">' + labels.map(function (l) {
+      var f = files.filter(function (x) { return x.doc === l; })[0];
+      return '<li' + (f ? '' : ' class="dmiss"') + '><span class="dico">' + (f ? '📄' : '—') + '</span><span class="dtx"><b>' + esc(l) + '</b><small>' + (f ? 'aggiornato il ' + dmy(Date.parse(f.at)) : 'non ancora caricato') + '</small></span>' +
+        (f ? '<button class="btn sm primary" data-act="docopen" data-id="' + esc(f.id) + '">Mostra</button>' : '') + '</li>';
+    }).join('') + '</ul>';
+    var mine = S.shift && S.shift.boat === code;
+    if (mine) h += '<details class="card bdet"><summary><b>Controlli prima di partire</b><span class="secc">›</span></summary><ul class="checks">' + PRE.map(function (t, i) { return '<li><button class="check" data-act="pre" data-i="' + i + '" aria-pressed="' + (S.shift.pre[i] ? 'true' : 'false') + '"><i>✓</i><span>' + esc(t) + '</span></button></li>'; }).join('') + '</ul></details>';
+    var rq = viewRichieste().replace(/^<div class="wrap">/, '').replace(/<\/div>$/, '');
+    h += '<div class="crq">' + rq.replace('<h2>Di cosa hai bisogno?</h2>', '<h3>Richieste · di cosa hai bisogno?</h3>') + '</div>';
+    h += '<button class="aslink" data-act="nav" data-v="contatti">Rubrica e numeri utili ›</button>';
+    return h + '</div>';
+  }
+  /* ---------- Programma dei trasportatori: schede a scelta, da aggiungere, togliere e spostare ---------- */
+  var PGL_DEF = { order: ['mia', 'tutte', 'settimana', 'timeline', 'storico'], hidden: { timeline: true } };
+  var PGL_N = { mia: 'La mia barca', tutte: 'Tutte le barche', settimana: 'Settimana', timeline: 'Linea del tempo', storico: 'Turni conclusi' };
+  var PGE = false;
+  function pglGet() { var g = S.pgl; if (!g || !g.order) g = S.pgl = JSON.parse(JSON.stringify(PGL_DEF)); PGL_DEF.order.forEach(function (k) { if (g.order.indexOf(k) < 0) g.order.push(k); }); g.hidden = g.hidden || {}; return g; }
+  function pgStopLi(s, i, mine, cur) {
+    var st = '', cls = '';
+    if (mine) { var r = S.shift.done[i]; if (r) { st = '<span class="pill ' + (r.status === 'ok' ? 'ok' : 'bad') + '">' + (r.status === 'ok' ? 'Fatta' : 'Problema') + '</span>'; cls = ' past'; } else if (i === cur) { st = '<span class="pill go">In corso</span>'; cls = ' now'; } }
+    return '<li class="stp' + cls + (s.cancelled ? ' cxl' : '') + '"><span class="mono">' + esc(s.t ? stopTime(s) : '—') + '</span><span><b>' + esc(s.name) + '</b>' + (s.note ? '<small>' + esc(s.note) + '</small>' : '') + '</span>' + st + '</li>';
+  }
+  function pgBoatCard(k, day, id, big) {
+    var b = BOATS[id], bd = day.boats[id], mine = S.shift && S.shift.day === k && S.shift.boat === id, cur = mine ? curIdx() : -2;
+    var h = '<div class="pgb" style="--bc:' + bcol(id) + '"><div class="row"><div><b style="font-size:' + (big ? 20 : 17) + 'px">' + esc(b.name) + '</b><div class="muted">' + esc(b.crew) + '</div></div><div class="pills">' + (bd.onCall ? '<span class="pill bad">Emergenze</span>' : '') + (bd.off ? '<span class="pill">Riposo</span>' : '') + '</div></div>';
+    if ((bd.stops || []).length) h += '<ul class="stl">' + bd.stops.map(function (s, i) { return pgStopLi(s, i, mine, cur); }).join('') + '</ul>';
+    else if (!bd.off) h += '<p class="muted">' + (bd.extraOnly ? 'Solo consegne straordinarie.' : 'Nessuna tappa: solo reperibilità.') + '</p>';
+    return h + '</div>';
+  }
+  function pgTimeline(k, day) {
+    var ev = []; boatCodes().forEach(function (id) { var bd = day.boats[id]; if (!bd || bd.off || BOATS[id].test) return; (bd.stops || []).forEach(function (s) { if (s.t && !s.cancelled) ev.push({ t: s.t, s: s, id: id }); }); });
+    if (!ev.length) return '<p class="muted">Nessuna tappa con orario.</p>';
+    ev.sort(function (a, b) { return a.t < b.t ? -1 : a.t > b.t ? 1 : 0; });
+    var last = '';
+    return '<ol class="tlv">' + ev.map(function (e) { var hh = e.t.slice(0, 2), sep = hh !== last ? '<li class="tlh">' + hh + ':00</li>' : ''; last = hh;
+      return sep + '<li style="--bc:' + bcol(e.id) + '"><span class="mono">' + esc(stopTime(e.s)) + '</span><i></i><span><b>' + esc(e.s.name) + '</b><small>' + esc(BOATS[e.id].name) + '</small></span></li>'; }).join('') + '</ol>';
+  }
+  function pgHistory() {
+    if (!S.history.length) return '<p class="muted">Qui trovi i turni che hai chiuso.</p>';
+    return '<ul class="list">' + S.history.slice(0, 6).map(function (x) {
+      return '<li><div class="item hist">' + (x.thumb ? '<img class="thumb" src="' + x.thumb + '" alt="">' : '<span class="thumb ph">no foto</span>') + '<span><b>' + esc(x.name) + (x.day ? ' · ' + esc(x.day) : '') + '</b><small>' + dmy(x.start) + ' · ' + hm(x.start) + '–' + hm(x.end) + '</small><small>' + x.ok + (x.total ? ' di ' + x.total : '') + ' tappe</small></span></div></li>';
+    }).join('') + '</ul>';
+  }
+  function viewProgrammaCrew() {
+    var keys = DAYKEYS.slice().sort(), k = viewDay || (S.shift ? S.shift.day : pickDay()); if (!PROGRAM[k]) k = viewDay = pickDay();
+    var day = PROGRAM[k], g = pglGet(), me = (S.shift && S.shift.boat) || myBoatCode();
+    var h = '<div class="wrap"><div class="row"><h2>Programma</h2><button class="btn sm" data-act="pgle">' + (PGE ? 'Fatto' : '⚙ Layout') + '</button></div>' +
+      '<div class="chips" role="group" aria-label="Giorno">' + keys.map(function (d) { return '<button class="chip" data-act="day" data-k="' + d + '" aria-pressed="' + (d === k ? 'true' : 'false') + '">' + esc(PROGRAM[d].short) + '</button>'; }).join('') + '</div>' +
+      '<h3>' + esc(day.label) + '</h3>';
+    if (PGE) h += '<p class="hint">Sposta le schede con ↑ ↓, togli quelle che non ti servono, aggiungine altre in fondo.</p>';
+    var vis = g.order.filter(function (c) { return !g.hidden[c]; });
+    vis.forEach(function (c, n) {
+      var body = '';
+      if (c === 'mia') body = me && day.boats[me] ? pgBoatCard(k, day, me, true) : '<p class="muted">Inizia un turno per vedere qui la tua barca.</p>';
+      else if (c === 'tutte') body = boatCodes().filter(function (id) { return day.boats[id] && !BOATS[id].test && (c !== 'tutte' || id !== me || g.hidden.mia); }).map(function (id) { return pgBoatCard(k, day, id, false); }).join('');
+      else if (c === 'settimana') body = ldWeek(k);
+      else if (c === 'timeline') body = pgTimeline(k, day);
+      else if (c === 'storico') body = pgHistory();
+      h += '<section class="card pgc"><div class="row pgch"><h3>' + PGL_N[c] + (c === 'tutte' && me && !g.hidden.mia ? ' <span class="muted">(le altre)</span>' : '') + '</h3>' +
+        (PGE ? '<span class="pgct"><button data-act="pglmv" data-c="' + c + '" data-d="-1"' + (n ? '' : ' disabled') + ' aria-label="Su">↑</button><button data-act="pglmv" data-c="' + c + '" data-d="1"' + (n < vis.length - 1 ? '' : ' disabled') + ' aria-label="Giù">↓</button><button data-act="pglhide" data-c="' + c + '">Togli</button></span>' : '') + '</div>' + body + '</section>';
+    });
+    var gone = g.order.filter(function (c) { return g.hidden[c]; });
+    if (PGE && gone.length) h += '<div class="wtray pgtray"><span>Aggiungi:</span>' + gone.map(function (c) { return '<button class="btn sm" data-act="pglshow" data-c="' + c + '">+ ' + PGL_N[c] + '</button>'; }).join('') + '</div>';
+    if (!vis.length && !PGE) h += '<p class="muted">Nessuna scheda: tocca ⚙ Layout per sceglierle.</p>';
+    return h + '<p class="hint">Gli orari possono subire variazioni. Per dubbi scrivi alla logistica.</p></div>';
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
+    var a = el.getAttribute('data-act'), g;
+    if (a === 'bselc') { BF.sel = el.getAttribute('data-c'); render(); loadFiles(BF.sel); }
+    else if (a === 'pgle') { PGE = !PGE; render(); }
+    else if (a === 'pglmv') { g = pglGet(); var c = el.getAttribute('data-c'), vis = g.order.filter(function (x) { return !g.hidden[x]; }), i = vis.indexOf(c), j = i + +el.getAttribute('data-d'); if (j < 0 || j >= vis.length) return; var a1 = g.order.indexOf(vis[i]), a2 = g.order.indexOf(vis[j]); g.order[a1] = vis[j]; g.order[a2] = vis[i]; save(); render(); }
+    else if (a === 'pglhide') { g = pglGet(); g.hidden[el.getAttribute('data-c')] = true; save(); render(); }
+    else if (a === 'pglshow') { g = pglGet(); delete g.hidden[el.getAttribute('data-c')]; save(); render(); }
+    else if (a === 'ldpick' && view === 'programma') { viewDay = el.getAttribute('data-k'); if (!PROGRAM[viewDay]) viewDay = null; render(); }
+  });
   function viewProgramma() {
+    if (isCrewOnly()) return viewProgrammaCrew();
     // giorni senza programma ma con consegne aggiunte (es. una domenica): li mostro lo stesso
     var VX = {}, keys = DAYKEYS.slice();
     var TL = isMgr() ? MG.list : isOff() ? XT.list : null;
@@ -3216,6 +3318,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   function fmtKB(n) { return n < 1048576 ? Math.max(1, Math.round(n / 1024)) + ' KB' : (n / 1048576).toFixed(1).replace('.', ',') + ' MB'; }
   function viewBarca() {
+    if (isCrewOnly()) return viewBarcaCrew();
     var code = curBoatCode(), ed = isEditor();
     if (!code) return '<div class="wrap"><div class="empty"><h2>Nessuna barca assegnata</h2><p>Inizia il turno per vedere scheda, motore e documenti della tua barca.</p><button class="btn primary" data-act="scan">Inizia turno</button></div></div>';
     var b = BOATS[code], mine = S.shift && S.shift.boat === code, E = BF.edit && BF.edit.code === code ? BF.edit : null, none = '<span class="muted">Da inserire</span>';
@@ -3452,7 +3555,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01r';
+  var APP_V = '2026-11-01s';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4623,7 +4726,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var NAV_ADMIN = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['ore', 'Ore'], ['barca', 'Barche'], ['programma', 'Programma'], ['contatti', 'Contatti']];
   var NAV_FULL = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['nuovo', 'Nuovo turno'], ['turno', 'Turno'], ['barca', 'Barche'], ['altro', 'Altro']];
   var NAV_MGR = [['programma', 'Programma'], ['nuovo', 'Nuovo turno'], ['notifiche', 'Notifiche'], ['logistica', 'Logistica'], ['turno', 'Turno'], ['richieste', 'Richieste'], ['ddt', 'DDT'], ['contatti', 'Contatti'], ['barca', 'Barca']];
-  var NAV = [['programma', 'Programma'], ['richieste', 'Richieste'], ['turno', 'Turno'], ['ddt', 'DDT'], ['contatti', 'Contatti'], ['barca', 'Barca']];
+  var NAV = [['turno', 'Turno'], ['programma', 'Programma'], ['barca', 'Barche']];
   var NAV_OFF = [['programma', 'Programma'], ['murano', 'Murano'], ['ddt', 'DDT'], ['contatti', 'Contatti']];
   function render() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
@@ -4643,6 +4746,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var cur = view === 'guida' ? 'turno' : view;
     if (view === 'pin' && !isFullAcc()) { view = 'impost'; cur = 'impost'; }
     if (isFull && ['ore', 'programma', 'richieste', 'contatti', 'impost', 'ddt', 'pin', 'admin', 'murano'].indexOf(cur) >= 0) cur = 'altro';
+    if (isCrewOnly() && ['richieste', 'contatti', 'ddt'].indexOf(cur) >= 0) cur = 'barca';
     var NV = isOff() ? NAV_OFF : isAdm ? NAV_ADMIN : isFull ? NAV_FULL : (isMgr() ? NAV_MGR : NAV);
     drawDial(NV, cur);
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
