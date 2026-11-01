@@ -184,6 +184,30 @@ li.on .ddwk{background:#4FC3F7;border-color:#4FC3F7;color:#0B1317}.ddwk.ok{borde
 .rubr{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid var(--line,#eef0f3)}.rubr span{flex:1;display:flex;flex-direction:column;min-width:0}.rubr small{font-size:13px;opacity:.7}
 .rubc{flex:none;width:44px;height:44px;border-radius:50%;background:#2E7D32;color:#fff;display:grid;place-items:center;text-decoration:none;font-size:20px}
 .rqbtn{display:flex;justify-content:space-between;align-items:center;font-weight:700;margin:4px 0 12px}.rqbtn b{background:#E65100;color:#fff;border-radius:999px;padding:0 8px;font-size:13px}
+.wal h2{margin-bottom:6px}
+.walist{list-style:none;margin:0;padding:0}
+.walist button{display:flex;align-items:center;gap:12px;width:100%;padding:10px 4px;border:0;border-bottom:1px solid var(--line,#eef0f3);background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.waav{flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:17px}
+.walm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.walm b{font-size:16.5px}
+.walm>span{font-size:14px;color:var(--muted,#667);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wami{font-style:normal;font-weight:800}.wami.ok{color:#34B7F1}.wami.late{color:#E65100}.wami.bad{color:#D93025}.wami.go{color:#25D366}
+.wart{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:4px}.wart small{font-size:12px;color:var(--muted,#667)}.wart small.un{color:#25D366;font-weight:700}
+.wau{background:#25D366;color:#fff;border-radius:999px;min-width:20px;height:20px;padding:0 6px;display:grid;place-items:center;font-size:12px}
+.wa{position:fixed;inset:0;z-index:25;display:flex;flex-direction:column;background:#ECE5DD}
+.wahd{display:flex;align-items:center;gap:10px;padding:max(10px,env(safe-area-inset-top,0px)) 10px 10px;background:#075E54;color:#fff}
+.wabk{border:0;background:none;color:#fff;font-size:30px;line-height:1;padding:0 6px;cursor:pointer}
+.wahd .waav{width:40px;height:40px;font-size:15px;box-shadow:0 0 0 2px rgba(255,255,255,.4)}
+.wanm{display:flex;flex-direction:column}.wanm small{opacity:.8;font-size:12.5px}
+.wabody{flex:1;overflow-y:auto;padding:10px 10px 200px;display:flex;flex-direction:column;gap:6px;background-color:#ECE5DD;background-image:radial-gradient(rgba(0,0,0,.035) 1px,transparent 1px);background-size:14px 14px}
+.wadate{text-align:center;margin:8px 0 4px}.wadate span{background:#E1F2FB;color:#4A5A66;font-size:12.5px;padding:4px 10px;border-radius:8px;box-shadow:0 1px 1px rgba(0,0,0,.08)}
+.wab{position:relative;align-self:flex-start;max-width:86%;display:flex;gap:8px;background:#fff;color:#111;border-radius:0 10px 10px 10px;padding:7px 10px 18px 9px;box-shadow:0 1px 1px rgba(0,0,0,.12)}
+.wab::before{content:"";position:absolute;left:-7px;top:0;border-top:8px solid #fff;border-left:8px solid transparent}
+.wab.new{box-shadow:0 0 0 2px #25D366}
+.waic{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;color:#fff;background:#8696A0;margin-top:1px}
+.wab.go .waic{background:#25D366}.wab.end .waic{background:#6A5ACD}.wab.ok .waic{background:#34B7F1}.wab.late .waic{background:#E65100}.wab.bad .waic{background:#D93025}.wab.ddt .waic{background:#00897B}.wab.req .waic{background:#E07B00}
+.watx{display:flex;flex-direction:column;gap:2px;font-size:15px;line-height:1.3}.watx span{font-size:13.5px;color:#54656F}
+.wab.late .watx span{color:#E65100;font-weight:600}.wab.bad .watx span{color:#D93025}
+.watm{position:absolute;right:8px;bottom:3px;font-style:normal;font-size:11px;color:#8696A0}
 </style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -3720,46 +3744,61 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (PUSH.state === 'unsupported') return '<div class="note">Questo browser non supporta le notifiche push. Gli avvisi arrivano comunque qui dentro, ad app aperta.</div>';
     return '';
   }
-  /* ---------- Notifiche in cartelle: per tipo, per trasportatore o per barca ---------- */
-  var NTV = { by: 'tipo', only: '' };
-  try { var _ntv = JSON.parse(localStorage.getItem('smb-ntv') || 'null'); if (_ntv && _ntv.by) NTV = _ntv; } catch (e) {}
+  /* ---------- Notifiche come chat (stile WhatsApp): una conversazione per trasportatore ---------- */
+  var NTC = { open: null };
   function ntKind(x) { return /^DDT/.test(x.title || '') ? 'ddt' : x.kind; }
-  var NT_KL = { shift_start: 'Inizi turno', shift_end: 'Fine turno', request: 'Richieste', ddt: 'DDT' };
-  function ntWho(x) { return x.who || String(x.title || '').replace(/ ha (iniziato|chiuso).*$/, '') || 'Altro'; }
-  function ntBoat(x) { return x.boat && BOATS[x.boat] ? BOATS[x.boat].name : (/Barca: ([^·]+)/.exec(x.body || '') || [0, 'Senza barca'])[1].trim(); }
-  function ntOpenSet() { try { return JSON.parse(localStorage.getItem('smb-ntopen') || '{}') || {}; } catch (e) { return {}; } }
+  function ntWho(x) { return x.who || String(x.title || '').replace(/ ha (iniziato|chiuso).*$/, '').replace(/^Richiesta da /, '') || 'Logistica'; }
+  function ntBoatName(x) { return x.boat && BOATS[x.boat] ? BOATS[x.boat].name : ((/Barca: ([^·]+)/.exec(x.body || '') || [0, ''])[1] || '').trim(); }
+  function ntMsg(x) {
+    var k = ntKind(x), b = ntBoatName(x), t = x.title || '', body = x.body || '';
+    if (k === 'shift_start') return { ic: '▶', cls: 'go', t: 'Ho iniziato il turno' + (b ? ' sulla ' + b : ''), s: '' };
+    if (k === 'shift_end') return { ic: '■', cls: 'end', t: 'Ho chiuso il turno', s: body.replace(/^Barca: [^·]+· ?/, '') };
+    if (k === 'stop' || k === 'stop_late') return { ic: '✓', cls: k === 'stop_late' ? 'late' : 'ok', t: t, s: body };
+    if (k === 'stop_problem') return { ic: '⚠', cls: 'bad', t: t, s: body };
+    if (k === 'ddt') return { ic: '✍', cls: 'ddt', t: t, s: body };
+    return { ic: '✉', cls: 'req', t: t.replace(/^Richiesta da [^:]*:?\s*/, 'Richiesta: '), s: body };
+  }
+  function ntDayLbl(ts) { var d = new Date(ts), n = new Date(); if (d.toDateString() === n.toDateString()) return 'Oggi'; var y = new Date(n.getTime() - 864e5); if (d.toDateString() === y.toDateString()) return 'Ieri'; return d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }); }
+  function ntInit(n) { return String(n || '?').split(' ').filter(Boolean).slice(0, 2).map(function (w) { return w[0].toUpperCase(); }).join(''); }
+  function ntChats() {
+    var by = {}, list = [];
+    NT.items.forEach(function (x) { var w = ntWho(x); if (!by[w]) { by[w] = { who: w, items: [], boat: null }; list.push(by[w]); } by[w].items.push(x); if (!by[w].boat && x.boat) by[w].boat = x.boat; });
+    list.forEach(function (c) { c.items.sort(function (a, b) { return a.at < b.at ? -1 : 1; }); c.last = c.items[c.items.length - 1]; c.unread = c.items.filter(function (x) { return NT.hl[x.id]; }).length; });
+    return list.sort(function (a, b) { return a.last.at < b.last.at ? 1 : -1; });
+  }
+  var NOKIA = '<button class="nokia" data-act="rubopen" aria-label="Rubrica: numeri di tutti"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 6h24a4 4 0 0 1 4 4v44a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V10a4 4 0 0 1 4-4z" fill="#2B3A33"/><rect x="21" y="12" width="22" height="15" rx="2" fill="#B8D88B"/><path d="M24 22l3-4 3 3 3-5 4 6" stroke="#2B3A33" stroke-width="1.6" fill="none"/><g fill="#CFD8D3"><circle cx="25" cy="35" r="2.6"/><circle cx="32" cy="35" r="2.6"/><circle cx="39" cy="35" r="2.6"/><circle cx="25" cy="42" r="2.6"/><circle cx="32" cy="42" r="2.6"/><circle cx="39" cy="42" r="2.6"/><circle cx="25" cy="49" r="2.6"/><circle cx="32" cy="49" r="2.6"/><circle cx="39" cy="49" r="2.6"/></g></svg></button>';
   function viewNotifiche() {
-    var items = NT.items.filter(function (x) { return !NTV.only || ntKind(x) === NTV.only; });
-    var key = NTV.by === 'chi' ? ntWho : NTV.by === 'barca' ? ntBoat : function (x) { return NT_KL[ntKind(x)] || 'Altro'; };
-    var groups = [], by = {};
-    items.forEach(function (x) { var k = key(x); if (!by[k]) { by[k] = { k: k, list: [] }; groups.push(by[k]); } by[k].list.push(x); });
-    if (NTV.by === 'tipo') { var ord = ['Inizi turno', 'Fine turno', 'Richieste', 'DDT', 'Altro']; groups.sort(function (a, b) { return ord.indexOf(a.k) - ord.indexOf(b.k); }); }
-    var op = ntOpenSet(), chips = [['', 'Tutte'], ['shift_start', 'Inizi turno'], ['shift_end', 'Fine turno'], ['request', 'Richieste'], ['ddt', 'DDT']];
-    var h = '<div class="wrap"><h2>Notifiche</h2>' + pushBlock() + '<button class="nokia" data-act="rubopen" aria-label="Rubrica: numeri di tutti"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 6h24a4 4 0 0 1 4 4v44a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V10a4 4 0 0 1 4-4z" fill="#2B3A33"/><rect x="21" y="12" width="22" height="15" rx="2" fill="#B8D88B"/><path d="M24 22l3-4 3 3 3-5 4 6" stroke="#2B3A33" stroke-width="1.6" fill="none"/><g fill="#CFD8D3"><circle cx="25" cy="35" r="2.6"/><circle cx="32" cy="35" r="2.6"/><circle cx="39" cy="35" r="2.6"/><circle cx="25" cy="42" r="2.6"/><circle cx="32" cy="42" r="2.6"/><circle cx="39" cy="42" r="2.6"/><circle cx="25" cy="49" r="2.6"/><circle cx="32" cy="49" r="2.6"/><circle cx="39" cy="49" r="2.6"/></g></svg></button>' +
-      '<div class="ntbar"><span class="muted">Cartelle per</span><div class="seg2">' + [['tipo', 'Tipo'], ['chi', 'Trasportatore'], ['barca', 'Barca']].map(function (o) { return '<button data-act="ntby" data-v="' + o[0] + '"' + (NTV.by === o[0] ? ' aria-pressed="true"' : '') + '>' + o[1] + '</button>'; }).join('') + '</div></div>' +
-      '<div class="ntchips">' + chips.map(function (c) { var n = c[0] ? NT.items.filter(function (x) { return ntKind(x) === c[0]; }).length : NT.items.length; return '<button data-act="ntonly" data-v="' + c[0] + '"' + (NTV.only === c[0] ? ' aria-pressed="true"' : '') + '>' + c[1] + ' <small>' + n + '</small></button>'; }).join('') + '</div>' +
-      (NT.err ? '<div class="note">Non riesco a caricare le notifiche: serve la connessione.</div>' : '');
-    if (!items.length) return h + (NT.err ? '' : '<div class="card"><p class="muted">Nessuna notifica qui.</p></div>') + '</div>';
-    h += groups.map(function (g, gi) {
-      var nNew = g.list.filter(function (x) { return NT.hl[x.id]; }).length, id = NTV.by + ':' + g.k, open = op[id] != null ? op[id] : (gi === 0 || nNew > 0);
-      var col = NTV.by === 'barca' ? (Object.keys(BOATS).filter(function (c) { return BOATS[c].name === g.k; }).map(bcol)[0] || '#888') : '';
-      return '<details class="card ntf"' + (open ? ' open' : '') + ' data-nf="' + esc(id) + '"><summary><span class="ntfi">' + (col ? '<i style="background:' + col + '"></i>' : '📁') + '</span><b>' + esc(g.k) + '</b><span class="muted">' + g.list.length + '</span>' + (nNew ? '<span class="ntnew">' + nNew + (nNew === 1 ? ' nuova' : ' nuove') + '</span>' : '') + '<span class="secc">›</span></summary><ul class="ntl">' +
-        g.list.map(function (x) {
-          var k = ntKind(x);
-          return '<li class="' + (NT.hl[x.id] ? 'new' : '') + '"><span class="ntd nt-' + k + '" aria-hidden="true">' + (NT_ICON[k] || '•') + '</span><span class="ntx"><b>' + esc(x.title) + '</b><span class="muted">' + esc(x.body || '') + '</span></span><span class="ntw2">' + esc(ntWhen(x.at)) + '</span></li>';
-        }).join('') + '</ul></details>';
-    }).join('');
-    return h + '</div>';
+    var chats = ntChats();
+    if (NTC.open) {
+      var c = chats.filter(function (x) { return x.who === NTC.open; })[0];
+      if (c) {
+        var lastDay = '', col = c.boat ? bcol(c.boat) : '#25D366';
+        var h = '<div class="wa"><div class="wahd"><button class="wabk" data-act="ntback" aria-label="Indietro">‹</button><span class="waav" style="background:' + col + '">' + esc(ntInit(c.who)) + '</span><span class="wanm"><b>' + esc(c.who) + '</b><small>' + esc(c.boat && BOATS[c.boat] ? BOATS[c.boat].name : 'messaggi automatici') + '</small></span></div><div class="wabody" id="waBody">';
+        c.items.forEach(function (x) {
+          var dl = ntDayLbl(x.at); if (dl !== lastDay) { lastDay = dl; h += '<div class="wadate"><span>' + esc(dl) + '</span></div>'; }
+          var m = ntMsg(x), tm = new Date(x.at).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+          h += '<div class="wab ' + m.cls + (NT.hl[x.id] ? ' new' : '') + '"><span class="waic">' + m.ic + '</span><div class="watx"><b>' + esc(m.t) + '</b>' + (m.s ? '<span>' + esc(m.s) + '</span>' : '') + '</div><i class="watm">' + tm + '</i></div>';
+        });
+        setTimeout(function () { var b = $('waBody'); if (b) b.scrollTop = b.scrollHeight; }, 30);
+        return h + '</div></div>';
+      }
+      NTC.open = null;
+    }
+    var h = '<div class="wrap wal"><h2>Notifiche</h2>' + pushBlock() + (NT.err ? '<div class="note">Non riesco a caricare le notifiche: serve la connessione.</div>' : '');
+    if (!chats.length) h += '<div class="card"><p class="muted">Nessun messaggio per ora.</p></div>';
+    h += '<ul class="walist">' + chats.map(function (c) {
+      var m = ntMsg(c.last), col = c.boat ? bcol(c.boat) : '#25D366', d = new Date(c.last.at), today = d.toDateString() === new Date().toDateString();
+      return '<li><button data-act="ntopen" data-w="' + esc(c.who) + '"><span class="waav" style="background:' + col + '">' + esc(ntInit(c.who)) + '</span><span class="walm"><b>' + esc(c.who) + '</b><span><i class="wami ' + m.cls + '">' + m.ic + '</i> ' + esc(m.t) + '</span></span>' +
+        '<span class="wart"><small class="' + (c.unread ? 'un' : '') + '">' + (today ? d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })) + '</small>' + (c.unread ? '<b class="wau">' + c.unread + '</b>' : '') + '</span></button></li>';
+    }).join('') + '</ul>';
+    return h + '</div>' + NOKIA;
   }
   document.addEventListener('click', function (e) {
-    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
-    var a = el.getAttribute('data-act');
-    if (a === 'ntby' || a === 'ntonly') { if (a === 'ntby') NTV.by = el.getAttribute('data-v'); else NTV.only = el.getAttribute('data-v'); try { localStorage.setItem('smb-ntv', JSON.stringify(NTV)); } catch (x) {} render(); }
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'ntopen') { NTC.open = el.getAttribute('data-w'); render(); setTimeout(function () { var ch = ntChats().filter(function (x) { return x.who === NTC.open; })[0]; if (ch) ch.items.forEach(function (x) { delete NT.hl[x.id]; }); }, 2500); }
+    else if (a === 'ntback') { NTC.open = null; render(); }
+    else if (a === 'nav' && el.getAttribute('data-v') === 'notifiche') NTC.open = null;
   });
-  document.addEventListener('toggle', function (e) {
-    var d = e.target; if (!d || !d.getAttribute || !d.getAttribute('data-nf')) return;
-    var o = ntOpenSet(); o[d.getAttribute('data-nf')] = d.open; try { localStorage.setItem('smb-ntopen', JSON.stringify(o)); } catch (x) {}
-  }, true);
   function sendPendingReqs() {
     if (!tok()) return;
     S.requests.filter(function (r) { return r.pend; }).forEach(function (r) {
@@ -3772,7 +3811,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02b';
+  var APP_V = '2026-11-02c';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
