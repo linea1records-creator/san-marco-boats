@@ -573,6 +573,25 @@ details.card summary { cursor: pointer; }
 .mzk { position: absolute; left: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; background: #F2F7F5; border: 3px solid #4FC3F7; box-shadow: 0 2px 8px rgba(0,0,0,.5); }
 .mza { margin-top: 2px; font-size: 9px; font-weight: 700; letter-spacing: .04em; color: #9FB4BB; background: none; border: 1px solid #3A4D55; border-radius: 10px; padding: 3px 4px; }
 .mza[aria-pressed="true"] { color: #0B1317; background: #4FC3F7; border-color: #4FC3F7; }
+.swr { position: relative; overflow: hidden; touch-action: pan-y; list-style: none; }
+.swr .swc { position: relative; z-index: 1; background: var(--surface); transition: transform .18s ease; border-top: 1px solid var(--line); }
+.swr:first-child .swc { border-top: 0; }
+.swr.drag .swc { transition: none; }
+.swr.open .swc { transform: translateX(-92px); }
+.swr.gone { opacity: .35; pointer-events: none; }
+.swdel { position: absolute; right: 0; top: 0; bottom: 0; width: 92px; border: 0; background: #D93025; color: #fff; font-weight: 700; font-size: 15px; }
+.tbtn { background: none; border: 0; padding: 0; text-align: left; font: inherit; color: var(--primary); font-size: 15px; text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
+.undobar { position: fixed; left: 12px; right: 12px; bottom: calc(176px + env(safe-area-inset-bottom, 0px)); z-index: 9500; display: flex; align-items: center; gap: 12px; justify-content: space-between; background: var(--ink); color: var(--bg); padding: 12px 14px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
+.undobar button { background: none; border: 0; color: #4FC3F7; font-weight: 700; font-size: 16px; }
+.tsbg { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 9600; }
+.tsheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 9601; background: var(--surface); color: var(--ink); border-radius: 18px 18px 0 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 14px; box-shadow: 0 -8px 30px rgba(0,0,0,.3); }
+.tshd { display: flex; flex-direction: column; gap: 2px; } .tshd b { font-size: 18px; }
+.tsrow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.tsb { height: 52px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface2, #eee); color: var(--ink); font-size: 17px; font-weight: 700; }
+.tsin { width: 100%; box-sizing: border-box; height: 72px; font-size: 40px; font-weight: 700; text-align: center; border-radius: 12px; border: 2px solid var(--primary); background: var(--bg); color: var(--ink); font-family: var(--font-mono, monospace); }
+.tschk { display: flex; gap: 10px; align-items: center; font-size: 15px; } .tschk input { width: 22px; height: 22px; }
+.tsdelta { text-align: center; }
+.tsact { display: flex; gap: 10px; } .tsact .btn { flex: 1; }
 .asbar { display: flex; gap: 8px; align-items: stretch; }
 .asbar .btn { width: auto; margin: 0; min-width: 0; }
 .asbar .btn.icon { flex: 0 0 56px; padding-left: 0; padding-right: 0; font-size: 20px; }
@@ -1087,6 +1106,102 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         : '<div class="note"><b>' + (c.total ? 'Giro completato.' : 'Oggi non hai tappe in programma.') + '</b> ' + (bd.onCall ? 'Resta reperibile per le emergenze.' : 'Puoi chiudere il turno.') + '</div><button class="btn primary" data-act="guide">' + (c.total ? 'Vedi riepilogo finale' : 'Vai alla chiusura') + '</button>') +
       '<button class="btn danger" data-act="endsheet">Termina turno</button></div>';
   }
+  /* ---------- Programma: scorri a sinistra per eliminare, tocca l'orario per cambiarlo (responsabile) ---------- */
+  var SW = { li: null, x0: 0, y0: 0, base: 0, lock: null, moved: false };
+  var SWW = 92; // larghezza del tasto Elimina
+  function swCloseAll(except) { Array.prototype.forEach.call(document.querySelectorAll('.swr.open'), function (x) { if (x !== except) x.classList.remove('open'); }); }
+  document.addEventListener('pointerdown', function (e) {
+    var li = e.target.closest ? e.target.closest('.swr') : null;
+    if (!li) { swCloseAll(); return; }
+    if (e.target.closest('.swdel')) return;
+    swCloseAll(li);
+    SW.li = li; SW.x0 = e.clientX; SW.y0 = e.clientY; SW.base = li.classList.contains('open') ? -SWW : 0; SW.lock = null; SW.moved = false;
+  });
+  document.addEventListener('pointermove', function (e) {
+    if (!SW.li) return;
+    var dx = e.clientX - SW.x0, dy = e.clientY - SW.y0;
+    if (!SW.lock) { if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) SW.lock = 'h'; else if (Math.abs(dy) > 8) { SW.lock = 'v'; SW.li = null; return; } else return; }
+    SW.moved = true;
+    var x = Math.max(-SWW - 24, Math.min(0, SW.base + dx)), c = SW.li.querySelector('.swc');
+    SW.li.classList.add('drag'); if (c) c.style.transform = 'translateX(' + x + 'px)';
+  });
+  function swEnd(e) {
+    var li = SW.li; if (!li) return; SW.li = null;
+    var c = li.querySelector('.swc'); li.classList.remove('drag');
+    if (SW.lock === 'h') {
+      var x = SW.base + (e.clientX - SW.x0);
+      if (c) c.style.transform = '';
+      li.classList.toggle('open', x < -SWW / 2);
+      li.__swiped = Date.now();
+    }
+  }
+  document.addEventListener('pointerup', swEnd); document.addEventListener('pointercancel', swEnd);
+  // un tocco su una riga aperta la richiude (senza aprire altro)
+  document.addEventListener('click', function (e) {
+    var li = e.target.closest ? e.target.closest('.swr') : null;
+    if (li && !e.target.closest('.swdel') && (li.classList.contains('open') || Date.now() - (li.__swiped || 0) < 350)) {
+      e.preventDefault(); e.stopPropagation(); if (Date.now() - (li.__swiped || 0) >= 350) li.classList.remove('open');
+    }
+  }, true);
+
+  function undoBar(text, fn) {
+    var old = document.querySelector('.undobar'); if (old) old.remove();
+    var el = document.createElement('div'); el.className = 'undobar'; el.setAttribute('role', 'status');
+    el.innerHTML = '<span>' + esc(text) + '</span>' + (fn ? '<button type="button">Annulla</button>' : '');
+    if (fn) el.querySelector('button').onclick = function () { el.remove(); fn(); };
+    document.body.appendChild(el); setTimeout(function () { if (el.parentNode) el.remove(); }, 7000);
+  }
+  function progUndo(prev, what) {
+    cl('rpc_program_save', { p_id: null, p_title: 'Annullato: ' + what, p_notes: '', p_days: asDaysForSave(prev), p_publish: true })
+      .then(function () { return loadProgram(); }).then(function () { toast('Modifica annullata'); render(); })
+      .catch(function () { toast('Non riesco ad annullare: controlla la connessione'); });
+  }
+  function progDelStop(k, b, i) {
+    var day = asDayFromProgram(k), st = day.boats[b] && day.boats[b].stops[i]; if (!st) return;
+    day.boats[b].stops.splice(i, 1);
+    var what = (st.t ? st.t + ' ' : '') + st.name + ' · ' + BOATS[b].name + ' ' + pgFmt(k);
+    progPublish([day], 'Eliminata ' + what).then(function (u) { render(); undoBar('Eliminata: ' + st.name, function () { progUndo(u.prev, what); }); })
+      .catch(function () { toast('Non riesco a eliminare: controlla la connessione'); render(); });
+  }
+  function m2t(m) { m = ((m % 1440) + 1440) % 1440; return pad(Math.floor(m / 60)) + ':' + pad(m % 60); }
+  function t2m(t) { var x = /^(\d{1,2}):(\d{2})$/.exec(t || ''); return x ? +x[1] * 60 + +x[2] : null; }
+  // Scheda per cambiare orario: ±5/±15 minuti, ora diretta, e "sposta anche le tappe dopo"
+  var TS = null;
+  function tsOpen(k, b, i) {
+    var bd = PROGRAM[k] && PROGRAM[k].boats[b], s = bd && bd.stops[i]; if (!s) return;
+    var after = bd.stops.slice(i + 1).filter(function (z) { return z.t; }).length;
+    TS = { k: k, b: b, i: i, name: s.name, t0: s.t || '', t: s.t || '08:00', end0: s.end || '', after: after, shift: false };
+    tsDraw();
+  }
+  function tsDraw() {
+    var w = $('tsWrap'); if (!TS) { if (w) w.remove(); return; }
+    if (!w) { w = document.createElement('div'); w.id = 'tsWrap'; document.body.appendChild(w); }
+    w.innerHTML = '<div class="tsbg" data-act="tsclose"></div><div class="tsheet" role="dialog" aria-label="Cambia orario">' +
+      '<div class="tshd"><b>' + esc(TS.name) + '</b><span class="muted">' + esc(BOATS[TS.b].name + ' · ' + pgDateLabel(TS.k)) + (TS.t0 ? ' · ora ' + esc(TS.t0) : '') + '</span></div>' +
+      '<input id="tsIn" class="tsin" type="time" value="' + esc(TS.t) + '" aria-label="Nuovo orario">' +
+      '<div class="tsrow"><button class="tsb" data-act="tsstep" data-m="-15">−15</button><button class="tsb" data-act="tsstep" data-m="-5">−5</button>' +
+      '<button class="tsb" data-act="tsstep" data-m="5">+5</button><button class="tsb" data-act="tsstep" data-m="15">+15</button></div>' +
+      (TS.t0 && TS.after ? '<label class="tschk"><input type="checkbox" id="tsShift"' + (TS.shift ? ' checked' : '') + '> Sposta anche le ' + TS.after + ' tappe dopo, dello stesso tempo</label>' : '') +
+      (TS.t0 && t2m(TS.t) !== null ? '<div class="muted tsdelta">' + tsDeltaText() + '</div>' : '') +
+      '<div class="tsact"><button class="btn quiet" data-act="tsclose">Annulla</button><button class="btn primary" data-act="tssave">Salva</button></div></div>';
+  }
+  function tsDeltaText() { var d = t2m(TS.t) - t2m(TS.t0); return d === 0 ? 'Nessun cambiamento' : (d > 0 ? 'Più tardi di ' : 'Prima di ') + Math.abs(d) + ' min'; }
+  document.addEventListener('input', function (e) { if (TS && e.target && e.target.id === 'tsIn') { TS.t = e.target.value || TS.t; var dl = document.querySelector('.tsdelta'); if (dl) dl.textContent = tsDeltaText(); } });
+  document.addEventListener('change', function (e) { if (TS && e.target && e.target.id === 'tsShift') TS.shift = e.target.checked; });
+  function tsSave() {
+    if (!TS) return; var T = TS, nt = /^\d{2}:\d{2}$/.test(T.t) ? T.t : null; if (!nt) { toast('Orario non valido'); return; }
+    var day = asDayFromProgram(T.k), stops = day.boats[T.b].stops, s = stops[T.i]; if (!s) { TS = null; tsDraw(); return; }
+    var d = T.t0 ? t2m(nt) - t2m(T.t0) : 0;
+    s.t = nt; if (s.end && T.t0) s.end = m2t(t2m(s.end) + d);
+    if (T.shift && d) stops.slice(T.i + 1).forEach(function (z) { if (z.t) z.t = m2t(t2m(z.t) + d); if (z.end) z.end = m2t(t2m(z.end) + d); });
+    var what = T.name + ' ' + (T.t0 || '—') + '→' + nt + ' · ' + BOATS[T.b].name + ' ' + pgFmt(T.k);
+    TS = null; tsDraw();
+    progPublish([day], 'Orario ' + what).then(function (u) { render(); undoBar(T.name + ' alle ' + nt + (T.shift && d ? ' (e tappe dopo)' : ''), function () { progUndo(u.prev, what); }); })
+      .catch(function () { toast('Non riesco a salvare: controlla la connessione'); });
+  }
+  function taskDelRun(run) {
+    cl('rpc_task_cancel', { p_run: run }).then(function (r) { toast(r ? 'Consegna eliminata' : 'Non riesco a eliminare: controlla la connessione'); loadMgr(false); });
+  }
   function viewProgramma() {
     // giorni senza programma ma con consegne aggiunte (es. una domenica): li mostro lo stesso
     var VX = {}, keys = DAYKEYS.slice();
@@ -1094,11 +1209,12 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     keys.sort();
     var k = viewDay || (S.shift ? S.shift.day : (VX[todayISO()] ? todayISO() : pickDay())); if (!PROGRAM[k] && !VX[k]) k = viewDay = pickDay();
     var day = PROGRAM[k] || VX[k];
-    var ids = boatCodes().filter(function (id) { return day.boats[id]; });
+    var ids = boatCodes().filter(function (id) { return day.boats[id]; }), canEdit = isMgr() && tok() && !day.virtual;
     if (S.shift && S.shift.day === k) ids.sort(function (a, b) { return (b === S.shift.boat) - (a === S.shift.boat); });
     var h = '<div class="wrap"><h2>Programma</h2><p class="muted">Logistica Ristorazione San Marco · dal ' + pgFmt(DAYKEYS[0]) + ' al ' + pgFmt(DAYKEYS[DAYKEYS.length - 1]) + '</p>' + (VX[todayISO()] ? '' : dayNote()) +
       '<div class="chips" role="group" aria-label="Giorno">' + keys.map(function (d) { return '<button class="chip" data-act="day" data-k="' + d + '" aria-pressed="' + (d === k ? 'true' : 'false') + '">' + esc((PROGRAM[d] || VX[d]).short) + '</button>'; }).join('') + '</div>' +
       (isMgr() && tok() ? '<button class="btn" data-act="nav" data-v="nuovo">+ Nuovo turno o consegna</button>' : '') + '<h3>' + esc(day.label) + '</h3>' + (day.halloween ? '<div class="note">🎃 <b>Buon Halloween!</b> Occhio alla nebbia in laguna: dolcetto o scherzetto a fine giro.</div>' : '');
+    if (canEdit && ids.some(function (id) { return (day.boats[id].stops || []).length; })) h += '<p class="hint">Tocca un orario per cambiarlo · scorri una tappa verso sinistra per eliminarla.</p>';
     ids.forEach(function (id) {
       var b = BOATS[id], bd = day.boats[id], mine = S.shift && S.shift.day === k && S.shift.boat === id, cur = mine ? curIdx() : -2;
       h += '<section class="card"' + (mine ? ' style="border:2px solid var(--primary)"' : '') + '><div class="row"><div><h2 style="font-size:22px">' + esc(b.name) + '</h2><div class="muted">' + esc(b.crew) + (b.giro ? ' · ' + esc(b.giro) : '') + '</div></div>' +
@@ -1107,7 +1223,10 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         h += '<ul class="stl">' + bd.stops.map(function (s, i) {
           var st = '', cls = '';
           if (mine) { var r = S.shift.done[i]; if (r) { st = '<span class="pill ' + (r.status === 'ok' ? 'ok' : 'bad') + '">' + (r.status === 'ok' ? 'Fatta' : 'Problema') + '</span>'; cls = ' past'; } else if (i === cur) { st = '<span class="pill go">In corso</span>'; cls = ' now'; } }
-          return '<li class="stp' + cls + (s.cancelled ? ' cxl' : '') + '"><span class="mono">' + esc(s.t ? (s.end ? s.t + '–' + s.end : s.t) : '—') + '</span><span><b>' + esc(s.name) + '</b>' + (s.note ? '<small>' + esc(s.note) + '</small>' : '') + '</span>' + st + '</li>';
+          var tx = esc(s.t ? (s.end ? s.t + '–' + s.end : s.t) : '—'), body = '<span><b>' + esc(s.name) + '</b>' + (s.note ? '<small>' + esc(s.note) + '</small>' : '') + '</span>' + st;
+          if (canEdit) { var da = ' data-k="' + k + '" data-b="' + id + '" data-i="' + i + '"';
+            return '<li class="swr"><div class="swc stp' + cls + (s.cancelled ? ' cxl' : '') + '"><button class="mono tbtn" data-act="ptime"' + da + ' aria-label="Cambia orario di ' + esc(s.name) + '">' + tx + '</button>' + body + '</div><button class="swdel" data-act="pdel"' + da + '>Elimina</button></li>'; }
+          return '<li class="stp' + cls + (s.cancelled ? ' cxl' : '') + '"><span class="mono">' + tx + '</span>' + body + '</li>';
         }).join('') + '</ul>';
       } else if (!bd.off) h += '<p class="muted">' + (bd.extraOnly ? 'Nessuna tappa fissa: solo consegne straordinarie.' : 'Nessuna tappa: solo reperibilità.') + '</p>';
       if (bd.onCall) h += '<div class="note"><b>Emergenze.</b> Resta reperibile durante il turno.</div>';
@@ -1117,7 +1236,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       var xt = MG.list.filter(function (t) { return t.status !== 'annullata' && isoOf(t.created_at) === k; });
       if (day.virtual) h += '<p class="muted">Nessun giro in programma per questo giorno: qui sotto le consegne aggiunte.</p>';
       if (xt.length) h += '<section class="card"><h3>Consegne aggiunte in giornata</h3><ul class="stl">' + xt.sort(function (a, b) { return (a.t || '99') < (b.t || '99') ? -1 : 1; }).map(function (t) {
-        return '<li class="stp"><span class="mono">' + esc(t.t || '—') + '</span><span><b>' + esc(t.name) + '</b><small>' + esc([t.boat, t.who].filter(Boolean).join(' · ')) + (t.note ? ' · ' + esc(t.note) : '') + '</small></span>' + stPill(t) + '</li>'; }).join('') + '</ul></section>';
+        var row = '<span class="mono">' + esc(t.t || '—') + '</span><span><b>' + esc(t.name) + '</b><small>' + esc([t.boat, t.who].filter(Boolean).join(' · ')) + (t.note ? ' · ' + esc(t.note) : '') + '</small></span>' + stPill(t);
+        return (t.status === 'assegnata' || t.status === 'in_corso') && tok() ? '<li class="swr"><div class="swc stp">' + row + '</div><button class="swdel" data-act="xdel" data-run="' + esc(t.run_id) + '">Elimina</button></li>' : '<li class="stp">' + row + '</li>'; }).join('') + '</ul></section>';
     }
     h += '<p class="hint">Gli orari possono subire variazioni ed è richiesta disponibilità. Per dubbi sul programma scrivi alla logistica.</p>';
     h += '<h3 style="margin-top:8px">Turni conclusi</h3>';
@@ -3666,6 +3786,12 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (a === 'pgopen') { cl('rpc_program_get', { p_id: el.getAttribute('data-id') }).then(function (r) { if (r && r.days) { PG.d = { id: r.id, title: r.title, summary: '', warnings: [], days: r.days, notes: r.notes }; PG.notes = r.notes || ''; PG.confirm = false; render(); $('main').scrollTop = 0; } }); return; }
     if (a === 'pgstat') { var ns = el.getAttribute('data-s'); cl('rpc_program_status', { p_id: el.getAttribute('data-id'), p_status: ns }).then(function (r) { if (r && r.ok) { toast(ns === 'published' ? 'Pubblicato' : ns === 'draft' ? 'Ritirato: tornano i giri precedenti' : 'Archiviato'); loadPgList(); loadProgram(); } }); return; }
     if (a === 'asgo') { asRun(); return; }
+    if (a === 'pdel') { var li0 = el.closest('.swr'); if (li0) li0.classList.add('gone'); progDelStop(el.getAttribute('data-k'), el.getAttribute('data-b'), +el.getAttribute('data-i')); return; }
+    if (a === 'xdel') { var li1 = el.closest('.swr'); if (li1) li1.classList.add('gone'); taskDelRun(el.getAttribute('data-run')); return; }
+    if (a === 'ptime') { tsOpen(el.getAttribute('data-k'), el.getAttribute('data-b'), +el.getAttribute('data-i')); return; }
+    if (a === 'tsclose') { TS = null; tsDraw(); return; }
+    if (a === 'tsstep') { if (TS) { var bm = t2m(TS.t); if (bm === null) bm = 8 * 60; TS.t = m2t(bm + +el.getAttribute('data-m')); var ti = $('tsIn'); if (ti) ti.value = TS.t; var dl = document.querySelector('.tsdelta'); if (dl) dl.textContent = tsDeltaText(); else tsDraw(); } return; }
+    if (a === 'tssave') { tsSave(); return; }
     if (a === 'asundo') { asUndo(+el.getAttribute('data-i')); return; }
     if (a === 'asfile') { var fi = $('asFile'); if (fi) { fi.value = ''; fi.click(); } return; }
     if (a === 'asfilex') { AS.file = null; render(); return; }
