@@ -88,6 +88,24 @@ details[open] .secc{transform:rotate(90deg)}
 .murow{display:flex;flex-direction:column;gap:6px;padding:8px 0;border-top:1px solid var(--line,#eef0f3)}
 .muhd{display:flex;align-items:baseline;gap:8px}.mushot{align-self:flex-start}
 .ddsn{font-size:14px;padding:2px 0 4px}
+.ddwbox{height:100%;box-sizing:border-box;padding:10px 12px;border-radius:18px;background:linear-gradient(180deg,#14242B,#0F1B20);box-shadow:0 0 0 1.5px #2A3C44}.ddw{display:flex;flex-direction:column;height:100%;min-height:0;gap:6px}
+.ddwh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#9FB3B0}.ddwh b{color:#F2F7F5}
+.ddwl{list-style:none;margin:0;padding:0;overflow-y:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:4px}
+.ddwl li{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:10px;background:rgba(255,255,255,.04)}
+.ddwl li.on{background:rgba(79,195,247,.16);box-shadow:inset 0 0 0 1.5px #4FC3F7}.ddwl li.sg{opacity:.55}
+.ddwl li.ddwg{background:none;padding:4px 2px 0;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:#7E9399}
+.ddwk{flex:none;width:28px;height:28px;border-radius:8px;border:2px solid #4E6670;background:none;color:#fff;font:inherit;font-weight:800;display:grid;place-items:center;padding:0}
+li.on .ddwk{background:#4FC3F7;border-color:#4FC3F7;color:#0B1317}.ddwk.ok{border-color:#43A047;color:#43A047}
+.ddwt{flex:1;min-width:0;display:flex;flex-direction:column;cursor:pointer}.ddwt b{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ddwt small{font-size:12px;color:#9FB3B0}
+.ddwo{flex:none;border:0;border-radius:8px;padding:6px 10px;background:#1D2C33;color:#DCE7E4;font:inherit;font-size:13px;font-weight:700}
+.ddwgo{flex:none;border:0;border-radius:12px;padding:10px;background:#1655C8;color:#fff;font:inherit;font-weight:800;font-size:15px}.ddwgo:disabled{background:#1D2C33;color:#7E9399}
+.wd.flash{box-shadow:0 0 0 3px #4FC3F7;transition:box-shadow .3s}
+.cluster{position:relative}.ddwbz{position:absolute;top:6px;right:6px;z-index:5;pointer-events:none}
+.ddwbadge{pointer-events:auto;border:0;border-radius:999px;padding:5px 10px;font:inherit;font-size:12.5px;font-weight:800;color:#fff;background:rgba(22,85,200,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.ddwbadge.here{background:rgba(230,81,0,.82);animation:ddwp 2s ease-in-out infinite}
+@keyframes ddwp{50%{transform:scale(1.07)}}
+.ddwsheet{background:#0E171B;color:#F2F7F5;border-radius:14px;padding:10px;max-height:60vh;display:flex}
+.ddmc{display:flex;flex-direction:column;gap:4px;align-items:flex-start}.ddcl{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px}
 </style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -1763,15 +1781,22 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       (DD.carriers || []).map(function (c) { return '<button class="btn" data-act="ddtcar" data-id="' + esc(c.id) + '">' + esc(c.name) + '</button>'; }).join('') +
       '<button class="btn quiet" data-act="close">Annulla</button></div>');
   }
+  var DDC = null;
+  document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="ddtcli"]') : null; if (!el || !DDC) return; var d = DDC; DDC = null; closeSheet(); ddtAttach(d.k, d.b, d.i, d.f, el.getAttribute('data-c')); });
   function ddtStopCell(k, b, i, s) {
-    var have = ddtOfStop(k, s.name), da = ' data-k="' + k + '" data-b="' + b + '" data-i="' + i + '"';
+    var have = ddtOfStop(k, s.name), da = ' data-k="' + k + '" data-b="' + b + '" data-i="' + i + '"', cls = muClients(s.name);
+    if (cls.length > 1) return '<span class="ddcell ddmc">' + cls.map(function (cn) {
+      var mine = have.filter(function (x) { return ddtNorm(x.customer) === ddtNorm(cn); });
+      return '<span class="ddcl"><b>' + esc(cn) + '</b>' + mine.map(function (x) { return '<button class="pill ' + (x.status === 'signed' ? 'go' : 'ok') + '" data-act="ddtopen" data-id="' + x.id + '">📄 ' + (x.status === 'signed' ? 'Firmato' : 'DDT') + '</button>'; }).join('') +
+        '<button class="btn sm ddatt" data-act="ddtatt"' + da + ' data-c="' + esc(cn) + '" aria-label="Collega il DDT di ' + esc(cn) + '">📎' + (mine.length ? '' : ' DDT') + '</button></span>';
+    }).join('') + '</span>';
     return '<span class="ddcell">' + have.map(function (x) {
       return '<button class="pill ' + (x.status === 'signed' ? 'go' : 'ok') + '" data-act="ddtopen" data-id="' + x.id + '">📄 ' + (x.status === 'signed' ? 'Firmato' : 'DDT') + '</button>';
     }).join('') + '<button class="btn sm ddatt" data-act="ddtatt"' + da + ' aria-label="Collega un DDT a ' + esc(s.name) + '">📎' + (have.length ? '' : ' DDT') + '</button></span>';
   }
   document.addEventListener('change', function (e) {
     var t = e.target; if (!t || t.id !== 'ddAttIn' || !t.files || !t.files[0] || !DDA) return;
-    var a = DDA; DDA = null; if (a.tk) ddtAttachTask(xtFind(a.tk), t.files[0]); else if (a.k) ddtAttach(a.k, a.b, a.i, t.files[0]); t.value = '';
+    var a = DDA; DDA = null; if (a.tk) ddtAttachTask(xtFind(a.tk), t.files[0]); else if (a.k) ddtAttach(a.k, a.b, a.i, t.files[0], a.c || ''); t.value = '';
   });
   // PC: trascina il file sulla riga della tappa
   document.addEventListener('dragover', function (e) {
@@ -1783,7 +1808,10 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var row = e.target.closest ? e.target.closest('[data-ddrop]') : null; if (!row) return;
     e.preventDefault(); row.classList.remove('ddover');
     var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (!f) return;
-    if (row.getAttribute('data-tk')) ddtAttachTask(xtFind(row.getAttribute('data-tk')), f); else ddtAttach(row.getAttribute('data-k'), row.getAttribute('data-b'), +row.getAttribute('data-i'), f);
+    if (row.getAttribute('data-tk')) { ddtAttachTask(xtFind(row.getAttribute('data-tk')), f); return; }
+    var rk = row.getAttribute('data-k'), rb = row.getAttribute('data-b'), ri = +row.getAttribute('data-i'), rs = PROGRAM[rk] && PROGRAM[rk].boats[rb] && PROGRAM[rk].boats[rb].stops[ri], rc = rs ? muClients(rs.name) : [];
+    if (rc.length > 1) { DDC = { k: rk, b: rb, i: ri, f: f }; openSheet('<h2>Di quale cliente è il DDT?</h2><p class="muted">' + esc(rs.name) + '</p><div class="btns">' + rc.map(function (cn) { return '<button class="btn" data-act="ddtcli" data-c="' + esc(cn) + '">' + esc(cn) + '</button>'; }).join('') + '<button class="btn quiet" data-act="close">Annulla</button></div>'); return; }
+    ddtAttach(rk, rb, ri, f);
   });
   function viewProgramma() {
     // giorni senza programma ma con consegne aggiunte (es. una domenica): li mostro lo stesso
@@ -2116,7 +2144,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       q.map(function (x, k) { return '<div class="tln" style="opacity:' + op[k] + '"><i></i><div><b>' + esc(x.maint ? 'Verifica barche' : x.name) + '</b><span>' + (x.t ? esc(x.t) : '––:––') + '</span></div></div>'; }).join('') + '</div>' +
       (s.note ? '<div class="stnote">' + esc(s.note) + '</div>' : '');
   }
-  function stopInner(s, i, all) { var v = gwVar('stop'); return ddtStopHtml(s) + (v === 1 ? stopRotta(s, i, all) : v === 2 ? stopTimeline(s, i, all) : stopClassic(s, i, all)); }
+  function stopInner(s, i, all) { var v = gwVar('stop'); return (v === 1 ? stopRotta(s, i, all) : v === 2 ? stopTimeline(s, i, all) : stopClassic(s, i, all)); }
   function refreshStop() { var el = $('stFace'); if (!el || !S.shift) return; var i = curIdx(); if (i < 0) return; el.innerHTML = stopInner(stops()[i], i, stops()); }
 
   function wxIcon(k) {
@@ -2219,6 +2247,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     setTimeout(function () { loadWx(false); loadTide(false); drawMap(); }, 50);
     var parts = {
       stop: '<div class="stpanel"><div class="stbody" id="stFace">' + stopInner(s, i, all) + '</div></div>',
+      ddt: '<div class="ddwbox" id="ddwFace">' + ddwInner() + '</div>',
       map: mapHtml(),
       speed: gwVar('speed') === 0 ? '<div class="gz sm" id="spFace">' + speedInner() + '</div>' : '<div class="spv sp' + gwVar('speed') + '" id="spFace">' + speedInner() + '</div>',
       clock: '<div class="clk" id="clkF">' + clockInner() + '</div>',
@@ -2236,7 +2265,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       return '<div class="wd w-' + k + (dm[0] === 2 ? ' w2' : '') + (ed ? ' ed' : '') + '" data-w="' + k + '" style="grid-column:span ' + dm[0] + ';grid-row:span ' + dm[1] + '">' + parts[k] +
         (ed ? '<div class="wedit"><span class="wh" data-hand="' + k + '" aria-label="Trascina per spostare ' + esc(d.n) + '">⠿<span class="wl"> ' + esc(d.n) + '</span></span>' + (d.vn ? '<button data-act="wvar" data-w="' + k + '">' + d.vn[gwVar(k)] + '</button>' : '') + '<button data-act="wsize" data-w="' + k + '">' + ({ S: 'Piccolo', M: 'Medio', L: 'Grande' }[sz]) + '</button>' + (d.fixed ? '' : '<button data-act="whide" data-w="' + k + '" aria-label="Nascondi ' + esc(d.n) + '">Togli</button>') + '</div>' : '') + '</div>';
     }).join('');
-    var cluster = '<div class="cluster" aria-label="Cruscotto di bordo">' +
+    var cluster = '<div class="cluster" aria-label="Cruscotto di bordo"><div class="ddwbz" id="ddwBz">' + ddwBadge() + '</div>' +
       (ed ? '<div class="webar"><b>Modifica cruscotto</b><span class="hint">Trascina ⠿ per spostare</span><button class="wb" data-act="wmap">Colori mappa</button><button class="wb" data-act="wreset">Predefinito</button><button class="wb ok" data-act="wdone">Fatto</button></div>' : '') +
       '<div class="wgrid" id="wgrid">' + grid + '</div>' +
       (ed && gone.length ? '<div class="wtray"><span>Aggiungi:</span>' + gone.map(function (k) { return '<button class="btn" data-act="wshow" data-w="' + k + '">+ ' + esc(GWD[k].n) + '</button>'; }).join('') + '</div>' : '') +
@@ -2257,9 +2286,10 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     mimmo: { n: 'Mimmo il delfino', sizes: { S: [2, 2], M: [2, 3] }, d: 'S' },
     km: { n: 'Km e nodi', sizes: { S: [1, 1], M: [2, 1] }, d: 'S' },
     clock: { n: 'Orario', sizes: { S: [1, 1], M: [2, 1], L: [2, 2] }, d: 'S' },
+    ddt: { n: 'DDT da firmare', sizes: { S: [2, 3], M: [2, 4], L: [2, 6] }, d: 'M' },
     next: { n: 'Sono arrivato', sizes: { S: [2, 1], M: [2, 2] }, d: 'M', fixed: true }
   };
-  var GW_ORDER = ['stop', 'map', 'speed', 'weather', 'km', 'clock', 'tide', 'mimmo', 'next'];
+  var GW_ORDER = ['stop', 'ddt', 'map', 'speed', 'weather', 'km', 'clock', 'tide', 'mimmo', 'next'];
   var MAP_STYLES = [['dark', 'Scuro'], ['blue', 'Blu notte'], ['green', 'Verde radar'], ['light', 'Chiaro']];
   var MAP_COLS = [['#FF8A3D', 'Arancione'], ['#FFD54F', 'Giallo'], ['#66BB6A', 'Verde'], ['#F06292', 'Rosa'], ['#FFFFFF', 'Bianco'], ['#4FC3F7', 'Azzurro']];
   var GWE = { on: false, drag: null };
@@ -2268,6 +2298,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var g = S.gw; if (!g || typeof g !== 'object') g = S.gw = gwDefault();
     g.hidden = g.hidden || {}; g.size = g.size || {}; g.v = g.v || {}; if (g.hidden.clock === undefined) g.hidden.clock = true; if (g.hidden.tide === undefined) g.hidden.tide = true; if (g.hidden.mimmo === undefined) g.hidden.mimmo = true; g.map = g.map || { style: 'dark', route: '#FF8A3D', boat: '#4FC3F7' };
     var o = (g.order || []).filter(function (k) { return GWD[k]; });
+    if (o.length && o.indexOf('ddt') < 0) { var si = o.indexOf('stop'); o.splice(si >= 0 ? si + 1 : 0, 0, 'ddt'); }
     GW_ORDER.forEach(function (k) { if (o.indexOf(k) < 0) o.push(k); });
     var ni = o.indexOf('next'); if (ni >= 0 && ni < o.length - 1) { o.splice(ni, 1); o.push('next'); }
     g.order = o; g.hidden.next = false; return g;
@@ -3394,7 +3425,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01o';
+  var APP_V = '2026-11-01p';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -3427,7 +3458,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       if (!r || !r.items) { DD.err = true; if (view === 'ddt') render(); return; }
       DD.err = false; DD.loaded = true; DD.items = r.items; DD.office = !!r.office;
       var need = DD.office && !DD.carriers ? cl('rpc_ddt_carriers', {}).then(function (c) { if (c && c.length) DD.carriers = c; }) : Promise.resolve();
-      return need.then(function () { ddtBadge(); if (view === 'ddt' && !document.getElementById('sigScreen') && !document.querySelector('#layer .sheet')) render(); });
+      return need.then(function () { ddtBadge(); ddwRefresh(); if (view === 'ddt' && !document.getElementById('sigScreen') && !document.querySelector('#layer .sheet')) render(); });
     }).catch(function () { DD.busy = false; });
   }
   setInterval(function () { if (!document.hidden && tok()) loadDdt(); }, 60000);
@@ -3508,6 +3539,58 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     });
   }
   var DDSAID = {};
+  /* ---------- Cruscotto: widget DDT (scorrevole, si scelgono quelli da firmare) + avviso piccolo in alto a destra ---------- */
+  var DDW = { sel: {}, auto: {} };
+  function ddwList() {
+    if (!S.shift) return [];
+    var day = S.shift.day;
+    return DD.items.filter(function (x) { return x.mine && x.status !== 'cancelled' && (!x.date || x.date === day) && (x.status === 'pending' || (x.signed_at && isoOf(x.signed_at) === todayKey())); });
+  }
+  function ddwHere(x, s) {
+    if (!s) return false; var n = ddtNorm(s.name), st = ddtNorm(x.stop), cu = ddtNorm(x.customer);
+    return (st && (st === n || n.indexOf(st) >= 0 || st.indexOf(n) >= 0)) || (!st && cu && (n.indexOf(cu) >= 0 || cu.indexOf(n) >= 0));
+  }
+  function ddwCur() { var i = curIdx(); return i >= 0 ? stops()[i] : null; }
+  function ddwInner() {
+    var all = ddwList(), cur = ddwCur(), here = all.filter(function (x) { return ddwHere(x, cur); }), other = all.filter(function (x) { return !ddwHere(x, cur); });
+    // alla tappa giusta i DDT ancora da firmare sono già selezionati
+    here.forEach(function (x) { if (x.status === 'pending' && !DDW.auto[x.id]) { DDW.auto[x.id] = 1; DDW.sel[x.id] = true; } });
+    here.forEach(function (x) { if (x.status === 'pending' && !DDSAID[x.id]) { DDSAID[x.id] = 1; setTimeout(function () { say('Qui hai un DDT da far firmare: ' + x.customer); }, 1500); } });
+    var pend = all.filter(function (x) { return x.status === 'pending'; }), nSel = pend.filter(function (x) { return DDW.sel[x.id]; }).length;
+    if (!all.length) return '<div class="ddw"><div class="ddwh"><b>DDT</b><span>nessuno da firmare</span></div></div>';
+    function row(x) {
+      var sg = x.status === 'signed';
+      return '<li class="' + (sg ? 'sg' : '') + (DDW.sel[x.id] && !sg ? ' on' : '') + '">' + (sg ? '<span class="ddwk ok">✓</span>' : '<button class="ddwk" data-act="ddwsel" data-id="' + x.id + '" aria-pressed="' + !!DDW.sel[x.id] + '" aria-label="Seleziona ' + esc(x.customer) + '">' + (DDW.sel[x.id] ? '✓' : '') + '</button>') +
+        '<span class="ddwt" data-act="ddwsel" data-id="' + x.id + '"><b>' + esc(x.customer) + '</b><small>' + (sg ? 'firmato' : esc(x.stop && x.stop !== x.customer ? x.stop : 'da firmare')) + '</small></span>' +
+        '<button class="ddwo" data-act="' + (sg ? 'ddtget' : 'ddtview') + '" data-id="' + x.id + '">' + (sg ? 'Copia' : 'Apri') + '</button></li>';
+    }
+    return '<div class="ddw"><div class="ddwh"><b>DDT</b><span>' + pend.length + ' da firmare</span></div><ul class="ddwl">' +
+      (here.length ? '<li class="ddwg">Qui · ' + esc(cur.name) + '</li>' + here.map(row).join('') : '') +
+      (other.length ? '<li class="ddwg">' + (here.length ? 'Altre tappe' : 'Di oggi') + '</li>' + other.map(row).join('') : '') + '</ul>' +
+      '<button class="ddwgo" data-act="ddwsign"' + (nSel ? '' : ' disabled') + '>' + (nSel ? 'Fai firmare ' + (nSel === 1 ? '1 DDT' : nSel + ' DDT') : 'Seleziona i DDT da firmare') + '</button></div>';
+  }
+  function ddwBadge() {
+    var pend = ddwList().filter(function (x) { return x.status === 'pending'; }); if (!pend.length) return '';
+    var cur = ddwCur(), nh = pend.filter(function (x) { return ddwHere(x, cur); }).length;
+    return '<button class="ddwbadge' + (nh ? ' here' : '') + '" data-act="ddwgo" aria-label="DDT da firmare">📄 ' + (nh ? nh + ' DDT qui' : pend.length + ' DDT') + '</button>';
+  }
+  function ddwRefresh() {
+    if (view !== 'guida') return;
+    var w = document.getElementById('ddwFace'); if (w) { var sc = w.querySelector('.ddwl'), st = sc ? sc.scrollTop : 0; w.innerHTML = ddwInner(); var sc2 = w.querySelector('.ddwl'); if (sc2) sc2.scrollTop = st; }
+    var bz = document.getElementById('ddwBz'); if (bz) bz.innerHTML = ddwBadge();
+  }
+  var SIGQ = [];
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
+    var a = el.getAttribute('data-act');
+    if (a === 'ddwsel') { var id = el.getAttribute('data-id'), x = ddtFind(id); if (x && x.status === 'pending') { DDW.sel[id] = !DDW.sel[id]; ddwRefresh(); } }
+    else if (a === 'ddwsign') { var ids = ddwList().filter(function (x) { return x.status === 'pending' && DDW.sel[x.id]; }).map(function (x) { return x.id; }); if (!ids.length) return; SIGQ = ids.slice(1); SIGQ.total = ids.length; sigOpen(ids[0]); }
+    else if (a === 'ddwgo') {
+      var w = document.getElementById('ddwFace');
+      if (w) { w.scrollIntoView({ behavior: 'smooth', block: 'center' }); w.classList.add('flash'); setTimeout(function () { w.classList.remove('flash'); }, 900); }
+      else openSheet('<h2>DDT di oggi</h2><div id="ddwFace" class="ddwsheet">' + ddwInner() + '</div><div class="btns"><button class="btn quiet" data-act="close">Chiudi</button></div>');
+    }
+  });
   function ddtStopHtml(s) {
     var list = ddtForStop(s); if (!list.length) return '';
     list.forEach(function (x) { if (!DDSAID[x.id]) { DDSAID[x.id] = 1; setTimeout(function () { say('Qui hai un DDT da far firmare: ' + x.customer); }, 1500); } });
@@ -3700,7 +3783,12 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     sigLoc().then(function (loc) {
       return cloud('rpc_ddt_sign', { p_token: tok(), p_id: id, p_signer: nm, p_sig: img, p_lat: loc ? loc[0] : null, p_lng: loc ? loc[1] : null });
     }).then(function (r) {
-      if (r && r.ok) { var xb = ddtFind(id); sigClose(); toast('DDT firmato e salvato'); loadDdt().then(function () { if (xb && xb.box) ddtSignedAct(id, false); else ddtDetail(id); }); }
+      if (r && r.ok) {
+        var xb = ddtFind(id); sigClose(); delete DDW.sel[id];
+        if (SIGQ.length) { var nx = SIGQ.shift(), done = (SIGQ.total || 0) - SIGQ.length - 1; toast('Firmato ' + (xb ? xb.customer : '') + ' · ' + done + ' di ' + SIGQ.total); loadDdt().then(function () { sigOpen(nx); }); return; }
+        var multi = SIGQ.total > 1; SIGQ.total = 0; toast(multi ? 'Tutti i DDT selezionati sono firmati' : 'DDT firmato e salvato');
+        loadDdt().then(function () { if (view === 'guida') { render(); if (!multi && xb && xb.box) ddtSignedAct(id, false); } else if (xb && xb.box) ddtSignedAct(id, false); else ddtDetail(id); });
+      }
       else sigMsg(r && r.error === 'gia_firmato' ? 'Questo DDT risulta già firmato.' : 'Non sono riuscito a salvare. Riprova.');
     }).catch(function () { sigMsg('Nessuna connessione: la firma non è stata salvata. Riprova.'); });
   }
@@ -4733,7 +4821,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (a === 'pgopen') { cl('rpc_program_get', { p_id: el.getAttribute('data-id') }).then(function (r) { if (r && r.days) { PG.d = { id: r.id, title: r.title, summary: '', warnings: [], days: r.days, notes: r.notes }; PG.notes = r.notes || ''; PG.confirm = false; render(); $('main').scrollTop = 0; } }); return; }
     if (a === 'pgstat') { var ns = el.getAttribute('data-s'); cl('rpc_program_status', { p_id: el.getAttribute('data-id'), p_status: ns }).then(function (r) { if (r && r.ok) { toast(ns === 'published' ? 'Pubblicato' : ns === 'draft' ? 'Ritirato: tornano i giri precedenti' : 'Archiviato'); loadPgList(); loadProgram(); } }); return; }
     if (a === 'asgo') { asRun(); return; }
-    if (a === 'ddtatt') { DDA = el.getAttribute('data-tk') ? { tk: el.getAttribute('data-tk') } : { k: el.getAttribute('data-k'), b: el.getAttribute('data-b'), i: +el.getAttribute('data-i') }; var fi2 = $('ddAttIn'); if (fi2) { fi2.value = ''; fi2.click(); } return; }
+    if (a === 'ddtatt') { DDA = el.getAttribute('data-tk') ? { tk: el.getAttribute('data-tk') } : { k: el.getAttribute('data-k'), b: el.getAttribute('data-b'), i: +el.getAttribute('data-i'), c: el.getAttribute('data-c') || '' }; var fi2 = $('ddAttIn'); if (fi2) { fi2.value = ''; fi2.click(); } return; }
     if (a === 'ddtcar') { var cid = el.getAttribute('data-id'), cc = (DD.carriers || []).filter(function (c) { return c.id === cid; })[0]; closeSheet(); if (DDA && DDA.go && cc) DDA.go(cc); DDA = null; return; }
     if (a === 'pdel') { var li0 = el.closest('.swr'); if (li0) li0.classList.add('gone'); progDelStop(el.getAttribute('data-k'), el.getAttribute('data-b'), +el.getAttribute('data-i')); return; }
     if (a === 'xdel') { var li1 = el.closest('.swr'); if (li1) li1.classList.add('gone'); taskDelRun(el.getAttribute('data-run')); return; }
@@ -4763,7 +4851,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (a === 'ddtadd') { ddtSend(); return; }
     if (a === 'ddtcancel') { if (confirm('Annullare questo DDT? Non sarà più visibile al trasportatore.')) cl('rpc_ddt_cancel', { p_id: el.getAttribute('data-id') }).then(function (r) { closeSheet(); toast(r && r.ok ? 'DDT annullato' : 'Non posso annullarlo: forse è già firmato'); loadDdt().then(render); }); return; }
     if (a === 'sigclear') { if (SIG.ctx) { SIG.ctx.clearRect(0, 0, SIG.w, SIG.h); SIG.pts = 0; var hh = $('sigHint'); if (hh) hh.style.display = ''; sigMsg(''); } return; }
-    if (a === 'sigcancel') { sigClose(); return; }
+    if (a === 'sigcancel') { sigClose(); SIGQ = []; SIGQ.total = 0; return; }
     if (a === 'sigok') { sigConfirm(); return; }
     if (a === 'pushon') { pushEnable(); return; }
     if (a === 'pushoff') { pushDisable(); return; }
