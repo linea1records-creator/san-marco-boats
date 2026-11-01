@@ -85,6 +85,9 @@ details[open] .secc{transform:rotate(90deg)}
 .mucard{display:flex;flex-direction:column;gap:8px}.mudl{display:flex;flex-direction:column;gap:6px}
 .mudr{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:14.5px}.mudb{display:flex;gap:6px}
 .mubtn .btn{width:100%}
+.murow{display:flex;flex-direction:column;gap:6px;padding:8px 0;border-top:1px solid var(--line,#eef0f3)}
+.muhd{display:flex;align-items:baseline;gap:8px}.mushot{align-self:flex-start}
+.ddsn{font-size:14px;padding:2px 0 4px}
 </style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -801,7 +804,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     ARDEMAR: { name: 'Ardemar', crew: 'Daffa', giro: '' },
     TULLIO: { name: 'Tullio di Trops', crew: 'Prova', giro: 'giro di prova' }
   };
-  var PAT = [['07:15', 'Pane'], ['07:30', 'Seminario'], ['08:00', 'Piazza'], ['08:30', 'Seminario'], ['08:50', 'Convitto'], ['09:15', 'Caritas'], ['09:40', 'Seminario'], ['10:00', 'Giustinian'], ['10:15', 'Scalo'], ['10:30', 'Darsena'], ['11:00', 'Venini / Barovier', 'Murano'], ['11:10', 'Promovetro · F3 · Jalos', 'Murano · 3 consegne sulla stessa riva'], ['11:20', 'Nason Moretti', 'Murano'], ['11:30', 'Seminario'], ['12:00', 'Lido'],
+  var PAT = [['07:15', 'Pane'], ['07:30', 'Seminario'], ['08:00', 'Piazza'], ['08:30', 'Seminario'], ['08:50', 'Convitto'], ['09:15', 'Caritas'], ['09:40', 'Seminario'], ['10:00', 'Giustinian'], ['10:15', 'Scalo'], ['10:30', 'Darsena'], ['11:00', 'Venini / Barovier', 'Murano'], ['11:10', 'Promovetro · F3 · YALOS', 'Murano · 3 consegne sulla stessa riva'], ['11:20', 'Nason Moretti', 'Murano'], ['11:30', 'Seminario'], ['12:00', 'Lido'],
     ['12:20', 'Seminario', 'Scaricare vuoti Lido / prendere polibox Murano'], ['13:00', 'Scalo fluviale', 'Lasciare polibox Murano'], ['13:30', 'Darsena']];
   var TOP = [['09:00', 'Darsena'], ['09:20', 'Seminario'], ['09:45', 'Cristo Re'], ['10:15', 'Seminario'], ['10:35', 'Miracoli'], ['11:00', 'Ponte Storto'], ['11:30', 'Seminario'], ['11:55', 'Cavanis'], ['12:20', 'Sant’Alvise'], ['12:45', 'Seminario'], ['13:30', 'Darsena']];
   var PATSAT = [['07:45', 'Darsena'], ['08:00', 'Pane'], ['09:00', 'Caritas'], ['10:00', 'Piazza']];
@@ -932,7 +935,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var ICONS = {
     nuovo: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/>',
     turno: '<path d="M3 15l2 4h14l2-4zM12 3v8M8 7h8"/>',
-    ddt: '<path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"/>',
+    ddt: '<path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"/>', murano: '<path d="M4 7h11M4 7v12h11V7M7 7V4h11v12h-3M7 11h5M7 15h5"/><path d="M16 20l2-2 3 3"/>',
     programma: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
     richieste: '<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9zM12 11v6M9 14h6"/>',
     contatti: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6 7-6s7 2 7 6"/>',
@@ -1652,13 +1655,14 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   // Riquadro "Firma del cessionario" del modulo DDT San Marco (in proporzione al foglio ritagliato)
   var SIGBOX_DEF = { x: .69, y: .902, w: .26, h: .046 };
   /* ---------- Filiera Murano: foto del DDT → ritaglio → consegna → firma nel riquadro del cliente ---------- */
-  var MURANO_STOPS = ['Venini / Barovier', 'Promovetro · F3 · Jalos', 'Nason Moretti'];
+  var MURANO_STOPS = ['Venini / Barovier', 'Promovetro · F3 · YALOS', 'Nason Moretti'];
   function isMurano(name, note) { return MURANO_STOPS.indexOf(name) >= 0 || /murano/i.test(name || '') || /^murano\b/i.test(note || ''); }
   // per le consegne di Murano le foto passano dallo scanner (ritaglio + sfondo bianco) e il DDT sa dove va la firma
-  function muranoPrep(f, name, note) {
+  function muClients(name) { var a = String(name || '').split(/\s*(?:\/|·)\s*/).map(function (x) { return x.trim(); }).filter(Boolean); return a.length ? a : [name]; }
+  function muranoPrep(f, name, note, cust) {
     if (!f || !/^image\//.test(f.type) || !isMurano(name, note)) return Promise.resolve({ file: f, box: null });
     return scanFile(f).then(function (cv) {
-      return new Promise(function (res, rej) { cv.toBlob(function (b) { b ? res({ file: new File([b], 'DDT-' + String(name).replace(/[^\w]+/g, '_') + '.jpg', { type: 'image/jpeg' }), box: SIGBOX_DEF }) : rej('img'); }, 'image/jpeg', .88); });
+      return new Promise(function (res, rej) { cv.toBlob(function (b) { b ? res({ file: new File([b], 'DDT-' + String(cust || name).replace(/[^\w]+/g, '_') + '.jpg', { type: 'image/jpeg' }), box: SIGBOX_DEF }) : rej('img'); }, 'image/jpeg', .88); });
     });
   }
   var MU = { day: null };
@@ -1676,27 +1680,37 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<div class="ldnav"><button class="btn sm" data-act="mumove" data-n="-1" aria-label="Giorno prima">‹</button><b>' + (k === todayKey() ? 'Oggi · ' : k === ldShift(todayKey(), 1) ? 'Domani · ' : '') + esc(pgDateLabel(k)) + '</b><button class="btn sm" data-act="mumove" data-n="1" aria-label="Giorno dopo">›</button></div>';
     if (!list.length) return h + '<div class="card"><p class="muted">Nessuna consegna a Murano in questo giorno.</p></div></div>';
     h += list.map(function (o) {
-      var have = ddtOfStop(o.k, o.s.name), sig = have.filter(function (x) { return x.status === 'signed'; }), pend = have.filter(function (x) { return x.status === 'pending'; });
-      var st = sig.length ? '<span class="pill ok">Firmato</span>' : pend.length ? '<span class="pill go">Da firmare</span>' : '<span class="pill">Manca il DDT</span>';
-      return '<section class="card mucard"><div class="row"><div><b>' + esc(o.s.name) + '</b><div class="muted">' + esc((o.s.t ? stopTime(o.s) + ' · ' : '') + BOATS[o.b].name + (o.s.note && o.s.note !== 'Murano' ? ' · ' + o.s.note : '')) + '</div></div>' + st + '</div>' +
-        (have.length ? '<div class="mudl">' + have.map(function (x) {
-          return '<div class="mudr"><span>📄 ' + esc(x.number ? 'N. ' + x.number : 'DDT') + (x.status === 'signed' ? ' · firmato da ' + esc(x.signed_by || '') : ' · a ' + esc(x.carrier || '')) + '</span><span class="mudb"><button class="btn sm" data-act="ddtview" data-id="' + x.id + '">Apri</button>' +
-            (x.status === 'signed' ? '<button class="btn sm primary" data-act="ddtget" data-id="' + x.id + '">Copia firmata</button>' : x.mine ? '<button class="btn sm primary" data-act="ddtsign" data-id="' + x.id + '">Fai firmare</button>' : '') + '</span></div>';
-        }).join('') + '</div>' : '') +
-        (canUp ? '<div class="mubtn"><button class="btn' + (have.length ? '' : ' primary') + '" data-act="mushot" data-k="' + o.k + '" data-b="' + o.b + '" data-i="' + o.i + '">📷 ' + (have.length ? 'Aggiungi un altro DDT' : 'Foto del DDT') + '</button></div>' : '') + '</section>';
+      var have = ddtOfStop(o.k, o.s.name), cls = muClients(o.s.name), used = {};
+      var nOk = 0, rows = cls.map(function (cn) {
+        var mine = have.filter(function (x) { return ddtNorm(x.customer) === ddtNorm(cn); }); mine.forEach(function (x) { used[x.id] = 1; });
+        var sg = mine.filter(function (x) { return x.status === 'signed'; }).length; if (sg) nOk++;
+        return muRow(o, cn, mine, canUp);
+      });
+      var extra = have.filter(function (x) { return !used[x.id]; });
+      if (extra.length) rows.push(muRow(o, 'Altri DDT di questa fermata', extra, false));
+      var st = nOk === cls.length ? '<span class="pill ok">Tutti firmati</span>' : '<span class="pill' + (have.length ? ' go' : '') + '">' + nOk + '/' + cls.length + ' firmati</span>';
+      return '<section class="card mucard"><div class="row"><div><b>' + esc(o.s.name) + '</b><div class="muted">' + esc((o.s.t ? stopTime(o.s) + ' · ' : '') + BOATS[o.b].name + ' · ' + (cls.length > 1 ? cls.length + ' clienti, ' + cls.length + ' DDT' : '1 cliente')) + '</div></div>' + st + '</div>' + rows.join('') + '</section>';
     }).join('');
     return h + '</div>';
   }
-  function muShot(k, b, i) {
+  function muRow(o, cn, mine, canUp) {
+    return '<div class="murow"><div class="muhd"><b>' + esc(cn) + '</b>' + (mine.length ? '' : '<span class="muted">manca il DDT</span>') + '</div>' +
+      mine.map(function (x) {
+        return '<div class="mudr"><span>📄 ' + esc(x.number ? 'N. ' + x.number : 'DDT') + (x.status === 'signed' ? ' · <b class="t-ok">firmato</b>' : ' · da firmare') + '</span><span class="mudb"><button class="btn sm" data-act="ddtview" data-id="' + x.id + '">Apri</button>' +
+          (x.status === 'signed' ? '<button class="btn sm primary" data-act="ddtget" data-id="' + x.id + '">Copia firmata</button>' : x.mine ? '<button class="btn sm primary" data-act="ddtsign" data-id="' + x.id + '">Fai firmare</button>' : '') + '</span></div>';
+      }).join('') +
+      (canUp ? '<button class="btn sm' + (mine.length ? '' : ' primary') + ' mushot" data-act="mushot" data-k="' + o.k + '" data-b="' + o.b + '" data-i="' + o.i + '" data-c="' + esc(cn) + '">📷 ' + (mine.length ? 'Altro DDT ' : 'Foto DDT ') + esc(cn) + '</button>' : '') + '</div>';
+  }
+  function muShot(k, b, i, cn) {
     var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.setAttribute('capture', 'environment'); inp.style.display = 'none';
-    inp.onchange = function () { var f = inp.files && inp.files[0]; inp.remove(); if (f) ddtAttach(k, b, i, f); };
+    inp.onchange = function () { var f = inp.files && inp.files[0]; inp.remove(); if (f) ddtAttach(k, b, i, f, cn); };
     document.body.appendChild(inp); inp.click();
   }
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
     var a = el.getAttribute('data-act');
     if (a === 'mumove') { MU.day = ldShift(MU.day || todayKey(), +el.getAttribute('data-n')); render(); }
-    else if (a === 'mushot') muShot(el.getAttribute('data-k'), el.getAttribute('data-b'), +el.getAttribute('data-i'));
+    else if (a === 'mushot') muShot(el.getAttribute('data-k'), el.getAttribute('data-b'), +el.getAttribute('data-i'), el.getAttribute('data-c'));
     else if (a === 'nav' && el.getAttribute('data-v') === 'murano') { if (!DD.carriers && (isOff() || isMgr())) loadDdt().then(function () { if (view === 'murano') render(); }); }
   });
   /* ---------- Segreteria: DDT collegato direttamente alla consegna del programma (tocca 📎 o trascina il file sulla tappa) ---------- */
@@ -1730,14 +1744,14 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var n = ddtNorm(name);
     return DD.items.filter(function (x) { return x.date === k && ddtNorm(x.stop) === n && x.status !== 'cancelled'; });
   }
-  function ddtAttach(k, b, i, f) {
-    var s = PROGRAM[k] && PROGRAM[k].boats[b] && PROGRAM[k].boats[b].stops[i]; if (!s || !f) return;
+  function ddtAttach(k, b, i, f, cust) {
+    var s = PROGRAM[k] && PROGRAM[k].boats[b] && PROGRAM[k].boats[b].stops[i]; if (!s || !f) return; cust = cust || s.name;
     var go = function (car) {
       var pp = null;
-      muranoPrep(f, s.name, s.note).then(function (p) { pp = p; toast('Carico il DDT per ' + s.name + '…'); return ddtFileData(p.file); }).then(function (o) {
-        return cl('rpc_ddt_add2', { p_carrier: car.id, p_number: '', p_customer: s.name, p_address: '', p_note: s.note || '', p_name: o.name, p_mime: o.mime, p_data: o.b64, p_date: k, p_stop: s.name, p_boat: b });
+      muranoPrep(f, s.name, s.note, cust).then(function (p) { pp = p; toast('Carico il DDT di ' + cust + '…'); return ddtFileData(p.file); }).then(function (o) {
+        return cl('rpc_ddt_add2', { p_carrier: car.id, p_number: '', p_customer: cust, p_address: '', p_note: s.note || '', p_name: o.name, p_mime: o.mime, p_data: o.b64, p_date: k, p_stop: s.name, p_boat: b });
       }).then(function (r) {
-        if (r && r.ok) { toast('DDT collegato a ' + s.name + ' · ' + BOATS[b].name + ' → ' + car.name); (pp && pp.box && r.id ? cl('rpc_ddt_set_box', { p_id: r.id, p_box: pp.box }) : Promise.resolve()).then(function () { return loadDdt(); }).then(function () { render(); }); }
+        if (r && r.ok) { toast('DDT di ' + cust + ' collegato a ' + s.name + ' → ' + car.name); (pp && pp.box && r.id ? cl('rpc_ddt_set_box', { p_id: r.id, p_box: pp.box }) : Promise.resolve()).then(function () { return loadDdt(); }).then(function () { render(); }); }
         else toast(r && r.error === 'dimensione_non_valida' ? 'File troppo grande' : 'Non sono riuscito a caricare il DDT: riprova');
       }).catch(function (e) { if (e === 'annullato') return; toast(e === 'big' ? 'PDF troppo grande (massimo 3 MB)' : e === 'formato' ? 'Usa un PDF o una foto' : 'Non riesco a leggere il file'); });
     };
@@ -3380,7 +3394,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01n';
+  var APP_V = '2026-11-01o';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -3497,7 +3511,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function ddtStopHtml(s) {
     var list = ddtForStop(s); if (!list.length) return '';
     list.forEach(function (x) { if (!DDSAID[x.id]) { DDSAID[x.id] = 1; setTimeout(function () { say('Qui hai un DDT da far firmare: ' + x.customer); }, 1500); } });
-    return '<div class="ddstop">' + list.map(function (x) {
+    return '<div class="ddstop">' + (list.length > 1 ? '<div class="ddsn"><b>' + list.length + ' DDT da far firmare qui</b> · uno per cliente</div>' : '') + list.map(function (x) {
       return '<div class="ddsr"><span>📄 DDT ' + esc(x.number || '') + ' · <b>' + esc(x.customer) + '</b></span><div class="ddsb"><button class="btn sm" data-act="ddtview" data-id="' + x.id + '">Apri</button><button class="btn sm primary" data-act="ddtsign" data-id="' + x.id + '">Fai firmare</button></div></div>';
     }).join('') + '</div>';
   }
@@ -4922,7 +4936,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   setInterval(function () { if (view === 'admin' && !document.hidden) loadAdmin(); }, 30000);
 
   /* ---------- dashboard admin ---------- */
-  var COORDS = { 'Venini / Barovier': [45.4515439, 12.3497734], 'Promovetro · F3 · Jalos': [45.4541898, 12.3556733], 'Nason Moretti': [45.4555415, 12.3489010], 'Pane': [45.4370, 12.3192], 'Seminario': [45.4308, 12.3353], 'Piazza': [45.4455, 12.3338], 'Darsena': [45.4452, 12.3356], 'Convitto': [45.4276, 12.3658], 'Caritas': [45.4357, 12.3487], 'Giustinian': [45.4360, 12.3182], 'Scalo': [45.4413, 12.3143], 'Scalo fluviale': [45.4413, 12.3143], 'Murano': [45.4590, 12.3523], 'Lido': [45.4279, 12.3806], 'Cristo Re': [45.4381, 12.3491], 'Miracoli': [45.4394, 12.3392], 'Ponte Storto': [45.4382, 12.3318], 'Cavanis': [45.4302, 12.3282], 'Sant’Alvise': [45.4348, 12.3579], 'Santa Marta': [45.4341, 12.3166] };
+  var COORDS = { 'Venini / Barovier': [45.4515439, 12.3497734], 'Promovetro · F3 · YALOS': [45.4541898, 12.3556733], 'Nason Moretti': [45.4555415, 12.3489010], 'Pane': [45.4370, 12.3192], 'Seminario': [45.4308, 12.3353], 'Piazza': [45.4455, 12.3338], 'Darsena': [45.4452, 12.3356], 'Convitto': [45.4276, 12.3658], 'Caritas': [45.4357, 12.3487], 'Giustinian': [45.4360, 12.3182], 'Scalo': [45.4413, 12.3143], 'Scalo fluviale': [45.4413, 12.3143], 'Murano': [45.4590, 12.3523], 'Lido': [45.4279, 12.3806], 'Cristo Re': [45.4381, 12.3491], 'Miracoli': [45.4394, 12.3392], 'Ponte Storto': [45.4382, 12.3318], 'Cavanis': [45.4302, 12.3282], 'Sant’Alvise': [45.4348, 12.3579], 'Santa Marta': [45.4341, 12.3166] };
   Object.keys(PCO).forEach(function (k) { if (!COORDS[k]) COORDS[k] = PCO[k]; });
   try { (S.shift && S.shift.extra || []).forEach(function (x) { if (x.lat != null && x.lng != null && !COORDS[x.name]) COORDS[x.name] = [x.lat, x.lng]; }); } catch (e) {}
   var BCOL = { PATANA: '#1E88E5', TOPPETTA: '#E65100', ARDEMAR: '#8E24AA', TULLIO: '#00897B' }; applyBoatInfo();
