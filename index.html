@@ -88,7 +88,7 @@ details[open] .secc{transform:rotate(90deg)}
 .murow{display:flex;flex-direction:column;gap:6px;padding:8px 0;border-top:1px solid var(--line,#eef0f3)}
 .muhd{display:flex;align-items:baseline;gap:8px}.mushot{align-self:flex-start}
 .ddsn{font-size:14px;padding:2px 0 4px}
-.ddwbox{height:100%;box-sizing:border-box;padding:10px 12px;border-radius:18px;background:linear-gradient(180deg,#14242B,#0F1B20);box-shadow:0 0 0 1.5px #2A3C44}.ddw{display:flex;flex-direction:column;height:100%;min-height:0;gap:6px}
+.ddwbox{height:100%;box-sizing:border-box;padding:10px 12px;border-radius:18px;background:linear-gradient(180deg,#14242B,#0F1B20);box-shadow:0 0 0 1.5px #2A3C44}.ddwz{display:flex;flex-direction:column;height:100%;min-height:0;gap:6px}
 .ddwh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#9FB3B0}.ddwh b{color:#F2F7F5}
 .ddwl{list-style:none;margin:0;padding:0;overflow-y:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:4px}
 .ddwl li{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:10px;background:rgba(255,255,255,.04)}
@@ -174,6 +174,15 @@ li.on .ddwk{background:#4FC3F7;border-color:#4FC3F7;color:#0B1317}.ddwk.ok{borde
 .ddwup button{border:0;border-radius:10px;padding:9px 12px;background:#E65100;color:#fff;font:inherit;font-weight:800;font-size:14px}
 .ctg{display:flex;flex-direction:column;gap:8px;margin-top:10px}.ctgh h3{margin:0}.ctgh .muted{font-weight:400}
 .sosg .ctgh h3{color:#C62828}
+.ddfold{display:flex;gap:6px;margin:4px 0 12px}.ddfold button{flex:1;border:0;border-radius:12px;padding:10px;font:inherit;font-weight:700;background:none;color:inherit;box-shadow:0 0 0 1px var(--line,#d0d5dd);cursor:pointer}
+.ddfold button[aria-pressed=true]{background:#1655C8;color:#fff;box-shadow:none}.ddfold b{background:#E65100;color:#fff;border-radius:999px;padding:0 7px;font-size:12px;margin-left:4px}
+.nokia{position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:max(22px,env(safe-area-inset-bottom,0px));z-index:31;width:62px;height:62px;border-radius:50%;border:0;background:#2E7D32;box-shadow:0 6px 16px rgba(0,0,0,.3);display:grid;place-items:center;cursor:pointer;padding:0}
+.nokia svg{width:40px;height:40px}.nokia:active{transform:scale(.94)}
+.rubh{display:flex;align-items:center;justify-content:space-between}.rubh h2{margin:0}
+.rubl{max-height:58vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.rubg{display:flex;flex-direction:column;gap:2px}.rubg>b{font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6}.rubg.sos>b{color:#C62828;opacity:1}
+.rubr{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid var(--line,#eef0f3)}.rubr span{flex:1;display:flex;flex-direction:column;min-width:0}.rubr small{font-size:13px;opacity:.7}
+.rubc{flex:none;width:44px;height:44px;border-radius:50%;background:#2E7D32;color:#fff;display:grid;place-items:center;text-decoration:none;font-size:20px}
 </style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -376,7 +385,7 @@ p { margin: 0; }
 
 
 /* rotella di navigazione */
-.nav { position: fixed; left: max(6px, env(safe-area-inset-left, 0px)); bottom: max(10px, env(safe-area-inset-bottom, 0px)); width: 160px; height: 160px; border: 0; background: none; z-index: 30; pointer-events: none; }
+.nav { position: fixed; left: calc(50% - 80px); bottom: max(10px, env(safe-area-inset-bottom, 0px)); width: 160px; height: 160px; border: 0; background: none; z-index: 30; pointer-events: none; }
 .nav .nav-in { display: block; max-width: none; margin: 0; padding: 0 !important; width: 160px; height: 160px; }
 .dial { position: relative; width: 160px; height: 160px; pointer-events: none; touch-action: none; }
 .dial::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(0,0,0,.22); }
@@ -1851,7 +1860,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (!MU.day) MU.day = todayKey();
     if (!DD.loaded && !DD.busy) loadDdt().then(function () { if (view === 'murano') render(); });
     var k = MU.day, list = muStops(k), canUp = isOff() || isMgr() || isFullAcc();
-    var h = '<div class="wrap"><div class="row"><h2>DDT Murano</h2><button class="btn sm" data-act="nav" data-v="ddt">Tutti i DDT</button></div>' +
+    var h = '<div class="wrap"><button class="aslink" data-act="nav" data-v="ddt">‹ DDT</button><div class="row"><h2>📁 DDT · Murano</h2></div>' +
       '<p class="muted">Fai una foto al DDT: lo ritaglio, lo raddrizzo e tolgo lo sfondo. Quando il cliente firma sul telefono, la firma va nel riquadro “Firma del cessionario” della copia digitale.</p>' +
       '<div class="ldnav"><button class="btn sm" data-act="mumove" data-n="-1" aria-label="Giorno prima">‹</button><b>' + (k === todayKey() ? 'Oggi · ' : k === ldShift(todayKey(), 1) ? 'Domani · ' : '') + esc(pgDateLabel(k)) + '</b><button class="btn sm" data-act="mumove" data-n="1" aria-label="Giorno dopo">›</button></div>';
     if (!list.length) return h + '<div class="card"><p class="muted">Nessuna consegna a Murano in questo giorno.</p></div></div>';
@@ -2159,7 +2168,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var ced = tok() && (isEditor() || isFullAcc()), ed = ced && CTE.on;
     var groups = CTE.groups || CONTACTS.map(function (g) { return { name: g.g, sos: g.sos }; });
     var by = {}; CONTACTS.forEach(function (g) { by[g.g] = g; });
-    var h = '<div class="wrap"><div class="row"><h2>Rubrica</h2>' + (ced ? '<button class="btn sm' + (ed ? ' primary' : '') + '" data-act="ctedit">' + (ed ? 'Fatto' : '✎ Modifica') + '</button>' : '') + '</div>' +
+    var h = '<div class="wrap">' + (isMgr() ? '<button class="aslink" data-act="nav" data-v="notifiche">‹ Notifiche</button>' : '') + '<div class="row"><h2>Rubrica</h2>' + (ced ? '<button class="btn sm' + (ed ? ' primary' : '') + '" data-act="ctedit">' + (ed ? 'Fatto' : '✎ Modifica') + '</button>' : '') + '</div>' +
       '<input id="ctSearch" class="field" style="text-transform:none" type="search" placeholder="Cerca nome, ruolo o numero" autocomplete="off" aria-label="Cerca">';
     groups.forEach(function (gr, gi) {
       var g = by[gr.name] || { g: gr.name, sos: gr.sos, list: [] };
@@ -2176,6 +2185,27 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (ed) h += '<button class="btn" data-act="ctgnew">+ Nuova categoria</button>';
     return h + '<p id="ctNone" class="muted" hidden>Nessun contatto trovato.</p></div>';
   }
+  // rubrica veloce dal telefono in basso a destra delle Notifiche
+  function rubSheet() {
+    if (!document.querySelector('#layer .sheet')) {} 
+    var all = []; CONTACTS.forEach(function (g) { g.list.forEach(function (c) { all.push({ c: c, g: g }); }); });
+    openSheet('<div class="rubh"><h2>📞 Rubrica</h2>' + ((isEditor() || isFullAcc()) ? '<button class="btn sm" data-act="rubedit">✎ Modifica</button>' : '') + '</div>' +
+      '<input class="field" id="rubQ" type="search" placeholder="Cerca un nome o un numero" style="text-transform:none" autocomplete="off">' +
+      '<div class="rubl">' + CONTACTS.map(function (g) {
+        if (!g.list.length) return '';
+        return '<div class="rubg' + (g.sos ? ' sos' : '') + '"><b>' + esc(g.g) + '</b>' + g.list.map(function (c) {
+          var q = (c.n + ' ' + c.r + ' ' + c.t + ' ' + g.g).toLowerCase();
+          return '<div class="rubr" data-q="' + esc(q) + '"><span><b>' + esc(c.n) + '</b><small>' + esc(c.r || '') + (c.t ? (c.r ? ' · ' : '') + esc(c.t) : (c.r ? ' · ' : '') + 'numero da inserire') + '</small></span>' +
+            (c.t ? '<a class="rubc" href="tel:' + esc(c.t.replace(/\s/g, '')) + '" aria-label="Chiama ' + esc(c.n) + '">📞</a>' : '') + '</div>';
+        }).join('') + '</div>';
+      }).join('') + '</div><div class="btns"><button class="btn quiet" data-act="close">Chiudi</button></div>');
+  }
+  document.addEventListener('input', function (e) { if (!e.target || e.target.id !== 'rubQ') return; var q = e.target.value.toLowerCase().trim(); Array.prototype.forEach.call(document.querySelectorAll('.rubr'), function (r) { r.style.display = !q || r.getAttribute('data-q').indexOf(q) >= 0 ? '' : 'none'; }); });
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'rubopen') { if (!CONTACTS.some(function (g) { return g.list.some(function (c) { return c.id; }); })) loadContacts(true); rubSheet(); }
+    else if (a === 'rubedit') { closeSheet(); CTE.on = true; view = 'contatti'; render(); }
+  });
   function ctFind(id) { var r = null; CONTACTS.forEach(function (g) { g.list.forEach(function (c) { if (c.id === id) r = { c: c, g: g.g }; }); }); return r; }
   function ctSheet(id, grp) {
     var f = id ? ctFind(id) : null, c = f ? f.c : { n: '', r: '', t: '' }, g = f ? f.g : grp || '';
@@ -2865,7 +2895,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   function viewLogistica() {
     if (!LD.day) LD.day = todayKey();
-    var k = LD.day, h = '<div class="wrap"><div class="row ldtop"><h2>Logistica</h2><span class="ldtb"><button class="btn sm ddtb" data-act="nav" data-v="murano">Murano</button><button class="btn sm ddtb" data-act="nav" data-v="ddt">DDT</button></span></div>';
+    var k = LD.day, h = '<div class="wrap"><div class="row ldtop"><h2>Logistica</h2><span class="ldtb"><button class="btn sm ddtb" data-act="nav" data-v="ddt">DDT</button></span></div>';
     if (!tok()) return h + '<div class="note"><b>Serve la connessione.</b> Esci e rientra con il tuo PIN personale quando sei online.</div></div>';
     // nuovo turno (casella "Programma qualcosa…" + consegna manuale) direttamente qui
     var dft = MG.draft, mopen = MG.formOpen || (dft && dft.stops.some(function (z) { return z.name || z.t || z.cargo; }));
@@ -3596,7 +3626,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function setBg(hex) { S.bg = hex; save(); applyBg(hex); }
   applyBg(S.bg);
   function viewAltro() {
-    var items = [['ore', 'Ore lavorate', 'Tabella mensile delle ore di ogni dipendente'], ['programma', 'Programma', 'Giri e tappe dei prossimi giorni'], ['richieste', 'Richieste', 'Richieste per le barche'], ['ddt', 'DDT', 'Documenti di trasporto da consegnare e firmati'], ['contatti', 'Contatti', 'Rubrica dell’azienda'], ['cucina', 'Uscite dalla cucina', 'Orari in cui i carichi devono essere pronti'], ['murano', 'DDT Murano', 'Foto del DDT ritagliata, firma nel riquadro del cliente'], ['admin', 'Storico turni', 'Turni passati, controllo tappe e statistiche'], ['impost', 'Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
+    var items = [['ore', 'Ore lavorate', 'Tabella mensile delle ore di ogni dipendente'], ['programma', 'Programma', 'Giri e tappe dei prossimi giorni'], ['richieste', 'Richieste', 'Richieste per le barche'], ['ddt', 'DDT', 'Documenti di trasporto da consegnare e firmati'], ['cucina', 'Uscite dalla cucina', 'Orari in cui i carichi devono essere pronti'], ['admin', 'Storico turni', 'Turni passati, controllo tappe e statistiche'], ['impost', 'Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
     return '<div class="wrap"><h2>Altro</h2>' + items.map(function (x) {
       return '<button class="card" data-act="nav" data-v="' + x[0] + '" style="text-align:left;display:flex;flex-direction:column;gap:2px"><b>' + x[1] + '</b><span class="muted">' + x[2] + '</span></button>';
     }).join('') + '</div>';
@@ -3704,7 +3734,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     items.forEach(function (x) { var k = key(x); if (!by[k]) { by[k] = { k: k, list: [] }; groups.push(by[k]); } by[k].list.push(x); });
     if (NTV.by === 'tipo') { var ord = ['Inizi turno', 'Fine turno', 'Richieste', 'DDT', 'Altro']; groups.sort(function (a, b) { return ord.indexOf(a.k) - ord.indexOf(b.k); }); }
     var op = ntOpenSet(), chips = [['', 'Tutte'], ['shift_start', 'Inizi turno'], ['shift_end', 'Fine turno'], ['request', 'Richieste'], ['ddt', 'DDT']];
-    var h = '<div class="wrap"><h2>Notifiche</h2>' + pushBlock() +
+    var h = '<div class="wrap"><h2>Notifiche</h2>' + pushBlock() + '<button class="nokia" data-act="rubopen" aria-label="Rubrica: numeri di tutti"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 6h24a4 4 0 0 1 4 4v44a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V10a4 4 0 0 1 4-4z" fill="#2B3A33"/><rect x="21" y="12" width="22" height="15" rx="2" fill="#B8D88B"/><path d="M24 22l3-4 3 3 3-5 4 6" stroke="#2B3A33" stroke-width="1.6" fill="none"/><g fill="#CFD8D3"><circle cx="25" cy="35" r="2.6"/><circle cx="32" cy="35" r="2.6"/><circle cx="39" cy="35" r="2.6"/><circle cx="25" cy="42" r="2.6"/><circle cx="32" cy="42" r="2.6"/><circle cx="39" cy="42" r="2.6"/><circle cx="25" cy="49" r="2.6"/><circle cx="32" cy="49" r="2.6"/><circle cx="39" cy="49" r="2.6"/></g></svg></button>' +
       '<div class="ntbar"><span class="muted">Cartelle per</span><div class="seg2">' + [['tipo', 'Tipo'], ['chi', 'Trasportatore'], ['barca', 'Barca']].map(function (o) { return '<button data-act="ntby" data-v="' + o[0] + '"' + (NTV.by === o[0] ? ' aria-pressed="true"' : '') + '>' + o[1] + '</button>'; }).join('') + '</div></div>' +
       '<div class="ntchips">' + chips.map(function (c) { var n = c[0] ? NT.items.filter(function (x) { return ntKind(x) === c[0]; }).length : NT.items.length; return '<button data-act="ntonly" data-v="' + c[0] + '"' + (NTV.only === c[0] ? ' aria-pressed="true"' : '') + '>' + c[1] + ' <small>' + n + '</small></button>'; }).join('') + '</div>' +
       (NT.err ? '<div class="note">Non riesco a caricare le notifiche: serve la connessione.</div>' : '');
@@ -3741,7 +3771,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01z';
+  var APP_V = '2026-11-02a';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -3873,14 +3903,14 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     here.forEach(function (x) { if (x.status === 'pending' && !DDW.auto[x.id]) { DDW.auto[x.id] = 1; DDW.sel[x.id] = true; } });
     here.forEach(function (x) { if (x.status === 'pending' && !DDSAID[x.id]) { DDSAID[x.id] = 1; setTimeout(function () { say('Qui hai un DDT da far firmare: ' + x.customer); }, 1500); } });
     var pend = all.filter(function (x) { return x.status === 'pending'; }), nSel = pend.filter(function (x) { return DDW.sel[x.id]; }).length, up = ddwMuranoUp(cur, all);
-    if (!all.length) return '<div class="ddw"><div class="ddwh"><b>DDT</b><span>nessuno da firmare</span></div>' + up + '</div>';
+    if (!all.length) return '<div class="ddwz"><div class="ddwh"><b>DDT</b><span>nessuno da firmare</span></div>' + up + '</div>';
     function row(x) {
       var sg = x.status === 'signed';
       return '<li class="' + (sg ? 'sg' : '') + (DDW.sel[x.id] && !sg ? ' on' : '') + '">' + (sg ? '<span class="ddwk ok">✓</span>' : '<button class="ddwk" data-act="ddwsel" data-id="' + x.id + '" aria-pressed="' + !!DDW.sel[x.id] + '" aria-label="Seleziona ' + esc(x.customer) + '">' + (DDW.sel[x.id] ? '✓' : '') + '</button>') +
         '<span class="ddwt" data-act="ddwsel" data-id="' + x.id + '"><b>' + esc(x.customer) + '</b><small>' + (sg ? 'firmato' : esc(x.stop && x.stop !== x.customer ? x.stop : 'da firmare')) + '</small></span>' +
         '<button class="ddwo" data-act="' + (sg ? 'ddtget' : 'ddtview') + '" data-id="' + x.id + '">' + (sg ? 'Copia' : 'Apri') + '</button></li>';
     }
-    return '<div class="ddw"><div class="ddwh"><b>DDT</b><span>' + pend.length + ' da firmare</span></div>' + up + '<ul class="ddwl">' +
+    return '<div class="ddwz"><div class="ddwh"><b>DDT</b><span>' + pend.length + ' da firmare</span></div>' + up + '<ul class="ddwl">' +
       (here.length ? '<li class="ddwg">Qui · ' + esc(cur.name) + '</li>' + here.map(row).join('') : '') +
       (other.length ? '<li class="ddwg">' + (here.length ? 'Altre tappe' : 'Di oggi') + '</li>' + other.map(row).join('') : '') + '</ul>' +
       '<button class="ddwgo" data-act="ddwsign"' + (nSel ? '' : ' disabled') + '>' + (nSel ? 'Fai firmare ' + (nSel === 1 ? '1 DDT' : nSel + ' DDT') : 'Seleziona i DDT da firmare') + '</button></div>';
@@ -3938,6 +3968,11 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       return '<div class="ddsr"><span>📄 DDT ' + esc(x.number || '') + ' · <b>' + esc(x.customer) + '</b></span><div class="ddsb"><button class="btn sm" data-act="ddtview" data-id="' + x.id + '">Apri</button><button class="btn sm primary" data-act="ddtsign" data-id="' + x.id + '">Fai firmare</button></div></div>';
     }).join('') + '</div>';
   }
+  function ddtFolders() {
+    if (!(isMgr() || isFullAcc()) || isOff()) return '';
+    var t = todayKey(), n = DD.items.filter(function (x) { return x.stop && isMurano(x.stop, '') && x.status === 'pending'; }).length;
+    return '<div class="ddfold"><button data-act="nav" data-v="ddt" aria-pressed="true">📂 Tutti</button><button data-act="nav" data-v="murano">📁 Murano' + (n ? ' <b>' + n + '</b>' : '') + '</button></div>';
+  }
   function viewDdt() {
     if (isWide() && DD.office) return viewDdtWide();
     var d = DD.draft, pend = DD.items.filter(function (x) { return x.status === 'pending'; }), done = DD.items.filter(function (x) { return x.status === 'signed'; });
@@ -3954,7 +3989,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         '<label class="muted" for="ddNote">Note per il trasportatore</label><input class="field txt" id="ddNote" data-dd="note" value="' + esc(d.note) + '" autocomplete="off">' +
         '<button class="btn primary" data-act="ddtadd"' + (DD.sending ? ' disabled' : '') + '>' + (DD.sending ? 'Invio in corso…' : 'Carica e invia al trasportatore') + '</button></div>';
     }
-    return '<div class="wrap"><h2>DDT</h2>' + (DD.office ? '<p class="muted">Carica il DDT e scegli chi lo consegna. Il trasportatore lo trova nell’app e fa firmare il cliente.</p>' : '<p class="muted">Consegna la copia cartacea al cliente, poi fagli firmare qui la versione digitale.</p>') +
+    return '<div class="wrap">' + ddtFolders() + '<h2>DDT</h2>' + (DD.office ? '<p class="muted">Carica il DDT e scegli chi lo consegna. Il trasportatore lo trova nell’app e fa firmare il cliente.</p>' : '<p class="muted">Consegna la copia cartacea al cliente, poi fagli firmare qui la versione digitale.</p>') +
       (DD.err ? '<div class="note">Non riesco a caricare i DDT: serve la connessione.</div>' : '') + form +
       '<h3>Da consegnare' + (pend.length ? ' (' + pend.length + ')' : '') + '</h3>' + (pend.length ? pend.map(ddtCard).join('') : '<div class="card"><p class="muted">' + (DD.loaded ? 'Nessun DDT da consegnare.' : 'Carico…') + '</p></div>') +
       (done.length ? '<h3>Firmati</h3>' + done.map(ddtCard).join('') : '') + '</div>';
@@ -4773,7 +4808,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var list = DD.items.filter(function (x) { return f === 'all' || x.status === (f === 'signed' ? 'signed' : 'pending'); });
     var nPend = DD.items.filter(function (x) { return x.status === 'pending'; }).length, nSig = DD.items.length - nPend;
     var todo = q.filter(function (r) { return r.state !== 'ok'; }).length;
-    return '<div class="wrap ddw"><h2>DDT</h2>' + (DD.err ? '<div class="note">Non riesco a caricare i DDT: serve la connessione.</div>' : '') +
+    return '<div class="wrap ddw">' + ddtFolders() + '<h2>DDT</h2>' + (DD.err ? '<div class="note">Non riesco a caricare i DDT: serve la connessione.</div>' : '') +
       '<div class="ddrop" id="ddDrop" data-act="ddmulti" role="button" tabindex="0" aria-label="Trascina qui i DDT oppure clicca per scegliere i file"><b>Trascina qui i DDT</b><span>PDF o foto, anche più file insieme. Oppure clicca per sceglierli dal computer.</span></div>' +
       (q.length ? '<div class="card ddq"><div class="ddqh"><b>Da inviare (' + todo + ')</b><label class="muted">Trasportatore per tutti <select class="field txt" data-dd="allcarrier"><option value="">—</option>' + car.map(function (c) { return '<option value="' + c.id + '">' + esc(c.name) + '</option>'; }).join('') + '</select></label><span style="flex:1"></span>' +
         '<button class="btn quiet sm" data-act="ddqclear"' + (DD.qbusy ? ' disabled' : '') + '>Svuota</button><button class="btn primary sm" data-act="ddqsend"' + (DD.qbusy || !todo ? ' disabled' : '') + '>' + (DD.qbusy ? 'Invio in corso…' : 'Invia ' + todo + (todo === 1 ? ' DDT' : ' DDT')) + '</button></div>' +
@@ -4956,7 +4991,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var g = $('gear'); g.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS.gear + '</svg>'; if (view === 'impost') g.setAttribute('aria-current', 'page'); else g.removeAttribute('aria-current');
     var cur = view === 'guida' ? 'turno' : view;
     if (view === 'pin' && !isFullAcc()) { view = 'impost'; cur = 'impost'; }
-    if (isFull && ['ore', 'programma', 'richieste', 'contatti', 'impost', 'ddt', 'pin', 'admin', 'murano', 'cucina'].indexOf(cur) >= 0) cur = 'altro';
+    if (isFull && ['ore', 'programma', 'richieste', 'impost', 'ddt', 'pin', 'admin', 'murano', 'cucina'].indexOf(cur) >= 0) cur = 'altro';
+    if (isMgr() && cur === 'contatti') cur = 'notifiche';
     if (isCrewOnly() && ['richieste', 'contatti', 'ddt'].indexOf(cur) >= 0) cur = 'barca';
     var NV = isOff() ? NAV_OFF : isAdm ? NAV_ADMIN : isFull ? NAV_FULL : (isMgr() ? NAV_MGR : NAV);
     drawDial(NV, cur);
