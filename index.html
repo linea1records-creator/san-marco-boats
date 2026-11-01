@@ -991,7 +991,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function bcol(c) { return (typeof BCOL === 'object' && BCOL[c]) || '#888'; }
   function boatCodes() { return Object.keys(BOATS).filter(function (k) { return !BOATS[k].gone; }); }
   try { var _pc = JSON.parse(localStorage.getItem('smb-prog') || 'null'); if (_pc && _pc.days) applyProgram(_pc.days); } catch (e) {}
-  var DOCS = ['Libretto di navigazione', 'Assicurazione RC', 'Certificato di sicurezza', 'Manuale d’uso del motore', 'Registro manutenzione'];
+  var DOCS = ['Libretto di navigazione', 'Assicurazione RC'];
   var PRE = ['Carburante sopra metà serbatoio', 'Giubbotti di salvataggio a bordo', 'Contenitori e polibox puliti', 'Telefono carico e radio accesa', 'Luci di via funzionanti'];
   var END_CHECKS = ['Motore spento e chiavi riposte', 'Cime fissate e parabordi in posizione', 'Barca ormeggiata nel posto assegnato', 'Nessun rifiuto o merce rimasta a bordo'];
   var REASONS = ['Annullata dal cliente', 'Barca ferma o guasta', 'Marea troppo bassa', 'Tappa non raggiungibile', 'Merce o polibox non pronti', 'Altro problema'];
@@ -1873,7 +1873,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function isMurano(name, note) { return MURANO_STOPS.indexOf(name) >= 0 || /murano/i.test(name || '') || /^murano\b/i.test(note || ''); }
   // per le consegne di Murano le foto passano dallo scanner (ritaglio + sfondo bianco) e il DDT sa dove va la firma
   // tappe che non hanno DDT della segreteria: Darsena, Scalo / Scalo fluviale (solo partenza) e Murano (li carica il trasportatore)
-  function ddtSkip(name, note) { return /^(darsena|scalo)\b/i.test(String(name || '').trim()) || isMurano(name, note); }
+  function ddtSkip(name, note) { return /^(darsena|scalo|seminario)\b/i.test(String(name || '').trim()) || /certosa/i.test(name || '') || isMurano(name, note); }
   function muClients(name) { var a = String(name || '').split(/\s*(?:\/|·)\s*/).map(function (x) { return x.trim(); }).filter(Boolean); return a.length ? a : [name]; }
   function muranoPrep(f, name, note, cust) {
     if (!f || !/^image\//.test(f.type) || !isMurano(name, note)) return Promise.resolve({ file: f, box: null });
@@ -2018,7 +2018,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (draft) return viewRichieste();
     var code = BF.sel || (S.shift && S.shift.boat) || myBoatCode() || boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO'; })[0];
     if (!BF.files[code] && tok() && !BF.loading) { BF.loading = true; setTimeout(function () { BF.loading = false; loadFiles(code); }, 0); }
-    var files = BF.files[code], labels = DOCS.slice(); (files || []).forEach(function (f) { if (labels.indexOf(f.doc) < 0) labels.push(f.doc); });
+    var files = BF.files[code], labels = DOCS.slice();
     var h = '<div class="wrap"><h2>Barche</h2><h3>Documenti per i controlli</h3>' +
       '<div class="chips" role="group" aria-label="Barca">' + boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO'; }).map(function (k) { return '<button class="chip" data-act="bselc" data-c="' + k + '" aria-pressed="' + (k === code ? 'true' : 'false') + '">' + esc(BOATS[k].name) + '</button>'; }).join('') + '</div>';
     if (!tok()) h += '<p class="hint">Serve la connessione per vedere i documenti.</p>';
@@ -2196,7 +2196,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   /* ---------- Rubrica: Pietro modifica nomi e numeri, crea e ordina le categorie ---------- */
   var CTE = { on: false, edit: null, groups: null };
   function viewContatti() {
-    var ced = tok() && (isEditor() || isFullAcc()), ed = ced && CTE.on;
+    var ced = tok() && (isEditor() || isFullAcc() || isOff()), ed = ced && CTE.on;
     var groups = CTE.groups || CONTACTS.map(function (g) { return { name: g.g, sos: g.sos }; });
     var by = {}; CONTACTS.forEach(function (g) { by[g.g] = g; });
     var h = '<div class="wrap">' + (isMgr() ? '<button class="aslink" data-act="nav" data-v="notifiche">‹ Notifiche</button>' : '') + '<div class="row"><h2>Rubrica</h2>' + (ced ? '<button class="btn sm' + (ed ? ' primary' : '') + '" data-act="ctedit">' + (ed ? 'Fatto' : '✎ Modifica') + '</button>' : '') + '</div>' +
@@ -2220,7 +2220,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function rubSheet() {
     if (!document.querySelector('#layer .sheet')) {} 
     var all = []; CONTACTS.forEach(function (g) { g.list.forEach(function (c) { all.push({ c: c, g: g }); }); });
-    openSheet('<div class="rubh"><h2>📞 Rubrica</h2>' + ((isEditor() || isFullAcc()) ? '<button class="btn sm" data-act="rubedit">✎ Modifica</button>' : '') + '</div>' +
+    openSheet('<div class="rubh"><h2>📞 Rubrica</h2>' + ((isEditor() || isFullAcc() || isOff()) ? '<button class="btn sm" data-act="rubedit">✎ Modifica</button>' : '') + '</div>' +
       '<input class="field" id="rubQ" type="search" placeholder="Cerca un nome o un numero" style="text-transform:none" autocomplete="off">' +
       '<div class="rubl">' + CONTACTS.map(function (g) {
         if (!g.list.length) return '';
@@ -3092,7 +3092,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (MAPS.full && !full) return '<div class="mapbox mapph"><button class="btn sm" data-act="mapfull">Mappa a schermo intero aperta · Chiudi</button></div>';
     return '<div class="mapbox' + (full ? ' mfull' : '') + '" id="mapBox" data-ms="' + mapCol().style + '"><div class="mtiles" id="mTiles"></div><svg class="msvg" id="mSvg" aria-hidden="true"></svg><div class="mhud" id="mHud"></div>' +
       '<div class="mctl"><button data-act="mapfull" id="mFull" aria-label="' + (full ? 'Chiudi schermo intero' : 'Mappa a schermo intero') + '">' + (full ? '✕' : '⛶') + '</button>' +
-      '<button data-act="mapsea" id="mSea" aria-label="Segnali nautici" aria-pressed="' + MAPS.sea + '">⚓</button>' + (isMgr() ? '<button data-act="canrec" id="mRec" aria-label="Insegna percorso" aria-pressed="' + !!CAN.rec + '" style="color:' + (CAN.rec ? '#ff4d4d' : 'inherit') + '">●</button>' : '') + '</div>' +
+      '<button data-act="mapsea" id="mSea" aria-label="Segnali nautici" aria-pressed="' + MAPS.sea + '">⚓</button>' + (isMgr() && !CAN_OFF ? '<button data-act="canrec" id="mRec" aria-label="Insegna percorso" aria-pressed="' + !!CAN.rec + '" style="color:' + (CAN.rec ? '#ff4d4d' : 'inherit') + '">●</button>' : '') + '</div>' +
       (full ? '<div class="mzoom" id="mZoom" role="slider" aria-label="Zoom della mappa" aria-valuemin="' + ZMIN + '" aria-valuemax="' + ZMAX + '"><span class="mzl">+</span><div class="mzt" id="mZt"><div class="mzf" id="mZf"></div><div class="mzk" id="mZk"></div></div><span class="mzl">−</span>' +
         '<button class="mza" data-act="mapauto" id="mAuto" aria-pressed="' + (MAPS.zoom == null) + '">AUTO</button></div>' : '') +
       '<div class="mattr">© OpenStreetMap · OpenSeaMap</div></div>';
@@ -3304,7 +3304,9 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     return { i: bi, off: bd, done: R.cum[bi] };
   }
   // Aggiorna il percorso per la tappa attuale (ricalcola se cambi tappa o esci dal percorso)
+  var CAN_OFF = true; // percorso consigliato spento: studio prima i percorsi reali delle barche
   function canUpdate(fx, tg, name) {
+    if (CAN_OFF) { CAN.route = null; return; }
     canLoad();
     if (!tg) { CAN.route = null; return; }
     var from = fx ? [fx.la, fx.lo] : null;
@@ -3331,7 +3333,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   // Testo della prossima manovra per la barra in alto
   function canHud(fx) {
-    var R = CAN.route; if (!R || !fx) return null;
+    var R = CAN.route; if (CAN_OFF || !R || !fx) return null;
     var pr = canProgress(R, fx.la, fx.lo), rest = Math.max(0, R.len - pr.done), nx = null, cur = null;
     R.steps.forEach(function (s) { if (s.at <= pr.done + 5) cur = s; else if (!nx) nx = s; });
     var line;
@@ -3816,7 +3818,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02e';
+  var APP_V = '2026-11-02f';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
