@@ -2116,7 +2116,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var day = PROGRAM[k] || VX[k];
     var ids = boatCodes().filter(function (id) { return day.boats[id]; }), canEdit = isMgr() && tok() && !day.virtual, canDdt = isOff() && tok() && !day.virtual;
     if (S.shift && S.shift.day === k) ids.sort(function (a, b) { return (b === S.shift.boat) - (a === S.shift.boat); });
-    var h = '<div class="wrap"><h2>Programma</h2><p class="muted">Logistica Ristorazione San Marco · dal ' + pgFmt(DAYKEYS[0]) + ' al ' + pgFmt(DAYKEYS[DAYKEYS.length - 1]) + '</p>' + (VX[todayISO()] ? '' : dayNote()) +
+    var h = '<div class="wrap">' + (isMgr() && !isOff() ? '<button class="aslink" data-act="nav" data-v="logistica">‹ Logistica</button>' : '') + '<h2>Programma dettagliato</h2><p class="muted">Logistica Ristorazione San Marco · dal ' + pgFmt(DAYKEYS[0]) + ' al ' + pgFmt(DAYKEYS[DAYKEYS.length - 1]) + '</p>' + (VX[todayISO()] ? '' : dayNote()) +
       '<div class="chips" role="group" aria-label="Giorno">' + keys.map(function (d) { return '<button class="chip" data-act="day" data-k="' + d + '" aria-pressed="' + (d === k ? 'true' : 'false') + '">' + esc((PROGRAM[d] || VX[d]).short) + '</button>'; }).join('') + '</div>' +
       (isMgr() && tok() ? '<button class="btn" data-act="nav" data-v="logistica">+ Nuovo turno o consegna</button>' : '') + '<h3>' + esc(day.label) + '</h3>' + (day.halloween ? '<div class="note">🎃 <b>Buon Halloween!</b> Occhio alla nebbia in laguna: dolcetto o scherzetto a fine giro.</div>' : '');
     if (canDdt) h += '<p class="hint">Tocca <b>📎 DDT</b> su una consegna per collegare il suo DDT' + (isWide() ? ', oppure trascina il file sulla riga' : '') + '. Il trasportatore lo trova nel navigatore quando arriva lì.</p>';
@@ -2925,7 +2925,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   function viewLogistica() {
     if (!LD.day) LD.day = todayKey();
-    var k = LD.day, h = '<div class="wrap"><div class="row ldtop"><h2>Logistica</h2><span class="ldtb"><button class="btn sm ddtb" data-act="nav" data-v="ddt">DDT</button></span></div>';
+    var k = LD.day, h = '<div class="wrap"><div class="row ldtop"><h2>Logistica</h2><span class="ldtb"><button class="btn sm ddtb" data-act="nav" data-v="programma">Programma</button><button class="btn sm ddtb" data-act="nav" data-v="ddt">DDT</button></span></div>';
     if (!tok()) return h + '<div class="note"><b>Serve la connessione.</b> Esci e rientra con il tuo PIN personale quando sei online.</div></div>';
     // nuovo turno (casella "Programma qualcosa…" + consegna manuale) direttamente qui
     var dft = MG.draft, mopen = MG.formOpen || (dft && dft.stops.some(function (z) { return z.name || z.t || z.cargo; }));
@@ -2936,7 +2936,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<div class="ldnav"><button class="btn sm" data-act="ldmove" data-n="-1" aria-label="Indietro">‹</button><b>' + esc(lbl) + '</b><button class="btn sm" data-act="ldmove" data-n="1" aria-label="Avanti">›</button></div>' +
       (LD.mode === 'giorno' ? ldDay(k) : ldWeek(k)) +
       (LD.mode === 'giorno' && isFullAcc() ? '<div class="hint">Tocca una consegna per cambiarle il nome.</div>' : '') +
-      '<div class="row"><button class="btn sm quiet" data-act="ldtoday"' + (k === todayKey() ? ' hidden' : '') + '>Torna a oggi</button><button class="btn sm" data-act="nav" data-v="programma">Modifica il programma ›</button></div></section>';
+      '<div class="row"><button class="btn sm quiet" data-act="ldtoday"' + (k === todayKey() ? ' hidden' : '') + '>Torna a oggi</button><button class="btn sm" data-act="nav" data-v="programma">Programma dettagliato ›</button></div></section>';
     if (isMgr()) { if (!ASG && !LD.asgL) { LD.asgL = 1; loadAsg(); } h += '<details class="card lddet asgd"' + (LD.asgOpen ? ' open' : '') + '><summary><b>Chi vede il programma di ogni barca</b><span class="secc">›</span></summary>' + asgCard() + '</details>'; }
     if (!isFullAcc() && isMgr()) h += '<details class="card lddet"><summary><b>Clienti: account con PIN</b></summary>' + custCard() + '</details>';
     h += '<button class="aslink" data-act="pgopenview">Bozze e programmi salvati</button>';
@@ -3658,7 +3658,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function setBg(hex) { S.bg = hex; save(); applyBg(hex); }
   applyBg(S.bg);
   function viewAltro() {
-    var items = [['ore', 'Ore lavorate', 'Tabella mensile delle ore di ogni dipendente'], ['programma', 'Programma', 'Giri e tappe dei prossimi giorni'], ['ddt', 'DDT', 'Documenti di trasporto da consegnare e firmati'], ['cucina', 'Uscite dalla cucina', 'Orari in cui i carichi devono essere pronti'], ['impost', 'Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
+    var items = [['ore', 'Ore lavorate', 'Tabella mensile delle ore di ogni dipendente'], ['cucina', 'Uscite dalla cucina', 'Orari in cui i carichi devono essere pronti'], ['impost', 'Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
     return '<div class="wrap"><h2>Altro</h2>' + items.map(function (x) {
       return '<button class="card" data-act="nav" data-v="' + x[0] + '" style="text-align:left;display:flex;flex-direction:column;gap:2px"><b>' + x[1] + '</b><span class="muted">' + x[2] + '</span></button>';
     }).join('') + '</div>';
@@ -3818,7 +3818,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02f';
+  var APP_V = '2026-11-02g';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4017,8 +4017,9 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   function ddtFolders() {
     if (!(isMgr() || isFullAcc()) || isOff()) return '';
+    var back = '<button class="aslink" data-act="nav" data-v="logistica">‹ Logistica</button>';
     var t = todayKey(), n = DD.items.filter(function (x) { return x.stop && isMurano(x.stop, '') && x.status === 'pending'; }).length;
-    return '<div class="ddfold"><button data-act="nav" data-v="ddt" aria-pressed="true">📂 Tutti</button><button data-act="nav" data-v="murano">📁 Murano' + (n ? ' <b>' + n + '</b>' : '') + '</button></div>';
+    return back + '<div class="ddfold"><button data-act="nav" data-v="ddt" aria-pressed="true">📂 Tutti</button><button data-act="nav" data-v="murano">📁 Murano' + (n ? ' <b>' + n + '</b>' : '') + '</button></div>';
   }
   /* ---------- DDT in cartelle: una per cliente, con quanti DDT contiene ---------- */
   var DDF = { open: null };
@@ -5045,9 +5046,9 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   setInterval(function () { if (view === 'guida' && S.shift && !document.hidden) mimPaint(true); }, 3500);
 
   /* ---------- render ---------- */
-  var NAV_ADMIN = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['ore', 'Ore'], ['barca', 'Barche'], ['programma', 'Programma'], ['contatti', 'Contatti']];
+  var NAV_ADMIN = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['ore', 'Ore'], ['barca', 'Barche'], ['contatti', 'Contatti']];
   var NAV_FULL = [['logistica', 'Logistica'], ['barca', 'Barche'], ['turno', 'Turno'], ['notifiche', 'Notifiche'], ['altro', 'Altro']];
-  var NAV_MGR = [['programma', 'Programma'], ['notifiche', 'Notifiche'], ['logistica', 'Logistica'], ['turno', 'Turno'], ['ddt', 'DDT'], ['contatti', 'Contatti'], ['barca', 'Barca']];
+  var NAV_MGR = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['turno', 'Turno'], ['barca', 'Barca'], ['contatti', 'Contatti']];
   var NAV = [['turno', 'Turno'], ['programma', 'Programma'], ['barca', 'Barche']];
   var NAV_OFF = [['cucina', 'Cucina'], ['programma', 'Programma'], ['ddt', 'DDT'], ['contatti', 'Contatti']];
   function render() {
@@ -5068,8 +5069,9 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var g = $('gear'); g.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS.gear + '</svg>'; if (view === 'impost') g.setAttribute('aria-current', 'page'); else g.removeAttribute('aria-current');
     var cur = view === 'guida' ? 'turno' : view;
     if (view === 'pin' && !isFullAcc()) { view = 'impost'; cur = 'impost'; }
-    if (isFull && ['ore', 'programma', 'richieste', 'impost', 'ddt', 'pin', 'admin', 'murano', 'cucina'].indexOf(cur) >= 0) cur = 'altro';
+    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina'].indexOf(cur) >= 0) cur = 'altro';
     if (isMgr() && cur === 'contatti') cur = 'notifiche';
+    if (isMgr() && !isOff() && ['programma', 'ddt', 'murano'].indexOf(cur) >= 0) cur = 'logistica';
     if (isMgr() && cur === 'richieste') cur = 'barca';
     if (isCrewOnly() && ['richieste', 'contatti', 'ddt'].indexOf(cur) >= 0) cur = 'barca';
     var NV = isOff() ? NAV_OFF : isAdm ? NAV_ADMIN : isFull ? NAV_FULL : (isMgr() ? NAV_MGR : NAV);
