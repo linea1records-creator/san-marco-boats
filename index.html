@@ -1334,7 +1334,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       st.forEach(function (z) {
         var sem = /seminario/i.test(z.name);
         if (sem) { if (leg && leg.items.length) out.push(leg); leg = z.t ? { boat: c, sem: z.t, out: m2t(t2m(z.t) - 5), items: [] } : null; return; }
-        if (leg && !/^darsena$/i.test(z.name.trim())) leg.items.push(z);
+        // non passano dalla cucina: Darsena, Scalo / Scalo fluviale e le consegne di Murano
+        if (leg && !/^(darsena|scalo)\b/i.test(z.name.trim()) && !isMurano(z.name, z.note)) leg.items.push(z);
       });
       if (leg && leg.items.length) out.push(leg);
     });
@@ -3671,7 +3672,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01v';
+  var APP_V = '2026-11-01w';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
