@@ -578,6 +578,11 @@ details.card summary { cursor: pointer; }
 .swr:first-child .swc { border-top: 0; }
 .swr.drag .swc { transition: none; }
 .swr.open .swc { transform: translateX(-92px); }
+.swr { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.swr.lifted { z-index: 5; overflow: visible; }
+.swr.lifted .swdel { display: none; }
+.swr.lifted .swc { transform: scale(1.02); box-shadow: 0 8px 22px rgba(0,0,0,.25); border-radius: 10px; border-top-color: transparent; background: var(--surface2, var(--surface)); transition: transform .12s ease, box-shadow .12s ease; }
+body.dragging { -webkit-user-select: none; user-select: none; }
 .swr.gone { opacity: .35; pointer-events: none; }
 .swdel { position: absolute; right: 0; top: 0; bottom: 0; width: 92px; border: 0; background: #D93025; color: #fff; font-weight: 700; font-size: 15px; }
 .tbtn { background: none; border: 0; padding: 0; text-align: left; font: inherit; color: var(--primary); font-size: 15px; text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
@@ -1202,6 +1207,51 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function taskDelRun(run) {
     cl('rpc_task_cancel', { p_run: run }).then(function (r) { toast(r ? 'Consegna eliminata' : 'Non riesco a eliminare: controlla la connessione'); loadMgr(false); });
   }
+  /* ---------- Programma: tieni premuto una tappa e trascinala per cambiare l'ordine ---------- */
+  var DR = { timer: null, li: null, ul: null, y0: 0, x0: 0, start: -1, active: false };
+  function drRows(ul) { return Array.prototype.filter.call(ul.children, function (x) { return x.classList.contains('swr') && x.hasAttribute('data-k'); }); }
+  document.addEventListener('pointerdown', function (e) {
+    var li = e.target.closest ? e.target.closest('.swr[data-k]') : null;
+    if (!li || e.target.closest('.swdel') || li.classList.contains('open')) return;
+    clearTimeout(DR.timer); DR.li = li; DR.x0 = e.clientX; DR.y0 = e.clientY; DR.active = false;
+    DR.timer = setTimeout(function () {
+      if (DR.li !== li) return;
+      SW.li = null; // niente scorrimento laterale mentre si sposta
+      DR.active = true; DR.ul = li.parentNode; DR.start = drRows(DR.ul).indexOf(li);
+      li.classList.add('lifted'); document.body.classList.add('dragging');
+      try { if (navigator.vibrate) navigator.vibrate(25); } catch (x) {}
+    }, 420);
+  });
+  document.addEventListener('pointermove', function (e) {
+    if (!DR.li) return;
+    if (!DR.active) { if (Math.abs(e.clientX - DR.x0) > 8 || Math.abs(e.clientY - DR.y0) > 8) { clearTimeout(DR.timer); DR.li = null; } return; }
+    e.preventDefault();
+    var li = DR.li, dy = e.clientY - DR.y0, prev = li.previousElementSibling, next = li.nextElementSibling;
+    if (prev && prev.hasAttribute('data-k') && dy < -prev.offsetHeight / 2) { DR.ul.insertBefore(li, prev); DR.y0 -= prev.offsetHeight; dy = e.clientY - DR.y0; }
+    else if (next && next.hasAttribute('data-k') && dy > next.offsetHeight / 2) { DR.ul.insertBefore(next, li); DR.y0 += next.offsetHeight; dy = e.clientY - DR.y0; }
+    li.style.transform = 'translateY(' + dy + 'px)';
+  }, { passive: false });
+  // su iPhone serve bloccare lo scorrimento della pagina mentre si trascina
+  document.addEventListener('touchmove', function (e) { if (DR.active) e.preventDefault(); }, { passive: false });
+  function drEnd() {
+    clearTimeout(DR.timer); var li = DR.li; DR.li = null;
+    if (!li || !DR.active) { DR.active = false; return; }
+    DR.active = false; li.style.transform = ''; li.classList.remove('lifted'); document.body.classList.remove('dragging'); li.__swiped = Date.now();
+    var to = drRows(DR.ul).indexOf(li), from = DR.start;
+    if (to < 0 || to === from) return;
+    progMoveStop(li.getAttribute('data-k'), li.getAttribute('data-b'), from, to);
+  }
+  document.addEventListener('pointerup', drEnd); document.addEventListener('pointercancel', drEnd);
+  // Sposta la tappa: gli orari restano al loro posto nella sequenza, cambiano i luoghi
+  function progMoveStop(k, b, from, to) {
+    var day = asDayFromProgram(k), stops = day.boats[b] && day.boats[b].stops; if (!stops || !stops[from]) return;
+    var slots = stops.map(function (z) { return { t: z.t || '', end: z.end || '' }; });
+    var mv = stops.splice(from, 1)[0]; stops.splice(to, 0, mv);
+    stops.forEach(function (z, i) { z.t = slots[i].t; if (slots[i].end) z.end = slots[i].end; else delete z.end; });
+    var what = mv.name + ' · ' + BOATS[b].name + ' ' + pgFmt(k);
+    progPublish([day], 'Ordine ' + what).then(function (u) { render(); undoBar(mv.name + ' spostata in posizione ' + (to + 1), function () { progUndo(u.prev, what); }); })
+      .catch(function () { toast('Non riesco a salvare: controlla la connessione'); render(); });
+  }
   function viewProgramma() {
     // giorni senza programma ma con consegne aggiunte (es. una domenica): li mostro lo stesso
     var VX = {}, keys = DAYKEYS.slice();
@@ -1214,7 +1264,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var h = '<div class="wrap"><h2>Programma</h2><p class="muted">Logistica Ristorazione San Marco · dal ' + pgFmt(DAYKEYS[0]) + ' al ' + pgFmt(DAYKEYS[DAYKEYS.length - 1]) + '</p>' + (VX[todayISO()] ? '' : dayNote()) +
       '<div class="chips" role="group" aria-label="Giorno">' + keys.map(function (d) { return '<button class="chip" data-act="day" data-k="' + d + '" aria-pressed="' + (d === k ? 'true' : 'false') + '">' + esc((PROGRAM[d] || VX[d]).short) + '</button>'; }).join('') + '</div>' +
       (isMgr() && tok() ? '<button class="btn" data-act="nav" data-v="nuovo">+ Nuovo turno o consegna</button>' : '') + '<h3>' + esc(day.label) + '</h3>' + (day.halloween ? '<div class="note">🎃 <b>Buon Halloween!</b> Occhio alla nebbia in laguna: dolcetto o scherzetto a fine giro.</div>' : '');
-    if (canEdit && ids.some(function (id) { return (day.boats[id].stops || []).length; })) h += '<p class="hint">Tocca un orario per cambiarlo · scorri una tappa verso sinistra per eliminarla.</p>';
+    if (canEdit && ids.some(function (id) { return (day.boats[id].stops || []).length; })) h += '<p class="hint">Tocca un orario per cambiarlo · scorri a sinistra per eliminare · tieni premuta una tappa e trascinala per cambiare l’ordine.</p>';
     ids.forEach(function (id) {
       var b = BOATS[id], bd = day.boats[id], mine = S.shift && S.shift.day === k && S.shift.boat === id, cur = mine ? curIdx() : -2;
       h += '<section class="card"' + (mine ? ' style="border:2px solid var(--primary)"' : '') + '><div class="row"><div><h2 style="font-size:22px">' + esc(b.name) + '</h2><div class="muted">' + esc(b.crew) + (b.giro ? ' · ' + esc(b.giro) : '') + '</div></div>' +
@@ -1225,7 +1275,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
           if (mine) { var r = S.shift.done[i]; if (r) { st = '<span class="pill ' + (r.status === 'ok' ? 'ok' : 'bad') + '">' + (r.status === 'ok' ? 'Fatta' : 'Problema') + '</span>'; cls = ' past'; } else if (i === cur) { st = '<span class="pill go">In corso</span>'; cls = ' now'; } }
           var tx = esc(s.t ? (s.end ? s.t + '–' + s.end : s.t) : '—'), body = '<span><b>' + esc(s.name) + '</b>' + (s.note ? '<small>' + esc(s.note) + '</small>' : '') + '</span>' + st;
           if (canEdit) { var da = ' data-k="' + k + '" data-b="' + id + '" data-i="' + i + '"';
-            return '<li class="swr"><div class="swc stp' + cls + (s.cancelled ? ' cxl' : '') + '"><button class="mono tbtn" data-act="ptime"' + da + ' aria-label="Cambia orario di ' + esc(s.name) + '">' + tx + '</button>' + body + '</div><button class="swdel" data-act="pdel"' + da + '>Elimina</button></li>'; }
+            return '<li class="swr"' + da + '><div class="swc stp' + cls + (s.cancelled ? ' cxl' : '') + '"><button class="mono tbtn" data-act="ptime"' + da + ' aria-label="Cambia orario di ' + esc(s.name) + '">' + tx + '</button>' + body + '</div><button class="swdel" data-act="pdel"' + da + '>Elimina</button></li>'; }
           return '<li class="stp' + cls + (s.cancelled ? ' cxl' : '') + '"><span class="mono">' + tx + '</span>' + body + '</li>';
         }).join('') + '</ul>';
       } else if (!bd.off) h += '<p class="muted">' + (bd.extraOnly ? 'Nessuna tappa fissa: solo consegne straordinarie.' : 'Nessuna tappa: solo reperibilità.') + '</p>';
