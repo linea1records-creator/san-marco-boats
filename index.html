@@ -452,7 +452,7 @@ body.dragfile .ddrop b::after { content: " — rilascia i file"; color: var(--pr
 .ddqh { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .ddqh label { display: flex; align-items: center; gap: 8px; font-size: 14px; } .ddqh .field { min-height: 38px; font-size: 15px; width: auto; padding: 4px 10px; }
 .ddqh .btn { width: auto; min-height: 42px; font-size: 15px; padding: 8px 16px; }
-.ddqr { display: grid; grid-template-columns: minmax(150px, 1.1fr) 1.3fr .8fr 1.2fr 1fr 1fr 70px; gap: 8px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
+.ddqr { display: grid; grid-template-columns: minmax(140px, 1fr) 1.2fr .7fr 1fr .9fr .9fr .9fr .9fr 56px; gap: 8px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
 .ddqr .field { min-height: 40px; font-size: 15px; padding: 6px 10px; }
 .ddqf { display: flex; gap: 10px; align-items: center; min-width: 0; } .ddqf b { display: block; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px; } .ddqf .muted { font-size: 12px; }
 .ddqi { flex: none; width: 42px; height: 42px; border-radius: 8px; background: #E4ECFA; color: #1553C7; font-weight: 800; font-size: 11px; display: grid; place-items: center; }
@@ -597,6 +597,12 @@ body.dragging { -webkit-user-select: none; user-select: none; }
 .tschk { display: flex; gap: 10px; align-items: center; font-size: 15px; } .tschk input { width: 22px; height: 22px; }
 .tsdelta { text-align: center; }
 .tsact { display: flex; gap: 10px; } .tsact .btn { flex: 1; }
+.ddai { font-size: 14px; background: rgba(79,195,247,.12); border-radius: 10px; padding: 8px 10px; line-height: 1.35; }
+.ddai .warn, .ddai.warn { color: #B26A00; }
+.ddstop { display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; }
+.stpanel .ddsr { background: #FF8A3D; border-color: #FFB27A; color: #1A0E05; } .stpanel .ddsr b { color: #1A0E05; }
+.ddsr { display: flex; flex-direction: column; gap: 6px; background: rgba(255,178,122,.16); border: 1px solid #FFB27A; border-radius: 12px; padding: 8px 10px; }
+.ddsb { display: flex; gap: 8px; } .ddsb .btn { flex: 1; }
 .asbar { display: flex; gap: 8px; align-items: stretch; }
 .asbar .btn { width: auto; margin: 0; min-width: 0; }
 .asbar .btn.icon { flex: 0 0 56px; padding-left: 0; padding-right: 0; font-size: 20px; }
@@ -1507,7 +1513,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       q.map(function (x, k) { return '<div class="tln" style="opacity:' + op[k] + '"><i></i><div><b>' + esc(x.maint ? 'Verifica barche' : x.name) + '</b><span>' + (x.t ? esc(x.t) : '––:––') + '</span></div></div>'; }).join('') + '</div>' +
       (s.note ? '<div class="stnote">' + esc(s.note) + '</div>' : '');
   }
-  function stopInner(s, i, all) { var v = gwVar('stop'); return v === 1 ? stopRotta(s, i, all) : v === 2 ? stopTimeline(s, i, all) : stopClassic(s, i, all); }
+  function stopInner(s, i, all) { var v = gwVar('stop'); return ddtStopHtml(s) + (v === 1 ? stopRotta(s, i, all) : v === 2 ? stopTimeline(s, i, all) : stopClassic(s, i, all)); }
   function refreshStop() { var el = $('stFace'); if (!el || !S.shift) return; var i = curIdx(); if (i < 0) return; el.innerHTML = stopInner(stops()[i], i, stops()); }
 
   function wxIcon(k) {
@@ -2632,7 +2638,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   document.addEventListener('visibilitychange', function () { if (!document.hidden) loadNotif(); });
 
   /* ---------- DDT: segreteria carica, trasportatore fa firmare ---------- */
-  var DD = { items: [], office: false, carriers: null, loaded: false, busy: false, err: false, draft: { carrier: '', number: '', customer: '', address: '', note: '', file: null }, sending: false };
+  var DD = { items: [], office: false, carriers: null, loaded: false, busy: false, err: false, draft: { carrier: '', number: '', customer: '', address: '', note: '', file: null, date: '', stop: '', boat: '' }, sending: false };
   function isOff() { return !!(SESSION && SESSION.role === 'office'); }
   function b64bytes(b) { var bin = atob(b), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
   function ddtPending() { return DD.items.filter(function (x) { return x.mine && x.status === 'pending'; }).length; }
@@ -2653,13 +2659,90 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       return need.then(function () { ddtBadge(); if (view === 'ddt' && !document.getElementById('sigScreen') && !document.querySelector('#layer .sheet')) render(); });
     }).catch(function () { DD.busy = false; });
   }
-  setInterval(function () { if (!document.hidden && tok() && !S.shift || (!document.hidden && tok() && view === 'ddt')) loadDdt(); }, 60000);
+  setInterval(function () { if (!document.hidden && tok()) loadDdt(); }, 60000);
   function ddtCard(x) {
     var pend = x.status === 'pending';
     return '<button class="card ddc" data-act="ddtopen" data-id="' + x.id + '"><div class="ddt1"><b>' + esc(x.customer) + '</b><span class="pill ' + (pend ? 'bad' : 'go') + '">' + (pend ? 'Da consegnare' : 'Firmato') + '</span></div>' +
       '<div class="muted">' + (x.number ? esc(x.number) + ' · ' : '') + (DD.office ? 'Trasportatore: ' + esc(x.carrier) : esc(x.address || '')) + '</div>' +
+      (x.stop || x.date ? '<div class="muted">' + (x.date ? esc(pgDateLabel(x.date)) : '') + (x.stop ? (x.date ? ' · ' : '') + 'tappa ' + esc(x.stop) : '') + '</div>' : '') +
       (x.address && DD.office ? '<div class="muted">' + esc(x.address) + '</div>' : '') +
       '<div class="ntw">' + (pend ? 'Caricato ' + esc(ntWhen(x.at)) : 'Firmato da ' + esc(x.signed_by || '') + ' · ' + esc(ntWhen(x.signed_at))) + '</div></button>';
+  }
+  /* ---------- DDT letti da Claude: cliente, data, tappa del programma e trasportatore in automatico ---------- */
+  function ddtFileData(f) {
+    var isImg = /^image\//.test(f.type), isPdf = f.type === 'application/pdf' || /\.pdf$/i.test(f.name);
+    if (!isImg && !isPdf) return Promise.reject('formato');
+    return isImg ? loadImg(f).then(function (img) {
+      var sc = Math.min(1, 1800 / Math.max(img.naturalWidth, img.naturalHeight)), cv = document.createElement('canvas');
+      cv.width = Math.round(img.naturalWidth * sc); cv.height = Math.round(img.naturalHeight * sc); cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      return { mime: 'image/jpeg', b64: cv.toDataURL('image/jpeg', .85).split(',')[1], name: f.name.replace(/\.[^.]+$/, '') + '.jpg' };
+    }) : (f.size > 3200000 ? Promise.reject('big') : readB64(f).then(function (b64) { return { mime: 'application/pdf', b64: b64, name: f.name }; }));
+  }
+  // Programma dei prossimi giorni, per abbinare il DDT alla tappa giusta
+  function ddtPlan() {
+    var from = isoOf(Date.now() - 864e5), out = [];
+    DAYKEYS.filter(function (k) { return k >= from; }).slice(0, 15).forEach(function (k) {
+      Object.keys(PROGRAM[k].boats).forEach(function (c) {
+        var b = PROGRAM[k].boats[c]; if (!BOATS[c] || BOATS[c].test || c === 'TULLIO' || b.off || !(b.stops || []).length) return;
+        out.push({ date: k, boat: c, crew: BOATS[c].crew || '', stops: b.stops.map(function (z) { return z.name; }) });
+      });
+    });
+    return out;
+  }
+  function ddtStopsFor(date) {
+    var seen = {}, out = [];
+    ddtPlan().forEach(function (p) { if (!date || p.date === date) p.stops.forEach(function (n) { if (!seen[n]) { seen[n] = 1; out.push(n); } }); });
+    return out;
+  }
+  var DDR = Promise.resolve(); // letture una alla volta
+  function ddtRead(t, f) {
+    t.reading = true; t.ai = null; render();
+    DDR = DDR.then(function () {
+      return ddtFileData(f).then(function (o) {
+        return fetch(SB_URL + '/functions/v1/ddt-leggi', { method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: tok(), file: { mime: o.mime, data: o.b64 }, plan: ddtPlan(), carriers: DD.carriers || [] }) }).then(function (r) { return r.json(); });
+      }).then(function (j) {
+        t.reading = false;
+        if (!j || !j.ok || !j.ddt) { t.ai = { err: j && j.error === 'chiave_mancante' ? 'Claude non è collegato: compila a mano.' : 'Non sono riuscito a leggere il DDT: compila a mano.' }; render(); return; }
+        var d = j.ddt;
+        if (d.customer) t.customer = String(d.customer).slice(0, 120);
+        if (d.number) t.number = String(d.number).slice(0, 40);
+        if (d.address) t.address = String(d.address).slice(0, 200);
+        if (d.date) t.date = d.date;
+        if (d.stop) t.stop = String(d.stop).slice(0, 60);
+        if (d.boat) t.boat = String(d.boat).toUpperCase();
+        if (d.carrier_id) { t.carrier = d.carrier_id; DD.lastCarrier = d.carrier_id; }
+        var cn = (DD.carriers || []).filter(function (c) { return c.id === t.carrier; })[0];
+        t.ai = { ok: true, text: 'Letto da Claude' + (t.stop ? ' · tappa ' + t.stop : '') + (t.boat && BOATS[t.boat] ? ' (' + BOATS[t.boat].name + ')' : '') + (t.date ? ' · ' + pgFmt(t.date) : '') + (cn ? ' → ' + cn.name : ''), warn: (d.warnings || []).join(' ') };
+        render();
+      }).catch(function (e) { t.reading = false; t.ai = { err: e === 'big' ? 'PDF troppo grande (massimo 3 MB).' : 'Non riesco a leggere il file: compila a mano.' }; render(); });
+    });
+  }
+  function ddtAiLine(t) {
+    if (t.reading) return '<div class="ddai">✨ Claude sta leggendo il DDT…</div>';
+    if (!t.ai) return '';
+    if (t.ai.err) return '<div class="ddai warn">' + esc(t.ai.err) + '</div>';
+    return '<div class="ddai">✨ ' + esc(t.ai.text) + (t.ai.warn ? '<br><span class="warn">' + esc(t.ai.warn) + '</span>' : '') + '</div>';
+  }
+  // Trasportatore: alla tappa giusta compare il DDT da far firmare
+  function ddtNorm(x) { return String(x || '').toLowerCase().replace(/[’'`]/g, "'").replace(/[^a-z0-9à-ù' ]/g, ' ').replace(/\s+/g, ' ').trim(); }
+  function ddtForStop(s) {
+    if (!s || !S.shift) return [];
+    var n = ddtNorm(s.name);
+    return DD.items.filter(function (x) {
+      if (!x.mine || x.status !== 'pending') return false;
+      if (x.date && x.date !== S.shift.day) return false;
+      var st = ddtNorm(x.stop), cu = ddtNorm(x.customer);
+      return (st && (st === n || n.indexOf(st) >= 0 || st.indexOf(n) >= 0)) || (!st && cu && (n.indexOf(cu) >= 0 || cu.indexOf(n) >= 0));
+    });
+  }
+  var DDSAID = {};
+  function ddtStopHtml(s) {
+    var list = ddtForStop(s); if (!list.length) return '';
+    list.forEach(function (x) { if (!DDSAID[x.id]) { DDSAID[x.id] = 1; setTimeout(function () { say('Qui hai un DDT da far firmare: ' + x.customer); }, 1500); } });
+    return '<div class="ddstop">' + list.map(function (x) {
+      return '<div class="ddsr"><span>📄 DDT ' + esc(x.number || '') + ' · <b>' + esc(x.customer) + '</b></span><div class="ddsb"><button class="btn sm" data-act="ddtview" data-id="' + x.id + '">Apri</button><button class="btn sm primary" data-act="ddtsign" data-id="' + x.id + '">Fai firmare</button></div></div>';
+    }).join('') + '</div>';
   }
   function viewDdt() {
     if (isWide() && DD.office) return viewDdtWide();
@@ -2667,12 +2750,14 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var form = '';
     if (DD.office) {
       form = '<div class="card"><h3>Nuovo DDT</h3>' +
+        '<div class="ddfile">' + (d.file ? '<span>📎 ' + esc(d.file.name) + '</span>' : '<span class="muted">Scegli il DDT: Claude compila i campi da solo</span>') + '<button class="btn" data-act="ddtpick">' + (d.file ? 'Cambia file' : 'Scegli PDF o foto del DDT') + '</button></div>' + ddtAiLine(d) +
         '<label class="muted" for="ddCust">Cliente *</label><input class="field txt" id="ddCust" data-dd="customer" value="' + esc(d.customer) + '" autocomplete="off">' +
         '<label class="muted" for="ddNum">Numero DDT</label><input class="field txt" id="ddNum" data-dd="number" value="' + esc(d.number) + '" autocomplete="off">' +
         '<label class="muted" for="ddAddr">Indirizzo di consegna</label><input class="field txt" id="ddAddr" data-dd="address" value="' + esc(d.address) + '" autocomplete="off">' +
         '<label class="muted" for="ddCar">Trasportatore *</label><select class="field txt" id="ddCar" data-dd="carrier"><option value="">Scegli…</option>' + (DD.carriers || []).map(function (c) { return '<option value="' + c.id + '"' + (d.carrier === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select>' +
+        '<label class="muted" for="ddDate">Giorno di consegna</label><input class="field txt" id="ddDate" type="date" data-dd="date" value="' + esc(d.date || '') + '">' +
+        '<label class="muted" for="ddStop">Tappa del giro (qui il trasportatore lo fa firmare)</label><input class="field txt" id="ddStop" data-dd="stop" list="ddStops" value="' + esc(d.stop || '') + '" autocomplete="off"><datalist id="ddStops">' + ddtStopsFor(d.date).map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist>' +
         '<label class="muted" for="ddNote">Note per il trasportatore</label><input class="field txt" id="ddNote" data-dd="note" value="' + esc(d.note) + '" autocomplete="off">' +
-        '<div class="ddfile">' + (d.file ? '<span>📎 ' + esc(d.file.name) + '</span>' : '<span class="muted">Nessun file scelto</span>') + '<button class="btn" data-act="ddtpick">' + (d.file ? 'Cambia file' : 'Scegli PDF o foto del DDT') + '</button></div>' +
         '<button class="btn primary" data-act="ddtadd"' + (DD.sending ? ' disabled' : '') + '>' + (DD.sending ? 'Invio in corso…' : 'Carica e invia al trasportatore') + '</button></div>';
     }
     return '<div class="wrap"><h2>DDT</h2>' + (DD.office ? '<p class="muted">Carica il DDT e scegli chi lo consegna. Il trasportatore lo trova nell’app e fa firmare il cliente.</p>' : '<p class="muted">Consegna la copia cartacea al cliente, poi fagli firmare qui la versione digitale.</p>') +
@@ -2837,18 +2922,18 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       cv.width = Math.round(img.naturalWidth * sc); cv.height = Math.round(img.naturalHeight * sc); cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
       return { mime: 'image/jpeg', b64: cv.toDataURL('image/jpeg', .85).split(',')[1], name: f.name.replace(/\.[^.]+$/, '') + '.jpg' };
     }) : (f.size > 3200000 ? Promise.reject('big') : readB64(f).then(function (b64) { return { mime: 'application/pdf', b64: b64, name: f.name }; }));
-    prep.then(function (o) { return cl('rpc_ddt_add', { p_carrier: d.carrier, p_number: d.number, p_customer: d.customer, p_address: d.address, p_note: d.note, p_name: o.name, p_mime: o.mime, p_data: o.b64 }); }).then(function (r) {
+    prep.then(function (o) { return cl('rpc_ddt_add2', { p_carrier: d.carrier, p_number: d.number, p_customer: d.customer, p_address: d.address, p_note: d.note, p_name: o.name, p_mime: o.mime, p_data: o.b64, p_date: d.date || null, p_stop: d.stop || '', p_boat: d.boat || '' }); }).then(function (r) {
       DD.sending = false;
       if (r && r.ok) {
         var cn = (DD.carriers || []).filter(function (c) { return c.id === d.carrier; })[0];
-        DD.draft = { carrier: d.carrier, number: '', customer: '', address: '', note: '', file: null }; toast('DDT inviato a ' + (cn ? cn.name : 'trasportatore')); loadDdt().then(function () { render(); });
+        DD.draft = { carrier: d.carrier, number: '', customer: '', address: '', note: '', file: null, date: '', stop: '', boat: '' }; toast('DDT inviato a ' + (cn ? cn.name : 'trasportatore')); loadDdt().then(function () { render(); });
       } else { toast(r && r.error === 'dimensione_non_valida' ? 'File troppo grande' : 'Non sono riuscito a inviare. Controlla la connessione.'); render(); }
     }).catch(function (e) { DD.sending = false; toast(e === 'big' ? 'PDF troppo grande (massimo 3 MB)' : 'Non riesco a leggere il file'); render(); });
   }
   document.addEventListener('input', function (e) { var k = e.target && e.target.getAttribute && e.target.getAttribute('data-dd'); if (k) DD.draft[k] = e.target.value; if (e.target && e.target.id === 'sigName') sigMsg(''); });
   document.addEventListener('change', function (e) {
     var k = e.target && e.target.getAttribute && e.target.getAttribute('data-dd'); if (k) DD.draft[k] = e.target.value;
-    if (e.target && e.target.id === 'ddIn') { var f = e.target.files && e.target.files[0]; if (f) { DD.draft.file = f; render(); } }
+    if (e.target && e.target.id === 'ddIn') { var f = e.target.files && e.target.files[0]; if (f) { DD.draft.file = f; ddtRead(DD.draft, f); } }
   });
 
   /* ---------- Posizione condivisa tra persone abilitate (Pietro e Lisa) ---------- */
@@ -3435,7 +3520,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       var base = f.name.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').trim(), num = '', m = base.match(/(\d{1,6}\s*[\/\-]\s*\d{2,4})/);
       if (m) { num = m[1].replace(/\s+/g, ''); base = base.replace(m[0], ' '); }
       base = base.replace(/\bddt\b/ig, ' ').replace(/\s+/g, ' ').replace(/^[\s\-–]+|[\s\-–]+$/g, '');
-      DD.queue.push({ id: 'q' + Date.now() + Math.random().toString(36).slice(2, 6), file: f, customer: base, number: num ? 'DDT ' + num : '', address: '', note: '', carrier: DD.lastCarrier || '', state: 'ready', msg: '' });
+      var row = { id: 'q' + Date.now() + Math.random().toString(36).slice(2, 6), file: f, customer: base, number: num ? 'DDT ' + num : '', address: '', note: '', carrier: DD.lastCarrier || '', date: '', stop: '', boat: '', state: 'ready', msg: '' }; DD.queue.push(row); ddtRead(row, f);
       ok++;
     });
     if (bad) toast(bad + (bad === 1 ? ' file ignorato: ' : ' file ignorati: ') + 'usa PDF o foto');
@@ -3448,10 +3533,12 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<input class="field txt" placeholder="Cliente *" aria-label="Cliente" data-q="' + r.id + '|customer" value="' + esc(r.customer) + '"' + dis + '>' +
       '<input class="field txt" placeholder="Numero DDT" aria-label="Numero DDT" data-q="' + r.id + '|number" value="' + esc(r.number) + '"' + dis + '>' +
       '<input class="field txt" placeholder="Indirizzo" aria-label="Indirizzo" data-q="' + r.id + '|address" value="' + esc(r.address) + '"' + dis + '>' +
+      '<input class="field txt" type="date" aria-label="Giorno di consegna" data-q="' + r.id + '|date" value="' + esc(r.date || '') + '"' + dis + '>' +
+      '<input class="field txt" placeholder="Tappa" aria-label="Tappa del giro" list="ddStops" data-q="' + r.id + '|stop" value="' + esc(r.stop || '') + '"' + dis + '>' +
       '<select class="field txt" aria-label="Trasportatore" data-q="' + r.id + '|carrier"' + dis + '><option value="">Trasportatore *</option>' + car.map(function (c) { return '<option value="' + c.id + '"' + (r.carrier === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') + '</select>' +
       '<input class="field txt" placeholder="Note" aria-label="Note" data-q="' + r.id + '|note" value="' + esc(r.note) + '"' + dis + '>' +
       '<div class="ddqs">' + (r.state === 'ok' ? '<span class="g-ok">✓ Inviato</span>' : r.state === 'sending' ? '<span class="muted">Invio…</span>' : '<button class="btn quiet sm" data-act="ddqrm" data-id="' + r.id + '" aria-label="Togli dalla coda">✕</button>') + '</div>' +
-      (r.msg ? '<div class="ddqm">' + esc(r.msg) + '</div>' : '') + '</div>';
+      (r.msg ? '<div class="ddqm">' + esc(r.msg) + '</div>' : '') + '</div>' + ddtAiLine(r) + '';
   }
   function viewDdtWide() {
     var car = DD.carriers || [], q = DD.queue, f = DD.filter;
@@ -3463,6 +3550,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       (q.length ? '<div class="card ddq"><div class="ddqh"><b>Da inviare (' + todo + ')</b><label class="muted">Trasportatore per tutti <select class="field txt" data-dd="allcarrier"><option value="">—</option>' + car.map(function (c) { return '<option value="' + c.id + '">' + esc(c.name) + '</option>'; }).join('') + '</select></label><span style="flex:1"></span>' +
         '<button class="btn quiet sm" data-act="ddqclear"' + (DD.qbusy ? ' disabled' : '') + '>Svuota</button><button class="btn primary sm" data-act="ddqsend"' + (DD.qbusy || !todo ? ' disabled' : '') + '>' + (DD.qbusy ? 'Invio in corso…' : 'Invia ' + todo + (todo === 1 ? ' DDT' : ' DDT')) + '</button></div>' +
         q.map(function (r) { return ddqRow(r, car); }).join('') + '</div>' : '') +
+      '<datalist id="ddStops">' + ddtStopsFor('').map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist>' +
       '<div class="ddflt"><div class="seg2" role="group" aria-label="Filtro">' + [['pending', 'Da consegnare (' + nPend + ')'], ['signed', 'Firmati (' + nSig + ')'], ['all', 'Tutti']].map(function (t) { return '<button data-act="ddfilter" data-f="' + t[0] + '" aria-pressed="' + (f === t[0]) + '">' + t[1] + '</button>'; }).join('') + '</div>' +
       '<input class="field txt" id="ddSearch" placeholder="Cerca cliente, numero, trasportatore…" value="' + esc(DD.q) + '" autocomplete="off"></div>' +
       '<div class="tblw"><table class="tbl ddtbl"><thead><tr><th>Cliente</th><th>DDT</th><th>Trasportatore</th><th>Stato</th><th>Data</th><th></th></tr></thead><tbody>' +
@@ -3494,7 +3582,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
           cv.width = Math.round(img.naturalWidth * sc); cv.height = Math.round(img.naturalHeight * sc); cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
           return { mime: 'image/jpeg', b64: cv.toDataURL('image/jpeg', .85).split(',')[1], name: f.name.replace(/\.[^.]+$/, '') + '.jpg' };
         }) : (f.size > 3200000 ? Promise.reject('big') : readB64(f).then(function (b64) { return { mime: 'application/pdf', b64: b64, name: f.name }; }));
-        return prep.then(function (o) { return cl('rpc_ddt_add', { p_carrier: r.carrier, p_number: r.number, p_customer: r.customer, p_address: r.address, p_note: r.note, p_name: o.name, p_mime: o.mime, p_data: o.b64 }); }).then(function (x) {
+        return prep.then(function (o) { return cl('rpc_ddt_add2', { p_carrier: r.carrier, p_number: r.number, p_customer: r.customer, p_address: r.address, p_note: r.note, p_name: o.name, p_mime: o.mime, p_data: o.b64, p_date: r.date || null, p_stop: r.stop || '', p_boat: r.boat || '' }); }).then(function (x) {
           if (x && x.ok) { r.state = 'ok'; okN++; } else { r.state = 'err'; r.msg = x && x.error === 'dimensione_non_valida' ? 'File troppo grande.' : 'Invio non riuscito: controlla la connessione.'; }
         }).catch(function (e) { r.state = 'err'; r.msg = e === 'big' ? 'PDF troppo grande (massimo 3 MB).' : 'Non riesco a leggere il file.'; });
       });
