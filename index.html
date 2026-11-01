@@ -170,6 +170,8 @@ li.on .ddwk{background:#4FC3F7;border-color:#4FC3F7;color:#0B1317}.ddwk.ok{borde
 .cut tr.nx td{background:rgba(22,85,200,.07);border-color:#1655C8}.cut tr.nx td:last-child{border-right-color:#1655C8}
 .cut tr.late .cutm b{color:#E65100}
 @media print{#dial,.chips,.btn,.hint,header,.topbar{display:none!important}.cut td{background:#fff!important}}
+.ddwup{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 0 4px}.ddwup span{width:100%;font-size:12.5px;color:#FFB74D;font-weight:700}
+.ddwup button{border:0;border-radius:10px;padding:9px 12px;background:#E65100;color:#fff;font:inherit;font-weight:800;font-size:14px}
 </style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -1828,6 +1830,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var MURANO_STOPS = ['Venini / Barovier', 'Promovetro · F3 · YALOS', 'Nason Moretti'];
   function isMurano(name, note) { return MURANO_STOPS.indexOf(name) >= 0 || /murano/i.test(name || '') || /^murano\b/i.test(note || ''); }
   // per le consegne di Murano le foto passano dallo scanner (ritaglio + sfondo bianco) e il DDT sa dove va la firma
+  // tappe che non hanno DDT della segreteria: Darsena, Scalo / Scalo fluviale (solo partenza) e Murano (li carica il trasportatore)
+  function ddtSkip(name, note) { return /^(darsena|scalo)\b/i.test(String(name || '').trim()) || isMurano(name, note); }
   function muClients(name) { var a = String(name || '').split(/\s*(?:\/|·)\s*/).map(function (x) { return x.trim(); }).filter(Boolean); return a.length ? a : [name]; }
   function muranoPrep(f, name, note, cust) {
     if (!f || !/^image\//.test(f.type) || !isMurano(name, note)) return Promise.resolve({ file: f, box: null });
@@ -1936,6 +1940,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var DDC = null;
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="ddtcli"]') : null; if (!el || !DDC) return; var d = DDC; DDC = null; closeSheet(); ddtAttach(d.k, d.b, d.i, d.f, el.getAttribute('data-c')); });
   function ddtStopCell(k, b, i, s) {
+    if (ddtSkip(s.name, s.note)) return '';
     var have = ddtOfStop(k, s.name), da = ' data-k="' + k + '" data-b="' + b + '" data-i="' + i + '"', cls = muClients(s.name);
     if (cls.length > 1) return '<span class="ddcell ddmc">' + cls.map(function (cn) {
       var mine = have.filter(function (x) { return ddtNorm(x.customer) === ddtNorm(cn); });
@@ -2504,7 +2509,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         '<button class="chk" id="nextBtn" data-act="next" aria-label="' + esc(primary) + '"><span class="chkc"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" class="ring"/><path d="M13 25l8 8 15-17" class="tick"/></svg></span><span class="chkt">' + esc(primary) + '</span></button></div>' +
         '<button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>'
     };
-    var g = gwGet(), ed = GWE.on, noDdt = !ddwList().length, vis = g.order.filter(function (k) { return !g.hidden[k] && !(k === 'ddt' && noDdt && !ed); }), gone = g.order.filter(function (k) { return g.hidden[k]; });
+    var g = gwGet(), ed = GWE.on, cz = ddwCur(), noDdt = !ddwList().length && !(cz && isMurano(cz.name, cz.note)), vis = g.order.filter(function (k) { return !g.hidden[k] && !(k === 'ddt' && noDdt && !ed); }), gone = g.order.filter(function (k) { return g.hidden[k]; });
     var grid = vis.map(function (k) {
       var d = GWD[k], sz = gwSize(k), dm = d.sizes[sz];
       return '<div class="wd w-' + k + (dm[0] === 2 ? ' w2' : '') + (ed ? ' ed' : '') + '" data-w="' + k + '" style="grid-column:span ' + dm[0] + ';grid-row:span ' + dm[1] + '">' + parts[k] +
@@ -3672,7 +3677,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01w';
+  var APP_V = '2026-11-01x';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -3733,7 +3738,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     DAYKEYS.filter(function (k) { return k >= from; }).slice(0, 15).forEach(function (k) {
       Object.keys(PROGRAM[k].boats).forEach(function (c) {
         var b = PROGRAM[k].boats[c]; if (!BOATS[c] || BOATS[c].test || c === 'TULLIO' || b.off || !(b.stops || []).length) return;
-        out.push({ date: k, boat: c, crew: BOATS[c].crew || '', stops: b.stops.map(function (z) { return z.name; }) });
+        var nn = b.stops.filter(function (z) { return !ddtSkip(z.name, z.note); }).map(function (z) { return z.name; }); if (nn.length) out.push({ date: k, boat: c, crew: BOATS[c].crew || '', stops: nn });
       });
     });
     return out;
@@ -3803,22 +3808,46 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     // alla tappa giusta i DDT ancora da firmare sono già selezionati
     here.forEach(function (x) { if (x.status === 'pending' && !DDW.auto[x.id]) { DDW.auto[x.id] = 1; DDW.sel[x.id] = true; } });
     here.forEach(function (x) { if (x.status === 'pending' && !DDSAID[x.id]) { DDSAID[x.id] = 1; setTimeout(function () { say('Qui hai un DDT da far firmare: ' + x.customer); }, 1500); } });
-    var pend = all.filter(function (x) { return x.status === 'pending'; }), nSel = pend.filter(function (x) { return DDW.sel[x.id]; }).length;
-    if (!all.length) return '<div class="ddw"><div class="ddwh"><b>DDT</b><span>nessuno da firmare</span></div></div>';
+    var pend = all.filter(function (x) { return x.status === 'pending'; }), nSel = pend.filter(function (x) { return DDW.sel[x.id]; }).length, up = ddwMuranoUp(cur, all);
+    if (!all.length) return '<div class="ddw"><div class="ddwh"><b>DDT</b><span>nessuno da firmare</span></div>' + up + '</div>';
     function row(x) {
       var sg = x.status === 'signed';
       return '<li class="' + (sg ? 'sg' : '') + (DDW.sel[x.id] && !sg ? ' on' : '') + '">' + (sg ? '<span class="ddwk ok">✓</span>' : '<button class="ddwk" data-act="ddwsel" data-id="' + x.id + '" aria-pressed="' + !!DDW.sel[x.id] + '" aria-label="Seleziona ' + esc(x.customer) + '">' + (DDW.sel[x.id] ? '✓' : '') + '</button>') +
         '<span class="ddwt" data-act="ddwsel" data-id="' + x.id + '"><b>' + esc(x.customer) + '</b><small>' + (sg ? 'firmato' : esc(x.stop && x.stop !== x.customer ? x.stop : 'da firmare')) + '</small></span>' +
         '<button class="ddwo" data-act="' + (sg ? 'ddtget' : 'ddtview') + '" data-id="' + x.id + '">' + (sg ? 'Copia' : 'Apri') + '</button></li>';
     }
-    return '<div class="ddw"><div class="ddwh"><b>DDT</b><span>' + pend.length + ' da firmare</span></div><ul class="ddwl">' +
+    return '<div class="ddw"><div class="ddwh"><b>DDT</b><span>' + pend.length + ' da firmare</span></div>' + up + '<ul class="ddwl">' +
       (here.length ? '<li class="ddwg">Qui · ' + esc(cur.name) + '</li>' + here.map(row).join('') : '') +
       (other.length ? '<li class="ddwg">' + (here.length ? 'Altre tappe' : 'Di oggi') + '</li>' + other.map(row).join('') : '') + '</ul>' +
       '<button class="ddwgo" data-act="ddwsign"' + (nSel ? '' : ' disabled') + '>' + (nSel ? 'Fai firmare ' + (nSel === 1 ? '1 DDT' : nSel + ' DDT') : 'Seleziona i DDT da firmare') + '</button></div>';
   }
+  // alla fermata di Murano il trasportatore fotografa i DDT dei clienti (uno per cliente)
+  function ddwMuranoUp(cur, all) {
+    if (!cur || !isMurano(cur.name, cur.note)) return '';
+    var cls = muClients(cur.name), here = all.filter(function (x) { return ddwHere(x, cur); });
+    var miss = cls.filter(function (cn) { return !here.some(function (x) { return ddtNorm(x.customer) === ddtNorm(cn); }); });
+    if (!miss.length) return '';
+    return '<div class="ddwup"><span>Carica i DDT di questa fermata</span>' + miss.map(function (cn) { return '<button data-act="ddwshot" data-c="' + esc(cn) + '">📷 ' + esc(cn) + '</button>'; }).join('') + '</div>';
+  }
+  function ddwShot(cn) {
+    var cur = ddwCur(); if (!cur || !S.shift) return;
+    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*,application/pdf'; inp.setAttribute('capture', 'environment'); inp.style.display = 'none';
+    inp.onchange = function () {
+      var f = inp.files && inp.files[0]; inp.remove(); if (!f) return; var pp = null;
+      muranoPrep(f, cur.name, cur.note, cn).then(function (p) { pp = p; toast('Carico il DDT di ' + cn + '…'); return ddtFileData(p.file); }).then(function (o) {
+        return cl('rpc_ddt_add_self', { p_customer: cn, p_name: o.name, p_mime: o.mime, p_data: o.b64, p_date: S.shift.day, p_stop: cur.name, p_boat: S.shift.boat, p_box: pp && pp.box ? pp.box : null });
+      }).then(function (r) {
+        if (r && r.ok) { DDW.sel[r.id] = true; DDW.auto[r.id] = 1; toast('DDT di ' + cn + ' pronto da firmare'); loadDdt().then(function () { if (view === 'guida') render(); }); }
+        else toast('Non sono riuscito a caricare il DDT: riprova');
+      }).catch(function (e) { if (e === 'annullato') return; toast(e === 'big' ? 'PDF troppo grande (massimo 3 MB)' : 'Non riesco a leggere il file'); });
+    };
+    document.body.appendChild(inp); inp.click();
+  }
+  document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="ddwshot"]') : null; if (el) ddwShot(el.getAttribute('data-c')); });
   function ddwBadge() {
-    var pend = ddwList().filter(function (x) { return x.status === 'pending'; }); if (!pend.length) return '';
-    var cur = ddwCur(), nh = pend.filter(function (x) { return ddwHere(x, cur); }).length;
+    var cur0 = ddwCur(), pend = ddwList().filter(function (x) { return x.status === 'pending'; });
+    if (!pend.length) return ddwMuranoUp(cur0, ddwList()) ? '<button class="ddwbadge here" data-act="ddwgo" aria-label="DDT da caricare">📷 DDT da caricare</button>' : '';
+    var cur = cur0, nh = pend.filter(function (x) { return ddwHere(x, cur); }).length;
     return '<button class="ddwbadge' + (nh ? ' here' : '') + '" data-act="ddwgo" aria-label="DDT da firmare">📄 ' + (nh ? nh + ' DDT qui' : pend.length + ' DDT') + '</button>';
   }
   function ddwRefresh() {
@@ -4844,10 +4873,10 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var NAV_FULL = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['nuovo', 'Nuovo turno'], ['turno', 'Turno'], ['barca', 'Barche'], ['altro', 'Altro']];
   var NAV_MGR = [['programma', 'Programma'], ['nuovo', 'Nuovo turno'], ['notifiche', 'Notifiche'], ['logistica', 'Logistica'], ['turno', 'Turno'], ['richieste', 'Richieste'], ['ddt', 'DDT'], ['contatti', 'Contatti'], ['barca', 'Barca']];
   var NAV = [['turno', 'Turno'], ['programma', 'Programma'], ['barca', 'Barche']];
-  var NAV_OFF = [['cucina', 'Cucina'], ['programma', 'Programma'], ['murano', 'Murano'], ['ddt', 'DDT'], ['contatti', 'Contatti']];
+  var NAV_OFF = [['cucina', 'Cucina'], ['programma', 'Programma'], ['ddt', 'DDT'], ['contatti', 'Contatti']];
   function render() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
-    if (isOff() && ['ddt', 'contatti', 'impost', 'programma', 'murano', 'cucina'].indexOf(view) < 0) view = 'ddt';
+    if (isOff() && ['ddt', 'contatti', 'impost', 'programma', 'cucina'].indexOf(view) < 0) view = 'ddt';
     if (!isOff() && isAdm && ['turno', 'guida', 'richieste', 'ddt'].indexOf(view) >= 0) view = 'logistica';
     if (isAdm && ['turno', 'guida', 'richieste'].indexOf(view) >= 0) view = 'logistica';
     if (!isAdm && !isFull && view === 'admin') view = 'turno';
