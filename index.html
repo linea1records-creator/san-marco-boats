@@ -254,6 +254,55 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 .tbr.late .tbs,.tbr.late .tbc{color:#FF5A4F}.tbr.late .tbo{color:#FF5A4F}
 .tbr.gone{opacity:.42}.tbr.gone .tbs{color:#8FA3B0}.tbr.gone .tbk{background:#2E7D32;border-color:#2E7D32;color:#fff}
 @keyframes tbbl{50%{opacity:.35}}
+/* --- Uscite cucina: 5 stili --- */
+.tbr{box-shadow:inset 5px 0 0 var(--bc,transparent)}
+.tbr.next{box-shadow:inset 5px 0 0 var(--bc,#FFD23F),inset 0 0 0 999px rgba(255,210,63,.07)}
+.tblay{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.tblay em{font-style:normal;font-size:.72em;letter-spacing:.12em;color:#8FA3B0;margin-right:2px}
+.tblay button[aria-pressed=true]{background:#FFD23F;color:#0A0F14;border-color:#FFD23F}
+.tbleg{display:flex;gap:12px;flex-wrap:wrap;font-size:.78em;letter-spacing:.06em;color:#8FA3B0}.tbleg i{display:inline-block;width:.8em;height:.8em;border-radius:50%;background:var(--bc);margin-right:5px;vertical-align:-1px}
+button.tbo{background:none;border:0;padding:0;font:inherit;text-align:left;cursor:pointer;text-decoration:underline dotted 2px;text-underline-offset:5px}
+.tbo .tbm,.tbo + .tbm{display:block}.tbmod{display:block;font-size:.42em;letter-spacing:.1em;color:#FF9F43;text-decoration:none}
+/* aeroporto: palette a lamelle */
+.tb[data-lay=aereo]{background:#050505;color:#F5F5F5}
+.tb[data-lay=aereo] .tbt b{color:#F5F5F5}.tb[data-lay=aereo] .tbclk{color:#F5F5F5;background:#1A1A1A;padding:2px 10px;border-radius:6px}
+.tb[data-lay=aereo] .tbo,.tb[data-lay=aereo] .tbc{background:linear-gradient(#1C1C1C 0 49%,#000 49% 51%,#161616 51%);color:#FFF;padding:4px 8px;border-radius:5px;text-align:center}
+.tb[data-lay=aereo] .tbd{color:#F5F5F5;text-transform:uppercase}.tb[data-lay=aereo] .tbs{color:#FFD23F}
+.tb[data-lay=aereo] .tbr:nth-child(even){background:rgba(255,255,255,.04)}
+.tb[data-lay=aereo] .tbk{border-color:#F5F5F5;color:#F5F5F5}
+/* lavagna */
+.tb[data-lay=lavagna]{background:#22392C radial-gradient(ellipse at 30% 20%,rgba(255,255,255,.06),transparent 60%);color:#F4F1E6;font-family:'Caveat',cursive;font-size:125%;border:10px solid #7A5230;box-shadow:inset 0 0 40px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.35)}
+.tb[data-lay=lavagna] .tbt b{color:#F4F1E6;letter-spacing:.02em}.tb[data-lay=lavagna] .tbclk{color:#FFF7B0}.tb[data-lay=lavagna] .tbd{color:#FFF7B0}
+.tb[data-lay=lavagna] .tbo,.tb[data-lay=lavagna] .tbc{color:#F4F1E6}.tb[data-lay=lavagna] .tbs{color:#B8F5C2}
+.tb[data-lay=lavagna] .tbr{border-bottom:1px dashed rgba(244,241,230,.25)}.tb[data-lay=lavagna] .tbr:nth-child(even){background:none}
+.tb[data-lay=lavagna] .tbtop,.tb[data-lay=lavagna] .tbhd{border-color:rgba(244,241,230,.3)}
+.tb[data-lay=lavagna] button{font-family:inherit}.tb[data-lay=lavagna] .tbnav button,.tb[data-lay=lavagna] .tbfoot button{background:rgba(0,0,0,.18);border-color:rgba(244,241,230,.35);color:#F4F1E6}
+.tb[data-lay=lavagna] .tbk{border-color:#FFF7B0;color:#FFF7B0}
+/* chiaro */
+.tb[data-lay=chiaro]{background:#FFFFFF;color:#11181C;font-family:'Inter',system-ui,sans-serif;box-shadow:0 4px 20px rgba(0,0,0,.08);border:1px solid #E3E8EC}
+.tb[data-lay=chiaro] .tbt b{color:#11181C;letter-spacing:.02em}.tb[data-lay=chiaro] .tbt span,.tb[data-lay=chiaro] .tbhd,.tb[data-lay=chiaro] .tbfoot,.tb[data-lay=chiaro] .tbd small,.tb[data-lay=chiaro] .tbleg,.tb[data-lay=chiaro] .tblay em{color:#5B6870}
+.tb[data-lay=chiaro] .tbclk{color:#1655C8;font-weight:800}.tb[data-lay=chiaro] .tbo{color:#11181C;font-weight:800}.tb[data-lay=chiaro] .tbd{color:#11181C;font-weight:700}
+.tb[data-lay=chiaro] .tbc{color:#11181C;font-weight:800}.tb[data-lay=chiaro] .tbs{color:#2E7D32;font-weight:700}
+.tb[data-lay=chiaro] .tbtop,.tb[data-lay=chiaro] .tbhd,.tb[data-lay=chiaro] .tbr{border-color:#E3E8EC}.tb[data-lay=chiaro] .tbr:nth-child(even){background:#F6F8FA}
+.tb[data-lay=chiaro] .tbnav button,.tb[data-lay=chiaro] .tbfoot button{background:#F1F4F6;border-color:#D5DCE1;color:#11181C}
+.tb[data-lay=chiaro] .tblay button[aria-pressed=true]{background:#1655C8;border-color:#1655C8;color:#fff}
+.tb[data-lay=chiaro] .tbk{border-color:#1655C8;color:#1655C8}.tb[data-lay=chiaro] .tbr.next{box-shadow:inset 5px 0 0 var(--bc),inset 0 0 0 999px rgba(22,85,200,.06)}
+.tb[data-lay=chiaro] .tbr.soon .tbc{color:#C77700}
+/* schede: una grande scheda per ogni uscita */
+.tb[data-lay=schede]{background:#E9EEF2;color:#11181C;font-family:'Inter',system-ui,sans-serif}
+.tb[data-lay=schede] .tbt b{color:#11181C}.tb[data-lay=schede] .tbt span,.tb[data-lay=schede] .tbfoot,.tb[data-lay=schede] .tbleg,.tb[data-lay=schede] .tblay em,.tb[data-lay=schede] .tbd small{color:#5B6870}
+.tb[data-lay=schede] .tbclk{color:#11181C;font-weight:800}.tb[data-lay=schede] .tbtop{border-color:#CDD6DC}
+.tb[data-lay=schede] .tbnav button,.tb[data-lay=schede] .tbfoot button{background:#fff;border-color:#CDD6DC;color:#11181C}
+.tb[data-lay=schede] .tblay button[aria-pressed=true]{background:#11181C;border-color:#11181C;color:#fff}
+.tb[data-lay=schede] .tbhd{display:none}.tb[data-lay=schede] .tbrows{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.tb[data-lay=schede] .tbr{display:grid;grid-template-columns:1fr auto;grid-template-areas:"o c" "d d" "b s" "k k";gap:6px 10px;background:#fff;border:0;border-radius:14px;padding:14px;box-shadow:inset 0 6px 0 var(--bc),0 2px 8px rgba(0,0,0,.06)}
+.tb[data-lay=schede] .tbr.next{box-shadow:inset 0 6px 0 var(--bc),0 0 0 3px #11181C}
+.tb[data-lay=schede] .tbo{grid-area:o;font-size:2.2em;font-weight:800;color:#11181C}.tb[data-lay=schede] .tbc{grid-area:c;font-size:1.6em;font-weight:800;color:#11181C}
+.tb[data-lay=schede] .tbd{grid-area:d;color:#11181C;font-weight:700;font-size:1.15em}.tb[data-lay=schede] .tbb{grid-area:b;font-weight:800}.tb[data-lay=schede] .tbs{grid-area:s;text-align:right;color:#2E7D32;font-weight:700}
+.tb[data-lay=schede] .tbr>span:last-child{grid-area:k}.tb[data-lay=schede] .tbk{border-color:#11181C;color:#11181C;padding:9px 0}
+.tb[data-lay=schede] .tbr.gone .tbk{background:#2E7D32;border-color:#2E7D32;color:#fff}.tb[data-lay=schede] .tbr.soon .tbc{color:#C77700}
+.tb[data-lay=lavagna]:fullscreen{font-size:180%}
+.cuet{font-size:44px;font-weight:800;width:100%;text-align:center;padding:10px;border-radius:12px;border:1px solid var(--line,#ccc);font-variant-numeric:tabular-nums}
+
 .tbempty{flex:1;display:grid;place-items:center;text-align:center;color:#8FA3B0;letter-spacing:.1em;padding:40px 10px}
 .tbfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:8px;font-size:.72em;color:#8FA3B0;letter-spacing:.04em}
 @media (max-width:620px){.tbnav .tbf{order:3;width:100%;justify-content:center}.tbhd{display:none}.tbr{grid-template-columns:4.6em minmax(0,1fr) 5.5em;grid-template-areas:"o d c" "o b s" "k k k";row-gap:4px}.tbo{grid-area:o}.tbd{grid-area:d}.tbc{grid-area:c}.tbb{grid-area:b}.tbs{grid-area:s;text-align:right}.tbr>span:last-child{grid-area:k}.tbk{padding:8px 0}}
@@ -277,7 +326,7 @@ body.chatopen .nav,body.chatopen .nokia{display:none}
 .furb{position:relative;height:14px;border-radius:7px;background:rgba(127,127,127,.15);overflow:hidden;margin:6px 0 4px}.furb i{display:block;height:100%;border-radius:7px;background:#2E7D32}
 .furb i.mid{background:#F9A825}.furb i.low{background:#D93025}.furb em{position:absolute;top:0;bottom:0;width:1px;background:rgba(0,0,0,.18)}
 .fur small{font-size:12.5px;color:var(--muted,#667)}.furh .low,.lowt{color:#D93025}.furh .mid{color:#B26A00}.furh .ok{color:#2E7D32}
-</style><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap">
+</style><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Caveat:wght@600;700&family=Inter:wght@500;700;800&display=swap">
 </head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -1542,7 +1591,17 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     else if (a === 'stmon') { ST2.mon = el.getAttribute('data-k') || null; render(); }
   });
   /* ---------- Uscite dalla cucina: tutto pronto 5 minuti prima che la barca riparta dal Seminario ---------- */
-  var CU2 = { day: null, boat: '', done: null };
+  var CU2 = { day: null, done: null, ov: {}, ovT: 0, lay: null };
+  var CU_LAYS = [['treno', 'Treno'], ['aereo', 'Aeroporto'], ['lavagna', 'Lavagna'], ['chiaro', 'Chiaro'], ['schede', 'Schede']];
+  function cuLay() { if (!CU2.lay) { try { CU2.lay = localStorage.getItem('smb-cu-lay') || 'treno'; } catch (e) { CU2.lay = 'treno'; } } return CU2.lay; }
+  function cuCanEdit() { return !!(SESSION && (SESSION.full || SESSION.role === 'admin')); }
+  function cuLoadOv(force) {
+    if (!tok() || (!force && Date.now() - CU2.ovT < 30000)) return; CU2.ovT = Date.now();
+    var d = new Date(); d.setDate(d.getDate() + 21);
+    cl('rpc_cu_get', { p_from: todayKey(), p_to: d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) }).then(function (r) {
+      if (r && typeof r === 'object' && !r.error) { var ch = JSON.stringify(r) !== JSON.stringify(CU2.ov); CU2.ov = r; if (ch && view === 'cucina') render(); }
+    });
+  }
   function cuDone() { if (!CU2.done) { try { CU2.done = JSON.parse(localStorage.getItem('smb-cucina') || '{}') || {}; } catch (e) { CU2.done = {}; } } return CU2.done; }
   function cuLegs(k) {
     var P = PROGRAM[k], out = []; if (!P) return out;
@@ -1557,28 +1616,31 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       });
       if (leg && leg.items.length) out.push(leg);
     });
+    out.forEach(function (l) { l.def = l.out; var o = CU2.ov[k + '|' + l.boat + '|' + l.sem]; if (o) { l.out = o; l.mod = true; } });
     return out.sort(function (a, b) { return a.out < b.out ? -1 : a.out > b.out ? 1 : 0; });
   }
   function viewCucina() {
     var keys = DAYKEYS.slice().sort();
     var k = CU2.day && PROGRAM[CU2.day] ? CU2.day : todayKey();
-    var legs = cuLegs(k).filter(function (l) { return !CU2.boat || l.boat === CU2.boat; }), dn = cuDone(), isToday = k === todayKey();
+    cuLoadOv(); var legs = cuLegs(k), dn = cuDone(), isToday = k === todayKey(), lay = cuLay(), ed = cuCanEdit();
     var nextK = keys.filter(function (d) { return d > k; })[0], prevK = keys.filter(function (d) { return d < k && d >= todayKey(); }).pop();
     if (!prevK && k > todayKey()) prevK = todayKey();
     var dp = dateParts(k), title = (isToday ? 'Oggi · ' : '') + DNALL[dp.dow] + ' ' + dp.n + ' ' + MONTHS[dp.m];
-    var h = '<div class="tb" id="tbBoard"><div class="tbtop"><div class="tbt"><b>👨‍🍳 PARTENZE CUCINA</b><span>' + esc(title.toUpperCase()) + '</span></div><div class="tbclk" id="tbClk">' + hm(Date.now()) + '</div></div>' +
+    var h = '<div class="tb" id="tbBoard" data-lay="' + lay + '"><div class="tbtop"><div class="tbt"><b>👨‍🍳 PARTENZE CUCINA</b><span>' + esc(title.toUpperCase()) + '</span></div><div class="tbclk" id="tbClk">' + hm(Date.now()) + '</div></div>' +
       '<div class="tbnav"><button data-act="cuday" data-k="' + (prevK || '') + '"' + (prevK ? '' : ' disabled') + '>‹ Giorno prima</button>' +
-      '<span class="tbf">' + ['', 'PATANA', 'TOPPETTA', 'ARDEMAR'].filter(function (c) { return !c || BOATS[c]; }).map(function (c) { return '<button data-act="cuboat" data-c="' + c + '"' + ((CU2.boat || '') === c ? ' aria-pressed="true"' : '') + '>' + (c ? esc(BOATS[c].name) : 'Tutte') + '</button>'; }).join('') + '</span>' +
-      '<button data-act="cuday" data-k="' + (nextK || '') + '"' + (nextK ? '' : ' disabled') + '>Giorno dopo ›</button></div>';
+      '<span class="tbf tblay"><em>STILE</em>' + CU_LAYS.map(function (x) { return '<button data-act="culay" data-l="' + x[0] + '"' + (lay === x[0] ? ' aria-pressed="true"' : '') + '>' + x[1] + '</button>'; }).join('') + '</span>' +
+      '<button data-act="cuday" data-k="' + (nextK || '') + '"' + (nextK ? '' : ' disabled') + '>Giorno dopo ›</button></div>' +
+      '<div class="tbleg">' + ['PATANA', 'TOPPETTA', 'ARDEMAR'].filter(function (c) { return BOATS[c]; }).map(function (c) { return '<span style="--bc:' + bcol(c) + '"><i></i>' + esc(BOATS[c].name.toUpperCase()) + '</span>'; }).join('') + (ed ? '<span style="margin-left:auto">Tocca un orario per cambiarlo</span>' : '') + '</div>';
     if (!legs.length) return h + '<div class="tbempty">NESSUNA PARTENZA DALLA CUCINA IN QUESTO GIORNO</div><div class="tbfoot"><button data-act="cufull">⛶ Schermo intero</button></div></div>';
     h += '<div class="tbhd"><span>ORA</span><span>DESTINAZIONE</span><span>BARCA</span><span>STATO</span><span>PARTENZA TRA</span><span></span></div>';
-    h += legs.map(function (l) {
+    h += '<div class="tbrows">' + legs.map(function (l) {
       var key = k + '|' + l.boat + '|' + l.sem, ok = dn[key];
       var dest = l.items.map(function (z) { var cl = typeof muClients === 'function' ? muClients(z.name) : [z.name]; return cl.length > 1 ? cl.join(' + ') : z.name; }).join(' · ');
-      return '<div class="tbr' + (ok ? ' gone' : '') + '" data-out="' + (isToday ? t2m(l.out) : '') + '" data-ok="' + (ok ? hm(ok) : '') + '"><span class="tbo">' + esc(l.out) + '</span><span class="tbd">' + esc(dest.toUpperCase()) + '<small>barca al Seminario ' + esc(l.sem) + '</small></span>' +
+      var tm = esc(l.out) + (l.mod ? '<span class="tbmod">MODIFICATO</span>' : '');
+      return '<div class="tbr' + (ok ? ' gone' : '') + '" style="--bc:' + bcol(l.boat) + '" data-out="' + (isToday ? t2m(l.out) : '') + '" data-ok="' + (ok ? hm(ok) : '') + '">' + (ed ? '<button class="tbo" data-act="cuedit" data-key="' + esc(key) + '" data-def="' + esc(l.def) + '" data-cur="' + esc(l.out) + '" aria-label="Cambia orario di uscita ' + esc(l.out) + '">' + tm + '</button>' : '<span class="tbo">' + tm + '</span>') + '<span class="tbd">' + esc(dest.toUpperCase()) + '<small>barca al Seminario ' + esc(l.sem) + '</small></span>' +
         '<span class="tbb" style="color:' + bcol(l.boat) + '">' + esc(BOATS[l.boat].name.toUpperCase()) + '</span><span class="tbs"></span><span class="tbc"></span>' +
         '<span><button class="tbk" data-act="cuok" data-key="' + esc(key) + '" aria-label="Segna uscita">' + (ok ? '✓' : 'ESCE') + '</button></span></div>';
-    }).join('');
+    }).join('') + '</div>';
     setTimeout(cuTick, 0);
     return h + '<div class="tbfoot"><span>Pronto 5 minuti prima che la barca riparta dal Seminario · tocca ESCE quando il carico è uscito</span><button data-act="cufull">⛶ Schermo intero</button></div></div>';
   }
@@ -1609,7 +1671,23 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var a = el.getAttribute('data-act'), dn;
     if (a === 'cuday') { if (!el.getAttribute('data-k')) return; CU2.day = el.getAttribute('data-k'); render(); }
     else if (a === 'cufull') { var bd = $('tbBoard'); try { if (document.fullscreenElement) document.exitFullscreen(); else if (bd && bd.requestFullscreen) bd.requestFullscreen(); else if (bd && bd.webkitRequestFullscreen) bd.webkitRequestFullscreen(); else { document.body.classList.toggle('tbfs'); } } catch (x) { document.body.classList.toggle('tbfs'); } }
-    else if (a === 'cuboat') { CU2.boat = el.getAttribute('data-c'); render(); }
+    else if (a === 'culay') { CU2.lay = el.getAttribute('data-l'); try { localStorage.setItem('smb-cu-lay', CU2.lay); } catch (x) {} render(); }
+    else if (a === 'cuedit') {
+      var ky = el.getAttribute('data-key'), df = el.getAttribute('data-def'), cur = el.getAttribute('data-cur'), pp = ky.split('|');
+      openSheet('<h3>Orario di uscita dalla cucina</h3><p class="muted">' + esc(BOATS[pp[1]] ? BOATS[pp[1]].name : pp[1]) + ' · barca al Seminario alle ' + esc(pp[2]) + '. Orario standard: <b>' + esc(df) + '</b> (5 minuti prima).</p>' +
+        '<input type="time" class="cuet" id="cuT" value="' + esc(cur) + '"><div class="row" style="gap:8px;margin-top:12px"><button class="btn" data-act="cuedres" data-key="' + esc(ky) + '"' + (cur === df ? ' disabled' : '') + '>Rimetti ' + esc(df) + '</button><button class="btn primary" data-act="cuedok" data-key="' + esc(ky) + '" data-def="' + esc(df) + '">Salva</button></div><p class="hint">Lo vedono subito tutti: Veronica, la cucina e la logistica.</p>');
+      setTimeout(function () { var i = $('cuT'); if (i) i.focus(); }, 50);
+    }
+    else if (a === 'cuedok' || a === 'cuedres') {
+      var ky2 = el.getAttribute('data-key'), q = ky2.split('|'), v = a === 'cuedres' ? null : (($('cuT') || {}).value || '');
+      if (v !== null && !/^\d{2}:\d{2}$/.test(v)) { toast('Scrivi un orario valido'); return; }
+      if (v === el.getAttribute('data-def')) v = null;
+      el.disabled = true;
+      cl('rpc_cu_set', { p_day: q[0], p_boat: q[1], p_sem: q[2], p_out: v }).then(function (r) {
+        if (r && r.ok) { if (v) CU2.ov[ky2] = v; else delete CU2.ov[ky2]; closeSheet(); toast(v ? 'Uscita spostata alle ' + v : 'Orario standard ripristinato'); render(); cuLoadOv(true); }
+        else { el.disabled = false; toast('Non riesco a salvare. Riprova.'); }
+      });
+    }
     else if (a === 'cuok') { dn = cuDone(); var key = el.getAttribute('data-key'); if (dn[key]) delete dn[key]; else dn[key] = Date.now(); try { localStorage.setItem('smb-cucina', JSON.stringify(dn)); } catch (x) {} render(); }
     else if (a === 'cureset') { dn = cuDone(); var p = el.getAttribute('data-k') + '|'; Object.keys(dn).forEach(function (x) { if (x.indexOf(p) === 0) delete dn[x]; }); try { localStorage.setItem('smb-cucina', JSON.stringify(dn)); } catch (x) {} render(); }
     else if (a === 'cuprint') window.print();
@@ -4103,7 +4181,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02n';
+  var APP_V = '2026-11-02o';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
