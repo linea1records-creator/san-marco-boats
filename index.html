@@ -4,6 +4,14 @@
 .bft{font-variant-numeric:tabular-nums;font-weight:700;min-width:92px}
 .bfn{display:flex;flex-direction:column;gap:2px}
 .bfc .row{align-items:center}
+.nxw{display:flex;flex-direction:column;gap:8px;height:100%}
+.nxrow{display:flex;gap:8px;flex:1;min-height:0}
+.nxrow .chk{flex:1;height:auto!important;min-height:0!important}
+.nxback{flex:0 0 30%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;border-radius:18px;background:#13232A;color:#C9D6D3;box-shadow:0 0 0 2px #3A4D55,inset 0 4px 12px rgba(0,0,0,.5);font:inherit;font-weight:700;font-size:16px;cursor:pointer}
+.nxback svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.nxback:active{background:#1A3039}.nxback:disabled{opacity:.35}
+.nxexit{flex:none;height:38px;border:0;border-radius:12px;background:transparent;color:#9FB3B0;box-shadow:0 0 0 1px #3A4D55;font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.nxexit:active{background:#13232A}
 </style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -1829,7 +1837,9 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       tide: '<div id="tdFace" class="tdv">' + tideInner() + '</div>',
       mimmo: '<div id="mimFace" class="mim">' + mimInner() + '</div>',
       km: '<div class="tile"><div class="kms"><span>Tappa <b id="kmT">' + fmt2(sh.trip || 0) + '</b> km</span><span>Turno <b id="kmS">' + fmt1(sh.km || 0) + '</b> km</span><span><b id="spdN">' + (GPS.speed == null ? '–' : fmt1(GPS.speed * 1.94384)) + '</b> nodi</span></div></div>',
-      next: '<button class="chk" id="nextBtn" data-act="next" aria-label="' + esc(primary) + '"><span class="chkc"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" class="ring"/><path d="M13 25l8 8 15-17" class="tick"/></svg></span><span class="chkt">' + esc(primary) + '</span></button>'
+      next: '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (lastDoneIdx() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button>' +
+        '<button class="chk" id="nextBtn" data-act="next" aria-label="' + esc(primary) + '"><span class="chkc"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" class="ring"/><path d="M13 25l8 8 15-17" class="tick"/></svg></span><span class="chkt">' + esc(primary) + '</span></button></div>' +
+        '<button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>'
     };
     var g = gwGet(), ed = GWE.on, vis = g.order.filter(function (k) { return !g.hidden[k]; }), gone = g.order.filter(function (k) { return g.hidden[k]; });
     var grid = vis.map(function (k) {
@@ -2854,7 +2864,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01e';
+  var APP_V = '2026-11-01f';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4027,6 +4037,18 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (sh.step < last) { sh.step++; save(); render(); return; }
     finish(i, 'ok', '');
   }
+  // Indietro: riapre l'ultima tappa segnata come fatta
+  function lastDoneIdx() {
+    if (!S.shift) return -1; var best = -1, bt = -1;
+    Object.keys(S.shift.done).forEach(function (k) { var r = S.shift.done[k]; if (r && r.t > bt) { bt = r.t; best = +k; } });
+    return best;
+  }
+  function goBack() {
+    var k = lastDoneIdx(); if (k < 0) { toast('Sei alla prima tappa'); return; }
+    var sp = stops()[k]; delete S.shift.done[k]; S.shift.step = 0; S.shift.trip = 0; save(); spoken = '';
+    if (sp && sp.extra && sp.id) cl('rpc_task_update', { p_task: sp.id, p_status: 'in_corso', p_reason: null, p_lat: null, p_lng: null });
+    toast('Torni a ' + (sp ? (sp.maint ? 'Verifica barche' : sp.name) : 'tappa precedente')); view = 'guida'; render();
+  }
   function finish(i, status, reason) {
     S.shift.done[i] = { status: status, reason: reason, t: Date.now() };
     var sp = stops()[i];
@@ -4227,6 +4249,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (a === 'pre') { var k = +el.getAttribute('data-i'); sh.pre[k] = !sh.pre[k]; save(); render(); return; }
     var i = curIdx();
     if (i < 0) return;
+    if (a === 'goback') { goBack(); return; }
+    if (a === 'drvexit') { view = 'turno'; render(); return; }
     if (a === 'next') { if (el.classList && el.classList.contains('done')) return; if (el.classList) el.classList.add('done'); setTimeout(advance, 420); return; }
     if (a === 'back') { if (sh.step > 0) { sh.step--; save(); render(); } return; }
     if (a === 'repeat') { say(window.__speech || ''); return; }
