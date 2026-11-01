@@ -230,7 +230,35 @@ li.on .ddwk{background:#4FC3F7;border-color:#4FC3F7;color:#0B1317}.ddwk.ok{borde
 .stbb{height:10px;border-radius:5px;background:rgba(127,127,127,.15);overflow:hidden}.stbb i{display:block;height:100%;background:#1655C8;border-radius:5px}
 .stbv{text-align:right;font-weight:700;font-size:14px;display:flex;flex-direction:column}.stbv small{font-weight:400;font-size:11.5px;color:var(--muted,#667)}
 .stdl{display:flex;flex-direction:column;gap:8px;margin-top:6px}
-</style></head><body>
+.tb{background:#0A0F14;color:#FFD23F;border-radius:16px;padding:14px 12px 12px;font-family:'Share Tech Mono',ui-monospace,Menlo,monospace;box-shadow:0 10px 30px rgba(0,0,0,.35);min-height:70vh;display:flex;flex-direction:column;gap:8px;margin-bottom:140px}
+.tb:fullscreen{border-radius:0;min-height:100vh;padding:28px 34px;font-size:150%;margin:0}
+body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-size:140%;overflow:auto}
+.tbtop{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1E2A33;padding-bottom:8px}
+.tbt{display:flex;flex-direction:column}.tbt b{font-size:1.6em;letter-spacing:.08em;color:#FFFFFF}.tbt span{font-size:.95em;letter-spacing:.12em;color:#8FA3B0}
+.tbclk{font-size:2em;color:#FFD23F;letter-spacing:.05em;font-variant-numeric:tabular-nums}
+.tbnav{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.tbnav button,.tbfoot button{border:1px solid #2C3E4A;background:#111A21;color:#DDE6EA;border-radius:8px;padding:7px 10px;font:inherit;font-size:.85em;letter-spacing:.06em;cursor:pointer}
+.tbnav button:disabled{opacity:.3}.tbf{display:flex;gap:4px;flex-wrap:wrap}.tbf button[aria-pressed=true]{background:#FFD23F;color:#0A0F14;border-color:#FFD23F}
+.tbhd,.tbr{display:grid;grid-template-columns:5.2em minmax(0,1fr) 7em 9.5em 6.5em 4.5em;gap:8px;align-items:center}
+.tbhd{font-size:.72em;letter-spacing:.14em;color:#8FA3B0;padding:6px 6px 2px;border-bottom:1px solid #1E2A33}
+.tbr{padding:10px 6px;border-bottom:1px solid #16212A;font-size:1em}
+.tbr:nth-child(even){background:rgba(255,255,255,.025)}
+.tbo{font-size:1.45em;color:#FFFFFF;font-variant-numeric:tabular-nums}
+.tbd{display:flex;flex-direction:column;color:#FFD23F;font-size:1.05em;line-height:1.2;word-break:break-word}.tbd small{color:#8FA3B0;font-size:.7em;letter-spacing:.06em}
+.tbb{font-size:.85em;letter-spacing:.06em}
+.tbs{font-size:.85em;letter-spacing:.06em;color:#7CFC9A}
+.tbc{font-size:1.35em;color:#FFFFFF;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.tbk{width:100%;border:1px solid #FFD23F;background:none;color:#FFD23F;border-radius:6px;padding:6px 0;font:inherit;font-size:.8em;cursor:pointer}
+.tbr.next{background:rgba(255,210,63,.09);box-shadow:inset 4px 0 0 #FFD23F}
+.tbr.soon .tbc{color:#FFD23F;animation:tbbl 1s steps(2) infinite}
+.tbr.late .tbs,.tbr.late .tbc{color:#FF5A4F}.tbr.late .tbo{color:#FF5A4F}
+.tbr.gone{opacity:.42}.tbr.gone .tbs{color:#8FA3B0}.tbr.gone .tbk{background:#2E7D32;border-color:#2E7D32;color:#fff}
+@keyframes tbbl{50%{opacity:.35}}
+.tbempty{flex:1;display:grid;place-items:center;text-align:center;color:#8FA3B0;letter-spacing:.1em;padding:40px 10px}
+.tbfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:8px;font-size:.72em;color:#8FA3B0;letter-spacing:.04em}
+@media (max-width:620px){.tbnav .tbf{order:3;width:100%;justify-content:center}.tbhd{display:none}.tbr{grid-template-columns:4.6em minmax(0,1fr) 5.5em;grid-template-areas:"o d c" "o b s" "k k k";row-gap:4px}.tbo{grid-area:o}.tbd{grid-area:d}.tbc{grid-area:c}.tbb{grid-area:b}.tbs{grid-area:s;text-align:right}.tbr>span:last-child{grid-area:k}.tbk{padding:8px 0}}
+</style><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap">
+</head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1462,33 +1490,55 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     return out.sort(function (a, b) { return a.out < b.out ? -1 : a.out > b.out ? 1 : 0; });
   }
   function viewCucina() {
-    var keys = DAYKEYS.slice().sort().filter(function (d) { return d >= todayKey(); }); if (!keys.length) keys = DAYKEYS.slice().sort();
-    var k = CU2.day && PROGRAM[CU2.day] ? CU2.day : (PROGRAM[todayKey()] ? todayKey() : keys[0]);
-    var legs = cuLegs(k).filter(function (l) { return !CU2.boat || l.boat === CU2.boat; }), dn = cuDone(), now = new Date(), nowM = now.getHours() * 60 + now.getMinutes(), isToday = k === todayKey(), nextI = -1;
-    if (isToday) legs.some(function (l, i) { if (!dn[k + '|' + l.boat + '|' + l.sem] && t2m(l.out) >= nowM - 2) { nextI = i; return true; } return false; });
-    var bs = boatCodes().filter(function (c) { return c !== 'TULLIO' && !BOATS[c].test; });
-    var h = '<div class="wrap"><h2>Uscite dalla cucina</h2><p class="muted">Ogni carico deve essere pronto <b>5 minuti prima</b> che la barca riparta dal Seminario. Le consegne dello stesso giro escono insieme.</p>' +
-      '<div class="chips" role="group" aria-label="Giorno">' + keys.map(function (d) { return '<button class="chip" data-act="cuday" data-k="' + d + '" aria-pressed="' + (d === k ? 'true' : 'false') + '">' + esc(d === todayKey() ? 'Oggi' : PROGRAM[d].short) + '</button>'; }).join('') + '</div>' +
-      '<div class="chips" role="group" aria-label="Barca"><button class="chip" data-act="cuboat" data-c="" aria-pressed="' + (!CU2.boat) + '">Tutte</button>' + bs.map(function (c) { return '<button class="chip" data-act="cuboat" data-c="' + c + '" aria-pressed="' + (CU2.boat === c) + '"><b style="color:' + bcol(c) + '">●</b> ' + esc(BOATS[c].name) + '</button>'; }).join('') + '</div>';
-    if (!legs.length) return h + '<div class="card"><p class="muted">Nessuna uscita dalla cucina in questo giorno.</p></div></div>';
-    var nOk = legs.filter(function (l) { return dn[k + '|' + l.boat + '|' + l.sem]; }).length;
-    h += '<div class="cuhd"><b>' + esc(PROGRAM[k].label) + '</b><span>' + nOk + ' di ' + legs.length + ' uscite fatte</span></div>';
-    h += '<table class="cut"><thead><tr><th>Pronto</th><th>Barca</th><th>Consegne</th><th></th></tr></thead><tbody>' + legs.map(function (l, i) {
-      var key = k + '|' + l.boat + '|' + l.sem, ok = !!dn[key], late = isToday && !ok && t2m(l.out) < nowM;
-      return '<tr class="' + (ok ? 'ok' : '') + (i === nextI ? ' nx' : '') + (late ? ' late' : '') + '" style="--bc:' + bcol(l.boat) + '">' +
-        '<td class="cutm"><b>' + esc(l.out) + '</b><small>parte ' + esc(l.sem) + '</small></td>' +
-        '<td class="cub"><i></i>' + esc(BOATS[l.boat].name) + '</td>' +
-        '<td><div class="cuc">' + l.items.map(function (z) { var cl = typeof muClients === 'function' ? muClients(z.name) : [z.name]; return '<span>' + esc(cl.length > 1 ? cl.join(' + ') : z.name) + (z.t ? ' <small>' + esc(z.t) + '</small>' : '') + '</span>'; }).join('') + '</div></td>' +
-        '<td><button class="cuk" data-act="cuok" data-key="' + esc(key) + '" aria-pressed="' + ok + '" aria-label="Segna uscita">' + (ok ? '✓' : '') + '</button></td></tr>';
-    }).join('') + '</tbody></table>';
-    h += '<div class="row" style="margin-top:10px"><button class="btn sm" data-act="cuprint">Stampa</button>' + (nOk ? '<button class="btn sm quiet" data-act="cureset" data-k="' + k + '">Togli le spunte di questo giorno</button>' : '') + '</div>';
-    return h + '<p class="hint">Tocca ✓ quando il carico è uscito dalla cucina. In arancione le uscite già passate e non segnate.</p></div>';
+    var keys = DAYKEYS.slice().sort();
+    var k = CU2.day && PROGRAM[CU2.day] ? CU2.day : todayKey();
+    var legs = cuLegs(k).filter(function (l) { return !CU2.boat || l.boat === CU2.boat; }), dn = cuDone(), isToday = k === todayKey();
+    var nextK = keys.filter(function (d) { return d > k; })[0], prevK = keys.filter(function (d) { return d < k && d >= todayKey(); }).pop();
+    if (!prevK && k > todayKey()) prevK = todayKey();
+    var dp = dateParts(k), title = (isToday ? 'Oggi · ' : '') + DNALL[dp.dow] + ' ' + dp.n + ' ' + MONTHS[dp.m];
+    var h = '<div class="tb" id="tbBoard"><div class="tbtop"><div class="tbt"><b>PARTENZE CUCINA</b><span>' + esc(title.toUpperCase()) + '</span></div><div class="tbclk" id="tbClk">' + hm(Date.now()) + '</div></div>' +
+      '<div class="tbnav"><button data-act="cuday" data-k="' + (prevK || '') + '"' + (prevK ? '' : ' disabled') + '>‹ Giorno prima</button>' +
+      '<span class="tbf">' + ['', 'PATANA', 'TOPPETTA', 'ARDEMAR'].filter(function (c) { return !c || BOATS[c]; }).map(function (c) { return '<button data-act="cuboat" data-c="' + c + '"' + ((CU2.boat || '') === c ? ' aria-pressed="true"' : '') + '>' + (c ? esc(BOATS[c].name) : 'Tutte') + '</button>'; }).join('') + '</span>' +
+      '<button data-act="cuday" data-k="' + (nextK || '') + '"' + (nextK ? '' : ' disabled') + '>Giorno dopo ›</button></div>';
+    if (!legs.length) return h + '<div class="tbempty">NESSUNA PARTENZA DALLA CUCINA IN QUESTO GIORNO</div><div class="tbfoot"><button data-act="cufull">⛶ Schermo intero</button></div></div>';
+    h += '<div class="tbhd"><span>ORA</span><span>DESTINAZIONE</span><span>BARCA</span><span>STATO</span><span>PARTENZA TRA</span><span></span></div>';
+    h += legs.map(function (l) {
+      var key = k + '|' + l.boat + '|' + l.sem, ok = dn[key];
+      var dest = l.items.map(function (z) { var cl = typeof muClients === 'function' ? muClients(z.name) : [z.name]; return cl.length > 1 ? cl.join(' + ') : z.name; }).join(' · ');
+      return '<div class="tbr' + (ok ? ' gone' : '') + '" data-out="' + (isToday ? t2m(l.out) : '') + '" data-ok="' + (ok ? hm(ok) : '') + '"><span class="tbo">' + esc(l.out) + '</span><span class="tbd">' + esc(dest.toUpperCase()) + '<small>barca al Seminario ' + esc(l.sem) + '</small></span>' +
+        '<span class="tbb" style="color:' + bcol(l.boat) + '">' + esc(BOATS[l.boat].name.toUpperCase()) + '</span><span class="tbs"></span><span class="tbc"></span>' +
+        '<span><button class="tbk" data-act="cuok" data-key="' + esc(key) + '" aria-label="Segna uscita">' + (ok ? '✓' : 'ESCE') + '</button></span></div>';
+    }).join('');
+    setTimeout(cuTick, 0);
+    return h + '<div class="tbfoot"><span>Pronto 5 minuti prima che la barca riparta dal Seminario · tocca ESCE quando il carico è uscito</span><button data-act="cufull">⛶ Schermo intero</button></div></div>';
   }
+  // ogni secondo: orologio, conto alla rovescia, ritardi
+  function cuTick() {
+    if (view !== 'cucina') return;
+    var c = $('tbClk'), now = new Date(), nm = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+    if (c) c.textContent = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+    var first = true;
+    Array.prototype.forEach.call(document.querySelectorAll('.tbr'), function (r) {
+      var o = r.getAttribute('data-out'), ok = r.getAttribute('data-ok'), st = r.querySelector('.tbs'), cd = r.querySelector('.tbc');
+      r.classList.remove('next', 'late', 'soon');
+      if (ok) { st.textContent = 'USCITO ' + ok; cd.textContent = ''; return; }
+      if (o === '') { st.textContent = 'IN PROGRAMMA'; cd.textContent = ''; return; }
+      var diff = +o - nm;
+      if (diff < 0) { var lm = Math.ceil(-diff); st.textContent = 'RITARDO ' + lm + ' MIN'; cd.textContent = '−' + Math.floor(-diff) + ':' + pad(Math.floor((-diff % 1) * 60)); r.classList.add('late'); return; }
+      st.textContent = 'IN ORARIO';
+      var mm = Math.floor(diff), ss = Math.floor((diff - mm) * 60);
+      cd.textContent = mm >= 60 ? Math.floor(mm / 60) + 'h' + pad(mm % 60) : pad(mm) + ':' + pad(ss);
+      if (first) { r.classList.add('next'); first = false; }
+      if (diff <= 10) r.classList.add('soon');
+    });
+  }
+  setInterval(cuTick, 1000);
   setInterval(function () { if (view === 'cucina' && !document.hidden) render(); }, 60000);
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
     var a = el.getAttribute('data-act'), dn;
-    if (a === 'cuday') { CU2.day = el.getAttribute('data-k'); render(); }
+    if (a === 'cuday') { if (!el.getAttribute('data-k')) return; CU2.day = el.getAttribute('data-k'); render(); }
+    else if (a === 'cufull') { var bd = $('tbBoard'); try { if (document.fullscreenElement) document.exitFullscreen(); else if (bd && bd.requestFullscreen) bd.requestFullscreen(); else if (bd && bd.webkitRequestFullscreen) bd.webkitRequestFullscreen(); else { document.body.classList.toggle('tbfs'); } } catch (x) { document.body.classList.toggle('tbfs'); } }
     else if (a === 'cuboat') { CU2.boat = el.getAttribute('data-c'); render(); }
     else if (a === 'cuok') { dn = cuDone(); var key = el.getAttribute('data-key'); if (dn[key]) delete dn[key]; else dn[key] = Date.now(); try { localStorage.setItem('smb-cucina', JSON.stringify(dn)); } catch (x) {} render(); }
     else if (a === 'cureset') { dn = cuDone(); var p = el.getAttribute('data-k') + '|'; Object.keys(dn).forEach(function (x) { if (x.indexOf(p) === 0) delete dn[x]; }); try { localStorage.setItem('smb-cucina', JSON.stringify(dn)); } catch (x) {} render(); }
@@ -3894,7 +3944,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02i';
+  var APP_V = '2026-11-02j';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
