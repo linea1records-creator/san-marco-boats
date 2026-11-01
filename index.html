@@ -848,10 +848,10 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   };
   var PAT = [['07:15', 'Pane'], ['07:30', 'Seminario'], ['08:00', 'Piazza'], ['08:30', 'Seminario'], ['08:50', 'Convitto'], ['09:15', 'Caritas'], ['09:40', 'Seminario'], ['10:00', 'Giustinian'], ['10:15', 'Scalo'], ['10:30', 'Darsena'], ['11:00', 'Venini / Barovier', 'Murano'], ['11:10', 'Promovetro · F3 · YALOS', 'Murano · 3 consegne sulla stessa riva'], ['11:20', 'Nason Moretti', 'Murano'], ['11:30', 'Seminario'], ['12:00', 'Lido'],
     ['12:20', 'Seminario', 'Scaricare vuoti Lido / prendere polibox Murano'], ['13:00', 'Scalo fluviale', 'Lasciare polibox Murano'], ['13:30', 'Darsena']];
-  var TOP = [['09:00', 'Darsena'], ['09:20', 'Seminario'], ['09:45', 'Cristo Re'], ['10:15', 'Seminario'], ['10:35', 'Miracoli'], ['11:00', 'Ponte Storto'], ['11:30', 'Seminario'], ['11:55', 'Cavanis'], ['12:20', 'Sant’Alvise'], ['12:45', 'Seminario'], ['13:30', 'Darsena']];
+  var TOP = [['09:00', 'Darsena'], ['09:20', 'Seminario'], ['09:45', 'Cristo Re'], ['10:15', 'Seminario'], ['10:35', 'Miracoli'], ['11:00', 'Ponte Storto'], ['11:30', 'Seminario'], ['11:55', 'Cavanis'], ['12:20', 'Sant’Alvise'], ['12:45', 'Seminario', '', 1], ['13:30', 'Darsena', '', 1]];
   var PATSAT = [['07:45', 'Darsena'], ['08:00', 'Pane'], ['09:00', 'Caritas'], ['10:00', 'Piazza']];
   var TOPSAT = [['07:30', 'Darsena'], ['08:00', 'Pane'], ['08:20', 'Seminario'], ['09:00', 'Caritas'], ['09:30', 'Piazza'], ['10:00', 'Seminario'], ['10:30', 'Darsena']];
-  function mk(arr) { return arr.map(function (x) { return { t: x[0], name: x[1], note: x[2] || '' }; }); }
+  function mk(arr) { return arr.map(function (x) { var o = { t: x[0], name: x[1], note: x[2] || '' }; if (x[3]) o.ind = true; return o; }); }
   var DAYKEYS = ['2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05', '2026-11-06', '2026-11-07'];
   var DN = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'], DS = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
   var PROGRAM = {};
@@ -892,7 +892,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       Object.keys(BOATS).forEach(function (code) {
         var b = d.boats[code]; if (!b || code === 'TULLIO') return;
         boats[code] = { off: !!b.off, onCall: !!b.onCall, stops: (b.off ? [] : (b.stops || [])).filter(function (z) { return z && z.name; }).map(function (z) {
-          var o = { t: String(z.t || ''), name: String(z.name), note: String(z.note || '') }; if (z.end) o.end = String(z.end); if (z.lat != null && z.lng != null && isFinite(+z.lat) && isFinite(+z.lng)) { o.lat = +z.lat; o.lng = +z.lng; PCO[o.name] = [o.lat, o.lng]; if (typeof COORDS === 'object' && COORDS && !COORDS[o.name]) COORDS[o.name] = [o.lat, o.lng]; } if (/^Verifica e manutenzione/i.test(o.name)) o.maint = true; return o; }) };
+          var o = { t: String(z.t || ''), name: String(z.name), note: String(z.note || '') }; if (z.end) o.end = String(z.end); if (z.ind) o.ind = true; if (z.lat != null && z.lng != null && isFinite(+z.lat) && isFinite(+z.lng)) { o.lat = +z.lat; o.lng = +z.lng; PCO[o.name] = [o.lat, o.lng]; if (typeof COORDS === 'object' && COORDS && !COORDS[o.name]) COORDS[o.name] = [o.lat, o.lng]; } if (/^Verifica e manutenzione/i.test(o.name)) o.maint = true; return o; }) };
         if (!b.off && !boats[code].stops.length && !b.onCall) boats[code].off = true;
       });
       P[k] = { short: DNALL[dp.dow].slice(0, 3) + ' ' + dp.n, label: DNALL[dp.dow] + ' ' + dp.n + ' ' + MONTHS[dp.m], boats: boats };
@@ -964,7 +964,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     for (var i = 0; i < DAYKEYS.length; i++) if (DAYKEYS[i] > t) return DAYKEYS[i];
     return DAYKEYS[DAYKEYS.length - 1];
   }
-  function stopTime(s) { return s.t ? (s.end ? s.t + '–' + s.end : s.t) : 'da definire'; }
+  function stopTime(s) { return s.t ? (s.ind ? 'circa ' : '') + (s.end ? s.t + '–' + s.end : s.t) : 'da definire'; }
 
   function logo(sz) {
     return '<svg class="logo" viewBox="0 0 64 64" width="' + sz + '" height="' + sz + '" aria-hidden="true">' +
@@ -1141,7 +1141,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       toast('Turno iniziato su ' + BOATS[code].name);
       gpsApply(); render(); setTimeout(loadMyTasks, 600);
     };
-    if (tok()) { cl('rpc_start_shift', { p_boat: code }).then(function (r) { if (r && r.error) { scanMsg(startErr(r.error), true); return; } go(); cl('rpc_set_plan', { p_plan: stops().map(function (z) { return { name: z.name, t: z.t || '' }; }) }); }); } else go();
+    if (tok()) { cl('rpc_start_shift', { p_boat: code }).then(function (r) { if (r && r.error) { scanMsg(startErr(r.error), true); return; } go(); cl('rpc_set_plan', { p_plan: stops().map(function (z) { return { name: z.name, t: z.ind ? '' : (z.t || '') }; }) }); }); } else go();
   }
   function makeThumb(url) {
     return new Promise(function (res) {
@@ -1156,8 +1156,11 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     });
   }
   function endShift() {
-    var b = boat(), c = counts(), sh = S.shift, photo = sh.end && sh.end.photo, dl = PROGRAM[sh.day].short;
-    cl('rpc_end_shift', { p_km: +(sh.km || 0).toFixed(2), p_total: c.total });
+    var sh = S.shift, all = stops(), li = all.length - 1, fin = Promise.resolve();
+    // tappa finale con orario indicativo (Darsena): l'arrivo è l'ora di fine turno
+    if (li >= 0 && all[li].ind && !sh.done[li] && !all[li].cancelled) { sh.done[li] = { status: 'ok', reason: '', t: Date.now(), auto: true }; save(); fin = cl('rpc_stop_event', { p_stop: all[li].name, p_status: 'ok', p_reason: null, p_planned: null }).catch(function () {}); }
+    var b = boat(), c = counts(), photo = sh.end && sh.end.photo, dl = PROGRAM[sh.day].short;
+    fin.then(function () { return cl('rpc_end_shift', { p_km: +(sh.km || 0).toFixed(2), p_total: c.total }); });
     (photo ? makeThumb(photo) : Promise.resolve('')).then(function (th) {
       S.history.unshift({ boat: sh.boat, name: b.name, day: dl, start: sh.start, end: Date.now(), ok: c.ok, bad: c.bad, total: c.total, km: sh.km || 0, thumb: th, who: sh.who || '', pos: curPos(sh) });
       S.history = S.history.slice(0, 15);
@@ -2137,7 +2140,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       bar += '<i class="' + (r ? (r.status === 'ok' ? 'ok' : 'bad') : (k === i ? 'cur' : '')) + '"></i>';
     }
     bar += '</div>';
-    var nm = s.maint ? 'Verifica barche' : s.name, L = nm.length, fs = L <= 9 ? 72 : L <= 13 ? 56 : L <= 18 ? 42 : 32, di = s.maint ? null : delayInfo(s.t), nx = nextStop(i);
+    var nm = s.maint ? 'Verifica barche' : s.name, L = nm.length, fs = L <= 9 ? 72 : L <= 13 ? 56 : L <= 18 ? 42 : 32, di = s.maint || s.ind ? null : delayInfo(s.t), nx = nextStop(i);
     var badge = s.extra && s.urgency && s.urgency !== 'normale' ? '<span class="urg u-' + s.urgency + '">' + (s.urgency === 'emergenza' ? 'EMERGENZA' : 'URGENTE') + '</span>' : (s.extra ? '<span class="urg u-extra">' + (s.local ? 'META LIBERA' : 'STRAORDINARIA') + '</span>' : '');
     return '<div class="sthead"><span class="lab">Tappa ' + Math.min(dn + 1, n) + ' di ' + n + '</span>' + bar + '</div>' + badge +
       '<b class="gname" style="font-size:' + fs + 'px">' + esc(nm) + '</b>' +
@@ -2156,14 +2159,14 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   function stopBadge(s) { return s.extra && s.urgency && s.urgency !== 'normale' ? '<span class="urg u-' + s.urgency + '">' + (s.urgency === 'emergenza' ? 'EMERGENZA' : 'URGENTE') + '</span>' : (s.extra ? '<span class="urg u-extra">' + (s.local ? 'META LIBERA' : 'STRAORDINARIA') + '</span>' : ''); }
   function stopRotta(s, i, all) {
-    var nm = s.maint ? 'Verifica barche' : s.name, L = nm.length, fs = L <= 9 ? 92 : L <= 13 ? 70 : L <= 18 ? 52 : 38, di = s.maint ? null : delayInfo(s.t), nx = nextStop(i);
+    var nm = s.maint ? 'Verifica barche' : s.name, L = nm.length, fs = L <= 9 ? 92 : L <= 13 ? 70 : L <= 18 ? 52 : 38, di = s.maint || s.ind ? null : delayInfo(s.t), nx = nextStop(i);
     return stopHead(i, all) + '<div class="rt">' + stopBadge(s) + '<b class="gname" style="font-size:' + fs + 'px">' + esc(nm) + '</b>' +
       '<div class="rtime">' + (s.t ? esc(stopTime(s)) : '––:––') + (di ? '<span class="gdl ' + di[1] + '">' + di[0] + '</span>' : '') + '</div>' +
       (s.note ? '<div class="stnote">' + esc(s.note) + '</div>' : '') +
       '<div class="rnext">' + (nx ? 'Poi · ' + esc(nx.maint ? 'Verifica barche' : nx.name) + (nx.t ? ' · ' + esc(nx.t) : '') : 'Ultima tappa del giro') + '</div></div>';
   }
   function stopTimeline(s, i, all) {
-    var nm = s.maint ? 'Verifica barche' : s.name, di = s.maint ? null : delayInfo(s.t), q = upcoming(i).slice(0, 4), op = [1, .85, .6, .35];
+    var nm = s.maint ? 'Verifica barche' : s.name, di = s.maint || s.ind ? null : delayInfo(s.t), q = upcoming(i).slice(0, 4), op = [1, .85, .6, .35];
     return stopHead(i, all) + stopBadge(s) + '<div class="tl"><div class="tln cur"><i></i><div><b>' + esc(nm) + '</b><span>' + (s.t ? esc(stopTime(s)) : 'orario da definire') + (di ? ' · <em class="gdl ' + di[1] + '">' + di[0] + '</em>' : '') + '</span></div></div>' +
       q.map(function (x, k) { return '<div class="tln" style="opacity:' + op[k] + '"><i></i><div><b>' + esc(x.maint ? 'Verifica barche' : x.name) + '</b><span>' + (x.t ? esc(x.t) : '––:––') + '</span></div></div>'; }).join('') + '</div>' +
       (s.note ? '<div class="stnote">' + esc(s.note) + '</div>' : '');
@@ -2251,7 +2254,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         '<button class="btn" data-act="maintreq">Segnala un problema alla barca</button>';
       primary = 'Verifica completata'; speech = 'Dalle ' + s.t + ' alle ' + s.end + ': ' + s.note + '.';
     } else if (step === 0) {
-      body = '<div class="row"><h3>Rotta</h3><div class="pills">' + (s.t ? '<span class="pill go">Previsto alle ' + esc(s.t) + '</span>' : '<span class="pill go">Orario da definire</span>') + delayPill(s.t) + '</div></div>' +
+      body = '<div class="row"><h3>Rotta</h3><div class="pills">' + (s.t ? '<span class="pill go">' + (s.ind ? 'Indicativo: circa ' : 'Previsto alle ') + esc(s.t) + '</span>' : '<span class="pill go">Orario da definire</span>') + (s.ind ? '' : delayPill(s.t)) + '</div></div>' +
         '<p class="huge">Vai a ' + esc(s.name) + '</p>' +
         (s.note ? '<div class="note"><b>Alla tappa:</b> ' + esc(s.note) + '</div>' : '') +
         '<div class="muted">' + (next ? 'Dopo: ' + esc(next.name) + (next.t ? ' alle ' + esc(next.t) : '') : 'Ultima tappa del giro') + '</div>';
@@ -3449,7 +3452,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01q';
+  var APP_V = '2026-11-01r';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4138,7 +4141,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function asBoatCodes() { return AS_BOATS.concat(Object.keys(BOATS).filter(function (c) { return AS_BOATS.indexOf(c) < 0 && c !== 'TULLIO' && !BOATS[c].test && !BOATS[c].gone; })); }
   function asStop(z) {
     var o = { t: z.t || '', name: z.name || '', note: z.cancelled && z.note0 != null ? z.note0 : (z.note || '') };
-    if (z.end) o.end = z.end; if (z.lat != null && z.lng != null) { o.lat = +z.lat; o.lng = +z.lng; } return o;
+    if (z.end) o.end = z.end; if (z.ind) o.ind = true; if (z.lat != null && z.lng != null) { o.lat = +z.lat; o.lng = +z.lng; } return o;
   }
   function asCleanBoat(b) {
     if (!b) return { off: true, stops: [] };
@@ -4728,7 +4731,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       var fx = GPS.last && Date.now() - GPS.last.t < 60000 ? GPS.last : null;
       (fx ? cl('rpc_log_gps', { p_lat: fx.la, p_lng: fx.lo, p_speed: null, p_acc: null }) : Promise.resolve()).then(function () {
         if (sp.extra) cl('rpc_task_update', { p_task: sp.id, p_status: status === 'ok' ? 'fatta' : 'problema', p_reason: reason || null, p_lat: fx ? fx.la : null, p_lng: fx ? fx.lo : null });
-        else cl('rpc_stop_event', { p_stop: sp.name, p_status: status, p_reason: reason || null, p_planned: sp.t || null });
+        else cl('rpc_stop_event', { p_stop: sp.name, p_status: status, p_reason: reason || null, p_planned: sp.ind ? null : (sp.t || null) });
       });
     }
     S.shift.step = 0; S.shift.trip = 0; save(); spoken = '';
