@@ -1088,11 +1088,16 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<button class="btn danger" data-act="endsheet">Termina turno</button></div>';
   }
   function viewProgramma() {
-    var k = viewDay || (S.shift ? S.shift.day : pickDay()); if (!PROGRAM[k]) k = viewDay = pickDay(); var day = PROGRAM[k];
-    var ids = boatCodes().filter(function (id) { return PROGRAM[k].boats[id]; });
+    // giorni senza programma ma con consegne aggiunte (es. una domenica): li mostro lo stesso
+    var VX = {}, keys = DAYKEYS.slice();
+    if (isMgr() && MG.list) MG.list.forEach(function (t) { var ci = isoOf(t.created_at); if (t.status !== 'annullata' && !PROGRAM[ci] && !VX[ci]) { var dp = dateParts(ci); VX[ci] = { short: (ci === todayISO() ? 'Oggi ' : DNALL[dp.dow].slice(0, 3) + ' ') + dp.n, label: DNALL[dp.dow] + ' ' + dp.n + ' ' + MONTHS[dp.m], boats: {}, virtual: true }; keys.push(ci); } });
+    keys.sort();
+    var k = viewDay || (S.shift ? S.shift.day : (VX[todayISO()] ? todayISO() : pickDay())); if (!PROGRAM[k] && !VX[k]) k = viewDay = pickDay();
+    var day = PROGRAM[k] || VX[k];
+    var ids = boatCodes().filter(function (id) { return day.boats[id]; });
     if (S.shift && S.shift.day === k) ids.sort(function (a, b) { return (b === S.shift.boat) - (a === S.shift.boat); });
-    var h = '<div class="wrap"><h2>Programma</h2><p class="muted">Logistica Ristorazione San Marco · dal ' + pgFmt(DAYKEYS[0]) + ' al ' + pgFmt(DAYKEYS[DAYKEYS.length - 1]) + '</p>' + dayNote() +
-      '<div class="chips" role="group" aria-label="Giorno">' + DAYKEYS.map(function (d) { return '<button class="chip" data-act="day" data-k="' + d + '" aria-pressed="' + (d === k ? 'true' : 'false') + '">' + esc(PROGRAM[d].short) + '</button>'; }).join('') + '</div>' +
+    var h = '<div class="wrap"><h2>Programma</h2><p class="muted">Logistica Ristorazione San Marco · dal ' + pgFmt(DAYKEYS[0]) + ' al ' + pgFmt(DAYKEYS[DAYKEYS.length - 1]) + '</p>' + (VX[todayISO()] ? '' : dayNote()) +
+      '<div class="chips" role="group" aria-label="Giorno">' + keys.map(function (d) { return '<button class="chip" data-act="day" data-k="' + d + '" aria-pressed="' + (d === k ? 'true' : 'false') + '">' + esc((PROGRAM[d] || VX[d]).short) + '</button>'; }).join('') + '</div>' +
       (isMgr() && tok() ? '<button class="btn" data-act="nav" data-v="nuovo">+ Nuovo turno o consegna</button>' : '') + '<h3>' + esc(day.label) + '</h3>' + (day.halloween ? '<div class="note">🎃 <b>Buon Halloween!</b> Occhio alla nebbia in laguna: dolcetto o scherzetto a fine giro.</div>' : '');
     ids.forEach(function (id) {
       var b = BOATS[id], bd = day.boats[id], mine = S.shift && S.shift.day === k && S.shift.boat === id, cur = mine ? curIdx() : -2;
@@ -1109,7 +1114,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       h += '</section>';
     });
     if (isMgr() && MG.list) {
-      var xt = MG.list.filter(function (t) { var ci = isoOf(t.created_at); return t.status !== 'annullata' && (ci === k || (ci === todayISO() && !PROGRAM[ci] && k === pickDay())); });
+      var xt = MG.list.filter(function (t) { return t.status !== 'annullata' && isoOf(t.created_at) === k; });
+      if (day.virtual) h += '<p class="muted">Nessun giro in programma per questo giorno: qui sotto le consegne aggiunte.</p>';
       if (xt.length) h += '<section class="card"><h3>Consegne aggiunte in giornata</h3><ul class="stl">' + xt.sort(function (a, b) { return (a.t || '99') < (b.t || '99') ? -1 : 1; }).map(function (t) {
         return '<li class="stp"><span class="mono">' + esc(t.t || '—') + '</span><span><b>' + esc(t.name) + '</b><small>' + esc([t.boat, t.who].filter(Boolean).join(' · ')) + (t.note ? ' · ' + esc(t.note) : '') + '</small></span>' + stPill(t) + '</li>'; }).join('') + '</ul></section>';
     }
