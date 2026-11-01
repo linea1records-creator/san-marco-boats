@@ -214,6 +214,9 @@ li.on .ddwk{background:#4FC3F7;border-color:#4FC3F7;color:#0B1317}.ddwk.ok{borde
 .ddfn{font-size:13.5px;color:var(--muted,#667)}.ddfp{font-size:12.5px;font-weight:700;color:#E65100}.ddfs{font-size:12.5px;color:#2E7D32}
 .ddfh{display:flex;flex-direction:column;gap:2px;margin-bottom:8px}.ddfh h3{margin:0}.ddfh .muted{font-weight:400;text-transform:none;letter-spacing:0}
 .ddfin{display:flex;flex-direction:column;gap:6px;padding-bottom:14px}
+.ddwmini{width:100%;height:100%;display:flex;align-items:center;gap:10px;padding:8px 12px;border:0;border-radius:18px;background:#13232A;color:#F2F7F5;box-shadow:0 0 0 1.5px #2A3C44;font:inherit;text-align:left;cursor:pointer}
+.ddwmini.here{background:#4A2A12;box-shadow:0 0 0 2px #E65100}.ddwmi{font-size:24px}.ddwmt{display:flex;flex-direction:column;min-width:0}.ddwmt b{font-size:16px}.ddwmt small{font-size:12.5px;color:#C9D6D3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ddwsheet2 .ddwsheet{height:62vh;max-height:62vh;padding:12px}.ddwsheet2 .ddwz{height:100%;width:100%;flex:1}
 </style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -2613,7 +2616,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     setTimeout(function () { loadWx(false); loadTide(false); drawMap(); }, 50);
     var parts = {
       stop: '<div class="stpanel"><div class="stbody" id="stFace">' + (s ? stopInner(s, i, all) : freePanel(c)) + '</div></div>',
-      ddt: '<div class="ddwbox" id="ddwFace">' + ddwInner() + '</div>',
+      ddt: '<div id="ddwMini">' + ddwMini() + '</div>',
       map: mapHtml(),
       speed: gwVar('speed') === 0 ? '<div class="gz sm" id="spFace">' + speedInner() + '</div>' : '<div class="spv sp' + gwVar('speed') + '" id="spFace">' + speedInner() + '</div>',
       clock: '<div class="clk" id="clkF">' + clockInner() + '</div>',
@@ -2652,7 +2655,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     mimmo: { n: 'Mimmo il delfino', sizes: { S: [2, 2], M: [2, 3] }, d: 'S' },
     km: { n: 'Km e nodi', sizes: { S: [1, 1], M: [2, 1] }, d: 'S' },
     clock: { n: 'Orario', sizes: { S: [1, 1], M: [2, 1], L: [2, 2] }, d: 'S' },
-    ddt: { n: 'DDT da firmare', sizes: { S: [2, 3], M: [2, 4], L: [2, 6] }, d: 'M' },
+    ddt: { n: 'DDT da firmare', sizes: { S: [1, 1], M: [2, 1] }, d: 'M' },
     next: { n: 'Sono arrivato', sizes: { S: [2, 1], M: [2, 2] }, d: 'M', fixed: true }
   };
   var GW_ORDER = ['stop', 'ddt', 'map', 'speed', 'weather', 'km', 'clock', 'tide', 'mimmo', 'next'];
@@ -3818,7 +3821,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02g';
+  var APP_V = '2026-11-02h';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -3985,6 +3988,12 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     document.body.appendChild(inp); inp.click();
   }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="ddwshot"]') : null; if (el) ddwShot(el.getAttribute('data-c')); });
+  // nel cruscotto solo un tasto piccolo: apre la finestra per scegliere i DDT da firmare
+  function ddwMini() {
+    var cur = ddwCur(), all = ddwList(), pend = all.filter(function (x) { return x.status === 'pending'; }), nh = pend.filter(function (x) { return ddwHere(x, cur); }).length, up = !!ddwMuranoUp(cur, all);
+    return '<button class="ddwmini' + (nh || up ? ' here' : '') + '" data-act="ddwopen"><span class="ddwmi">📄</span><span class="ddwmt"><b>DDT</b><small>' + (up && !nh ? 'da caricare' : nh ? nh + ' da firmare qui' : pend.length ? pend.length + ' da firmare' : 'nessuno da firmare') + '</small></span></button>';
+  }
+  function ddwOpen() { openSheet('<div class="ddwsheet2"><div id="ddwFace" class="ddwsheet">' + ddwInner() + '</div><div class="btns"><button class="btn quiet" data-act="close">Chiudi</button></div></div>'); }
   function ddwBadge() {
     var cur0 = ddwCur(), pend = ddwList().filter(function (x) { return x.status === 'pending'; });
     if (!pend.length) return ddwMuranoUp(cur0, ddwList()) ? '<button class="ddwbadge here" data-act="ddwgo" aria-label="DDT da caricare">📷 DDT da caricare</button>' : '';
@@ -3992,8 +4001,9 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     return '<button class="ddwbadge' + (nh ? ' here' : '') + '" data-act="ddwgo" aria-label="DDT da firmare">📄 ' + (nh ? nh + ' DDT qui' : pend.length + ' DDT') + '</button>';
   }
   function ddwRefresh() {
-    if (view !== 'guida') return;
+    if (view !== 'guida' && !document.getElementById('ddwFace')) return;
     var w = document.getElementById('ddwFace'); if (w) { var sc = w.querySelector('.ddwl'), st = sc ? sc.scrollTop : 0; w.innerHTML = ddwInner(); var sc2 = w.querySelector('.ddwl'); if (sc2) sc2.scrollTop = st; }
+    var mi = document.getElementById('ddwMini'); if (mi) mi.innerHTML = ddwMini();
     var bz = document.getElementById('ddwBz'); if (bz) bz.innerHTML = ddwBadge();
   }
   var SIGQ = [];
@@ -4002,11 +4012,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var a = el.getAttribute('data-act');
     if (a === 'ddwsel') { var id = el.getAttribute('data-id'), x = ddtFind(id); if (x && x.status === 'pending') { DDW.sel[id] = !DDW.sel[id]; ddwRefresh(); } }
     else if (a === 'ddwsign') { var ids = ddwList().filter(function (x) { return x.status === 'pending' && DDW.sel[x.id]; }).map(function (x) { return x.id; }); if (!ids.length) return; SIGQ = ids.slice(1); SIGQ.total = ids.length; sigOpen(ids[0]); }
-    else if (a === 'ddwgo') {
-      var w = document.getElementById('ddwFace');
-      if (w) { w.scrollIntoView({ behavior: 'smooth', block: 'center' }); w.classList.add('flash'); setTimeout(function () { w.classList.remove('flash'); }, 900); }
-      else openSheet('<h2>DDT di oggi</h2><div id="ddwFace" class="ddwsheet">' + ddwInner() + '</div><div class="btns"><button class="btn quiet" data-act="close">Chiudi</button></div>');
-    }
+    else if (a === 'ddwgo' || a === 'ddwopen') ddwOpen();
   });
   function ddtStopHtml(s) {
     var list = ddtForStop(s); if (!list.length) return '';
