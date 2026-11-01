@@ -463,14 +463,15 @@ body.drive-open .main { padding-bottom: 176px; }
 .ddbar .btn { width: auto; min-height: 40px; padding: 6px 14px; } .ddbar span { flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ddview iframe { flex: 1; width: 100%; border: 0; background: #fff; } .ddopen { color: #9CC4FF; font-size: 13px; text-align: center; padding: 8px; background: #1b1b1b; }
 .ddimg { flex: 1; overflow: auto; background: #222; display: grid; place-items: start center; } .ddimg img { max-width: 100%; height: auto; display: block; }
-.sigscreen { position: fixed; inset: 0; z-index: 60; background: #fff; color: #0A0F1A; display: flex; flex-direction: column; gap: 8px; padding: max(14px, env(safe-area-inset-top, 0px)) 16px max(14px, env(safe-area-inset-bottom, 0px)); }
-.sigtop { display: flex; flex-direction: column; } .sigtop b { font-size: 22px; }
-.sigpad { position: relative; flex: 1; min-height: 160px; border: 2px dashed #8A98B3; border-radius: 14px; background: #fff; overflow: hidden; }
+.sigscreen { position: fixed; inset: 0; z-index: 60; background: #fff; color: #0A0F1A; overflow: hidden; }
+.sigland { position: absolute; top: 0; left: 0; transform-origin: 0 0; display: flex; flex-direction: column; gap: 8px; padding: 10px max(12px, env(safe-area-inset-left, 0px)) 10px; box-sizing: border-box; background: #fff; }
+.sigbar { display: flex; align-items: center; gap: 8px; } .sigbar .btn { min-height: 46px; padding: 0 16px; flex: none; width: auto; margin: 0; }
+.sigtt { flex: 1; display: flex; flex-direction: column; min-width: 0; line-height: 1.2; } .sigtt b { font-size: 18px; } .sigtt span { font-size: 13px; color: #5B6B82; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sigpad { position: relative; flex: 1; min-height: 120px; border: 2px dashed #8A98B3; border-radius: 14px; background: #fff; overflow: hidden; }
 .sigpad canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
-.sigpad::after { content: ""; position: absolute; left: 6%; right: 6%; bottom: 26%; border-bottom: 1.5px solid #C3CFE2; pointer-events: none; }
-.sighint { position: absolute; inset: 0; display: grid; place-items: center; color: #8A98B3; font-size: 20px; pointer-events: none; }
-.sigmsg { min-height: 1.3em; color: #C62828; margin: 0; }
-.sigbtns { display: grid; grid-template-columns: 1fr 1fr 1.6fr; gap: 8px; } .sigbtns .btn { min-height: 52px; }
+.sigpad::after { content: ""; position: absolute; left: 5%; right: 5%; bottom: 24%; border-bottom: 1.5px solid #C3CFE2; pointer-events: none; }
+.sighint { position: absolute; inset: 0; display: grid; place-items: center; color: #8A98B3; font-size: 22px; pointer-events: none; }
+.sigmsg { position: absolute; left: 0; right: 0; bottom: 6px; text-align: center; min-height: 1.3em; color: #C62828; margin: 0; pointer-events: none; }
 
 
 
@@ -3379,7 +3380,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01m';
+  var APP_V = '2026-11-01n';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -3604,7 +3605,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
             var tr = sigTrim(sc0) || sc0, bx = g.box.x * W1, by = g.box.y * H1, bw = g.box.w * W1, bh = g.box.h * H1, k1 = Math.min(bw * .96 / tr.width, bh * 1.15 / tr.height);
             var sw = tr.width * k1, sh = tr.height * k1; c1.drawImage(tr, bx + (bw - sw) / 2, by + (bh - sh) / 2 + bh * .08, sw, sh);
             c1.fillStyle = '#333'; c1.font = fs1 + 'px sans-serif';
-            c1.fillText('Firmato da ' + (g.signer || '') + ' · ' + when + (g.carrier ? ' · consegnato da ' + g.carrier : ''), 16, H1 + fs1 + 6);
+            c1.fillText((g.signer && g.signer !== 'Cliente' ? 'Firmato da ' + g.signer : 'Firmato dal cliente') + ' · ' + when + (g.carrier ? ' · consegnato da ' + g.carrier : ''), 16, H1 + fs1 + 6);
             if (g.lat != null) c1.fillText('Posizione ' + (+g.lat).toFixed(5) + ', ' + (+g.lng).toFixed(5) + (g.number ? ' · DDT ' + g.number : ''), 16, H1 + fs1 * 2 + 12);
             cv1.toBlob(function (b) { b ? res({ blob: b, name: base + '-firmato.jpg' }) : rej(new Error('blob')); }, 'image/jpeg', .9);
             return;
@@ -3632,24 +3633,37 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function sigOpen(id) {
     var x = ddtFind(id); if (!x) return; SIG.id = id; SIG.pts = 0;
     closeSheet(); var d = document.createElement('div'); d.id = 'sigScreen'; d.className = 'sigscreen';
-    d.innerHTML = '<div class="sigtop"><b>Firma di ricezione</b><span class="muted">' + esc(x.customer) + (x.number ? ' · ' + esc(x.number) : '') + '</span></div>' +
-      '<label class="muted" for="sigName">Nome e cognome di chi firma</label><input class="field txt" id="sigName" autocomplete="off" autocapitalize="words" placeholder="Es. Mario Rossi">' +
-      '<div class="sigpad"><canvas id="sigCv" aria-label="Spazio per la firma"></canvas><span class="sighint" id="sigHint">Firma qui con il dito</span></div>' +
-      '<p class="muted sigmsg" id="sigMsg" role="status"></p>' +
-      '<div class="sigbtns"><button class="btn quiet" data-act="sigcancel">Annulla</button><button class="btn" data-act="sigclear">Cancella</button><button class="btn primary" data-act="sigok">Conferma firma</button></div>';
-    document.body.appendChild(d); sigInit();
+    // sempre in orizzontale: se il telefono è in verticale ruoto la schermata, il cliente gira il telefono e ha tutto lo schermo
+    d.innerHTML = '<div class="sigland" id="sigLand"><div class="sigbar"><button class="btn quiet" data-act="sigcancel">Annulla</button>' +
+      '<div class="sigtt"><b>Firma di ricezione</b><span>' + esc(x.customer) + (x.number ? ' · DDT ' + esc(x.number) : '') + '</span></div>' +
+      '<button class="btn" data-act="sigclear">Cancella</button><button class="btn primary" data-act="sigok">Conferma</button></div>' +
+      '<div class="sigpad" id="sigPad"><canvas id="sigCv" aria-label="Spazio per la firma"></canvas><span class="sighint" id="sigHint">Firma qui con il dito</span><p class="sigmsg" id="sigMsg" role="status"></p></div></div>';
+    document.body.appendChild(d); sigLayout(); sigInit();
+  }
+  function sigLayout() {
+    var L = $('sigLand'); if (!L) return;
+    var W = window.innerWidth, H = window.innerHeight; SIG.rot = H > W;
+    if (SIG.rot) { L.style.width = H + 'px'; L.style.height = W + 'px'; L.style.transform = 'translateX(' + W + 'px) rotate(90deg)'; }
+    else { L.style.width = W + 'px'; L.style.height = H + 'px'; L.style.transform = ''; }
   }
   function sigInit() {
-    var cv = $('sigCv'), r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
-    cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
-    var c = cv.getContext('2d'); c.scale(dpr, dpr); c.lineWidth = 2.8; c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = '#0A0F1A';
-    SIG.cv = cv; SIG.ctx = c; SIG.w = r.width; SIG.h = r.height;
-    function pos(e) { var b = cv.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; }
-    cv.addEventListener('pointerdown', function (e) { e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (x) {} SIG.drawing = true; SIG.last = pos(e); c.beginPath(); c.moveTo(SIG.last[0], SIG.last[1]); c.lineTo(SIG.last[0] + .1, SIG.last[1] + .1); c.stroke(); var h = $('sigHint'); if (h) h.style.display = 'none'; });
-    cv.addEventListener('pointermove', function (e) { if (!SIG.drawing) return; e.preventDefault(); var p = pos(e); c.beginPath(); c.moveTo(SIG.last[0], SIG.last[1]); c.lineTo(p[0], p[1]); c.stroke(); SIG.pts += Math.abs(p[0] - SIG.last[0]) + Math.abs(p[1] - SIG.last[1]); SIG.last = p; });
+    var cv = $('sigCv'), pad = $('sigPad'), dpr = Math.min(2, window.devicePixelRatio || 1), pw = pad.clientWidth, ph = pad.clientHeight;
+    cv.width = Math.round(pw * dpr); cv.height = Math.round(ph * dpr);
+    var c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.lineWidth = 3; c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = '#0A0F1A';
+    SIG.cv = cv; SIG.ctx = c; SIG.w = pw; SIG.h = ph; SIG.pts = 0;
+    if (cv.__bound) return; cv.__bound = true;
+    // dal punto toccato sullo schermo al punto sul foglio di firma (anche con la schermata ruotata)
+    function pos(e) {
+      var L = $('sigLand'), ox = pad.offsetLeft, oy = pad.offsetTop;
+      if (SIG.rot) return [e.clientY - ox, window.innerWidth - e.clientX - oy];
+      var b = cv.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top];
+    }
+    cv.addEventListener('pointerdown', function (e) { e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (x) {} SIG.drawing = true; SIG.last = pos(e); var c2 = SIG.ctx; c2.beginPath(); c2.moveTo(SIG.last[0], SIG.last[1]); c2.lineTo(SIG.last[0] + .1, SIG.last[1] + .1); c2.stroke(); var h = $('sigHint'); if (h) h.style.display = 'none'; sigMsg(''); });
+    cv.addEventListener('pointermove', function (e) { if (!SIG.drawing) return; e.preventDefault(); var p = pos(e), c2 = SIG.ctx; c2.beginPath(); c2.moveTo(SIG.last[0], SIG.last[1]); c2.lineTo(p[0], p[1]); c2.stroke(); SIG.pts += Math.abs(p[0] - SIG.last[0]) + Math.abs(p[1] - SIG.last[1]); SIG.last = p; });
     var up = function () { SIG.drawing = false; };
-    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); cv.addEventListener('pointerleave', up);
+    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
   }
+  window.addEventListener('resize', function () { if (!$('sigScreen')) return; var had = SIG.pts > 0; sigLayout(); setTimeout(function () { sigInit(); var h = $('sigHint'); if (h) h.style.display = ''; if (had) sigMsg('Lo schermo è girato: firma di nuovo.'); }, 60); });
   function sigClose() { var d = $('sigScreen'); if (d) d.remove(); SIG.cv = null; }
   function sigMsg(t) { var m = $('sigMsg'); if (m) m.textContent = t || ''; }
   function sigExport() {
@@ -3665,8 +3679,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     });
   }
   function sigConfirm() {
-    var nm = ($('sigName').value || '').trim();
-    if (nm.length < 2) { sigMsg('Scrivi il nome di chi firma.'); return; }
+    var nm = '';
     if (SIG.pts < 40) { sigMsg('La firma è vuota o troppo corta: fai firmare di nuovo.'); return; }
     if (!tok()) { sigMsg('Serve la connessione per salvare la firma.'); return; }
     sigMsg('Salvo la firma…'); var id = SIG.id, img = sigExport();
@@ -3674,7 +3687,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       return cloud('rpc_ddt_sign', { p_token: tok(), p_id: id, p_signer: nm, p_sig: img, p_lat: loc ? loc[0] : null, p_lng: loc ? loc[1] : null });
     }).then(function (r) {
       if (r && r.ok) { var xb = ddtFind(id); sigClose(); toast('DDT firmato e salvato'); loadDdt().then(function () { if (xb && xb.box) ddtSignedAct(id, false); else ddtDetail(id); }); }
-      else sigMsg(r && r.error === 'gia_firmato' ? 'Questo DDT risulta già firmato.' : r && r.error === 'nome' ? 'Controlla il nome.' : 'Non sono riuscito a salvare. Riprova.');
+      else sigMsg(r && r.error === 'gia_firmato' ? 'Questo DDT risulta già firmato.' : 'Non sono riuscito a salvare. Riprova.');
     }).catch(function () { sigMsg('Nessuna connessione: la firma non è stata salvata. Riprova.'); });
   }
   function ddtSend() {
