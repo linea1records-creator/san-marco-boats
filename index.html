@@ -269,6 +269,14 @@ body.chatopen .nav,body.chatopen .nokia{display:none}
 .tcpick label{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--line,#eef0f3);font-size:16px}
 .tcpick input{width:20px;height:20px}.waav.sm{width:32px;height:32px;font-size:13px}
 .rqbtn.dd2{flex-direction:column;align-items:flex-start;gap:2px;padding:14px 16px;background:#1655C8;color:#fff;border-color:#1655C8;letter-spacing:.04em}.rqbtn.dd2 span{font-weight:400;font-size:13px;letter-spacing:0;opacity:.9}
+.fuelc{display:flex;flex-direction:column;gap:8px}.fuelc.need{box-shadow:0 0 0 3px #E65100}
+.fuell{display:flex;align-items:center;gap:10px}.fuell input[type=range]{flex:1;accent-color:#1655C8;height:34px}
+.fuell input[type=number]{width:72px;font:inherit;font-size:20px;font-weight:700;text-align:center;padding:8px;border-radius:10px;border:1px solid var(--line,#d0d5dd)}.fuell span{font-size:14px;color:var(--muted,#667)}
+.fuelq{display:flex}.fuelq button{flex:1;padding:12px 4px;font-size:17px;font-weight:800}
+.fur{padding:8px 0;border-top:1px solid var(--line,#eef0f3)}.furh{display:flex;justify-content:space-between;font-size:15px}.furh span{font-weight:800}
+.furb{position:relative;height:14px;border-radius:7px;background:rgba(127,127,127,.15);overflow:hidden;margin:6px 0 4px}.furb i{display:block;height:100%;border-radius:7px;background:#2E7D32}
+.furb i.mid{background:#F9A825}.furb i.low{background:#D93025}.furb em{position:absolute;top:0;bottom:0;width:1px;background:rgba(0,0,0,.18)}
+.fur small{font-size:12.5px;color:var(--muted,#667)}.furh .low,.lowt{color:#D93025}.furh .mid{color:#B26A00}.furh .ok{color:#2E7D32}
 </style><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap">
 </head><body>
 <title>San Marco Boat</title>
@@ -1358,6 +1366,41 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<button class="btn quiet" data-act="close">Annulla</button>'
     );
   }
+  /* ---------- Benzina: a fine turno il livello del serbatoio, per i responsabili l'indicatore di ogni barca ---------- */
+  var FUEL_CFG = { PATANA: { type: 'l', max: 30 } };
+  var FUEL_Q = [['1/4', 25], ['1/2', 50], ['3/4', 75], ['Pieno', 100]];
+  function fuelCfg(c) { return FUEL_CFG[c] || { type: 'q' }; }
+  function fuelHtml(sh) {
+    var cf = fuelCfg(sh.boat), e = sh.end || {}, v = e.fuel;
+    if (cf.type === 'l') return '<div class="card fuelc"><h3>⛽ Benzina rimasta nel serbatoio</h3><div class="fuell"><input type="range" id="fuelR" min="0" max="' + cf.max + '" step="1" value="' + (v ? v.n : Math.round(cf.max / 2)) + '"><input type="number" id="fuelN" min="0" max="' + cf.max + '" inputmode="numeric" value="' + (v ? v.n : '') + '" placeholder="litri"><span>L su ' + cf.max + '</span></div>' + (v ? '' : '<div class="hint">Sposta la barra o scrivi i litri.</div>') + '</div>';
+    return '<div class="card fuelc"><h3>⛽ Benzina rimasta nel serbatoio</h3><div class="seg2 fuelq">' + FUEL_Q.map(function (q) { return '<button data-act="fuelq" data-l="' + q[0] + '" data-p="' + q[1] + '"' + (v && v.l === q[0] ? ' aria-pressed="true"' : '') + '>' + q[0] + '</button>'; }).join('') + '</div></div>';
+  }
+  function fuelSet(l, p, n) { var sh = S.shift; if (!sh) return; sh.end = sh.end || { photo: null }; sh.end.fuel = { l: l, p: p, n: n }; save(); }
+  document.addEventListener('input', function (e) {
+    var t = e.target; if (!t || (t.id !== 'fuelR' && t.id !== 'fuelN') || !S.shift) return;
+    var cf = fuelCfg(S.shift.boat), n = Math.max(0, Math.min(cf.max, Math.round(+t.value || 0)));
+    if (t.id === 'fuelR') { var nb = $('fuelN'); if (nb) nb.value = n; } else { var r = $('fuelR'); if (r) r.value = n; }
+    if (t.value === '' && t.id === 'fuelN') return;
+    fuelSet(n + ' L', n / cf.max * 100, n);
+  });
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act="fuelq"]') : null; if (!el) return;
+    fuelSet(el.getAttribute('data-l'), +el.getAttribute('data-p'), null);
+    Array.prototype.forEach.call(document.querySelectorAll('[data-act="fuelq"]'), function (b) { b.setAttribute('aria-pressed', b === el ? 'true' : 'false'); });
+  });
+  // per i responsabili, nella sezione Barche
+  var FU = { d: null, t: 0 };
+  function loadFuel() { if (!tok()) return; FU.t = Date.now(); cl('rpc_fuel_status', {}).then(function (r) { if (Array.isArray(r)) { FU.d = r; var el = $('fuelBox'); if (el) el.innerHTML = fuelInner(); } }); }
+  function fuelInner() {
+    if (!FU.d) return '<p class="muted">Carico…</p>';
+    return FU.d.filter(function (x) { return BOATS[x.boat] && x.boat !== 'TULLIO'; }).map(function (x) {
+      var p = x.pct == null ? null : +x.pct, cls = p == null ? '' : p <= 25 ? 'low' : p <= 50 ? 'mid' : 'ok';
+      return '<div class="fur"><div class="furh"><b><span style="color:' + bcol(x.boat) + '">●</span> ' + esc(BOATS[x.boat].name) + '</b><span class="' + cls + '">' + (x.level ? esc(x.level) + (fuelCfg(x.boat).type === 'l' ? ' su ' + fuelCfg(x.boat).max : '') : 'nessun dato') + '</span></div>' +
+        '<div class="furb"><i class="' + cls + '" style="width:' + (p == null ? 0 : p) + '%"></i><em style="left:25%"></em><em style="left:50%"></em><em style="left:75%"></em></div>' +
+        '<small>' + (x.at ? 'segnato da ' + esc(String(x.who || '').split(' ')[0]) + ' · ' + esc(ntWhen(x.at)) : 'Verrà segnato alla fine del prossimo turno') + (p != null && p <= 25 ? ' · <b class="lowt">da rifornire</b>' : '') + '</small></div>';
+    }).join('');
+  }
+  function fuelBlock() { if (!FU.d || Date.now() - FU.t > 30000) setTimeout(loadFuel, 0); return '<section class="card"><h3>⛽ Benzina</h3><div id="fuelBox">' + fuelInner() + '</div></section>'; }
   function endSheet() {
     var c = counts(), left = c.total - c.ok - c.bad, sh = S.shift;
     if (!sh.end) sh.end = { photo: null };
@@ -1372,6 +1415,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       (e.photo
         ? '<div class="photo"><img src="' + e.photo + '" alt="Foto della barca a fine turno"><button class="btn" data-act="endphoto">Rifai la foto</button></div>'
         : '<div class="photo"><button class="btn primary" data-act="endphoto">Scatta la foto della barca</button></div>') +
+      (BOATS[sh.boat] && !BOATS[sh.boat].test && sh.boat !== 'TULLIO' ? fuelHtml(sh) : '') +
       '<div class="btns"><button class="btn primary" data-act="endok">Termina turno</button><button class="btn quiet" data-act="close">Continua a lavorare</button></div>'
     );
   }
@@ -3710,7 +3754,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var b = BOATS[code], mine = S.shift && S.shift.boat === code, E = BF.edit && BF.edit.code === code ? BF.edit : null, none = '<span class="muted">Da inserire</span>';
     if (isMgr() && !BF.dati) {
       var nrq = S.requests.filter(function (r) { return !r.closed; }).length;
-      return '<div class="wrap"><h2>Barche</h2>' + fleetBlock() +
+      return '<div class="wrap"><h2>Barche</h2>' + fleetBlock() + fuelBlock() +
         '<button class="btn rqbtn dd2" data-act="bdati">📋 DATI E DOCUMENTI <span>scheda, motore e documenti di ogni barca ›</span></button>' +
         '<button class="btn rqbtn" data-act="nav" data-v="richieste">🧰 Richieste per le barche' + (nrq ? ' <b>' + nrq + '</b>' : '') + ' ›</button></div>';
     }
@@ -4043,7 +4087,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02l';
+  var APP_V = '2026-11-02m';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -5584,7 +5628,12 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (a === 'doc') { var k0 = +el.getAttribute('data-i'); docOpen = docOpen === k0 ? -1 : k0; render(); return; }
     if (!sh) return;
     if (a === 'endphoto') { $('endPhotoIn').click(); return; }
-    if (a === 'endok') { endShift(); return; }
+    if (a === 'endok') {
+      var sh0 = S.shift, needF = sh0 && BOATS[sh0.boat] && !BOATS[sh0.boat].test && sh0.boat !== 'TULLIO';
+      if (needF && !(sh0.end && sh0.end.fuel)) { toast('Indica quanta benzina è rimasta nel serbatoio'); var fc = document.querySelector('.fuelc'); if (fc) { fc.scrollIntoView({ behavior: 'smooth', block: 'center' }); fc.classList.add('need'); } return; }
+      if (needF) cl('rpc_fuel_log', { p_boat: sh0.boat, p_level: sh0.end.fuel.l, p_pct: sh0.end.fuel.p });
+      endShift(); return;
+    }
     if (a === 'pre') { var k = +el.getAttribute('data-i'); sh.pre[k] = !sh.pre[k]; save(); render(); return; }
     var i = curIdx();
     if (i < 0) return;
