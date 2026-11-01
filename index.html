@@ -2666,7 +2666,6 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var o = (g.order || []).filter(function (k) { return GWD[k]; });
     if (o.length && o.indexOf('ddt') < 0) { var si = o.indexOf('stop'); o.splice(si >= 0 ? si + 1 : 0, 0, 'ddt'); }
     GW_ORDER.forEach(function (k) { if (o.indexOf(k) < 0) o.push(k); });
-    var ni = o.indexOf('next'); if (ni >= 0 && ni < o.length - 1) { o.splice(ni, 1); o.push('next'); }
     g.order = o; g.hidden.next = false; return g;
   }
   function gwSize(k) { var z = gwGet().size[k]; return GWD[k].sizes[z] ? z : GWD[k].d; }
@@ -3817,7 +3816,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02d';
+  var APP_V = '2026-11-02e';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
