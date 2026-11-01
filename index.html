@@ -23,6 +23,40 @@ details[open] .secc{transform:rotate(90deg)}
 .pnw{flex:1;display:flex;flex-direction:column;min-width:0}
 .pnv{font-family:ui-monospace,Menlo,monospace;font-size:22px;letter-spacing:.12em}
 .pnno{font-size:13px;opacity:.6;font-style:italic}
+.ldtop{align-items:center}.ddtb{font-weight:800;letter-spacing:.06em;min-width:64px}
+.seg2{display:inline-flex;border-radius:10px;box-shadow:0 0 0 1px var(--line,#d0d5dd);overflow:hidden}
+.seg2 button{border:0;background:none;padding:7px 12px;font:inherit;font-weight:600;color:inherit;cursor:pointer}
+.seg2 button[aria-pressed=true]{background:#1655C8;color:#fff}
+.ldprog{display:flex;flex-direction:column;gap:10px}
+.ldnav{display:flex;align-items:center;justify-content:space-between;gap:8px}.ldnav b{text-align:center;flex:1}
+.ldcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.ldb{border-radius:12px;padding:10px 12px;box-shadow:inset 4px 0 0 var(--bc),0 0 0 1px var(--line,#e2e5ea)}
+.ldbh{display:flex;flex-direction:column;gap:2px;margin-bottom:6px}.ldbh .pill{align-self:flex-start;margin-top:4px}
+.ldl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.ldl li{display:flex;gap:10px;padding:5px 0;border-top:1px solid var(--line,#eef0f3);font-size:15px}
+.ldl li span:last-child{display:flex;flex-direction:column}.ldl em{font-style:normal;font-size:12.5px;opacity:.65}
+.ldt{font-variant-numeric:tabular-nums;font-weight:700;min-width:50px}
+.ldl li.ldk{color:#1655C8}.ldl li.ldx{opacity:.45;text-decoration:line-through}
+.ldw{display:flex;flex-direction:column;gap:4px}
+.ldwr{display:grid;grid-template-columns:62px repeat(3,1fr);gap:6px;align-items:center;padding:8px 6px;border:0;border-radius:10px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;box-shadow:0 0 0 1px var(--line,#eef0f3)}
+.ldwr.ldwh{box-shadow:none;cursor:default;padding-top:0;padding-bottom:0;font-size:13px}
+.ldwr.ldtoday{box-shadow:0 0 0 2px #1655C8}
+.ldwc{display:flex;flex-direction:column;font-size:14px}.ldwc small{opacity:.65;font-variant-numeric:tabular-nums}
+.ldmap{height:380px}
+.ldspd{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ldg{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;position:relative}
+.ldg svg{width:100%;max-width:150px}
+.ldga{fill:none;stroke:rgba(127,127,127,.25);stroke-width:9;stroke-linecap:round}.ldgr{fill:none;stroke:rgba(220,50,40,.45);stroke-width:9}
+.ldgv{fill:none;stroke-width:9;stroke-linecap:round}.ldgn{stroke:currentColor;stroke-width:3;stroke-linecap:round}.ldgc{fill:currentColor}
+.ldgt{margin-top:-18px;font-size:13px}.ldgt b{font-size:24px;font-variant-numeric:tabular-nums}
+.ldgn2{display:flex;flex-direction:column;font-size:13px;line-height:1.25}
+@media (max-width:380px){.ldspd{grid-template-columns:1fr 1fr 1fr}.ldgt b{font-size:20px}}
+.ldtabs{display:none;gap:6px}
+.ldtabs button{flex:1;border:0;border-radius:10px;padding:9px 6px;font:inherit;font-weight:700;background:none;color:inherit;box-shadow:inset 0 -3px 0 var(--bc),0 0 0 1px var(--line,#e2e5ea);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px}
+.ldtabs button[aria-pressed=true]{background:var(--bc);color:#fff}
+.ldtabs small{opacity:.75;font-weight:600}
+.ldlive{width:8px;height:8px;border-radius:50%;background:#2ecc71;box-shadow:0 0 0 2px rgba(255,255,255,.6)}
+@media (max-width:759px){.ldtabs{display:flex}.ldb{display:none}.ldb.sel{display:block}}
 </style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -2080,7 +2114,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function loadMgr(withOpts) {
     if (!tok() || !isMgr()) return;
     MG.busy = true;
-    var jobs = [cl('rpc_task_list', { p_days: 3 }).then(function (r) { if (r) MG.list = r; }), cl('rpc_fleet_positions', {}).then(function (r) { if (r) MG.fleet = r; })];
+    var jobs = [cl('rpc_task_list', { p_days: 3 }).then(function (r) { if (r) MG.list = r; }), cl('rpc_fleet_positions', {}).then(function (r) { if (r) { MG.fleet = r; MG.fleetAt = Date.now(); } })];
     if (withOpts || !MG.opts) jobs.push(cl('rpc_task_options', {}).then(function (r) { if (r && r.people) MG.opts = r; }));
     Promise.all(jobs).then(function () { MG.busy = false; MG.err = (MG.opts || !tok()) ? '' : 'Non riesco a caricare i dati. Controlla la connessione.'; if (view === 'logistica' || view === 'nuovo' || view === 'programma') render(); });
   }
@@ -2127,29 +2161,99 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<div class="hint" id="mgErr" style="color:var(--bad,#C0392B)">' + esc(MG.err && o ? MG.err : '') + '</div></section>';
     return h;
   }
+  /* ---------- Logistica: cruscotto semplice (programma, mappa, velocità) ---------- */
+  var LD = { mode: 'giorno', day: null, boat: 'PATANA' };
+  function ldBoats() { return ['PATANA', 'TOPPETTA', 'ARDEMAR'].filter(function (c) { return BOATS[c] && !BOATS[c].gone; }).concat(boatCodes().filter(function (c) { return ['PATANA', 'TOPPETTA', 'ARDEMAR', 'TULLIO'].indexOf(c) < 0 && !BOATS[c].test; })); }
+  function ldShift(k, n) { var d = new Date(k + 'T12:00:00'); d.setDate(d.getDate() + n); return isoOf(d.getTime()); }
+  function ldMonday(k) { var d = new Date(k + 'T12:00:00'), w = (d.getDay() + 6) % 7; d.setDate(d.getDate() - w); return isoOf(d.getTime()); }
+  function ldTasks(k, code) {
+    var crew = ddtNorm(BOATS[code].crew).split(' ')[0];
+    return (MG.list || []).filter(function (t) { return t.status !== 'annullata' && isoOf(t.created_at) === k && crew && ddtNorm(t.who).indexOf(crew) === 0; });
+  }
+  function ldFleet(code) { return (MG.fleet || []).filter(function (b) { return b.code === code; })[0] || null; }
+  function ldDay(k) {
+    var P = PROGRAM[k], isToday = k === todayKey(), bs = ldBoats(); if (bs.indexOf(LD.boat) < 0) LD.boat = bs[0];
+    var tabs = '<div class="ldtabs">' + bs.map(function (c) {
+      var bd = P && P.boats[c], n = (bd && !bd.off ? (bd.stops || []).length : 0) + ldTasks(k, c).length, f = isToday ? ldFleet(c) : null;
+      return '<button data-act="ldboat" data-c="' + c + '" style="--bc:' + bcol(c) + '"' + (LD.boat === c ? ' aria-pressed="true"' : '') + '>' + (f && f.active ? '<i class="ldlive"></i>' : '') + esc(BOATS[c].name) + ' <small>' + (bd && !bd.off ? n : '–') + '</small></button>';
+    }).join('') + '</div>';
+    return tabs + '<div class="ldcols">' + bs.map(function (c) {
+      var bd = P && P.boats[c], st = bd && !bd.off ? (bd.stops || []) : [], tk = ldTasks(k, c), f = isToday ? ldFleet(c) : null;
+      var state = !bd || bd.off ? 'Non in servizio' : st.length ? st.length + (st.length === 1 ? ' tappa' : ' tappe') : bd.onCall ? 'Reperibile' : 'Nessuna tappa';
+      var live = f && f.active ? '<span class="pill ok">In giro · ' + (f.ok || 0) + '/' + (f.total || st.length) + '</span>' : '';
+      return '<section class="ldb' + (LD.boat === c ? ' sel' : '') + '" style="--bc:' + bcol(c) + '"><div class="ldbh"><b>' + esc(BOATS[c].name) + '</b><span class="muted">' + esc(BOATS[c].crew || '') + ' · ' + state + '</span>' + live + '</div>' +
+        (st.length || tk.length ? '<ol class="ldl">' + st.map(function (z) {
+          return '<li' + (z.cancelled ? ' class="ldx"' : '') + '><span class="ldt">' + esc(z.t ? stopTime(z) : '––:––') + '</span><span>' + esc(z.name) + (z.note ? '<em>' + esc(z.note) + '</em>' : '') + '</span></li>';
+        }).join('') + tk.map(function (t) {
+          return '<li class="ldk"><span class="ldt">' + esc(t.t || '––:––') + '</span><span>+ ' + esc(t.name) + '<em>' + (t.status === 'fatta' ? 'Fatta' : t.status === 'problema' ? 'Problema' : 'Aggiunta in giornata') + '</em></span></li>';
+        }).join('') + '</ol>' : '') + '</section>';
+    }).join('') + '</div>';
+  }
+  function ldWeek(k) {
+    var m = ldMonday(k), days = []; for (var i = 0; i < 7; i++) days.push(ldShift(m, i));
+    var bs = ldBoats();
+    return '<div class="ldw"><div class="ldwr ldwh"><span></span>' + bs.map(function (c) { return '<b style="color:' + bcol(c) + '">' + esc(BOATS[c].name) + '</b>'; }).join('') + '</div>' +
+      days.map(function (d) {
+        var P = PROGRAM[d], dp = dateParts(d);
+        return '<button class="ldwr' + (d === todayKey() ? ' ldtoday' : '') + '" data-act="ldpick" data-k="' + d + '"><span class="ldwd"><b>' + DNALL[dp.dow].slice(0, 3) + '</b> ' + dp.n + '</span>' + bs.map(function (c) {
+          var bd = P && P.boats[c], st = bd && !bd.off ? (bd.stops || []).filter(function (z) { return !z.cancelled; }) : [], n = st.length + ldTasks(d, c).length;
+          var tt = st.length ? (st[0].t || '') + (st[st.length - 1].t && st.length > 1 ? '–' + (st[st.length - 1].end || st[st.length - 1].t) : '') : '';
+          return '<span class="ldwc">' + (!P ? '<span class="muted">—</span>' : !bd || bd.off ? '<span class="muted">Riposo</span>' : n ? '<b>' + n + '</b> ' + (n === 1 ? 'tappa' : 'tappe') + '<small>' + esc(tt) + '</small>' : '<span class="muted">' + (bd.onCall ? 'Reperibile' : '—') + '</span>') + '</span>';
+        }).join('') + '</button>';
+      }).join('') + '</div>';
+  }
+  function ldSpeedInner() {
+    return ldBoats().map(function (c) {
+      var f = ldFleet(c), fresh = f && f.active && f.speed != null && f.speed_ts && Date.now() - new Date(f.speed_ts).getTime() < 120000;
+      var v = fresh ? Math.max(0, f.speed * 3.6) : null, max = 20, frac = v == null ? 0 : Math.min(1, v / max);
+      var a0 = -120, a = a0 + 240 * frac, p = function (r, d) { var t = d * Math.PI / 180; return [60 + r * Math.sin(t), 60 - r * Math.cos(t)]; };
+      var arc = function (r, d0, d1) { var s = p(r, d0), e = p(r, d1); return 'M' + s[0].toFixed(1) + ' ' + s[1].toFixed(1) + ' A' + r + ' ' + r + ' 0 ' + (d1 - d0 > 180 ? 1 : 0) + ' 1 ' + e[0].toFixed(1) + ' ' + e[1].toFixed(1); };
+      var nd = p(38, a), lim = a0 + 240 * (11 / max);
+      var sub = !f ? 'Nessun dato' : !f.active ? 'Ferma' + (f.ts ? ' · ' + agoText(f.ts) : '') : fresh ? esc(f.who || '') : 'In servizio · GPS in attesa';
+      return '<div class="ldg"><svg viewBox="0 0 120 92" aria-hidden="true"><path d="' + arc(46, a0, 120) + '" class="ldga"/><path d="' + arc(46, lim, 120) + '" class="ldgr"/>' +
+        (v != null ? '<path d="' + arc(46, a0, Math.max(a0 + .5, a)) + '" style="stroke:' + bcol(c) + '" class="ldgv"/><line x1="60" y1="60" x2="' + nd[0].toFixed(1) + '" y2="' + nd[1].toFixed(1) + '" class="ldgn"/>' : '') +
+        '<circle cx="60" cy="60" r="4" class="ldgc"/></svg><div class="ldgt"><b>' + (v == null ? '–' : v < 10 ? v.toFixed(1) : Math.round(v)) + '</b> km/h</div>' +
+        '<div class="ldgn2"><b style="color:' + bcol(c) + '">' + esc(BOATS[c].name) + '</b><span class="muted">' + sub + (f && f.active && f.max ? ' · max ' + Math.round(f.max * 3.6) + ' km/h' : '') + '</span></div></div>';
+    }).join('');
+  }
   function viewLogistica() {
-    if (!MG.draft) MG.draft = newDraft();
-    var d = MG.draft, o = MG.opts, h = '<div class="wrap"><h2>Logistica</h2><p class="muted">Crea tappe, anche urgenti o straordinarie, e scegli chi le fa. Le vede subito nella sua schermata del turno.</p>';
-    h += peerCard();
-    if (tok()) h += '<button class="btn primary" data-act="nav" data-v="nuovo">+ Nuovo turno o consegna</button>' + (isFullAcc() ? '' : custCard()) + fleetCard();
+    if (!LD.day) LD.day = todayKey();
+    var k = LD.day, h = '<div class="wrap"><div class="row ldtop"><h2>Logistica</h2><button class="btn sm ddtb" data-act="nav" data-v="ddt">DDT</button></div>';
     if (!tok()) return h + '<div class="note"><b>Serve la connessione.</b> Esci e rientra con il tuo PIN personale quando sei online.</div></div>';
-    if (!o) return h + '<div class="note">' + (MG.err ? esc(MG.err) : 'Carico i dati…') + '</div><button class="btn" data-act="mgreload">Riprova</button></div>';
-    h += '<div class="row"><h3>Consegne inviate</h3><button class="btn sm" data-act="mgreload">Aggiorna</button></div>';
-    var list = MG.list || [], runs = [], by = {};
-    list.forEach(function (t) { if (!by[t.run_id]) { by[t.run_id] = { id: t.run_id, who: t.who, urg: t.urgency, at: t.created_at, tasks: [] }; runs.push(by[t.run_id]); } by[t.run_id].tasks.push(t); });
-    if (!runs.length) h += '<p class="muted">Nessuna consegna inviata negli ultimi giorni.</p>';
-    runs.forEach(function (r) {
-      r.tasks.sort(function (a, b) { return a.seq - b.seq; });
-      var open = r.tasks.some(function (t) { return t.status === 'assegnata' || t.status === 'in_corso'; });
-      h += '<section class="card" style="display:flex;flex-direction:column;gap:8px"><div class="row"><div><b>' + esc(r.who) + '</b> <span class="muted">· ' + hm(r.at) + '</span></div>' +
-        '<span class="pill ' + (r.urg === 'emergenza' ? 'bad' : r.urg === 'urgente' ? 'go' : '') + '">' + URGL[r.urg] + '</span></div><ul class="stl">' +
-        r.tasks.map(function (t) {
-          return '<li><div><b>' + esc(t.name) + '</b>' + (t.t ? ' <span class="muted">alle ' + esc(t.t) + '</span>' : '') + (t.cargo ? '<div>Trasportare: <b>' + esc(t.cargo) + '</b></div>' : '') + (t.boat ? '<div class="muted">Barca ' + esc(t.boat) + '</div>' : '') + (t.note ? '<div class="muted">' + esc(t.note) + '</div>' : '') +
-            (t.status === 'fatta' && t.dist_m != null ? '<div class="muted">Segnata a ' + t.dist_m + ' m dalla tappa' + (t.dist_m > 200 ? ' · controlla' : '') + '</div>' : '') + '</div>' + stPill(t) + '</li>';
-        }).join('') + '</ul>' + '<div class="row">' + (open ? '<button class="btn sm danger" data-act="mgcancel" data-id="' + esc(r.id) + '">Annulla le tappe non fatte</button>' : '<span></span>') + '<button class="btn sm danger" data-act="mgremove" data-id="' + esc(r.id) + '">Elimina</button></div></section>';
-    });
+    var lbl = LD.mode === 'giorno' ? (k === todayKey() ? 'Oggi · ' : k === ldShift(todayKey(), 1) ? 'Domani · ' : '') + pgDateLabel(k) : 'Settimana dal ' + pgFmt(ldMonday(k)) + ' al ' + pgFmt(ldShift(ldMonday(k), 6));
+    h += '<section class="card ldprog"><div class="row"><h3>Programma</h3><div class="seg2"><button data-act="ldmode" data-m="giorno"' + (LD.mode === 'giorno' ? ' aria-pressed="true"' : '') + '>Giorno</button><button data-act="ldmode" data-m="settimana"' + (LD.mode === 'settimana' ? ' aria-pressed="true"' : '') + '>Settimana</button></div></div>' +
+      '<div class="ldnav"><button class="btn sm" data-act="ldmove" data-n="-1" aria-label="Indietro">‹</button><b>' + esc(lbl) + '</b><button class="btn sm" data-act="ldmove" data-n="1" aria-label="Avanti">›</button></div>' +
+      (LD.mode === 'giorno' ? ldDay(k) : ldWeek(k)) +
+      '<div class="row"><button class="btn sm quiet" data-act="ldtoday"' + (k === todayKey() ? ' hidden' : '') + '>Torna a oggi</button><button class="btn sm" data-act="nav" data-v="programma">Modifica il programma ›</button></div></section>';
+    h += '<section class="card"><div class="row"><h3>Barche in tempo reale</h3><span class="muted" id="ldUpd">' + (MG.fleetAt ? 'aggiornato ' + hm(MG.fleetAt) : '') + '</span></div>' +
+      '<div class="fleetbox ldmap" id="fleetBox"><div class="mtiles" id="fTiles"></div><svg class="msvg" id="fSvg" aria-hidden="true"></svg><div class="mhud" id="fHud"></div><div class="mattr">© OpenStreetMap · OpenSeaMap</div></div></section>';
+    h += '<section class="card"><h3>Velocità</h3><div class="ldspd" id="ldSpd">' + ldSpeedInner() + '</div></section>';
+    if (!isFullAcc() && isMgr()) h += '<details class="card lddet"><summary><b>Clienti: account con PIN</b></summary>' + custCard() + '</details>';
+    setTimeout(drawFleet, 30);
     return h + '</div>';
   }
+  function ldRefresh() {
+    if (view !== 'logistica' || document.hidden || !tok()) return;
+    cl('rpc_fleet_positions', {}).then(function (r) {
+      if (!r) return; MG.fleet = r; MG.fleetAt = Date.now();
+      if (view !== 'logistica') return;
+      var sp = $('ldSpd'); if (sp) sp.innerHTML = ldSpeedInner();
+      var u = $('ldUpd'); if (u) u.textContent = 'aggiornato ' + hm(MG.fleetAt);
+      drawFleet();
+    });
+  }
+  setInterval(ldRefresh, 8000);
+  setInterval(function () { if (view === 'logistica' && !document.hidden && tok()) cl('rpc_task_list', { p_days: 3 }).then(function (r) { if (r && view === 'logistica' && JSON.stringify(r) !== JSON.stringify(MG.list)) { MG.list = r; if (!document.querySelector('#layer .sheet')) render(); } }); }, 45000);
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
+    var a = el.getAttribute('data-act');
+    if (a === 'ldboat') { LD.boat = el.getAttribute('data-c'); render(); }
+    else if (a === 'ldmode') { LD.mode = el.getAttribute('data-m'); render(); }
+    else if (a === 'ldmove') { var n = +el.getAttribute('data-n'); LD.day = ldShift(LD.day || todayKey(), LD.mode === 'giorno' ? n : 7 * n); render(); }
+    else if (a === 'ldtoday') { LD.day = todayKey(); render(); }
+    else if (a === 'ldpick') { LD.day = el.getAttribute('data-k'); LD.mode = 'giorno'; render(); }
+    else if (a === 'nav' && el.getAttribute('data-v') === 'logistica') setTimeout(ldRefresh, 300);
+  });
   function coordHint(s) { var c = parseCoord(s.coord); return !s.coord || !s.coord.trim() ? 'Senza coordinate la mappa non mostra il punto.' : !c && isShortMapsLink(s.coord) ? (RESFAIL[s.coord] ? '⚠ Non riesco ad aprire questo link. Su Google Maps tieni premuto sul punto e copia le coordinate che compaiono in alto.' : RESOLVING[s.coord] ? 'Apro il link di Google Maps…' : 'Link di Google Maps') : c ? '✓ Punto riconosciuto: ' + c[0].toFixed(5) + ', ' + c[1].toFixed(5) : '⚠ Coordinate non riconosciute'; }
   function mgSet(el) {
     var d = MG.draft; if (!d) return;
@@ -2946,7 +3050,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01h';
+  var APP_V = '2026-11-01i';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4432,7 +4536,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     gpsStop(); loginStep = 'pin'; pinBuf = ''; loginErr = 'Sessione scaduta. Rientra con il PIN.'; drawLogin();
   }
   function cloudGps(c, v) {
-    if (!S.shift || !tok() || Date.now() - lastGpsSent < 15000) return;
+    if (!S.shift || !tok() || Date.now() - lastGpsSent < 8000) return;
     lastGpsSent = Date.now();
     cl('rpc_log_gps', { p_lat: c.latitude, p_lng: c.longitude, p_speed: v == null ? null : +v.toFixed(2), p_acc: c.accuracy == null ? null : +c.accuracy.toFixed(1) });
   }
