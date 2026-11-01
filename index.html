@@ -2078,7 +2078,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (S.shift && S.shift.day === k) ids.sort(function (a, b) { return (b === S.shift.boat) - (a === S.shift.boat); });
     var h = '<div class="wrap"><h2>Programma</h2><p class="muted">Logistica Ristorazione San Marco · dal ' + pgFmt(DAYKEYS[0]) + ' al ' + pgFmt(DAYKEYS[DAYKEYS.length - 1]) + '</p>' + (VX[todayISO()] ? '' : dayNote()) +
       '<div class="chips" role="group" aria-label="Giorno">' + keys.map(function (d) { return '<button class="chip" data-act="day" data-k="' + d + '" aria-pressed="' + (d === k ? 'true' : 'false') + '">' + esc((PROGRAM[d] || VX[d]).short) + '</button>'; }).join('') + '</div>' +
-      (isMgr() && tok() ? '<button class="btn" data-act="nav" data-v="nuovo">+ Nuovo turno o consegna</button>' : '') + '<h3>' + esc(day.label) + '</h3>' + (day.halloween ? '<div class="note">🎃 <b>Buon Halloween!</b> Occhio alla nebbia in laguna: dolcetto o scherzetto a fine giro.</div>' : '');
+      (isMgr() && tok() ? '<button class="btn" data-act="nav" data-v="logistica">+ Nuovo turno o consegna</button>' : '') + '<h3>' + esc(day.label) + '</h3>' + (day.halloween ? '<div class="note">🎃 <b>Buon Halloween!</b> Occhio alla nebbia in laguna: dolcetto o scherzetto a fine giro.</div>' : '');
     if (canDdt) h += '<p class="hint">Tocca <b>📎 DDT</b> su una consegna per collegare il suo DDT' + (isWide() ? ', oppure trascina il file sulla riga' : '') + '. Il trasportatore lo trova nel navigatore quando arriva lì.</p>';
     if (isOff() && tok()) h += '<input type="file" id="ddAttIn" accept="application/pdf,image/*" style="display:none">';
     if (canEdit && ids.some(function (id) { return (day.boats[id].stops || []).length; })) h += '<p class="hint">Tocca un orario per cambiarlo · scorri a sinistra per eliminare · tieni premuta una tappa e trascinala per cambiare l’ordine.</p>';
@@ -2867,25 +2867,33 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (!LD.day) LD.day = todayKey();
     var k = LD.day, h = '<div class="wrap"><div class="row ldtop"><h2>Logistica</h2><span class="ldtb"><button class="btn sm ddtb" data-act="nav" data-v="murano">Murano</button><button class="btn sm ddtb" data-act="nav" data-v="ddt">DDT</button></span></div>';
     if (!tok()) return h + '<div class="note"><b>Serve la connessione.</b> Esci e rientra con il tuo PIN personale quando sei online.</div></div>';
+    // nuovo turno (casella "Programma qualcosa…" + consegna manuale) direttamente qui
+    var dft = MG.draft, mopen = MG.formOpen || (dft && dft.stops.some(function (z) { return z.name || z.t || z.cargo; }));
+    h += asCard() + '<details class="card mgdet"' + (mopen ? ' open' : '') + ' id="mgDet"><summary><span>＋ Consegna manuale</span><span class="secc">›</span></summary>' +
+      (MG.opts ? mgFormCard() : '<p class="muted">' + (MG.err ? esc(MG.err) : 'Carico…') + '</p><button class="btn sm" data-act="mgreload">Riprova</button>') + '</details>';
     var lbl = LD.mode === 'giorno' ? (k === todayKey() ? 'Oggi · ' : k === ldShift(todayKey(), 1) ? 'Domani · ' : '') + pgDateLabel(k) : 'Settimana dal ' + pgFmt(ldMonday(k)) + ' al ' + pgFmt(ldShift(ldMonday(k), 6));
     h += '<section class="card ldprog"><div class="row"><h3>Programma</h3><div class="seg2"><button data-act="ldmode" data-m="giorno"' + (LD.mode === 'giorno' ? ' aria-pressed="true"' : '') + '>Giorno</button><button data-act="ldmode" data-m="settimana"' + (LD.mode === 'settimana' ? ' aria-pressed="true"' : '') + '>Settimana</button></div></div>' +
       '<div class="ldnav"><button class="btn sm" data-act="ldmove" data-n="-1" aria-label="Indietro">‹</button><b>' + esc(lbl) + '</b><button class="btn sm" data-act="ldmove" data-n="1" aria-label="Avanti">›</button></div>' +
       (LD.mode === 'giorno' ? ldDay(k) : ldWeek(k)) +
       (LD.mode === 'giorno' && isFullAcc() ? '<div class="hint">Tocca una consegna per cambiarle il nome.</div>' : '') +
       '<div class="row"><button class="btn sm quiet" data-act="ldtoday"' + (k === todayKey() ? ' hidden' : '') + '>Torna a oggi</button><button class="btn sm" data-act="nav" data-v="programma">Modifica il programma ›</button></div></section>';
-    h += '<section class="card"><div class="row"><h3>Barche in tempo reale</h3><span class="muted" id="ldUpd">' + (MG.fleetAt ? 'aggiornato ' + hm(MG.fleetAt) : '') + '</span></div>' +
-      '<div class="fleetbox ldmap" id="fleetBox"><div class="mtiles" id="fTiles"></div><svg class="msvg" id="fSvg" aria-hidden="true"></svg><div class="mhud" id="fHud"></div><div class="mattr">© OpenStreetMap · OpenSeaMap</div></div></section>';
-    h += '<section class="card"><h3>Velocità</h3><div class="ldspd" id="ldSpd">' + ldSpeedInner() + '</div></section>';
     if (isMgr()) { if (!ASG && !LD.asgL) { LD.asgL = 1; loadAsg(); } h += '<details class="card lddet asgd"' + (LD.asgOpen ? ' open' : '') + '><summary><b>Chi vede il programma di ogni barca</b><span class="secc">›</span></summary>' + asgCard() + '</details>'; }
     if (!isFullAcc() && isMgr()) h += '<details class="card lddet"><summary><b>Clienti: account con PIN</b></summary>' + custCard() + '</details>';
-    setTimeout(drawFleet, 30);
+    h += '<button class="aslink" data-act="pgopenview">Bozze e programmi salvati</button>';
     return h + '</div>';
   }
+  // Barche (responsabili): mappa GPS e velocità in tempo reale, poi i documenti di ogni barca
+  function fleetBlock() {
+    setTimeout(drawFleet, 30); if (!MG.fleet) setTimeout(ldRefresh, 50);
+    return '<section class="card"><div class="row"><h3>Barche in tempo reale</h3><span class="muted" id="ldUpd">' + (MG.fleetAt ? 'aggiornato ' + hm(MG.fleetAt) : '') + '</span></div>' +
+      '<div class="fleetbox ldmap" id="fleetBox"><div class="mtiles" id="fTiles"></div><svg class="msvg" id="fSvg" aria-hidden="true"></svg><div class="mhud" id="fHud"></div><div class="mattr">© OpenStreetMap · OpenSeaMap</div></div>' +
+      '<div class="ldspd" id="ldSpd" style="margin-top:10px">' + ldSpeedInner() + '</div></section>';
+  }
   function ldRefresh() {
-    if (view !== 'logistica' || document.hidden || !tok()) return;
+    if (view !== 'barca' || !isMgr() || document.hidden || !tok()) return;
     cl('rpc_fleet_positions', {}).then(function (r) {
       if (!r) return; MG.fleet = r; MG.fleetAt = Date.now();
-      if (view !== 'logistica') return;
+      if (view !== 'barca') return;
       var sp = $('ldSpd'); if (sp) sp.innerHTML = ldSpeedInner();
       var u = $('ldUpd'); if (u) u.textContent = 'aggiornato ' + hm(MG.fleetAt);
       drawFleet();
@@ -2901,7 +2909,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     else if (a === 'ldmove') { var n = +el.getAttribute('data-n'); LD.day = ldShift(LD.day || todayKey(), LD.mode === 'giorno' ? n : 7 * n); render(); }
     else if (a === 'ldtoday') { LD.day = todayKey(); render(); }
     else if (a === 'ldpick') { LD.day = el.getAttribute('data-k'); LD.mode = 'giorno'; render(); }
-    else if (a === 'nav' && el.getAttribute('data-v') === 'logistica') setTimeout(ldRefresh, 300);
+    else if (a === 'nav' && el.getAttribute('data-v') === 'barca') setTimeout(ldRefresh, 300);
   });
   function coordHint(s) { var c = parseCoord(s.coord); return !s.coord || !s.coord.trim() ? 'Senza coordinate la mappa non mostra il punto.' : !c && isShortMapsLink(s.coord) ? (RESFAIL[s.coord] ? '⚠ Non riesco ad aprire questo link. Su Google Maps tieni premuto sul punto e copia le coordinate che compaiono in alto.' : RESOLVING[s.coord] ? 'Apro il link di Google Maps…' : 'Link di Google Maps') : c ? '✓ Punto riconosciuto: ' + c[0].toFixed(5) + ', ' + c[1].toFixed(5) : '⚠ Coordinate non riconosciute'; }
   function mgSet(el) {
@@ -3496,10 +3504,11 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function fmtKB(n) { return n < 1048576 ? Math.max(1, Math.round(n / 1024)) + ' KB' : (n / 1048576).toFixed(1).replace('.', ',') + ' MB'; }
   function viewBarca() {
     if (isCrewOnly()) return viewBarcaCrew();
+    if (isMgr() && !isEditor()) return viewBarcaCrew().replace('<h2>Barche</h2>', '<h2>Barche</h2>' + fleetBlock());
     var code = curBoatCode(), ed = isEditor();
     if (!code) return '<div class="wrap"><div class="empty"><h2>Nessuna barca assegnata</h2><p>Inizia il turno per vedere scheda, motore e documenti della tua barca.</p><button class="btn primary" data-act="scan">Inizia turno</button></div></div>';
     var b = BOATS[code], mine = S.shift && S.shift.boat === code, E = BF.edit && BF.edit.code === code ? BF.edit : null, none = '<span class="muted">Da inserire</span>';
-    var h = '<div class="wrap">';
+    var h = '<div class="wrap">' + (isMgr() ? '<h2>Barche</h2>' + fleetBlock() + '<h3>Documenti e scheda di ogni barca</h3>' : '');
     if (ed) h += '<div class="chips" role="group" aria-label="Barca">' + boatCodes().map(function (k) { return '<button class="chip" data-act="bsel" data-c="' + k + '" aria-pressed="' + (k === code ? 'true' : 'false') + '">' + esc(BOATS[k].name) + '</button>'; }).join('') + '</div>';
     function kv(list) {
       return '<dl class="kv">' + list.map(function (f) {
@@ -3587,7 +3596,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function setBg(hex) { S.bg = hex; save(); applyBg(hex); }
   applyBg(S.bg);
   function viewAltro() {
-    var items = [['ore', 'Ore lavorate', 'Tabella mensile delle ore di ogni dipendente'], ['programma', 'Programma', 'Giri e tappe dei prossimi giorni'], ['nuovo', 'Nuovo turno', 'Chiedi a Claude o aggiungi una consegna'], ['richieste', 'Richieste', 'Richieste per le barche'], ['ddt', 'DDT', 'Documenti di trasporto da consegnare e firmati'], ['contatti', 'Contatti', 'Rubrica dell’azienda'], ['cucina', 'Uscite dalla cucina', 'Orari in cui i carichi devono essere pronti'], ['murano', 'DDT Murano', 'Foto del DDT ritagliata, firma nel riquadro del cliente'], ['admin', 'Storico turni', 'Turni passati, controllo tappe e statistiche'], ['impost', 'Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
+    var items = [['ore', 'Ore lavorate', 'Tabella mensile delle ore di ogni dipendente'], ['programma', 'Programma', 'Giri e tappe dei prossimi giorni'], ['richieste', 'Richieste', 'Richieste per le barche'], ['ddt', 'DDT', 'Documenti di trasporto da consegnare e firmati'], ['contatti', 'Contatti', 'Rubrica dell’azienda'], ['cucina', 'Uscite dalla cucina', 'Orari in cui i carichi devono essere pronti'], ['murano', 'DDT Murano', 'Foto del DDT ritagliata, firma nel riquadro del cliente'], ['admin', 'Storico turni', 'Turni passati, controllo tappe e statistiche'], ['impost', 'Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
     return '<div class="wrap"><h2>Altro</h2>' + items.map(function (x) {
       return '<button class="card" data-act="nav" data-v="' + x[0] + '" style="text-align:left;display:flex;flex-direction:column;gap:2px"><b>' + x[1] + '</b><span class="muted">' + x[2] + '</span></button>';
     }).join('') + '</div>';
@@ -3732,7 +3741,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01y';
+  var APP_V = '2026-11-01z';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4925,8 +4934,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
   /* ---------- render ---------- */
   var NAV_ADMIN = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['ore', 'Ore'], ['barca', 'Barche'], ['programma', 'Programma'], ['contatti', 'Contatti']];
-  var NAV_FULL = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['nuovo', 'Nuovo turno'], ['turno', 'Turno'], ['barca', 'Barche'], ['altro', 'Altro']];
-  var NAV_MGR = [['programma', 'Programma'], ['nuovo', 'Nuovo turno'], ['notifiche', 'Notifiche'], ['logistica', 'Logistica'], ['turno', 'Turno'], ['richieste', 'Richieste'], ['ddt', 'DDT'], ['contatti', 'Contatti'], ['barca', 'Barca']];
+  var NAV_FULL = [['logistica', 'Logistica'], ['barca', 'Barche'], ['turno', 'Turno'], ['notifiche', 'Notifiche'], ['altro', 'Altro']];
+  var NAV_MGR = [['programma', 'Programma'], ['notifiche', 'Notifiche'], ['logistica', 'Logistica'], ['turno', 'Turno'], ['richieste', 'Richieste'], ['ddt', 'DDT'], ['contatti', 'Contatti'], ['barca', 'Barca']];
   var NAV = [['turno', 'Turno'], ['programma', 'Programma'], ['barca', 'Barche']];
   var NAV_OFF = [['cucina', 'Cucina'], ['programma', 'Programma'], ['ddt', 'DDT'], ['contatti', 'Contatti']];
   function render() {
@@ -4936,7 +4945,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (isAdm && ['turno', 'guida', 'richieste'].indexOf(view) >= 0) view = 'logistica';
     if (!isAdm && !isFull && view === 'admin') view = 'turno';
     if (view === 'altro' && !isFull) view = 'turno';
-    if ((view === 'logistica' || view === 'nuovo') && !isMgr()) view = 'turno';
+    if (view === 'nuovo') view = 'logistica';
+    if (view === 'logistica' && !isMgr()) view = 'turno';
     if (view === 'ore' && !isAdm && !isFull) view = 'turno';
     if (view === 'notifiche' && !isMgr()) view = 'turno';
     var hk = (view === 'programma' && viewDay) || (S.shift ? S.shift.day : pickDay());
