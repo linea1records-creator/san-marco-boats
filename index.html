@@ -57,6 +57,8 @@ details[open] .secc{transform:rotate(90deg)}
 .ldtabs small{opacity:.75;font-weight:600}
 .ldlive{width:8px;height:8px;border-radius:50%;background:#2ecc71;box-shadow:0 0 0 2px rgba(255,255,255,.6)}
 @media (max-width:759px){.ldtabs{display:flex}.ldb{display:none}.ldb.sel{display:block}}
+.ldl li.ldr{cursor:pointer;border-radius:6px}.ldl li.ldr:active{background:rgba(22,85,200,.08)}
+.ldpen{margin-left:auto;font-style:normal;opacity:.35;font-size:14px;padding-left:6px}
 </style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -2161,6 +2163,42 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<div class="hint" id="mgErr" style="color:var(--bad,#C0392B)">' + esc(MG.err && o ? MG.err : '') + '</div></section>';
     return h;
   }
+  /* ---------- Logistica: Pietro rinomina le consegne del programma ---------- */
+  var RN = null;
+  function rnDays(b, name) { var t = todayKey(); return DAYKEYS.filter(function (k) { return k >= t && PROGRAM[k] && PROGRAM[k].boats[b] && (PROGRAM[k].boats[b].stops || []).some(function (z) { return z.name === name; }); }); }
+  function rnOpen(k, b, i) {
+    var s = PROGRAM[k] && PROGRAM[k].boats[b] && PROGRAM[k].boats[b].stops[i]; if (!s) return;
+    var many = rnDays(b, s.name), cnt = 0; many.forEach(function (d) { PROGRAM[d].boats[b].stops.forEach(function (z) { if (z.name === s.name) cnt++; }); });
+    RN = { k: k, b: b, i: i, old: s.name };
+    openSheet('<h2>Rinomina consegna</h2><p class="muted">' + esc(BOATS[b].name) + ' · ' + esc(pgDateLabel(k)) + (s.t ? ' · ' + esc(stopTime(s)) : '') + '</p>' +
+      '<input class="field txt" id="rnIn" maxlength="60" value="' + esc(s.name) + '" style="text-transform:none" aria-label="Nuovo nome">' +
+      '<p class="muted" id="rnMsg" role="status" style="min-height:1.3em"></p><div class="btns">' +
+      (cnt > 1 ? '<button class="btn primary" data-act="rnsave" data-all="1">Cambia ovunque (' + cnt + ' volte, da oggi)</button><button class="btn" data-act="rnsave">Solo questa consegna</button>' : '<button class="btn primary" data-act="rnsave">Salva</button>') +
+      '<button class="btn quiet" data-act="close">Annulla</button></div>');
+    setTimeout(function () { var x = $('rnIn'); if (x) { x.focus(); x.select(); } }, 60);
+  }
+  function rnSave(all) {
+    var R = RN, inp = $('rnIn'), nv = inp ? inp.value.replace(/\s+/g, ' ').trim() : ''; if (!R) return;
+    if (!nv) { var m = $('rnMsg'); if (m) m.textContent = 'Scrivi un nome.'; return; }
+    if (nv === R.old) { closeSheet(); return; }
+    var ks = all ? rnDays(R.b, R.old) : [R.k], c = COORDS[R.old], days = ks.map(function (k) {
+      var d = asDayFromProgram(k), st = d.boats[R.b].stops;
+      st.forEach(function (z, j) { if (z.name === R.old && (all || (k === R.k && j === R.i))) { z.name = nv; if (z.lat == null && c) { z.lat = c[0]; z.lng = c[1]; } } });
+      return d;
+    });
+    if (c && !COORDS[nv]) COORDS[nv] = c;
+    RN = null; closeSheet();
+    var what = R.old + ' → ' + nv + ' · ' + BOATS[R.b].name;
+    progPublish(days, 'Rinominata ' + what).then(function (u) { render(); undoBar('Rinominata in “' + nv + '”' + (ks.length > 1 ? ' (' + ks.length + ' giorni)' : ''), function () { progUndo(u.prev, what); }); })
+      .catch(function () { toast('Non riesco a salvare: controlla la connessione'); });
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
+    var a = el.getAttribute('data-act');
+    if (a === 'ldren') rnOpen(el.getAttribute('data-k'), el.getAttribute('data-b'), +el.getAttribute('data-i'));
+    else if (a === 'rnsave') rnSave(el.getAttribute('data-all') === '1');
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target && e.target.id === 'rnIn') { e.preventDefault(); rnSave(false); } });
   /* ---------- Logistica: cruscotto semplice (programma, mappa, velocità) ---------- */
   var LD = { mode: 'giorno', day: null, boat: 'PATANA' };
   function ldBoats() { return ['PATANA', 'TOPPETTA', 'ARDEMAR'].filter(function (c) { return BOATS[c] && !BOATS[c].gone; }).concat(boatCodes().filter(function (c) { return ['PATANA', 'TOPPETTA', 'ARDEMAR', 'TULLIO'].indexOf(c) < 0 && !BOATS[c].test; })); }
@@ -2182,8 +2220,9 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       var state = !bd || bd.off ? 'Non in servizio' : st.length ? st.length + (st.length === 1 ? ' tappa' : ' tappe') : bd.onCall ? 'Reperibile' : 'Nessuna tappa';
       var live = f && f.active ? '<span class="pill ok">In giro · ' + (f.ok || 0) + '/' + (f.total || st.length) + '</span>' : '';
       return '<section class="ldb' + (LD.boat === c ? ' sel' : '') + '" style="--bc:' + bcol(c) + '"><div class="ldbh"><b>' + esc(BOATS[c].name) + '</b><span class="muted">' + esc(BOATS[c].crew || '') + ' · ' + state + '</span>' + live + '</div>' +
-        (st.length || tk.length ? '<ol class="ldl">' + st.map(function (z) {
-          return '<li' + (z.cancelled ? ' class="ldx"' : '') + '><span class="ldt">' + esc(z.t ? stopTime(z) : '––:––') + '</span><span>' + esc(z.name) + (z.note ? '<em>' + esc(z.note) + '</em>' : '') + '</span></li>';
+        (st.length || tk.length ? '<ol class="ldl">' + st.map(function (z, i) {
+          var ren = isFullAcc() ? ' data-act="ldren" data-k="' + k + '" data-b="' + c + '" data-i="' + i + '" role="button" tabindex="0" title="Tocca per rinominare"' : '';
+          return '<li' + (z.cancelled ? ' class="ldx"' : isFullAcc() ? ' class="ldr"' : '') + ren + '><span class="ldt">' + esc(z.t ? stopTime(z) : '––:––') + '</span><span>' + esc(z.name) + (z.note ? '<em>' + esc(z.note) + '</em>' : '') + '</span>' + (isFullAcc() ? '<i class="ldpen" aria-hidden="true">✎</i>' : '') + '</li>';
         }).join('') + tk.map(function (t) {
           return '<li class="ldk"><span class="ldt">' + esc(t.t || '––:––') + '</span><span>+ ' + esc(t.name) + '<em>' + (t.status === 'fatta' ? 'Fatta' : t.status === 'problema' ? 'Problema' : 'Aggiunta in giornata') + '</em></span></li>';
         }).join('') + '</ol>' : '') + '</section>';
@@ -2224,6 +2263,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     h += '<section class="card ldprog"><div class="row"><h3>Programma</h3><div class="seg2"><button data-act="ldmode" data-m="giorno"' + (LD.mode === 'giorno' ? ' aria-pressed="true"' : '') + '>Giorno</button><button data-act="ldmode" data-m="settimana"' + (LD.mode === 'settimana' ? ' aria-pressed="true"' : '') + '>Settimana</button></div></div>' +
       '<div class="ldnav"><button class="btn sm" data-act="ldmove" data-n="-1" aria-label="Indietro">‹</button><b>' + esc(lbl) + '</b><button class="btn sm" data-act="ldmove" data-n="1" aria-label="Avanti">›</button></div>' +
       (LD.mode === 'giorno' ? ldDay(k) : ldWeek(k)) +
+      (LD.mode === 'giorno' && isFullAcc() ? '<div class="hint">Tocca una consegna per cambiarle il nome.</div>' : '') +
       '<div class="row"><button class="btn sm quiet" data-act="ldtoday"' + (k === todayKey() ? ' hidden' : '') + '>Torna a oggi</button><button class="btn sm" data-act="nav" data-v="programma">Modifica il programma ›</button></div></section>';
     h += '<section class="card"><div class="row"><h3>Barche in tempo reale</h3><span class="muted" id="ldUpd">' + (MG.fleetAt ? 'aggiornato ' + hm(MG.fleetAt) : '') + '</span></div>' +
       '<div class="fleetbox ldmap" id="fleetBox"><div class="mtiles" id="fTiles"></div><svg class="msvg" id="fSvg" aria-hidden="true"></svg><div class="mhud" id="fHud"></div><div class="mattr">© OpenStreetMap · OpenSeaMap</div></div></section>';
@@ -3050,7 +3090,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01j';
+  var APP_V = '2026-11-01k';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
