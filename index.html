@@ -59,6 +59,22 @@ details[open] .secc{transform:rotate(90deg)}
 @media (max-width:759px){.ldtabs{display:flex}.ldb{display:none}.ldb.sel{display:block}}
 .ldl li.ldr{cursor:pointer;border-radius:6px}.ldl li.ldr:active{background:rgba(22,85,200,.08)}
 .ldpen{margin-left:auto;font-style:normal;opacity:.35;font-size:14px;padding-left:6px}
+.ntbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:6px 0}
+.ntchips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:none}
+.ntchips button{flex:none;border:0;border-radius:999px;padding:6px 12px;font:inherit;font-size:14px;font-weight:600;background:none;color:inherit;box-shadow:0 0 0 1px var(--line,#d0d5dd);cursor:pointer}
+.ntchips button[aria-pressed=true]{background:#1655C8;color:#fff;box-shadow:none}.ntchips small{opacity:.7}
+.card.ntf{padding:0 14px;display:block;margin-bottom:8px;gap:0}.ntf summary{display:flex;align-items:center;gap:8px;padding:8px 0;cursor:pointer;list-style:none}
+.ntf summary::-webkit-details-marker{display:none}.ntf summary .secc{margin-left:auto}
+.ntf[open] summary .secc{transform:rotate(90deg)}
+.ntfi{width:20px;text-align:center;font-size:15px}.ntfi i{display:inline-block;width:12px;height:12px;border-radius:50%}
+.ntnew{font-size:12px;font-weight:700;color:#fff;background:#D93025;border-radius:999px;padding:1px 7px}
+.ntl{list-style:none;margin:0 0 6px;padding:0}
+.ntl li{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-top:1px solid var(--line,#eef0f3)}
+.ntl li.new .ntx b::after{content:' •';color:#D93025}
+.ntd{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:800;color:#fff;background:#546E7A;margin-top:1px}
+.ntd.nt-shift_start{background:#2E7D32}.ntd.nt-shift_end{background:#6A5ACD}.ntd.nt-request{background:#E07B00}.ntd.nt-ddt{background:#00897B}
+.ntx{flex:1;display:flex;flex-direction:column;min-width:0;font-size:14.5px;line-height:1.3}.ntx .muted{font-size:13px}
+.ntw2{flex:none;font-size:12px;opacity:.6;white-space:nowrap;padding-top:2px}
 </style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -2977,7 +2993,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function setBg(hex) { S.bg = hex; save(); applyBg(hex); }
   applyBg(S.bg);
   function viewAltro() {
-    var items = [['ore', 'Ore lavorate', 'Tabella mensile delle ore di ogni dipendente'], ['programma', 'Programma', 'Giri e tappe dei prossimi giorni'], ['nuovo', 'Nuovo turno', 'Chiedi a Claude o aggiungi una consegna'], ['richieste', 'Richieste', 'Richieste per le barche'], ['ddt', 'DDT', 'Documenti di trasporto da consegnare e firmati'], ['contatti', 'Contatti', 'Rubrica dell’azienda'], ['impost', 'Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
+    var items = [['ore', 'Ore lavorate', 'Tabella mensile delle ore di ogni dipendente'], ['programma', 'Programma', 'Giri e tappe dei prossimi giorni'], ['nuovo', 'Nuovo turno', 'Chiedi a Claude o aggiungi una consegna'], ['richieste', 'Richieste', 'Richieste per le barche'], ['ddt', 'DDT', 'Documenti di trasporto da consegnare e firmati'], ['contatti', 'Contatti', 'Rubrica dell’azienda'], ['admin', 'Storico turni', 'Turni passati, controllo tappe e statistiche'], ['impost', 'Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
     return '<div class="wrap"><h2>Altro</h2>' + items.map(function (x) {
       return '<button class="card" data-act="nav" data-v="' + x[0] + '" style="text-align:left;display:flex;flex-direction:column;gap:2px"><b>' + x[1] + '</b><span class="muted">' + x[2] + '</span></button>';
     }).join('') + '</div>';
@@ -3070,14 +3086,46 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (PUSH.state === 'unsupported') return '<div class="note">Questo browser non supporta le notifiche push. Gli avvisi arrivano comunque qui dentro, ad app aperta.</div>';
     return '';
   }
+  /* ---------- Notifiche in cartelle: per tipo, per trasportatore o per barca ---------- */
+  var NTV = { by: 'tipo', only: '' };
+  try { var _ntv = JSON.parse(localStorage.getItem('smb-ntv') || 'null'); if (_ntv && _ntv.by) NTV = _ntv; } catch (e) {}
+  function ntKind(x) { return /^DDT/.test(x.title || '') ? 'ddt' : x.kind; }
+  var NT_KL = { shift_start: 'Inizi turno', shift_end: 'Fine turno', request: 'Richieste', ddt: 'DDT' };
+  function ntWho(x) { return x.who || String(x.title || '').replace(/ ha (iniziato|chiuso).*$/, '') || 'Altro'; }
+  function ntBoat(x) { return x.boat && BOATS[x.boat] ? BOATS[x.boat].name : (/Barca: ([^·]+)/.exec(x.body || '') || [0, 'Senza barca'])[1].trim(); }
+  function ntOpenSet() { try { return JSON.parse(localStorage.getItem('smb-ntopen') || '{}') || {}; } catch (e) { return {}; } }
   function viewNotifiche() {
-    return '<div class="wrap"><h2>Notifiche</h2><p class="muted">Ti avviso quando qualcuno inizia o chiude il turno e quando arriva una richiesta.</p>' +
-      pushBlock() +
-      (NT.err ? '<div class="note">Non riesco a caricare le notifiche: serve la connessione.</div>' : '') +
-      (NT.items.length ? NT.items.map(function (x) {
-        return '<div class="card nt' + (NT.hl[x.id] ? ' new' : '') + '"><div class="nti nt-' + (/^DDT/.test(x.title) ? 'ddt' : x.kind) + '" aria-hidden="true">' + (NT_ICON[/^DDT/.test(x.title) ? 'ddt' : x.kind] || '•') + '</div><div class="ntb"><div class="ntt"><b>' + esc(x.title) + '</b></div><div class="muted">' + esc(x.body) + '</div><div class="ntw">' + esc(NT_LAB[x.kind] || '') + ' · ' + esc(ntWhen(x.at)) + (NT.hl[x.id] ? ' · <b class="ntn">nuova</b>' : '') + '</div></div></div>';
-      }).join('') : (NT.err ? '' : '<div class="card"><p class="muted">Nessuna notifica per ora.</p></div>')) + '</div>';
+    var items = NT.items.filter(function (x) { return !NTV.only || ntKind(x) === NTV.only; });
+    var key = NTV.by === 'chi' ? ntWho : NTV.by === 'barca' ? ntBoat : function (x) { return NT_KL[ntKind(x)] || 'Altro'; };
+    var groups = [], by = {};
+    items.forEach(function (x) { var k = key(x); if (!by[k]) { by[k] = { k: k, list: [] }; groups.push(by[k]); } by[k].list.push(x); });
+    if (NTV.by === 'tipo') { var ord = ['Inizi turno', 'Fine turno', 'Richieste', 'DDT', 'Altro']; groups.sort(function (a, b) { return ord.indexOf(a.k) - ord.indexOf(b.k); }); }
+    var op = ntOpenSet(), chips = [['', 'Tutte'], ['shift_start', 'Inizi turno'], ['shift_end', 'Fine turno'], ['request', 'Richieste'], ['ddt', 'DDT']];
+    var h = '<div class="wrap"><h2>Notifiche</h2>' + pushBlock() +
+      '<div class="ntbar"><span class="muted">Cartelle per</span><div class="seg2">' + [['tipo', 'Tipo'], ['chi', 'Trasportatore'], ['barca', 'Barca']].map(function (o) { return '<button data-act="ntby" data-v="' + o[0] + '"' + (NTV.by === o[0] ? ' aria-pressed="true"' : '') + '>' + o[1] + '</button>'; }).join('') + '</div></div>' +
+      '<div class="ntchips">' + chips.map(function (c) { var n = c[0] ? NT.items.filter(function (x) { return ntKind(x) === c[0]; }).length : NT.items.length; return '<button data-act="ntonly" data-v="' + c[0] + '"' + (NTV.only === c[0] ? ' aria-pressed="true"' : '') + '>' + c[1] + ' <small>' + n + '</small></button>'; }).join('') + '</div>' +
+      (NT.err ? '<div class="note">Non riesco a caricare le notifiche: serve la connessione.</div>' : '');
+    if (!items.length) return h + (NT.err ? '' : '<div class="card"><p class="muted">Nessuna notifica qui.</p></div>') + '</div>';
+    h += groups.map(function (g, gi) {
+      var nNew = g.list.filter(function (x) { return NT.hl[x.id]; }).length, id = NTV.by + ':' + g.k, open = op[id] != null ? op[id] : (gi === 0 || nNew > 0);
+      var col = NTV.by === 'barca' ? (Object.keys(BOATS).filter(function (c) { return BOATS[c].name === g.k; }).map(bcol)[0] || '#888') : '';
+      return '<details class="card ntf"' + (open ? ' open' : '') + ' data-nf="' + esc(id) + '"><summary><span class="ntfi">' + (col ? '<i style="background:' + col + '"></i>' : '📁') + '</span><b>' + esc(g.k) + '</b><span class="muted">' + g.list.length + '</span>' + (nNew ? '<span class="ntnew">' + nNew + (nNew === 1 ? ' nuova' : ' nuove') + '</span>' : '') + '<span class="secc">›</span></summary><ul class="ntl">' +
+        g.list.map(function (x) {
+          var k = ntKind(x);
+          return '<li class="' + (NT.hl[x.id] ? 'new' : '') + '"><span class="ntd nt-' + k + '" aria-hidden="true">' + (NT_ICON[k] || '•') + '</span><span class="ntx"><b>' + esc(x.title) + '</b><span class="muted">' + esc(x.body || '') + '</span></span><span class="ntw2">' + esc(ntWhen(x.at)) + '</span></li>';
+        }).join('') + '</ul></details>';
+    }).join('');
+    return h + '</div>';
   }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
+    var a = el.getAttribute('data-act');
+    if (a === 'ntby' || a === 'ntonly') { if (a === 'ntby') NTV.by = el.getAttribute('data-v'); else NTV.only = el.getAttribute('data-v'); try { localStorage.setItem('smb-ntv', JSON.stringify(NTV)); } catch (x) {} render(); }
+  });
+  document.addEventListener('toggle', function (e) {
+    var d = e.target; if (!d || !d.getAttribute || !d.getAttribute('data-nf')) return;
+    var o = ntOpenSet(); o[d.getAttribute('data-nf')] = d.open; try { localStorage.setItem('smb-ntopen', JSON.stringify(o)); } catch (x) {}
+  }, true);
   function sendPendingReqs() {
     if (!tok()) return;
     S.requests.filter(function (r) { return r.pend; }).forEach(function (r) {
@@ -3090,7 +3138,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01k';
+  var APP_V = '2026-11-01l';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4173,16 +4221,16 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   setInterval(function () { if (view === 'guida' && S.shift && !document.hidden) mimPaint(true); }, 3500);
 
   /* ---------- render ---------- */
-  var NAV_ADMIN = [['admin', 'Dashboard'], ['notifiche', 'Notifiche'], ['logistica', 'Logistica'], ['ore', 'Ore'], ['barca', 'Barche'], ['programma', 'Programma'], ['contatti', 'Contatti']];
-  var NAV_FULL = [['admin', 'Dashboard'], ['notifiche', 'Notifiche'], ['logistica', 'Logistica'], ['nuovo', 'Nuovo turno'], ['turno', 'Turno'], ['barca', 'Barche'], ['altro', 'Altro']];
+  var NAV_ADMIN = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['ore', 'Ore'], ['barca', 'Barche'], ['programma', 'Programma'], ['contatti', 'Contatti']];
+  var NAV_FULL = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['nuovo', 'Nuovo turno'], ['turno', 'Turno'], ['barca', 'Barche'], ['altro', 'Altro']];
   var NAV_MGR = [['programma', 'Programma'], ['nuovo', 'Nuovo turno'], ['notifiche', 'Notifiche'], ['logistica', 'Logistica'], ['turno', 'Turno'], ['richieste', 'Richieste'], ['ddt', 'DDT'], ['contatti', 'Contatti'], ['barca', 'Barca']];
   var NAV = [['programma', 'Programma'], ['richieste', 'Richieste'], ['turno', 'Turno'], ['ddt', 'DDT'], ['contatti', 'Contatti'], ['barca', 'Barca']];
   var NAV_OFF = [['programma', 'Programma'], ['ddt', 'DDT'], ['contatti', 'Contatti']];
   function render() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isOff() && ['ddt', 'contatti', 'impost', 'programma'].indexOf(view) < 0) view = 'ddt';
-    if (!isOff() && isAdm && ['turno', 'guida', 'richieste', 'ddt'].indexOf(view) >= 0) view = 'admin';
-    if (isAdm && ['turno', 'guida', 'richieste'].indexOf(view) >= 0) view = 'admin';
+    if (!isOff() && isAdm && ['turno', 'guida', 'richieste', 'ddt'].indexOf(view) >= 0) view = 'logistica';
+    if (isAdm && ['turno', 'guida', 'richieste'].indexOf(view) >= 0) view = 'logistica';
     if (!isAdm && !isFull && view === 'admin') view = 'turno';
     if (view === 'altro' && !isFull) view = 'turno';
     if ((view === 'logistica' || view === 'nuovo') && !isMgr()) view = 'turno';
@@ -4195,7 +4243,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var g = $('gear'); g.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS.gear + '</svg>'; if (view === 'impost') g.setAttribute('aria-current', 'page'); else g.removeAttribute('aria-current');
     var cur = view === 'guida' ? 'turno' : view;
     if (view === 'pin' && !isFullAcc()) { view = 'impost'; cur = 'impost'; }
-    if (isFull && ['ore', 'programma', 'richieste', 'contatti', 'impost', 'ddt', 'pin'].indexOf(cur) >= 0) cur = 'altro';
+    if (isFull && ['ore', 'programma', 'richieste', 'contatti', 'impost', 'ddt', 'pin', 'admin'].indexOf(cur) >= 0) cur = 'altro';
     var NV = isOff() ? NAV_OFF : isAdm ? NAV_ADMIN : isFull ? NAV_FULL : (isMgr() ? NAV_MGR : NAV);
     drawDial(NV, cur);
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
@@ -4928,7 +4976,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function enter(role, name, token, offline) {
     SESSION = { role: role, name: name, t: Date.now(), token: token || null, offline: !!offline };
     try { localStorage.setItem(SKEY, JSON.stringify(SESSION)); } catch (e) {}
-    loginStep = 'pin'; pinBuf = ''; loginErr = ''; loginNames = []; view = role === 'admin' ? 'admin' : role === 'office' ? 'programma' : 'turno';
+    loginStep = 'pin'; pinBuf = ''; loginErr = ''; loginNames = []; view = role === 'admin' ? 'logistica' : role === 'office' ? 'programma' : 'turno';
     drawLogin(); render(); gpsApply(); loadContacts(); loadAdmin(); loadMyTasks(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); loadProgram().then(briefMaybe); sendPendingReqs(); pushInit(); loadDdt(); if (isOff()) loadXT().then(render); }); MG.opts = null; MG.list = null; MG.draft = null; MG.fleet = null;
   }
   function logout() {
@@ -4948,11 +4996,12 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   setInterval(function () { var c = $('clock'); if (c && S.shift) c.textContent = dur(Date.now() - S.shift.start); }, 1000);
   if (CUSTTOK) { custBoot(); return; }
   drawLogin();
-  if (SESSION && SESSION.role === 'admin') view = 'admin';
+  if (SESSION && SESSION.role === 'admin') view = 'logistica';
   if (SESSION && SESSION.role === 'office') view = 'programma';
   if (SESSION) gpsApply();
   render();
   if (SESSION) { loadContacts(); loadAdmin(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); loadProgram().then(briefMaybe); sendPendingReqs(); pushInit(); loadDdt(); if (isOff()) loadXT().then(render); }); }
+  if (SESSION && view === 'logistica' && isMgr()) setTimeout(function () { loadMgr(false); }, 400);
   updCheck(); setTimeout(midnightCheck, 1500); setTimeout(briefMaybe, 1200);
 })();
 </script>
