@@ -2719,6 +2719,22 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   setInterval(function () { if (!document.hidden && !S.shift) loadProgram(); }, 300000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) loadNotif(); });
 
+
+  /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
+  var APP_V = '2026-11-01c';
+  var UPDL = 0;
+  function updCheck() {
+    if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
+    fetch(location.pathname + '?u=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
+      var m = /var APP_V = '([^']+)'/.exec(t || ''); if (!m || m[1] === APP_V) return;
+      if (!S.shift && !document.querySelector('#layer .sheet')) { location.reload(); return; }
+      if (document.querySelector('.updbar')) return;
+      var el = document.createElement('div'); el.className = 'undobar updbar'; el.innerHTML = '<span>È disponibile una versione nuova dell\'app</span><button type="button">Aggiorna</button>';
+      el.querySelector('button').onclick = function () { location.reload(); }; document.body.appendChild(el);
+    }).catch(function () {});
+  }
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) { updCheck(); if (isOff() && tok()) loadXT().then(function () { if (view === 'programma') render(); }); } });
+  setInterval(function () { if (!document.hidden) updCheck(); }, 300000);
   /* ---------- DDT: segreteria carica, trasportatore fa firmare ---------- */
   var DD = { items: [], office: false, carriers: null, loaded: false, busy: false, err: false, draft: { carrier: '', number: '', customer: '', address: '', note: '', file: null, date: '', stop: '', boat: '' }, sending: false };
   function isOff() { return !!(SESSION && SESSION.role === 'office'); }
@@ -4527,8 +4543,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function enter(role, name, token, offline) {
     SESSION = { role: role, name: name, t: Date.now(), token: token || null, offline: !!offline };
     try { localStorage.setItem(SKEY, JSON.stringify(SESSION)); } catch (e) {}
-    loginStep = 'pin'; pinBuf = ''; loginErr = ''; loginNames = []; view = role === 'admin' ? 'admin' : role === 'office' ? 'ddt' : 'turno';
-    drawLogin(); render(); gpsApply(); loadContacts(); loadAdmin(); loadMyTasks(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); loadProgram(); sendPendingReqs(); pushInit(); loadDdt(); }); MG.opts = null; MG.list = null; MG.draft = null; MG.fleet = null;
+    loginStep = 'pin'; pinBuf = ''; loginErr = ''; loginNames = []; view = role === 'admin' ? 'admin' : role === 'office' ? 'programma' : 'turno';
+    drawLogin(); render(); gpsApply(); loadContacts(); loadAdmin(); loadMyTasks(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); loadProgram(); sendPendingReqs(); pushInit(); loadDdt(); if (isOff()) loadXT().then(render); }); MG.opts = null; MG.list = null; MG.draft = null; MG.fleet = null;
   }
   function logout() {
     if (S.shift && !confirm('Hai un turno ancora aperto. Vuoi uscire dal profilo lo stesso?')) return;
@@ -4548,10 +4564,11 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   if (CUSTTOK) { custBoot(); return; }
   drawLogin();
   if (SESSION && SESSION.role === 'admin') view = 'admin';
-  if (SESSION && SESSION.role === 'office') view = 'ddt';
+  if (SESSION && SESSION.role === 'office') view = 'programma';
   if (SESSION) gpsApply();
   render();
-  if (SESSION) { loadContacts(); loadAdmin(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); loadProgram(); sendPendingReqs(); pushInit(); loadDdt(); }); }
+  if (SESSION) { loadContacts(); loadAdmin(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); loadProgram(); sendPendingReqs(); pushInit(); loadDdt(); if (isOff()) loadXT().then(render); }); }
+  updCheck();
 })();
 </script>
 
