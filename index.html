@@ -254,6 +254,12 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 .tbr.late .tbs,.tbr.late .tbc{color:#FF5A4F}.tbr.late .tbo{color:#FF5A4F}
 .tbr.gone{opacity:.42}.tbr.gone .tbs{color:#8FA3B0}.tbr.gone .tbk{background:#2E7D32;border-color:#2E7D32;color:#fff}
 @keyframes tbbl{50%{opacity:.35}}
+.endph h3 .req{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#E53935;margin-left:6px}
+.endph.need{box-shadow:0 0 0 3px #E53935}
+.cartck{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:600;padding:12px 4px 2px;cursor:pointer}.cartck input{width:24px;height:24px;accent-color:#1655C8}
+.epg{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}.epc{display:flex;flex-direction:column;gap:3px}.epc small{color:var(--muted,#667);font-size:12.5px}
+.epi{display:block;width:100%;aspect-ratio:4/3;border:0;padding:0;border-radius:10px;overflow:hidden;background:rgba(127,127,127,.15);cursor:pointer}.epi img{width:100%;height:100%;object-fit:cover;display:block}.epn{display:grid;place-items:center;font-size:13px;color:var(--muted,#667)}
+
 /* --- Uscite cucina: 5 stili --- */
 .tbr{box-shadow:inset 5px 0 0 var(--bc,transparent)}
 .tbr.next{box-shadow:inset 5px 0 0 var(--bc,#FFD23F),inset 0 0 0 999px rgba(255,210,63,.07)}
@@ -1157,6 +1163,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     } }
   } catch (e) {}
   try { var _eb = JSON.parse(localStorage.getItem('smb-binfo') || '{}'); Object.keys(_eb).forEach(function (c) { if (!BOATS[c] && _eb[c] && typeof _eb[c] === 'object') BOATS[c] = { name: _eb[c].name || c, crew: _eb[c].crew || '', giro: _eb[c].giro || '', extra: true }; }); } catch (e) {}
+  // 2 novembre 2026: si riparte da zero, via la cronologia dei turni di prova anche dal telefono
+  try { if (!localStorage.getItem('smb-zero-1102')) { S.history = []; if (S.shift && S.shift.start < Date.parse('2026-11-01T23:10:00Z')) S.shift = null; localStorage.setItem('smb-zero-1102', '1'); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (x) {} } } catch (e) {}
   fillBoatDays();
   if (S.shift && (!BOATS[S.shift.boat] || !/^\d{4}-\d{2}-\d{2}$/.test(S.shift.day || ''))) S.shift = null;
   if (S.shift) ensureDay(S.shift.day);
@@ -1456,6 +1464,39 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (cf.type === 'l') return '<div class="card fuelc"><h3>⛽ Benzina rimasta nel serbatoio</h3><div class="fuell"><input type="range" id="fuelR" min="0" max="' + cf.max + '" step="1" value="' + (v ? v.n : Math.round(cf.max / 2)) + '"><input type="number" id="fuelN" min="0" max="' + cf.max + '" inputmode="numeric" value="' + (v ? v.n : '') + '" placeholder="litri"><span>L su ' + cf.max + '</span></div>' + (v ? '' : '<div class="hint">Sposta la barra o scrivi i litri.</div>') + '</div>';
     return '<div class="card fuelc"><h3>⛽ Benzina rimasta nel serbatoio</h3><div class="seg2 fuelq">' + FUEL_Q.map(function (q) { return '<button data-act="fuelq" data-l="' + q[0] + '" data-p="' + q[1] + '"' + (v && v.l === q[0] ? ' aria-pressed="true"' : '') + '>' + q[0] + '</button>'; }).join('') + '</div></div>';
   }
+  document.addEventListener('change', function (e) { var t = e.target; if (!t || t.id !== 'cartCk' || !S.shift) return; S.shift.end = S.shift.end || { photo: null }; S.shift.end.cart = !!t.checked; save(); });
+  // foto di fine turno: se manca la rete resta in coda e riparte appena torna
+  function endPhotoSend(boat, photo, cart) {
+    var q; try { q = JSON.parse(localStorage.getItem('smb-endph') || '[]'); } catch (x) { q = []; }
+    q.push({ b: boat, p: photo, c: cart }); try { localStorage.setItem('smb-endph', JSON.stringify(q.slice(-3))); } catch (x) {}
+    endPhotoFlush();
+  }
+  function endPhotoFlush() {
+    var q; try { q = JSON.parse(localStorage.getItem('smb-endph') || '[]'); } catch (x) { q = []; }
+    if (!q.length || !tok() || endPhotoFlush.busy) return; endPhotoFlush.busy = true; var it = q[0];
+    cl('rpc_end_photo', { p_boat: it.b, p_photo: it.p, p_cart: it.c }).then(function (r) {
+      endPhotoFlush.busy = false;
+      if (r && (r.ok || r.error)) { var q2; try { q2 = JSON.parse(localStorage.getItem('smb-endph') || '[]'); } catch (x) { q2 = []; } q2.shift(); try { localStorage.setItem('smb-endph', JSON.stringify(q2)); } catch (x) {} if (q2.length) setTimeout(endPhotoFlush, 500); }
+    });
+  }
+  setInterval(endPhotoFlush, 60000); window.addEventListener('online', endPhotoFlush); setTimeout(endPhotoFlush, 4000);
+  // per i responsabili: ultima foto di fine turno di ogni barca
+  var EP = { d: null, t: 0 };
+  function loadEndPh() { if (!tok()) return; EP.t = Date.now(); cl('rpc_end_photo_status', {}).then(function (r) { if (Array.isArray(r)) { EP.d = r; var el = $('epBox'); if (el) el.innerHTML = endPhInner(); } }); }
+  function endPhInner() {
+    if (!EP.d) return '<p class="muted">Carico…</p>';
+    return '<div class="epg">' + EP.d.filter(function (x) { return BOATS[x.boat] && x.boat !== 'TULLIO' && !BOATS[x.boat].test; }).map(function (x) {
+      return '<div class="epc">' + (x.photo ? '<button class="epi" data-act="epopen" data-b="' + esc(x.boat) + '" aria-label="Apri la foto della ' + esc(BOATS[x.boat].name) + '"><img src="' + x.photo + '" alt=""></button>' : '<div class="epi epn">Nessuna foto</div>') +
+        '<b><span style="color:' + bcol(x.boat) + '">●</span> ' + esc(BOATS[x.boat].name) + '</b>' +
+        (x.photo ? '<small>' + (x.cart ? '🛒 Carrello in barca' : '🛒 Carrello non in barca') + '</small><small>' + esc(String(x.who || '').split(' ')[0]) + ' · ' + esc(ntWhen(x.at)) + '</small>' : '<small>Arriva alla fine del prossimo turno</small>') + '</div>';
+    }).join('') + '</div>';
+  }
+  function endPhBlock() { if (!EP.d || Date.now() - EP.t > 30000) setTimeout(loadEndPh, 0); return '<section class="card"><h3>📷 Barche a fine turno</h3><div id="epBox">' + endPhInner() + '</div></section>'; }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act="epopen"]') : null; if (!el || !EP.d) return;
+    var x = EP.d.filter(function (y) { return y.boat === el.getAttribute('data-b'); })[0]; if (!x || !x.photo) return;
+    openSheet('<h2>' + esc(BOATS[x.boat].name) + ' a fine turno</h2><img src="' + x.photo + '" alt="Foto della barca a fine turno" style="width:100%;border-radius:12px"><p>' + (x.cart ? '🛒 <b>Il carrello è in barca</b>' : '🛒 Il carrello <b>non</b> è in barca') + '</p><p class="muted">' + esc(x.who || '') + ' · ' + esc(ntWhen(x.at)) + '</p><div class="btns"><button class="btn primary" data-act="close">Chiudi</button></div>');
+  });
   function fuelSet(l, p, n) { var sh = S.shift; if (!sh) return; sh.end = sh.end || { photo: null }; sh.end.fuel = { l: l, p: p, n: n }; save(); }
   document.addEventListener('input', function (e) {
     var t = e.target; if (!t || (t.id !== 'fuelR' && t.id !== 'fuelN') || !S.shift) return;
@@ -1493,9 +1534,10 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<div class="row"><span>Percorso</span><b class="mono">' + fmt1(sh.km || 0) + ' km</b></div>' +
       '<div class="row"><span>Durata</span><b class="mono">' + dur(Date.now() - sh.start) + '</b></div>' +
       (left ? '<div class="note"><b>Tappe ancora da fare: ' + left + '.</b> Se chiudi adesso restano non fatte.</div>' : '') + '</div>' +
-      (e.photo
+      '<div class="card endph"><h3>📷 Foto della barca <span class="req">obbligatoria</span></h3>' + (e.photo
         ? '<div class="photo"><img src="' + e.photo + '" alt="Foto della barca a fine turno"><button class="btn" data-act="endphoto">Rifai la foto</button></div>'
-        : '<div class="photo"><button class="btn primary" data-act="endphoto">Scatta la foto della barca</button></div>') +
+        : '<div class="photo"><button class="btn primary" data-act="endphoto">Scatta la foto della barca</button></div><p class="hint">Fotografa la barca ormeggiata, com’è stata lasciata.</p>') +
+      '<label class="cartck"><input type="checkbox" id="cartCk"' + (e.cart ? ' checked' : '') + '> 🛒 Il carrello è in barca</label></div>' +
       (BOATS[sh.boat] && !BOATS[sh.boat].test && sh.boat !== 'TULLIO' ? fuelHtml(sh) : '') +
       '<div class="btns"><button class="btn primary" data-act="endok">Termina turno</button><button class="btn quiet" data-act="close">Continua a lavorare</button></div>'
     );
@@ -1599,7 +1641,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         }).join('') + '</div>';
       } else h += '<div class="ddfg">' + ml.map(function (m) { return '<button class="ddfc" data-act="stmon" data-k="' + m.k + '"><span class="ddfi">📁</span><b>' + esc(m.lbl.replace(/^./, function (z) { return z.toUpperCase(); })) + '</b><span class="ddfn">' + m.items.length + ' DDT</span></button>'; }).join('') + '</div>';
     } else h += cl2.length ? '<div class="ddfg">' + cl2.map(function (c) { return '<button class="ddfc" data-act="stcli" data-k="' + esc(c.k) + '"><span class="ddfi">📁</span><b>' + esc(c.name) + '</b><span class="ddfn">' + c.items.length + ' DDT firmati</span></button>'; }).join('') + '</div>' : '<p class="muted">Ancora nessun DDT firmato.</p>';
-    return h + '</section><p class="hint">Contano solo i turni ufficiali (dal 1 novembre 2026, sera). Una consegna è in orario se arriva entro 5 minuti dall’orario del programma; le tappe con orario indicativo non contano.</p></div>';
+    return h + '</section><p class="hint">Contano solo i turni ufficiali (dal 2 novembre 2026). Una consegna è in orario se arriva entro 5 minuti dall’orario del programma; le tappe con orario indicativo non contano.</p></div>';
   }
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
@@ -3874,7 +3916,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var b = BOATS[code], mine = S.shift && S.shift.boat === code, E = BF.edit && BF.edit.code === code ? BF.edit : null, none = '<span class="muted">Da inserire</span>';
     if (isMgr() && !BF.dati) {
       var nrq = S.requests.filter(function (r) { return !r.closed; }).length;
-      return '<div class="wrap"><h2>Barche</h2>' + fleetBlock() + fuelBlock() +
+      return '<div class="wrap"><h2>Barche</h2>' + fleetBlock() + fuelBlock() + endPhBlock() +
         '<button class="btn rqbtn dd2" data-act="bdati">📋 DATI E DOCUMENTI <span>scheda, motore e documenti di ogni barca ›</span></button>' +
         '<button class="btn rqbtn" data-act="nav" data-v="richieste">🧰 Richieste per le barche' + (nrq ? ' <b>' + nrq + '</b>' : '') + ' ›</button></div>';
     }
@@ -4207,7 +4249,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02r';
+  var APP_V = '2026-11-02s';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -5816,7 +5858,9 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (a === 'endok') {
       var sh0 = S.shift, needF = sh0 && BOATS[sh0.boat] && !BOATS[sh0.boat].test && sh0.boat !== 'TULLIO';
       if (needF && !(sh0.end && sh0.end.fuel)) { toast('Indica quanta benzina è rimasta nel serbatoio'); var fc = document.querySelector('.fuelc'); if (fc) { fc.scrollIntoView({ behavior: 'smooth', block: 'center' }); fc.classList.add('need'); } return; }
+      if (!(sh0.end && sh0.end.photo)) { toast('Scatta la foto della barca per chiudere il turno'); var pc = document.querySelector('.endph'); if (pc) { pc.scrollIntoView({ behavior: 'smooth', block: 'center' }); pc.classList.add('need'); } return; }
       if (needF) cl('rpc_fuel_log', { p_boat: sh0.boat, p_level: sh0.end.fuel.l, p_pct: sh0.end.fuel.p });
+      endPhotoSend(sh0.boat, sh0.end.photo, !!sh0.end.cart);
       endShift(); return;
     }
     if (a === 'pre') { var k = +el.getAttribute('data-i'); sh.pre[k] = !sh.pre[k]; save(); render(); return; }
