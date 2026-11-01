@@ -772,7 +772,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     ARDEMAR: { name: 'Ardemar', crew: 'Daffa', giro: '' },
     TULLIO: { name: 'Tullio di Trops', crew: 'Prova', giro: 'giro di prova' }
   };
-  var PAT = [['07:15', 'Pane'], ['07:30', 'Seminario'], ['08:00', 'Piazza'], ['08:30', 'Seminario'], ['08:50', 'Convitto'], ['09:15', 'Caritas'], ['09:40', 'Seminario'], ['10:00', 'Giustinian'], ['10:15', 'Scalo'], ['10:30', 'Darsena'], ['10:40', 'Murano'], ['11:30', 'Seminario'], ['12:00', 'Lido'],
+  var PAT = [['07:15', 'Pane'], ['07:30', 'Seminario'], ['08:00', 'Piazza'], ['08:30', 'Seminario'], ['08:50', 'Convitto'], ['09:15', 'Caritas'], ['09:40', 'Seminario'], ['10:00', 'Giustinian'], ['10:15', 'Scalo'], ['10:30', 'Darsena'], ['11:00', 'Venini / Barovier', 'Murano'], ['11:10', 'Promovetro · F3 · Jalos', 'Murano · 3 consegne sulla stessa riva'], ['11:20', 'Nason Moretti', 'Murano'], ['11:30', 'Seminario'], ['12:00', 'Lido'],
     ['12:20', 'Seminario', 'Scaricare vuoti Lido / prendere polibox Murano'], ['13:00', 'Scalo fluviale', 'Lasciare polibox Murano'], ['13:30', 'Darsena']];
   var TOP = [['09:00', 'Darsena'], ['09:20', 'Seminario'], ['09:45', 'Cristo Re'], ['10:15', 'Seminario'], ['10:35', 'Miracoli'], ['11:00', 'Ponte Storto'], ['11:30', 'Seminario'], ['11:55', 'Cavanis'], ['12:20', 'Sant’Alvise'], ['12:45', 'Seminario'], ['13:30', 'Darsena']];
   var PATSAT = [['07:45', 'Darsena'], ['08:00', 'Pane'], ['09:00', 'Caritas'], ['10:00', 'Piazza']];
@@ -3050,7 +3050,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01i';
+  var APP_V = '2026-11-01j';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4568,7 +4568,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   setInterval(function () { if (view === 'admin' && !document.hidden) loadAdmin(); }, 30000);
 
   /* ---------- dashboard admin ---------- */
-  var COORDS = { 'Pane': [45.4370, 12.3192], 'Seminario': [45.4308, 12.3353], 'Piazza': [45.4455, 12.3338], 'Darsena': [45.4452, 12.3356], 'Convitto': [45.4276, 12.3658], 'Caritas': [45.4357, 12.3487], 'Giustinian': [45.4360, 12.3182], 'Scalo': [45.4413, 12.3143], 'Scalo fluviale': [45.4413, 12.3143], 'Murano': [45.4590, 12.3523], 'Lido': [45.4279, 12.3806], 'Cristo Re': [45.4381, 12.3491], 'Miracoli': [45.4394, 12.3392], 'Ponte Storto': [45.4382, 12.3318], 'Cavanis': [45.4302, 12.3282], 'Sant’Alvise': [45.4348, 12.3579], 'Santa Marta': [45.4341, 12.3166] };
+  var COORDS = { 'Venini / Barovier': [45.4515439, 12.3497734], 'Promovetro · F3 · Jalos': [45.4541898, 12.3556733], 'Nason Moretti': [45.4555415, 12.3489010], 'Pane': [45.4370, 12.3192], 'Seminario': [45.4308, 12.3353], 'Piazza': [45.4455, 12.3338], 'Darsena': [45.4452, 12.3356], 'Convitto': [45.4276, 12.3658], 'Caritas': [45.4357, 12.3487], 'Giustinian': [45.4360, 12.3182], 'Scalo': [45.4413, 12.3143], 'Scalo fluviale': [45.4413, 12.3143], 'Murano': [45.4590, 12.3523], 'Lido': [45.4279, 12.3806], 'Cristo Re': [45.4381, 12.3491], 'Miracoli': [45.4394, 12.3392], 'Ponte Storto': [45.4382, 12.3318], 'Cavanis': [45.4302, 12.3282], 'Sant’Alvise': [45.4348, 12.3579], 'Santa Marta': [45.4341, 12.3166] };
   Object.keys(PCO).forEach(function (k) { if (!COORDS[k]) COORDS[k] = PCO[k]; });
   try { (S.shift && S.shift.extra || []).forEach(function (x) { if (x.lat != null && x.lng != null && !COORDS[x.name]) COORDS[x.name] = [x.lat, x.lng]; }); } catch (e) {}
   var BCOL = { PATANA: '#1E88E5', TOPPETTA: '#E65100', ARDEMAR: '#8E24AA', TULLIO: '#00897B' }; applyBoatInfo();
