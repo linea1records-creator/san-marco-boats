@@ -208,6 +208,12 @@ li.on .ddwk{background:#4FC3F7;border-color:#4FC3F7;color:#0B1317}.ddwk.ok{borde
 .watx{display:flex;flex-direction:column;gap:2px;font-size:15px;line-height:1.3}.watx span{font-size:13.5px;color:#54656F}
 .wab.late .watx span{color:#E65100;font-weight:600}.wab.bad .watx span{color:#D93025}
 .watm{position:absolute;right:8px;bottom:3px;font-style:normal;font-size:11px;color:#8696A0}
+.ddfg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.ddfc{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:14px;border:0;border-radius:14px;background:var(--card,#fff);color:inherit;font:inherit;text-align:left;box-shadow:0 0 0 1px var(--line,#e2e5ea);cursor:pointer}
+.ddfc.pend{box-shadow:0 0 0 2px #E65100}.ddfi{font-size:28px;line-height:1}.ddfc b{font-size:16px;word-break:break-word}
+.ddfn{font-size:13.5px;color:var(--muted,#667)}.ddfp{font-size:12.5px;font-weight:700;color:#E65100}.ddfs{font-size:12.5px;color:#2E7D32}
+.ddfh{display:flex;flex-direction:column;gap:2px;margin-bottom:8px}.ddfh h3{margin:0}.ddfh .muted{font-weight:400;text-transform:none;letter-spacing:0}
+.ddfin{display:flex;flex-direction:column;gap:6px;padding-bottom:14px}
 </style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -3811,7 +3817,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02c';
+  var APP_V = '2026-11-02d';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4013,6 +4019,39 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var t = todayKey(), n = DD.items.filter(function (x) { return x.stop && isMurano(x.stop, '') && x.status === 'pending'; }).length;
     return '<div class="ddfold"><button data-act="nav" data-v="ddt" aria-pressed="true">📂 Tutti</button><button data-act="nav" data-v="murano">📁 Murano' + (n ? ' <b>' + n + '</b>' : '') + '</button></div>';
   }
+  /* ---------- DDT in cartelle: una per cliente, con quanti DDT contiene ---------- */
+  var DDF = { open: null };
+  function ddtFoldersData() {
+    var by = {}, list = [];
+    DD.items.forEach(function (x) { var k = ddtNorm(x.customer) || '—'; if (!by[k]) { by[k] = { k: k, name: x.customer || '—', items: [], last: '' }; list.push(by[k]); } var f = by[k]; f.items.push(x); var t = x.signed_at || x.at || ''; if (t > f.last) f.last = t; });
+    list.forEach(function (f) { f.pend = f.items.filter(function (x) { return x.status === 'pending'; }).length; });
+    return list.sort(function (a, b) { return (b.pend > 0) - (a.pend > 0) || (a.last < b.last ? 1 : -1); });
+  }
+  function ddtFolderView(wide) {
+    var fs = ddtFoldersData();
+    if (DDF.open) {
+      var f = fs.filter(function (x) { return x.k === DDF.open; })[0];
+      if (f) {
+        var its = f.items.slice().sort(function (a, b) { return (b.status === 'pending') - (a.status === 'pending') || ((a.signed_at || a.at) < (b.signed_at || b.at) ? 1 : -1); });
+        return '<div class="ddfh"><button class="aslink" data-act="ddfback">‹ Tutte le cartelle</button><h3>📂 ' + esc(f.name) + ' <span class="muted">' + f.items.length + ' DDT' + (f.pend ? ' · ' + f.pend + ' da firmare' : '') + '</span></h3></div>' +
+          (wide ? '<div class="tblw"><table class="tbl ddtbl"><thead><tr><th>Cliente</th><th>DDT</th><th>Trasportatore</th><th>Stato</th><th>Data</th><th></th></tr></thead><tbody>' + its.map(ddtRowW).join('') + '</tbody></table></div>' : its.map(ddtCard).join(''));
+      }
+      DDF.open = null;
+    }
+    if (!fs.length) return '<div class="card"><p class="muted">' + (DD.loaded ? 'Ancora nessun DDT.' : 'Carico…') + '</p></div>';
+    return '<input class="field txt" id="ddfQ" placeholder="Cerca un cliente…" autocomplete="off" style="margin:4px 0 10px"><div class="ddfg">' + fs.map(function (f) {
+      return '<button class="ddfc' + (f.pend ? ' pend' : '') + '" data-act="ddfopen" data-k="' + esc(f.k) + '" data-q="' + esc(f.k) + '"><span class="ddfi">' + (f.pend ? '📂' : '📁') + '</span><b>' + esc(f.name) + '</b>' +
+        '<span class="ddfn">' + f.items.length + ' DDT</span>' + (f.pend ? '<span class="ddfp">' + f.pend + ' da firmare</span>' : '<span class="ddfs">tutti firmati</span>') + '</button>';
+    }).join('') + '</div>';
+  }
+  document.addEventListener('input', function (e) { if (!e.target || e.target.id !== 'ddfQ') return; var q = ddtNorm(e.target.value); Array.prototype.forEach.call(document.querySelectorAll('.ddfc'), function (b) { b.style.display = !q || b.getAttribute('data-q').indexOf(q) >= 0 ? '' : 'none'; }); });
+  document.addEventListener('toggle', function (e) { if (e.target && e.target.id === 'ddDet') DD.formOpen = e.target.open; }, true);
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'ddfopen') { DDF.open = el.getAttribute('data-k'); render(); window.scrollTo(0, 0); }
+    else if (a === 'ddfback') { DDF.open = null; render(); }
+    else if (a === 'nav' && el.getAttribute('data-v') === 'ddt') DDF.open = null;
+  });
   function viewDdt() {
     if (isWide() && DD.office) return viewDdtWide();
     var d = DD.draft, pend = DD.items.filter(function (x) { return x.status === 'pending'; }), done = DD.items.filter(function (x) { return x.status === 'signed'; });
@@ -4030,9 +4069,9 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         '<button class="btn primary" data-act="ddtadd"' + (DD.sending ? ' disabled' : '') + '>' + (DD.sending ? 'Invio in corso…' : 'Carica e invia al trasportatore') + '</button></div>';
     }
     return '<div class="wrap">' + ddtFolders() + '<h2>DDT</h2>' + (DD.office ? '<p class="muted">Carica il DDT e scegli chi lo consegna. Il trasportatore lo trova nell’app e fa firmare il cliente.</p>' : '<p class="muted">Consegna la copia cartacea al cliente, poi fagli firmare qui la versione digitale.</p>') +
-      (DD.err ? '<div class="note">Non riesco a caricare i DDT: serve la connessione.</div>' : '') + form +
-      '<h3>Da consegnare' + (pend.length ? ' (' + pend.length + ')' : '') + '</h3>' + (pend.length ? pend.map(ddtCard).join('') : '<div class="card"><p class="muted">' + (DD.loaded ? 'Nessun DDT da consegnare.' : 'Carico…') + '</p></div>') +
-      (done.length ? '<h3>Firmati</h3>' + done.map(ddtCard).join('') : '') + '</div>';
+      (DD.err ? '<div class="note">Non riesco a caricare i DDT: serve la connessione.</div>' : '') +
+      (form ? '<details class="card mgdet"' + (d.file || DD.formOpen ? ' open' : '') + ' id="ddDet"><summary><span>＋ Carica un nuovo DDT</span><span class="secc">›</span></summary>' + form.replace('<div class="card"><h3>Nuovo DDT</h3>', '<div class="ddfin">') + '</details>' : '') +
+      ddtFolderView(false) + '</div>';
   }
   function ddtFind(id) { for (var i = 0; i < DD.items.length; i++) if (DD.items[i].id === id) return DD.items[i]; return null; }
   function ddtDetail(id) {
@@ -4854,17 +4893,14 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         '<button class="btn quiet sm" data-act="ddqclear"' + (DD.qbusy ? ' disabled' : '') + '>Svuota</button><button class="btn primary sm" data-act="ddqsend"' + (DD.qbusy || !todo ? ' disabled' : '') + '>' + (DD.qbusy ? 'Invio in corso…' : 'Invia ' + todo + (todo === 1 ? ' DDT' : ' DDT')) + '</button></div>' +
         q.map(function (r) { return ddqRow(r, car); }).join('') + '</div>' : '') +
       '<datalist id="ddStops">' + ddtStopsFor('').map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist>' +
-      '<div class="ddflt"><div class="seg2" role="group" aria-label="Filtro">' + [['pending', 'Da consegnare (' + nPend + ')'], ['signed', 'Firmati (' + nSig + ')'], ['all', 'Tutti']].map(function (t) { return '<button data-act="ddfilter" data-f="' + t[0] + '" aria-pressed="' + (f === t[0]) + '">' + t[1] + '</button>'; }).join('') + '</div>' +
-      '<input class="field txt" id="ddSearch" placeholder="Cerca cliente, numero, trasportatore…" value="' + esc(DD.q) + '" autocomplete="off"></div>' +
-      '<div class="tblw"><table class="tbl ddtbl"><thead><tr><th>Cliente</th><th>DDT</th><th>Trasportatore</th><th>Stato</th><th>Data</th><th></th></tr></thead><tbody>' +
-      (list.length ? list.map(function (x) {
+      ddtFolderView(true) + '</div>';
+  }
+  var ddtRowW = function (x) {
         var pend = x.status === 'pending';
         return '<tr class="ddrow" data-s="' + esc((x.customer + ' ' + (x.number || '') + ' ' + x.carrier + ' ' + (x.address || '')).toLowerCase()) + '"><td><button class="lnk" data-act="ddtopen" data-id="' + x.id + '">' + esc(x.customer) + '</button>' + (x.address ? '<div class="muted">' + esc(x.address) + '</div>' : '') + '</td><td>' + esc(x.number || '–') + '</td><td>' + esc(x.carrier) + '</td>' +
           '<td>' + (pend ? '<span class="pill bad">Da consegnare</span>' : '<span class="pill go">Firmato</span><div class="muted">' + esc(x.signed_by || '') + '</div>') + '</td><td>' + esc(ntWhen(pend ? x.at : x.signed_at)) + '</td>' +
           '<td class="ddact"><button class="btn sm" data-act="ddtview" data-id="' + x.id + '">Apri</button>' + (pend ? '<button class="btn sm quiet" data-act="ddtcancel" data-id="' + x.id + '">Annulla</button>' : '<button class="btn sm primary" data-act="ddtget" data-id="' + x.id + '">DDT firmato</button>') + '</td></tr>';
-      }).join('') : '<tr><td colspan="6" class="muted" style="text-align:center;padding:22px">' + (DD.loaded ? 'Nessun DDT in questo elenco.' : 'Carico…') + '</td></tr>') +
-      '</tbody></table></div></div>';
-  }
+      };
   function ddApplySearch() {
     var q = (DD.q || '').trim().toLowerCase(), rows = document.querySelectorAll('.ddrow');
     for (var i = 0; i < rows.length; i++) rows[i].hidden = !!q && rows[i].getAttribute('data-s').indexOf(q) < 0;
