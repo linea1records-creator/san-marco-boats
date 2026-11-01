@@ -1209,6 +1209,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
 
   /* ---------- strumenti di bordo (GPS) ---------- */
+  function cen(a) { var r = { la: 0, lo: 0, t: 0 }; a.forEach(function (q) { r.la += q.la / a.length; r.lo += q.lo / a.length; r.t += q.t / a.length; }); return r; }
+  function angMix(a, b, k) { if (a == null || isNaN(a)) return b; var d = ((b - a) % 360 + 540) % 360 - 180; return (a + d * k + 360) % 360; }
   function hav(a, b, c, d) {
     var R = 6371000, r = Math.PI / 180, dl = (c - a) * r, dn = (d - b) * r;
     var x = Math.sin(dl / 2) * Math.sin(dl / 2) + Math.cos(a * r) * Math.cos(c * r) * Math.sin(dn / 2) * Math.sin(dn / 2);
@@ -1238,16 +1240,28 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     GPS.state = 'wait';
     try {
       GPS.id = navigator.geolocation.watchPosition(function (pos) {
-        var c = pos.coords, t = pos.timestamp, v = (typeof c.speed === 'number' && !isNaN(c.speed)) ? c.speed : null;
+        var c = pos.coords, t = Date.now(), v = (typeof c.speed === 'number' && !isNaN(c.speed) && c.speed >= 0) ? c.speed : null;
+        GPS.vr = (GPS.vr || []).filter(function (q) { return t - q.t < 12000; }); GPS.vr.push({ la: c.latitude, lo: c.longitude, t: t });
+        if (v == null && GPS.vr.length > 3) { var hn = Math.floor(GPS.vr.length / 2), cA = cen(GPS.vr.slice(0, hn)), cB = cen(GPS.vr.slice(hn)), dq = hav(cA.la, cA.lo, cB.la, cB.lo), tq = (cB.t - cA.t) / 1000; if (tq >= 2) v = dq > Math.max(10, (c.accuracy || 30) * 1.1) ? dq / tq : 0; } else if (v == null && GPS.vr.length > 1) v = 0;
         GPS.state = 'on';
         if (GPS.last) {
           var d = hav(GPS.last.la, GPS.last.lo, c.latitude, c.longitude), dt = (t - GPS.last.t) / 1000;
-          if (v == null && dt > 0) v = d / dt;
-          if (c.accuracy <= 40 && d >= 4 && d < 500 && S.shift) { S.shift.km = (S.shift.km || 0) + d / 1000; S.shift.trip = (S.shift.trip || 0) + d / 1000; }
+          if (c.accuracy <= 40 && d >= Math.max(6, c.accuracy / 2) && d < 500 && !(v != null && v < 0.6) && S.shift) { S.shift.km = (S.shift.km || 0) + d / 1000; S.shift.trip = (S.shift.trip || 0) + d / 1000; }
         }
-        if (typeof c.heading === 'number' && !isNaN(c.heading) && v != null && v > 0.5) GPS.hdg = c.heading;
-        else if (GPS.last && hav(GPS.last.la, GPS.last.lo, c.latitude, c.longitude) >= 6) GPS.hdg = bearing(GPS.last.la, GPS.last.lo, c.latitude, c.longitude);
-        GPS.last = { la: c.latitude, lo: c.longitude, t: t }; canRecPoint(c.latitude, c.longitude, c.accuracy); if (S.shift) { S.shift.pos = { la: c.latitude, lo: c.longitude, t: Date.now() }; if (!S.shift.origin && c.accuracy != null && c.accuracy <= 100) { S.shift.origin = { la: c.latitude, lo: c.longitude, t: Date.now() }; lastGpsSent = 0; save(); } } cloudGps(c, v); GPS.speed = v; updateInstr();
+        /* filtro anti-tremolio: da fermi la posizione GPS "balla" di 20-40 m, la smorziamo */
+        var acc = c.accuracy || 30, fla = c.latitude, flo = c.longitude, slow = v == null || v < 1;
+        if (GPS.last && t - GPS.last.t < 60000) {
+          var df = hav(GPS.last.la, GPS.last.lo, c.latitude, c.longitude), al = slow ? (df < Math.max(12, acc) ? 0.08 : 0.35) : 0.75;
+          if (acc > 80 && df < acc) al = 0.03;
+          fla = GPS.last.la + (c.latitude - GPS.last.la) * al; flo = GPS.last.lo + (c.longitude - GPS.last.lo) * al;
+        }
+        /* direzione: solo quando la barca si muove davvero, e senza scatti */
+        if (typeof c.heading === 'number' && !isNaN(c.heading) && v != null && v > 1.2) { GPS.hdg = angMix(GPS.hdg, c.heading, 0.5); GPS.ha = { la: fla, lo: flo }; }
+        else if (v != null && v >= 1.5) {
+          if (!GPS.ha) GPS.ha = { la: fla, lo: flo };
+          else if (hav(GPS.ha.la, GPS.ha.lo, fla, flo) >= Math.max(20, acc * 1.5)) { GPS.hdg = angMix(GPS.hdg, bearing(GPS.ha.la, GPS.ha.lo, fla, flo), 0.6); GPS.ha = { la: fla, lo: flo }; }
+        }
+        GPS.last = { la: fla, lo: flo, t: t }; canRecPoint(c.latitude, c.longitude, c.accuracy); if (S.shift) { S.shift.pos = { la: c.latitude, lo: c.longitude, t: Date.now() }; if (!S.shift.origin && c.accuracy != null && c.accuracy <= 100) { S.shift.origin = { la: c.latitude, lo: c.longitude, t: Date.now() }; lastGpsSent = 0; save(); } } cloudGps(c, v); GPS.speed = v; updateInstr();
       }, function (err) {
         if (err && err.code === 1) { GPS.state = 'denied'; GPS.speed = null; try { navigator.geolocation.clearWatch(GPS.id); } catch (e) {} GPS.id = null; }
         updateInstr();
@@ -3223,8 +3237,9 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var W = box.clientWidth, H = box.clientHeight; if (W < 40 || H < 40) return;
     var tl = $('fTiles'), svg = $('fSvg'), hud = $('fHud');
     var list = (MG.fleet || []).filter(function (b) { return b.lat != null && BOATS[b.code]; });
-    var z = 13, cx, cy;
-    if (!list.length) { cx = tileX(12.3350, z); cy = tileY(45.4370, z); }
+    var z = 13, cx, cy, sig = list.map(function (b) { return b.code; }).join(',') + '|' + W + 'x' + H, vw = FLEET.vw;
+    if (vw && vw.sig === sig && list.every(function (b) { var x = tileX(b.lng, vw.z) - tileX(vw.lo, vw.z), y = tileY(b.lat, vw.z) - tileY(vw.la, vw.z); return Math.abs(x) < W / 2 - 30 && Math.abs(y) < H / 2 - 30; })) { z = vw.z; cx = tileX(vw.lo, z); cy = tileY(vw.la, z); }
+    else if (!list.length) { cx = tileX(12.3350, z); cy = tileY(45.4370, z); }
     else if (list.length === 1) { z = 15; cx = tileX(list[0].lng, z); cy = tileY(list[0].lat, z); }
     else {
       for (z = 16; z >= 10; z--) {
@@ -3234,6 +3249,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       var xs2 = list.map(function (b) { return tileX(b.lng, z); }), ys2 = list.map(function (b) { return tileY(b.lat, z); });
       cx = (Math.max.apply(null, xs2) + Math.min.apply(null, xs2)) / 2; cy = (Math.max.apply(null, ys2) + Math.min.apply(null, ys2)) / 2;
     }
+    if (!(vw && vw.sig === sig && vw.z === z && tileX(vw.lo, z) === cx)) FLEET.vw = { sig: sig, z: z, lo: cx / Math.pow(2, z) / 256 * 360 - 180, la: Math.atan(Math.sinh(Math.PI * (1 - 2 * cy / Math.pow(2, z) / 256))) * 180 / Math.PI };
     var x0 = cx - W / 2, y0 = cy - H / 2;
     paintTiles(tl, FLEET.keys, z, x0, y0, W, H, true);
     var g = '', placed = [];
@@ -4087,7 +4103,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02m';
+  var APP_V = '2026-11-02n';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
