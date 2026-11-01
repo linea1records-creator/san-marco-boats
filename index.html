@@ -106,6 +106,30 @@ li.on .ddwk{background:#4FC3F7;border-color:#4FC3F7;color:#0B1317}.ddwk.ok{borde
 @keyframes ddwp{50%{transform:scale(1.07)}}
 .ddwsheet{background:#0E171B;color:#F2F7F5;border-radius:14px;padding:10px;max-height:60vh;display:flex}
 .ddmc{display:flex;flex-direction:column;gap:4px;align-items:flex-start}.ddcl{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px}
+.nuovo h2{margin-bottom:4px}
+.ascard2{display:flex;flex-direction:column;gap:8px;margin:6px 0 14px}
+.asbox{display:flex;align-items:flex-end;gap:4px;padding:6px;border-radius:22px;background:var(--card,#fff);box-shadow:0 0 0 1px var(--line,#d0d5dd),0 2px 10px rgba(0,0,0,.06)}
+.asbox textarea{flex:1;min-width:0;border:0;outline:0;resize:none;background:none;color:inherit;font:inherit;font-size:17px;line-height:1.35;padding:9px 6px;max-height:160px}
+.asi{flex:none;width:40px;height:40px;border:0;border-radius:50%;background:none;font-size:19px;cursor:pointer;color:inherit}
+.asi[aria-pressed=true]{background:#D93025;color:#fff}
+.asgo{flex:none;width:42px;height:42px;border:0;border-radius:50%;background:#1655C8;color:#fff;font-size:18px;cursor:pointer}.asgo:disabled{opacity:.5}
+.asfch{display:flex;align-items:center;gap:6px;align-self:flex-start;max-width:100%;padding:5px 6px 5px 12px;border-radius:999px;background:rgba(22,85,200,.1);font-size:14px}
+.asfch span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.asfch button{border:0;background:none;font-size:14px;cursor:pointer;color:inherit}
+.aslink{align-self:flex-start;border:0;background:none;padding:4px 0;font:inherit;font-size:14px;color:#1655C8;cursor:pointer}
+.card.mgdet{padding:0 14px;display:block}.mgdet summary{display:flex;align-items:center;justify-content:space-between;padding:14px 0;font-weight:700;cursor:pointer;list-style:none}
+.mgdet summary::-webkit-details-marker{display:none}.mgdet[open] summary .secc{transform:rotate(90deg)}
+.mgf{display:flex;flex-direction:column;gap:10px;padding-bottom:14px}
+.mgrow{display:flex;gap:8px;align-items:flex-end}.mgrow>label,.mgrow>select,.mgrow>.mgurg{flex:1;min-width:0}
+.mgrow label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted,#667)}
+.mgrow .field{width:100%;margin:0;text-transform:none}
+.mgurg{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted,#667);width:100%}.mgurg .seg2 button{padding:9px 8px;font-size:13.5px;flex:1}.mgurg .seg2{display:flex}
+.mgsl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.mgs{display:flex;gap:8px;align-items:flex-start;padding:10px;border-radius:12px;box-shadow:0 0 0 1px var(--line,#e2e5ea)}
+.mgn{flex:none;width:24px;height:24px;border-radius:50%;background:#1655C8;color:#fff;font-size:13px;font-weight:800;display:grid;place-items:center;margin-top:10px}
+.mgsb{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}.mgsb .field{margin:0;text-transform:none}
+.mgt{flex:0 0 108px!important;width:108px!important}
+.mgx{flex:none;border:0;background:none;font-size:15px;opacity:.5;padding:10px 2px;cursor:pointer;color:inherit}
+.mgact .btn{width:auto;margin:0}.mgact .btn.primary{flex:1}
 </style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -2440,32 +2464,32 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function mgFormCard() {
     if (!MG.draft) MG.draft = newDraft();
     var d = MG.draft, o = MG.opts, h = '', isNow = !d.date || d.date === todayISO();
-    h += '<section class="card" style="display:flex;flex-direction:column;gap:12px"><h3>Consegna manuale</h3>' +
-      '<label class="hint" for="mgDate">Giorno</label><input id="mgDate" class="field" type="date" data-mg="date" min="' + todayISO() + '" value="' + esc(d.date || todayISO()) + '">' +
-      (isNow ? '<div class="hint">Oggi: arriva subito sul telefono della persona.</div>' : '<div class="hint">Entra nel programma di ' + esc(pgDateLabel(d.date)) + ': la vede l’equipaggio della barca.</div>') +
-      (isNow ? '<label class="hint" for="mgWho">A chi la affidi</label><select id="mgWho" class="field" data-mg="who" style="text-transform:none"><option value="">Scegli una persona</option>' +
-      o.people.map(function (p) { return '<option value="' + esc(p.id) + '"' + (d.who === p.id ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join('') + '</select>' : '') +
-      '<label class="hint" for="mgBoat">Con quale barca</label><select id="mgBoat" class="field" data-mg="boat" style="text-transform:none"><option value="">' + (isNow ? 'Quella che usa la persona' : 'Scegli la barca') + '</option>' + boatCodes().map(function (k) { return '<option value="' + esc(k) + '"' + (d.boat === k ? ' selected' : '') + '>' + esc(BOATS[k].name) + '</option>'; }).join('') + '</select>' +
-      (isNow ? '<div class="hint">Urgenza</div><div class="chips" role="group" aria-label="Urgenza">' + ['normale', 'urgente', 'emergenza'].map(function (u) { return '<button class="chip" data-act="mgurg" data-u="' + u + '" aria-pressed="' + (d.urg === u ? 'true' : 'false') + '">' + URGL[u] + '</button>'; }).join('') + '</div>' : '') +
-      (isNow && d.urg === 'emergenza' ? '<div class="note"><b>Emergenza:</b> sul telefono della persona passa davanti a tutte le altre tappe, con avviso a voce e vibrazione.</div>' : '') +
-      '<div class="hint">Tappe, nell’ordine in cui vanno fatte</div>';
+    h += '<div class="mgf"><div class="mgrow"><label>Giorno<input id="mgDate" class="field" type="date" data-mg="date" min="' + todayISO() + '" value="' + esc(d.date || todayISO()) + '"></label>' +
+      '<label>Barca<select id="mgBoat" class="field" data-mg="boat"><option value="">' + (isNow ? 'Quella che usa' : 'Scegli') + '</option>' + boatCodes().map(function (k) { return '<option value="' + esc(k) + '"' + (d.boat === k ? ' selected' : '') + '>' + esc(BOATS[k].name) + '</option>'; }).join('') + '</select></label></div>';
+    if (isNow) h += '<div class="mgrow"><label>A chi<select id="mgWho" class="field" data-mg="who"><option value="">Scegli una persona</option>' + o.people.map(function (p) { return '<option value="' + esc(p.id) + '"' + (d.who === p.id ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join('') + '</select></label></div>' +
+      '<div class="mgrow"><div class="mgurg"><div class="seg2">' + ['normale', 'urgente', 'emergenza'].map(function (u) { return '<button data-act="mgurg" data-u="' + u + '" aria-pressed="' + (d.urg === u ? 'true' : 'false') + '">' + URGL[u] + '</button>'; }).join('') + '</div></div></div>' +
+      (d.urg === 'emergenza' ? '<div class="hint">Passa davanti a tutte le tappe, con avviso a voce e vibrazione.</div>' : '');
+    else h += '<div class="hint">Entra nel programma di ' + esc(pgDateLabel(d.date)) + '.</div>';
+    h += '<ol class="mgsl">';
     d.stops.forEach(function (s, k) {
-      h += '<div class="mgstop"><div class="row"><b>Tappa ' + (k + 1) + '</b>' + (d.stops.length > 1 ? '<button class="btn sm" data-act="mgdel" data-i="' + k + '">Togli</button>' : '') + '</div>' +
-        '<select class="field" data-mg="sel" data-i="' + k + '" style="text-transform:none" aria-label="Luogo tappa ' + (k + 1) + '"><option value="">Scegli il luogo</option>' +
-        o.stops.map(function (n) { return '<option' + (!s.custom && s.name === n ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') +
-        '<option value="__altro"' + (s.custom ? ' selected' : '') + '>Altro luogo (scrivi tu)</option></select>' +
-        (s.custom ? '<input class="field" data-mg="name" data-i="' + k + '" type="text" maxlength="60" placeholder="Nome del luogo" value="' + esc(s.name) + '" style="text-transform:none">' : '') +
-        (s.custom ? '<label class="hint">Coordinate (facoltative) · incolla coordinate (45.4371, 12.3326 o 45°26′13″N 12°19′57″E) o un link di Google Maps, anche quello breve di “Condividi”<input class="field" data-mg="coord" data-i="' + k + '" type="text" inputmode="text" placeholder="45.4371, 12.3326" value="' + esc(s.coord || '') + '" style="text-transform:none"></label><div class="row"><span class="hint" id="mgc' + k + '">' + coordHint(s) + '</span><button class="btn sm" data-act="mgpos" data-i="' + k + '">Usa la mia posizione</button></div>' : '') +
-        '<label class="hint">Cosa trasportare<input class="field" data-mg="cargo" data-i="' + k + '" type="text" maxlength="200" placeholder="Es. 4 polibox pranzo, 2 casse di frutta" value="' + esc(s.cargo || '') + '" style="text-transform:none"></label>' +
-        '<div class="mgtwo"><label class="hint">Ora (facoltativa)<input class="field" data-mg="t" data-i="' + k + '" type="time" value="' + esc(s.t) + '"></label>' +
-        '<label class="hint">Nota<input class="field" data-mg="note" data-i="' + k + '" type="text" maxlength="200" placeholder="Altre indicazioni" value="' + esc(s.note) + '" style="text-transform:none"></label></div></div>';
+      var c = s.custom ? parseCoord(s.coord) : null;
+      h += '<li class="mgs"><span class="mgn">' + (k + 1) + '</span><div class="mgsb">' +
+        '<div class="mgrow"><select class="field" data-mg="sel" data-i="' + k + '" aria-label="Luogo tappa ' + (k + 1) + '"><option value="">Luogo…</option>' +
+        o.stops.map(function (n) { return '<option' + (!s.custom && s.name === n ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '<option value="__altro"' + (s.custom ? ' selected' : '') + '>Altro luogo…</option></select>' +
+        '<input class="field mgt" data-mg="t" data-i="' + k + '" type="time" value="' + esc(s.t) + '" aria-label="Ora"></div>' +
+        (s.custom ? '<input class="field" data-mg="name" data-i="' + k + '" type="text" maxlength="60" placeholder="Nome del luogo" value="' + esc(s.name) + '">' +
+          '<input class="field" data-mg="coord" data-i="' + k + '" type="text" placeholder="Posizione: coordinate o link Google Maps" value="' + esc(s.coord || '') + '"><div class="hint" id="mgc' + k + '">' + esc(coordHint(s)) + '</div>' : '') +
+        '<input class="field" data-mg="cargo" data-i="' + k + '" type="text" maxlength="200" placeholder="Cosa trasportare (facoltativo)" value="' + esc(s.cargo || '') + '">' +
+        (s.note || s.more ? '<input class="field" data-mg="note" data-i="' + k + '" type="text" maxlength="200" placeholder="Nota" value="' + esc(s.note) + '">' : '<button class="aslink" data-act="mgmore" data-i="' + k + '">+ nota</button>') +
+        '</div>' + (d.stops.length > 1 ? '<button class="mgx" data-act="mgdel" data-i="' + k + '" aria-label="Togli tappa ' + (k + 1) + '">✕</button>' : '') + '</li>';
     });
     var who = o.people.filter(function (p) { return p.id === d.who; })[0];
-    h += (d.stops.length < 12 ? '<button class="btn" data-act="mgadd">+ Aggiungi tappa</button>' : '') +
-      '<button class="btn primary" id="mgSend" data-act="mgsend"' + (draftOk() && !MG.sending ? '' : ' disabled') + '>' + (!isNow ? 'Aggiungi al programma di ' + esc(pgFmt(d.date)) : who ? 'Invia a ' + esc(who.name) : 'Invia') + '</button>' +
-      '<div class="hint" id="mgErr" style="color:var(--bad,#C0392B)">' + esc(MG.err && o ? MG.err : '') + '</div></section>';
+    h += '</ol><div class="mgrow mgact">' + (d.stops.length < 12 ? '<button class="btn" data-act="mgadd">+ Tappa</button>' : '') +
+      '<button class="btn primary" id="mgSend" data-act="mgsend"' + (draftOk() && !MG.sending ? '' : ' disabled') + '>' + (!isNow ? 'Aggiungi al ' + esc(pgFmt(d.date)) : who ? 'Invia a ' + esc(who.name.split(' ')[0]) : 'Invia') + '</button></div>' +
+      '<div class="hint" id="mgErr" style="color:var(--bad,#C0392B)">' + esc(MG.err && o ? MG.err : '') + '</div></div>';
     return h;
   }
+  document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="mgmore"]') : null; if (!el || !MG.draft) return; var st = MG.draft.stops[+el.getAttribute('data-i')]; if (st) { st.more = true; render(); setTimeout(function () { var x = document.querySelector('[data-mg="note"][data-i="' + el.getAttribute('data-i') + '"]'); if (x) x.focus(); }, 30); } });
   /* ---------- Logistica: Pietro rinomina le consegne del programma ---------- */
   var RN = null;
   function rnDays(b, name) { var t = todayKey(); return DAYKEYS.filter(function (k) { return k >= t && PROGRAM[k] && PROGRAM[k].boats[b] && (PROGRAM[k].boats[b].stops || []).some(function (z) { return z.name === name; }); }); }
@@ -3425,7 +3449,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01p';
+  var APP_V = '2026-11-01q';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4280,26 +4304,27 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     AS.rec = r; try { r.start(); } catch (e) { AS.rec = null; } render();
   }
   function asCard() {
-    var hasSR = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-    var h = '<section class="card ascard" style="display:flex;flex-direction:column;gap:10px"><h3>Chiedi a Claude</h3>' +
-      '<p class="muted">Scrivi o detta cosa fare, oppure allega un programma o una mail (PDF o foto). Claude aggiunge e modifica i turni subito; se sbaglia, tocca <b>Annulla</b>.</p>';
+    var hasSR = !!(window.SpeechRecognition || window.webkitSpeechRecognition), h = '<section class="ascard2">';
     AS.chat.slice(-8).forEach(function (c, k) {
       var i = AS.chat.length - Math.min(AS.chat.length, 8) + k;
       h += '<div class="asu">' + esc(c.u) + '</div><div class="asa">' + esc(c.a) +
         (c.lines.length ? '<ul>' + c.lines.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul>' : '') +
         (c.fails.length ? '<div class="asw">' + c.fails.map(esc).join('<br>') + '</div>' : '') +
-        (c.undo ? (c.undone ? '<div class="muted" style="margin-top:6px">Annullato</div>' : '<button class="btn sm quiet" data-act="asundo" data-i="' + i + '" style="margin-top:6px"' + (c.undoing ? ' disabled' : '') + '>' + (c.undoing ? 'Annullo…' : '↶ Annulla queste modifiche') + '</button>') : '') + '</div>';
+        (c.undo ? (c.undone ? '<div class="muted" style="margin-top:6px">Annullato</div>' : '<button class="btn sm quiet" data-act="asundo" data-i="' + i + '" style="margin-top:6px"' + (c.undoing ? ' disabled' : '') + '>' + (c.undoing ? 'Annullo…' : '↶ Annulla') + '</button>') : '') + '</div>';
     });
-    h += '<textarea id="asText" class="field txt" rows="3" style="min-height:84px" data-as="text" placeholder="Es. martedì e mercoledì l’Ardemar fa lo sgombero Certosa alle 9; giovedì la patana è ferma">' + esc(AS.text) + '</textarea>' +
-      (AS.file ? '<div class="row" style="gap:8px"><span class="pill ok" style="max-width:75%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📎 ' + esc(AS.file.name) + '</span><button class="btn sm quiet" data-act="asfilex" aria-label="Togli allegato">✕</button></div>' : '') +
+    h += (AS.file ? '<div class="asfch"><span>📎 ' + esc(AS.file.name) + '</span><button data-act="asfilex" aria-label="Togli allegato">✕</button></div>' : '') +
       '<input type="file" id="asFile" accept="application/pdf,image/*" style="display:none">' +
-      '<div class="asbar"><button class="btn icon" data-act="asfile" aria-label="Allega file">📎</button>' +
-      (hasSR ? '<button class="btn icon" data-act="asmic" aria-pressed="' + !!AS.rec + '" aria-label="Detta">' + (AS.rec ? '■' : '🎤') + '</button>' : '') +
-      '<button class="btn primary" data-act="asgo"' + (AS.busy ? ' disabled' : '') + '>' + (AS.busy ? (AS.file ? 'Claude legge il file…' : 'Claude sta lavorando…') : 'Invia') + '</button></div>' +
+      '<div class="asbox"><button class="asi" data-act="asfile" aria-label="Allega PDF o foto">📎</button>' +
+      '<textarea id="asText" rows="1" data-as="text" placeholder="Programma qualcosa…" aria-label="Programma qualcosa">' + esc(AS.text) + '</textarea>' +
+      (hasSR ? '<button class="asi" data-act="asmic" aria-pressed="' + !!AS.rec + '" aria-label="Detta">' + (AS.rec ? '■' : '🎤') + '</button>' : '') +
+      '<button class="asgo" data-act="asgo"' + (AS.busy ? ' disabled' : '') + ' aria-label="Invia">' + (AS.busy ? '…' : '➤') + '</button></div>' +
+      (AS.busy ? '<div class="hint">' + (AS.file ? 'Leggo il file…' : 'Sto programmando…') + '</div>' : '') +
       (AS.err ? '<div class="note" role="alert">' + esc(AS.err) + '</div>' : '') +
-      (AS.chat.length && !AS.busy ? '<button class="btn quiet sm" data-act="asclear" style="align-self:flex-start">Nuova conversazione</button>' : '') + '</section>';
+      (AS.chat.length && !AS.busy ? '<button class="aslink" data-act="asclear">Nuova conversazione</button>' : '') + '</section>';
     return h;
   }
+  // la casella cresce mentre scrivi
+  document.addEventListener('input', function (e) { var t = e.target; if (t && t.id === 'asText') { t.style.height = 'auto'; t.style.height = Math.min(160, t.scrollHeight) + 'px'; } });
   document.addEventListener('input', function (e) { var t = e.target; if (t && t.getAttribute && t.getAttribute('data-as') === 'text') AS.text = t.value; });
   document.addEventListener('keydown', function (e) { var t = e.target; if (t && t.id === 'asText' && e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); asRun(); } });
   document.addEventListener('change', function (e) {
@@ -4312,13 +4337,16 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
   /* ---------- Pagina "Nuovo turno": Claude + consegna manuale ---------- */
   function viewNuovo() {
-    var h = '<div class="wrap"><h2>Nuovo turno</h2><p class="muted">Chiedi a Claude oppure inserisci tu una consegna. Tutto entra subito nel programma.</p>';
+    var h = '<div class="wrap nuovo"><h2>Nuovo turno</h2>';
     if (!tok()) return h + '<div class="note"><b>Serve la connessione.</b> Esci e rientra con il tuo PIN quando sei online.</div></div>';
     h += asCard();
-    h += MG.opts ? mgFormCard() : '<section class="card"><h3>Consegna manuale</h3><p class="muted">' + (MG.err ? esc(MG.err) : 'Carico…') + '</p><button class="btn sm" data-act="mgreload">Riprova</button></section>';
-    h += '<button class="btn quiet" data-act="pgopenview">Bozze e programmi salvati</button>';
+    var d = MG.draft, open = MG.formOpen || (d && d.stops.some(function (z) { return z.name || z.t || z.cargo; }));
+    h += '<details class="card mgdet"' + (open ? ' open' : '') + ' id="mgDet"><summary><span>＋ Consegna manuale</span><span class="secc">›</span></summary>' +
+      (MG.opts ? mgFormCard() : '<p class="muted">' + (MG.err ? esc(MG.err) : 'Carico…') + '</p><button class="btn sm" data-act="mgreload">Riprova</button>') + '</details>';
+    h += '<button class="aslink" data-act="pgopenview">Bozze e programmi salvati</button>';
     return h + '</div>';
   }
+  document.addEventListener('toggle', function (e) { if (e.target && e.target.id === 'mgDet') MG.formOpen = e.target.open; }, true);
   function viewProgrammi() {
     var d = PG.d, h = '<div class="wrap pgw0"><h2>Programma con Claude</h2><p class="muted">Dì a Claude cosa cambiare, oppure carica il PDF del programma. Tu controlli, correggi e solo dopo pubblichi ai dipendenti.</p>';
     if (!tok()) return h + '<div class="note"><b>Serve la connessione.</b> Esci e rientra con il tuo PIN quando sei online.</div></div>';
