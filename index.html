@@ -144,6 +144,15 @@ li.on .ddwk{background:#4FC3F7;border-color:#4FC3F7;color:#0B1317}.ddwk.ok{borde
 .tlv li span:last-child{display:flex;flex-direction:column}.tlv small{font-size:12px;opacity:.7}.tlv .mono{min-width:58px}
 .tlv li.tlh{font-size:12px;letter-spacing:.06em;opacity:.55;padding-top:10px;border-bottom:1px solid var(--line,#eef0f3)}
 .pgtray{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.fpn{display:flex;flex-direction:column;gap:12px}.fph{font-size:13px;color:#9FB3B0}
+.fpin{display:flex;gap:6px;background:#0B1317;border-radius:14px;padding:6px;box-shadow:0 0 0 1.5px #3A4D55}
+.fpin input{flex:1;min-width:0;border:0;outline:0;background:none;color:#F2F7F5;font:inherit;font-size:17px;padding:8px}
+.fpin button{flex:none;width:46px;border:0;border-radius:10px;background:#1655C8;color:#fff;font-size:18px}
+.chk.fin{justify-content:center}
+.mywk{display:flex;flex-direction:column;gap:6px}
+.mywd{display:flex;align-items:center;gap:10px;padding:12px 14px;border:0;border-radius:12px;background:var(--card,#fff);color:inherit;font:inherit;text-align:left;box-shadow:0 0 0 1px var(--line,#e2e5ea);cursor:pointer}
+.mywd b{flex:1}.mywd span{color:var(--muted,#667);font-size:14px}.mywd i{font-style:normal;opacity:.4}.mywd.today2{box-shadow:0 0 0 2px #1655C8}
+.mypg{box-shadow:inset 4px 0 0 var(--bc)}
 </style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -1341,6 +1350,13 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<datalist id="freeNames">' + names.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist>' +
       '<button class="btn primary" data-act="freego">Naviga</button><div class="hint">La meta si aggiunge al cruscotto: quando arrivi tocca “Sono arrivato”.</div></section>';
   }
+  function freePanel(c) {
+    var names = Object.keys(COORDS).sort(function (a, b) { return a.localeCompare(b, 'it'); });
+    return '<div class="fpn"><div class="sthead"><span class="lab">' + (c.total ? 'Giro completato · ' + c.ok + ' di ' + c.total : 'Navigazione libera') + '</span></div>' +
+      '<b class="gname" style="font-size:40px">' + (c.total ? 'Nessuna tappa' : 'Dove andiamo?') + '</b>' +
+      '<div class="fpin"><input id="freeIn" list="freeNames" autocomplete="off" placeholder="Posto, coordinate o link Maps"><datalist id="freeNames">' + names.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist>' +
+      '<button data-act="freego" aria-label="Naviga">➤</button></div><div class="fph">Se la logistica ti assegna una consegna compare qui da sola.</div></div>';
+  }
   function freeAdd(name, ll) {
     var sh = S.shift; if (!sh) return;
     sh.extra = sh.extra || [];
@@ -1908,33 +1924,37 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       return '<li><div class="item hist">' + (x.thumb ? '<img class="thumb" src="' + x.thumb + '" alt="">' : '<span class="thumb ph">no foto</span>') + '<span><b>' + esc(x.name) + (x.day ? ' · ' + esc(x.day) : '') + '</b><small>' + dmy(x.start) + ' · ' + hm(x.start) + '–' + hm(x.end) + '</small><small>' + x.ok + (x.total ? ' di ' + x.total : '') + ' tappe</small></span></div></li>';
     }).join('') + '</ul>';
   }
+  // Elia e Daffa vedono solo il programma della loro barca: giorno oppure settimana
+  var PGM = 'giorno';
   function viewProgrammaCrew() {
-    var keys = DAYKEYS.slice().sort(), k = viewDay || (S.shift ? S.shift.day : pickDay()); if (!PROGRAM[k]) k = viewDay = pickDay();
-    var day = PROGRAM[k], g = pglGet(), me = (S.shift && S.shift.boat) || myBoatCode();
-    var h = '<div class="wrap"><div class="row"><h2>Programma</h2><button class="btn sm" data-act="pgle">' + (PGE ? 'Fatto' : '⚙ Layout') + '</button></div>' +
-      '<div class="chips" role="group" aria-label="Giorno">' + keys.map(function (d) { return '<button class="chip" data-act="day" data-k="' + d + '" aria-pressed="' + (d === k ? 'true' : 'false') + '">' + esc(PROGRAM[d].short) + '</button>'; }).join('') + '</div>' +
-      '<h3>' + esc(day.label) + '</h3>';
-    if (PGE) h += '<p class="hint">Sposta le schede con ↑ ↓, togli quelle che non ti servono, aggiungine altre in fondo.</p>';
-    var vis = g.order.filter(function (c) { return !g.hidden[c]; });
-    vis.forEach(function (c, n) {
-      var body = '';
-      if (c === 'mia') body = me && day.boats[me] ? pgBoatCard(k, day, me, true) : '<p class="muted">Inizia un turno per vedere qui la tua barca.</p>';
-      else if (c === 'tutte') body = boatCodes().filter(function (id) { return day.boats[id] && !BOATS[id].test && (c !== 'tutte' || id !== me || g.hidden.mia); }).map(function (id) { return pgBoatCard(k, day, id, false); }).join('');
-      else if (c === 'settimana') body = ldWeek(k);
-      else if (c === 'timeline') body = pgTimeline(k, day);
-      else if (c === 'storico') body = pgHistory();
-      h += '<section class="card pgc"><div class="row pgch"><h3>' + PGL_N[c] + (c === 'tutte' && me && !g.hidden.mia ? ' <span class="muted">(le altre)</span>' : '') + '</h3>' +
-        (PGE ? '<span class="pgct"><button data-act="pglmv" data-c="' + c + '" data-d="-1"' + (n ? '' : ' disabled') + ' aria-label="Su">↑</button><button data-act="pglmv" data-c="' + c + '" data-d="1"' + (n < vis.length - 1 ? '' : ' disabled') + ' aria-label="Giù">↓</button><button data-act="pglhide" data-c="' + c + '">Togli</button></span>' : '') + '</div>' + body + '</section>';
-    });
-    var gone = g.order.filter(function (c) { return g.hidden[c]; });
-    if (PGE && gone.length) h += '<div class="wtray pgtray"><span>Aggiungi:</span>' + gone.map(function (c) { return '<button class="btn sm" data-act="pglshow" data-c="' + c + '">+ ' + PGL_N[c] + '</button>'; }).join('') + '</div>';
-    if (!vis.length && !PGE) h += '<p class="muted">Nessuna scheda: tocca ⚙ Layout per sceglierle.</p>';
-    return h + '<p class="hint">Gli orari possono subire variazioni. Per dubbi scrivi alla logistica.</p></div>';
+    var me = myBoatCode() || (S.shift && S.shift.boat);
+    var keys = DAYKEYS.slice().sort().filter(function (d) { return d >= todayKey() || (S.shift && S.shift.day === d); }); if (!keys.length) keys = DAYKEYS.slice().sort();
+    var k = viewDay && PROGRAM[viewDay] ? viewDay : (S.shift ? S.shift.day : pickDay()); if (!PROGRAM[k]) k = keys[0];
+    var h = '<div class="wrap"><div class="row"><h2>Il mio programma</h2><div class="seg2"><button data-act="pgm" data-m="giorno"' + (PGM === 'giorno' ? ' aria-pressed="true"' : '') + '>Giorno</button><button data-act="pgm" data-m="settimana"' + (PGM === 'settimana' ? ' aria-pressed="true"' : '') + '>Settimana</button></div></div>';
+    if (!me) return h + '<div class="card"><p class="muted">Non trovo la tua barca: chiedi alla logistica di indicarti come equipaggio.</p></div></div>';
+    h += '<p class="muted" style="margin-top:-4px"><b style="color:' + bcol(me) + '">●</b> ' + esc(BOATS[me].name) + '</p>';
+    if (PGM === 'settimana') {
+      return h + '<div class="mywk">' + keys.map(function (d) {
+        var bd = PROGRAM[d] && PROGRAM[d].boats[me], st = bd && !bd.off ? (bd.stops || []).filter(function (z) { return !z.cancelled; }) : [];
+        var txt = !bd || bd.off ? 'Riposo' : st.length ? st.length + (st.length === 1 ? ' tappa' : ' tappe') + ' · ' + (st[0].t || '') + (st.length > 1 && st[st.length - 1].t ? '–' + st[st.length - 1].t : '') : bd.onCall ? 'Reperibile' : '—';
+        return '<button class="mywd' + (d === todayKey() ? ' today2' : '') + '" data-act="pgday" data-k="' + d + '"><b>' + esc(PROGRAM[d].label) + '</b><span>' + esc(txt) + '</span><i>›</i></button>';
+      }).join('') + '</div></div>';
+    }
+    h += '<div class="chips" role="group" aria-label="Giorno">' + keys.map(function (d) { return '<button class="chip" data-act="day" data-k="' + d + '" aria-pressed="' + (d === k ? 'true' : 'false') + '">' + esc(PROGRAM[d].short) + '</button>'; }).join('') + '</div>';
+    var day = PROGRAM[k], bd = day.boats[me];
+    h += '<section class="card mypg" style="--bc:' + bcol(me) + '"><h3>' + esc(day.label) + '</h3>';
+    if (!bd || bd.off) h += '<p class="big">Riposo: nessun servizio.</p>';
+    else if (!(bd.stops || []).length) h += '<p class="big">' + (bd.onCall ? 'Nessun giro fisso: sei reperibile.' : 'Nessuna tappa.') + '</p>';
+    else { var mine = S.shift && S.shift.day === k && S.shift.boat === me, cur = mine ? curIdx() : -2; h += '<ul class="stl">' + bd.stops.map(function (s, i) { return pgStopLi(s, i, mine, cur); }).join('') + '</ul>'; }
+    if (bd && bd.onCall && (bd.stops || []).length) h += '<div class="note"><b>Emergenze.</b> Dopo il giro resti reperibile.</div>';
+    return h + '</section><p class="hint">Gli orari possono subire variazioni. Per dubbi scrivi alla logistica.</p></div>';
   }
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
     var a = el.getAttribute('data-act'), g;
-    if (a === 'bselc') { BF.sel = el.getAttribute('data-c'); render(); loadFiles(BF.sel); }
+    if (a === 'pgm') { PGM = el.getAttribute('data-m'); render(); }
+    else if (a === 'pgday') { viewDay = el.getAttribute('data-k'); PGM = 'giorno'; render(); }
+    else if (a === 'bselc') { BF.sel = el.getAttribute('data-c'); render(); loadFiles(BF.sel); }
     else if (a === 'pgle') { PGE = !PGE; render(); }
     else if (a === 'pglmv') { g = pglGet(); var c = el.getAttribute('data-c'), vis = g.order.filter(function (x) { return !g.hidden[x]; }), i = vis.indexOf(c), j = i + +el.getAttribute('data-d'); if (j < 0 || j >= vis.length) return; var a1 = g.order.indexOf(vis[i]), a2 = g.order.indexOf(vis[j]); g.order[a1] = vis[j]; g.order[a2] = vis[i]; save(); render(); }
     else if (a === 'pglhide') { g = pglGet(); g.hidden[el.getAttribute('data-c')] = true; save(); render(); }
@@ -2341,13 +2361,9 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
   function viewGuida() {
     if (!S.shift) return viewTurno();
-    var b = boat(), bd = boatDay(), all = stops(), i = curIdx(), c = counts();
-    if (i < 0) {
-      return '<div class="wrap"><div class="card"><h3>' + (c.total ? 'Giro completato' : 'Nessuna tappa oggi') + '</h3><h2>' + (c.total ? 'Ottimo lavoro!' : (bd.extraOnly ? 'Navigazione libera' : 'Solo reperibilità')) + '</h2>' +
-        '<p>' + (c.total ? 'Hai chiuso tutte le tappe di ' + esc(b.name) + '.' : 'Oggi ' + esc(b.name) + ' non ha tappe in programma: se la logistica ti assegna una consegna compare qui da sola.') + '</p>' + (c.total ? statsHtml(c) : '') + '</div>' + freeCard() +
-        (bd.onCall ? '<div class="note big"><b>Emergenze.</b> Resta reperibile finché non chiudi il turno.</div>' : '<div class="note">Quando sei ormeggiato, chiudi il turno.</div>') +
-        '<button class="btn primary" data-act="endsheet">Chiudi il turno</button><div class="minirow"><button class="btn" data-act="drvmenu">Menu</button></div></div>';
-    }
+    var b = boat(), bd = boatDay(), all = stops(), i = curIdx(), c = counts(), FREE = i < 0;
+    // nessuna tappa da fare: il navigatore resta acceso (mappa, GPS, velocità) e si può scegliere una meta
+    if (FREE) return guidaCluster(null, -1, all, '', '', c);
     var s = all[i], step = s.maint ? S.shift.step : 0, labels = s.maint ? ['Verifica'] : ['Rotta'], last = labels.length - 1;
     var next = nextStop(i), body = '', primary = '', speech = '';
 
@@ -2372,10 +2388,13 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (spoken !== key) { spoken = key; setTimeout(function () { say(speech); }, 150); }
     window.__speech = speech;
 
+    return guidaCluster(s, i, all, primary, speech, c);
+  }
+  function guidaCluster(s, i, all, primary, speech, c) {
     var sh = S.shift;
     setTimeout(function () { loadWx(false); loadTide(false); drawMap(); }, 50);
     var parts = {
-      stop: '<div class="stpanel"><div class="stbody" id="stFace">' + stopInner(s, i, all) + '</div></div>',
+      stop: '<div class="stpanel"><div class="stbody" id="stFace">' + (s ? stopInner(s, i, all) : freePanel(c)) + '</div></div>',
       ddt: '<div class="ddwbox" id="ddwFace">' + ddwInner() + '</div>',
       map: mapHtml(),
       speed: gwVar('speed') === 0 ? '<div class="gz sm" id="spFace">' + speedInner() + '</div>' : '<div class="spv sp' + gwVar('speed') + '" id="spFace">' + speedInner() + '</div>',
@@ -2384,11 +2403,11 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       tide: '<div id="tdFace" class="tdv">' + tideInner() + '</div>',
       mimmo: '<div id="mimFace" class="mim">' + mimInner() + '</div>',
       km: '<div class="tile"><div class="kms"><span>Tappa <b id="kmT">' + fmt2(sh.trip || 0) + '</b> km</span><span>Turno <b id="kmS">' + fmt1(sh.km || 0) + '</b> km</span><span><b id="spdN">' + (GPS.speed == null ? '–' : fmt1(GPS.speed * 1.94384)) + '</b> nodi</span></div></div>',
-      next: '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (lastDoneIdx() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button>' +
+      next: !s ? '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (lastDoneIdx() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button><button class="chk fin" data-act="endsheet"><span class="chkt">Chiudi il turno</span></button></div><button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>' : '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (lastDoneIdx() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button>' +
         '<button class="chk" id="nextBtn" data-act="next" aria-label="' + esc(primary) + '"><span class="chkc"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" class="ring"/><path d="M13 25l8 8 15-17" class="tick"/></svg></span><span class="chkt">' + esc(primary) + '</span></button></div>' +
         '<button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>'
     };
-    var g = gwGet(), ed = GWE.on, vis = g.order.filter(function (k) { return !g.hidden[k]; }), gone = g.order.filter(function (k) { return g.hidden[k]; });
+    var g = gwGet(), ed = GWE.on, noDdt = !ddwList().length, vis = g.order.filter(function (k) { return !g.hidden[k] && !(k === 'ddt' && noDdt && !ed); }), gone = g.order.filter(function (k) { return g.hidden[k]; });
     var grid = vis.map(function (k) {
       var d = GWD[k], sz = gwSize(k), dm = d.sizes[sz];
       return '<div class="wd w-' + k + (dm[0] === 2 ? ' w2' : '') + (ed ? ' ed' : '') + '" data-w="' + k + '" style="grid-column:span ' + dm[0] + ';grid-row:span ' + dm[1] + '">' + parts[k] +
@@ -2401,7 +2420,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<div class="cgps" id="gpsSt">' + esc(gpsText()) + '</div></div>';
     return '<div class="wrap drv">' + cluster +
       '<div class="minirow drvbtns"' + (GWE.on ? ' hidden' : '') + '><button class="btn" data-act="drvmenu" aria-label="Menu">Menu</button>' +
-      (s.maint ? '<button class="btn danger" data-act="maintreq">Problema</button>' : '<button class="btn danger" data-act="problem">Problema</button>') +
+      (!s ? '' : s.maint ? '<button class="btn danger" data-act="maintreq">Problema</button>' : '<button class="btn danger" data-act="problem">Problema</button>') +
       '<button class="btn gwb" data-act="gwedit" aria-label="Impostazioni del cruscotto">⚙</button></div></div>';
   }
 
@@ -3147,11 +3166,11 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function drawMap() {
     var box = $('mapBox'); if (!S.shift && MAPS.full) { mapFull(false); return; } if (!box || !S.shift) return;
     var W = box.clientWidth, H = box.clientHeight; if (W < 40 || H < 40) return;
-    var i = curIdx(); if (i < 0) return;
-    var s = stops()[i], tg = COORDS[s.name] || null, fx = GPS.last && Date.now() - GPS.last.t < 180000 ? GPS.last : null;
+    var i = curIdx();
+    var s = i >= 0 ? stops()[i] : { name: '' }, tg = s.name ? COORDS[s.name] || null : null, fx = GPS.last && Date.now() - GPS.last.t < 180000 ? GPS.last : null;
     var RC = mapCol().route, BC = mapCol().boat;
     var hud = $('mHud'), svg = $('mSvg'), tl = $('mTiles');
-    if (!tg && !fx) { tl.innerHTML = ''; MAPS.keys = {}; svg.innerHTML = ''; hud.textContent = 'Posizione non disponibile'; return; }
+    if (!tg && !fx) { tl.innerHTML = ''; MAPS.keys = {}; svg.innerHTML = ''; hud.textContent = i < 0 ? 'In attesa del segnale GPS…' : 'Posizione non disponibile'; return; }
     /* prima persona: sempre centrata sulla barca, ruotata nel verso di marcia, zoom molto ravvicinato */
     var z = MAPS.zoom != null ? MAPS.zoom : mapAutoZoom(fx), ax = W / 2, ay = fx ? H * 0.68 : H / 2, zi = Math.min(19, Math.floor(z)), sc = Math.pow(2, z - zi);
     zoomKnob(z);
@@ -3188,7 +3207,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       var dm = ch ? ch.rest : hav(fx.la, fx.lo, tg[0], tg[1]), v = GPS.speed, eta = v != null && v >= 0.8 ? Math.max(1, Math.round(dm / v / 60)) : null;
       if (ch) { hud.innerHTML = ch.html + (eta ? '<div style="font-size:12px;opacity:.8">circa ' + eta + ' min</div>' : '') + (CAN.rec ? '<div style="font-size:12px;color:#ff6b6b">● Registro il percorso da ' + esc(CAN.rec.from) + '</div>' : ''); }
       else hud.innerHTML = (CAN.rec ? '<span style="color:#ff6b6b">● REC</span> · ' : '') + (CAN.loading ? 'Scarico i canali… · ' : CAN.err ? esc(CAN.err) + ' · ' : '') + '<b>' + fmtDist(dm) + '</b> · ' + cardinal(bearing(fx.la, fx.lo, tg[0], tg[1])) + (eta ? ' · circa ' + eta + ' min' : '');
-    } else hud.textContent = !tg ? 'Posizione della tappa non disponibile' : 'In attesa del segnale GPS…';
+    } else hud.textContent = i < 0 ? (fx ? 'Navigazione libera · scegli una meta' : 'In attesa del segnale GPS…') : !tg ? 'Posizione della tappa non disponibile' : 'In attesa del segnale GPS…';
   }
   window.addEventListener('resize', function () { drawMap(); });
 
@@ -3555,7 +3574,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01s';
+  var APP_V = '2026-11-01t';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
