@@ -1264,6 +1264,27 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   /* ---------- Segreteria: DDT collegato direttamente alla consegna del programma (tocca 📎 o trascina il file sulla tappa) ---------- */
   var DDA = null;
+  var XT = { list: null };
+  function loadXT() { if (!tok() || !isOff()) return Promise.resolve(); return cl('rpc_task_day', { p_days: 2 }).then(function (r) { if (Array.isArray(r)) XT.list = r; }); }
+  setInterval(function () { if (view === 'programma' && isOff() && !document.hidden && !document.querySelector('#layer .sheet')) Promise.all([loadXT(), loadDdt()]).then(function () { if (view === 'programma') render(); }); }, 30000);
+  function xtFind(id) { return (XT.list || []).filter(function (t) { return t.id === id; })[0] || null; }
+  function ddtTaskCell(t) {
+    var k = isoOf(t.created_at), have = ddtOfStop(k, t.name).filter(function (x) { return !t.assigned_to || x.carrier_id === t.assigned_to; });
+    return '<span class="ddcell">' + have.map(function (x) { return '<button class="pill ' + (x.status === 'signed' ? 'go' : 'ok') + '" data-act="ddtopen" data-id="' + x.id + '">📄 ' + (x.status === 'signed' ? 'Firmato' : 'DDT') + '</button>'; }).join('') +
+      '<button class="btn sm ddatt" data-act="ddtatt" data-tk="' + esc(t.id) + '" aria-label="Collega un DDT a ' + esc(t.name) + '">📎' + (have.length ? '' : ' DDT') + '</button></span>';
+  }
+  function ddtAttachTask(t, f) {
+    if (!t || !f) return;
+    var k = isoOf(t.created_at), car = (DD.carriers || []).filter(function (c) { return c.id === t.assigned_to; })[0];
+    if (!car) { toast('Il trasportatore di questa consegna non può ricevere DDT'); return; }
+    toast('Carico il DDT per ' + t.name + '…');
+    ddtFileData(f).then(function (o) {
+      return cl('rpc_ddt_add2', { p_carrier: car.id, p_number: '', p_customer: t.name, p_address: '', p_note: t.note || '', p_name: o.name, p_mime: o.mime, p_data: o.b64, p_date: k, p_stop: t.name, p_boat: t.boat_code || '' });
+    }).then(function (r) {
+      if (r && r.ok) { toast('DDT collegato a ' + t.name + ' → ' + car.name); loadDdt().then(function () { render(); }); }
+      else toast('Non sono riuscito a caricare il DDT: riprova');
+    }).catch(function (e) { toast(e === 'big' ? 'PDF troppo grande (massimo 3 MB)' : e === 'formato' ? 'Usa un PDF o una foto' : 'Non riesco a leggere il file'); });
+  }
   function ddtCarrierFor(code) {
     var crew = ddtNorm(BOATS[code] && BOATS[code].crew).split(' ')[0];
     return crew ? (DD.carriers || []).filter(function (c) { return ddtNorm(c.name).indexOf(crew) === 0; })[0] || null : null;
@@ -1298,8 +1319,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     }).join('') + '<button class="btn sm ddatt" data-act="ddtatt"' + da + ' aria-label="Collega un DDT a ' + esc(s.name) + '">📎' + (have.length ? '' : ' DDT') + '</button></span>';
   }
   document.addEventListener('change', function (e) {
-    var t = e.target; if (!t || t.id !== 'ddAttIn' || !t.files || !t.files[0] || !DDA || !DDA.k) return;
-    var a = DDA; DDA = null; ddtAttach(a.k, a.b, a.i, t.files[0]); t.value = '';
+    var t = e.target; if (!t || t.id !== 'ddAttIn' || !t.files || !t.files[0] || !DDA) return;
+    var a = DDA; DDA = null; if (a.tk) ddtAttachTask(xtFind(a.tk), t.files[0]); else if (a.k) ddtAttach(a.k, a.b, a.i, t.files[0]); t.value = '';
   });
   // PC: trascina il file sulla riga della tappa
   document.addEventListener('dragover', function (e) {
@@ -1311,12 +1332,13 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var row = e.target.closest ? e.target.closest('[data-ddrop]') : null; if (!row) return;
     e.preventDefault(); row.classList.remove('ddover');
     var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (!f) return;
-    ddtAttach(row.getAttribute('data-k'), row.getAttribute('data-b'), +row.getAttribute('data-i'), f);
+    if (row.getAttribute('data-tk')) ddtAttachTask(xtFind(row.getAttribute('data-tk')), f); else ddtAttach(row.getAttribute('data-k'), row.getAttribute('data-b'), +row.getAttribute('data-i'), f);
   });
   function viewProgramma() {
     // giorni senza programma ma con consegne aggiunte (es. una domenica): li mostro lo stesso
     var VX = {}, keys = DAYKEYS.slice();
-    if (isMgr() && MG.list) MG.list.forEach(function (t) { var ci = isoOf(t.created_at); if (t.status !== 'annullata' && !PROGRAM[ci] && !VX[ci]) { var dp = dateParts(ci); VX[ci] = { short: (ci === todayISO() ? 'Oggi ' : DNALL[dp.dow].slice(0, 3) + ' ') + dp.n, label: DNALL[dp.dow] + ' ' + dp.n + ' ' + MONTHS[dp.m], boats: {}, virtual: true }; keys.push(ci); } });
+    var TL = isMgr() ? MG.list : isOff() ? XT.list : null;
+    if (TL) TL.forEach(function (t) { var ci = isoOf(t.created_at); if (t.status !== 'annullata' && !PROGRAM[ci] && !VX[ci]) { var dp = dateParts(ci); VX[ci] = { short: (ci === todayISO() ? 'Oggi ' : DNALL[dp.dow].slice(0, 3) + ' ') + dp.n, label: DNALL[dp.dow] + ' ' + dp.n + ' ' + MONTHS[dp.m], boats: {}, virtual: true }; keys.push(ci); } });
     keys.sort();
     var k = viewDay || (S.shift ? S.shift.day : (VX[todayISO()] ? todayISO() : pickDay())); if (!PROGRAM[k] && !VX[k]) k = viewDay = pickDay();
     var day = PROGRAM[k] || VX[k];
@@ -1325,7 +1347,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var h = '<div class="wrap"><h2>Programma</h2><p class="muted">Logistica Ristorazione San Marco · dal ' + pgFmt(DAYKEYS[0]) + ' al ' + pgFmt(DAYKEYS[DAYKEYS.length - 1]) + '</p>' + (VX[todayISO()] ? '' : dayNote()) +
       '<div class="chips" role="group" aria-label="Giorno">' + keys.map(function (d) { return '<button class="chip" data-act="day" data-k="' + d + '" aria-pressed="' + (d === k ? 'true' : 'false') + '">' + esc((PROGRAM[d] || VX[d]).short) + '</button>'; }).join('') + '</div>' +
       (isMgr() && tok() ? '<button class="btn" data-act="nav" data-v="nuovo">+ Nuovo turno o consegna</button>' : '') + '<h3>' + esc(day.label) + '</h3>' + (day.halloween ? '<div class="note">🎃 <b>Buon Halloween!</b> Occhio alla nebbia in laguna: dolcetto o scherzetto a fine giro.</div>' : '');
-    if (canDdt) h += '<p class="hint">Tocca <b>📎 DDT</b> su una consegna per collegare il suo DDT' + (isWide() ? ', oppure trascina il file sulla riga' : '') + '. Il trasportatore lo trova nel navigatore quando arriva lì.</p><input type="file" id="ddAttIn" accept="application/pdf,image/*" style="display:none">';
+    if (canDdt) h += '<p class="hint">Tocca <b>📎 DDT</b> su una consegna per collegare il suo DDT' + (isWide() ? ', oppure trascina il file sulla riga' : '') + '. Il trasportatore lo trova nel navigatore quando arriva lì.</p>';
+    if (isOff() && tok()) h += '<input type="file" id="ddAttIn" accept="application/pdf,image/*" style="display:none">';
     if (canEdit && ids.some(function (id) { return (day.boats[id].stops || []).length; })) h += '<p class="hint">Tocca un orario per cambiarlo · scorri a sinistra per eliminare · tieni premuta una tappa e trascinala per cambiare l’ordine.</p>';
     ids.forEach(function (id) {
       var b = BOATS[id], bd = day.boats[id], mine = S.shift && S.shift.day === k && S.shift.boat === id, cur = mine ? curIdx() : -2;
@@ -1345,12 +1368,13 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       if (bd.onCall) h += '<div class="note"><b>Emergenze.</b> Resta reperibile durante il turno.</div>';
       h += '</section>';
     });
-    if (isMgr() && MG.list) {
-      var xt = MG.list.filter(function (t) { return t.status !== 'annullata' && isoOf(t.created_at) === k; });
+    if (TL) {
+      var xt = TL.filter(function (t) { return t.status !== 'annullata' && isoOf(t.created_at) === k; });
       if (day.virtual) h += '<p class="muted">Nessun giro in programma per questo giorno: qui sotto le consegne aggiunte.</p>';
       if (xt.length) h += '<section class="card"><h3>Consegne aggiunte in giornata</h3><ul class="stl">' + xt.sort(function (a, b) { return (a.t || '99') < (b.t || '99') ? -1 : 1; }).map(function (t) {
         var row = '<span class="mono">' + esc(t.t || '—') + '</span><span><b>' + esc(t.name) + '</b><small>' + esc([t.boat, t.who].filter(Boolean).join(' · ')) + (t.note ? ' · ' + esc(t.note) : '') + '</small></span>' + stPill(t);
-        return (t.status === 'assegnata' || t.status === 'in_corso') && tok() ? '<li class="swr"><div class="swc stp">' + row + '</div><button class="swdel" data-act="xdel" data-run="' + esc(t.run_id) + '">Elimina</button></li>' : '<li class="stp">' + row + '</li>'; }).join('') + '</ul></section>';
+        if (isOff()) return '<li class="stp ddpin" data-ddrop="1" data-tk="' + esc(t.id) + '"><span class="mono">' + esc(t.t || '—') + '</span><span><b>' + esc(t.name) + '</b><small>' + esc([t.boat, t.who].filter(Boolean).join(' · ')) + (t.note ? ' · ' + esc(t.note) : '') + '</small></span>' + ddtTaskCell(t) + '</li>';
+        return (t.status === 'assegnata' || t.status === 'in_corso') && tok() && isMgr() ? '<li class="swr"><div class="swc stp">' + row + '</div><button class="swdel" data-act="xdel" data-run="' + esc(t.run_id) + '">Elimina</button></li>' : '<li class="stp">' + row + '</li>'; }).join('') + '</ul></section>';
     }
     h += '<p class="hint">Gli orari possono subire variazioni ed è richiesta disponibilità. Per dubbi sul programma scrivi alla logistica.</p>';
     if (isOff()) return h + '</div>';
@@ -3875,7 +3899,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var el = e.target.closest('[data-act]'); if (!el) return;
     var a = el.getAttribute('data-act'), sh = S.shift;
     if (a === 'veil') { if (e.target === el) closeSheet(); return; }
-    if (a === 'nav') { view = el.getAttribute('data-v'); if (view !== 'richieste') draft = null; if (view === 'admin') adminOpen = null; render(); if (view === 'contatti') loadContacts(); if (view === 'admin') loadAdmin(); if (view === 'logistica' || view === 'nuovo') loadMgr(true); if (view === 'programma') { loadMgr(false); if (isOff()) loadDdt().then(function () { if (view === 'programma') render(); }); } if (view === 'ore') loadHrs(); if (view === 'notifiche') { NT.hl = {}; loadNotif(); } if (view === 'ddt') loadDdt(); if (view === 'barca') { loadFiles(curBoatCode()); loadBoatInfo(); } return; }
+    if (a === 'nav') { view = el.getAttribute('data-v'); if (view !== 'richieste') draft = null; if (view === 'admin') adminOpen = null; render(); if (view === 'contatti') loadContacts(); if (view === 'admin') loadAdmin(); if (view === 'logistica' || view === 'nuovo') loadMgr(true); if (view === 'programma') { loadMgr(false); if (isOff()) Promise.all([loadDdt(), loadXT()]).then(function () { if (view === 'programma') render(); }); } if (view === 'ore') loadHrs(); if (view === 'notifiche') { NT.hl = {}; loadNotif(); } if (view === 'ddt') loadDdt(); if (view === 'barca') { loadFiles(curBoatCode()); loadBoatInfo(); } return; }
     if (a === 'bsel') { BF.sel = el.getAttribute('data-c'); BF.edit = null; render(); loadFiles(BF.sel); return; }
     if (a === 'bedit') { BF.edit = { code: curBoatCode(), vals: {} }; render(); return; }
     if (a === 'becancel') { BF.edit = null; render(); return; }
@@ -3982,7 +4006,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (a === 'pgopen') { cl('rpc_program_get', { p_id: el.getAttribute('data-id') }).then(function (r) { if (r && r.days) { PG.d = { id: r.id, title: r.title, summary: '', warnings: [], days: r.days, notes: r.notes }; PG.notes = r.notes || ''; PG.confirm = false; render(); $('main').scrollTop = 0; } }); return; }
     if (a === 'pgstat') { var ns = el.getAttribute('data-s'); cl('rpc_program_status', { p_id: el.getAttribute('data-id'), p_status: ns }).then(function (r) { if (r && r.ok) { toast(ns === 'published' ? 'Pubblicato' : ns === 'draft' ? 'Ritirato: tornano i giri precedenti' : 'Archiviato'); loadPgList(); loadProgram(); } }); return; }
     if (a === 'asgo') { asRun(); return; }
-    if (a === 'ddtatt') { DDA = { k: el.getAttribute('data-k'), b: el.getAttribute('data-b'), i: +el.getAttribute('data-i') }; var fi2 = $('ddAttIn'); if (fi2) { fi2.value = ''; fi2.click(); } return; }
+    if (a === 'ddtatt') { DDA = el.getAttribute('data-tk') ? { tk: el.getAttribute('data-tk') } : { k: el.getAttribute('data-k'), b: el.getAttribute('data-b'), i: +el.getAttribute('data-i') }; var fi2 = $('ddAttIn'); if (fi2) { fi2.value = ''; fi2.click(); } return; }
     if (a === 'ddtcar') { var cid = el.getAttribute('data-id'), cc = (DD.carriers || []).filter(function (c) { return c.id === cid; })[0]; closeSheet(); if (DDA && DDA.go && cc) DDA.go(cc); DDA = null; return; }
     if (a === 'pdel') { var li0 = el.closest('.swr'); if (li0) li0.classList.add('gone'); progDelStop(el.getAttribute('data-k'), el.getAttribute('data-b'), +el.getAttribute('data-i')); return; }
     if (a === 'xdel') { var li1 = el.closest('.swr'); if (li1) li1.classList.add('gone'); taskDelRun(el.getAttribute('data-run')); return; }
