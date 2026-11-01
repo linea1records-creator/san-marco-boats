@@ -153,6 +153,10 @@ li.on .ddwk{background:#4FC3F7;border-color:#4FC3F7;color:#0B1317}.ddwk.ok{borde
 .mywd{display:flex;align-items:center;gap:10px;padding:12px 14px;border:0;border-radius:12px;background:var(--card,#fff);color:inherit;font:inherit;text-align:left;box-shadow:0 0 0 1px var(--line,#e2e5ea);cursor:pointer}
 .mywd b{flex:1}.mywd span{color:var(--muted,#667);font-size:14px}.mywd i{font-style:normal;opacity:.4}.mywd.today2{box-shadow:0 0 0 2px #1655C8}
 .mypg{box-shadow:inset 4px 0 0 var(--bc)}
+.card.asgd{padding:0 14px;display:block}.asgd summary{display:flex;justify-content:space-between;align-items:center;padding:14px 0;cursor:pointer;list-style:none}.asgd summary::-webkit-details-marker{display:none}.asgd[open] summary .secc{transform:rotate(90deg)}
+.asgd .asgc{box-shadow:none;border:0;background:none;padding:0 0 12px;margin:0}.asgd .asgc h3{display:none}
+.asgr{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-top:1px solid var(--line,#eef0f3)}
+.asgm{display:flex}.asgm button{flex:1}.asgp.field{margin:0;text-transform:none}
 </style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -1275,12 +1279,39 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (S.shift || !X.my.length) return '';
     return '<section class="card" style="display:flex;flex-direction:column;gap:8px"><h3>Consegne straordinarie per te</h3><ul class="stl">' + X.my.map(function (t) { return '<li><div><b>' + esc(t.name) + '</b>' + (t.t ? ' <span class="muted">alle ' + esc(t.t) + '</span>' : '') + (t.note ? '<div class="muted">' + esc(t.note) + '</div>' : '') + '<div class="muted">Da ' + esc(t.by) + '</div></div>' + (t.urgency !== 'normale' ? '<span class="pill ' + (t.urgency === 'emergenza' ? 'bad' : 'go') + '">' + URGL[t.urgency] + '</span>' : '') + '</li>'; }).join('') + '</ul><div class="hint">Compariranno nel cruscotto appena inizi il turno.</div></section>';
   }
-  /* ---------- Spiegazione del programma di domani (dalle 12 alle 2 di notte, appena apri l'app) ---------- */
-  function myBoatCode() {
-    if (!SESSION || !SESSION.name) return null;
-    var me = ddtNorm(SESSION.name).split(' ')[0];
-    return boatCodes().filter(function (c) { var cr = ddtNorm(BOATS[c].crew).split(' ')[0]; return c !== 'TULLIO' && cr && cr === me; })[0] || null;
+  /* ---------- A chi è affidato il programma di ogni barca: alla barca, alla persona o a entrambi ---------- */
+  var ASG = null; try { ASG = JSON.parse(localStorage.getItem('smb-asg') || 'null'); } catch (e) {}
+  function loadAsg() { if (!tok()) return Promise.resolve(); return cl('rpc_assign_list', {}).then(function (r) { if (Array.isArray(r)) { var m = {}; r.forEach(function (x) { m[x.boat] = x; }); var ch = JSON.stringify(m) !== JSON.stringify(ASG); ASG = m; try { localStorage.setItem('smb-asg', JSON.stringify(m)); } catch (e) {} if (ch && (view === 'programma' || view === 'turno' || view === 'logistica')) render(); } }); }
+  function asgOf(c) { return (ASG && ASG[c]) || { mode: 'entrambi' }; }
+  function myBoatCodes() {
+    if (!SESSION || !SESSION.name) return [];
+    var me = ddtNorm(SESSION.name), first = me.split(' ')[0];
+    return boatCodes().filter(function (c) {
+      if (c === 'TULLIO' || BOATS[c].test) return false;
+      var a = asgOf(c), byPerson = !!(a.me || (a.name && ddtNorm(a.name) === me));
+      var cr = ddtNorm(BOATS[c].crew).split(' ')[0], byBoat = !!(cr && cr === first) || !!(S.shift && S.shift.boat === c);
+      return a.mode === 'persona' ? byPerson : a.mode === 'barca' ? byBoat : (byPerson || byBoat);
+    });
   }
+  function asgCard() {
+    var ppl = (MG.opts && MG.opts.people) || [], bs = boatCodes().filter(function (c) { return c !== 'TULLIO' && !BOATS[c].test; });
+    return '<section class="card asgc"><h3>Chi vede il programma</h3>' + bs.map(function (c) {
+      var a = asgOf(c), per = a.mode !== 'barca';
+      return '<div class="asgr"><div class="asgh"><b style="color:' + bcol(c) + '">●</b> <b>' + esc(BOATS[c].name) + '</b></div>' +
+        '<div class="seg2 asgm">' + [['barca', 'Barca'], ['persona', 'Persona'], ['entrambi', 'Entrambi']].map(function (m) { return '<button data-act="asgmode" data-c="' + c + '" data-m="' + m[0] + '"' + (a.mode === m[0] ? ' aria-pressed="true"' : '') + '>' + m[1] + '</button>'; }).join('') + '</div>' +
+        (per ? '<select class="field asgp" data-asg="' + c + '" aria-label="Persona per ' + esc(BOATS[c].name) + '"><option value="">Scegli la persona</option>' + ppl.map(function (p) { return '<option value="' + esc(p.id) + '"' + (a.emp === p.id ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join('') + '</select>' : '') +
+        '<div class="hint">' + (a.mode === 'barca' ? 'Lo vede chi è nell’equipaggio della barca' + (BOATS[c].crew ? ' (' + esc(BOATS[c].crew) + ')' : '') + ' o chi ci fa il turno.' : a.mode === 'persona' ? 'Lo vede solo ' + (a.name ? esc(a.name) : 'la persona scelta') + ', su qualsiasi barca.' : 'Lo vede ' + (a.name ? esc(a.name) : 'la persona scelta') + ' e anche chi è nell’equipaggio o ci fa il turno.') + '</div></div>';
+    }).join('') + '</section>';
+  }
+  function asgSave(c, mode, emp) {
+    var a = asgOf(c); ASG = ASG || {}; ASG[c] = { boat: c, mode: mode, emp: emp, name: emp ? ((MG.opts.people || []).filter(function (p) { return p.id === emp; })[0] || {}).name : null }; render();
+    cl('rpc_assign_set', { p_boat: c, p_mode: mode, p_emp: emp || null }).then(function (r) { toast(r && r.ok ? 'Salvato: ' + BOATS[c].name : 'Non riesco a salvare'); loadAsg(); }).catch(function () { toast('Serve la connessione'); ASG[c] = a; render(); });
+  }
+  document.addEventListener('toggle', function (e) { if (e.target && e.target.classList && e.target.classList.contains('asgd')) LD.asgOpen = e.target.open; }, true);
+  document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="asgmode"]') : null; if (!el) return; var c = el.getAttribute('data-c'); asgSave(c, el.getAttribute('data-m'), asgOf(c).emp || null); });
+  document.addEventListener('change', function (e) { var c = e.target && e.target.getAttribute && e.target.getAttribute('data-asg'); if (!c) return; asgSave(c, asgOf(c).mode || 'entrambi', e.target.value || null); });
+  /* ---------- Spiegazione del programma di domani (dalle 12 alle 2 di notte, appena apri l'app) ---------- */
+  function myBoatCode() { return myBoatCodes()[0] || null; }
   function briefKey() {
     var now = new Date(), h = now.getHours(); if (!(h >= 12 || h < 2)) return null;
     var d = new Date(Date.now() - 2 * 3600e3); d.setDate(d.getDate() + 1);
@@ -1925,14 +1956,15 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     }).join('') + '</ul>';
   }
   // Elia e Daffa vedono solo il programma della loro barca: giorno oppure settimana
-  var PGM = 'giorno';
+  var PGM = 'giorno', PGB = null;
   function viewProgrammaCrew() {
-    var me = myBoatCode() || (S.shift && S.shift.boat);
+    var mineB = myBoatCodes(); if (S.shift && mineB.indexOf(S.shift.boat) < 0) mineB.unshift(S.shift.boat);
+    var me = (PGB && mineB.indexOf(PGB) >= 0) ? PGB : (S.shift && S.shift.boat) || mineB[0];
     var keys = DAYKEYS.slice().sort().filter(function (d) { return d >= todayKey() || (S.shift && S.shift.day === d); }); if (!keys.length) keys = DAYKEYS.slice().sort();
     var k = viewDay && PROGRAM[viewDay] ? viewDay : (S.shift ? S.shift.day : pickDay()); if (!PROGRAM[k]) k = keys[0];
     var h = '<div class="wrap"><div class="row"><h2>Il mio programma</h2><div class="seg2"><button data-act="pgm" data-m="giorno"' + (PGM === 'giorno' ? ' aria-pressed="true"' : '') + '>Giorno</button><button data-act="pgm" data-m="settimana"' + (PGM === 'settimana' ? ' aria-pressed="true"' : '') + '>Settimana</button></div></div>';
-    if (!me) return h + '<div class="card"><p class="muted">Non trovo la tua barca: chiedi alla logistica di indicarti come equipaggio.</p></div></div>';
-    h += '<p class="muted" style="margin-top:-4px"><b style="color:' + bcol(me) + '">●</b> ' + esc(BOATS[me].name) + '</p>';
+    if (!me) return h + '<div class="card"><p class="muted">Non hai ancora un programma affidato: chiedi alla logistica di assegnartelo.</p></div></div>';
+    h += mineB.length > 1 ? '<div class="chips" role="group" aria-label="Barca">' + mineB.map(function (c) { return '<button class="chip" data-act="pgb" data-c="' + c + '" aria-pressed="' + (c === me ? 'true' : 'false') + '">● ' + esc(BOATS[c].name) + '</button>'; }).join('') + '</div>' : '<p class="muted" style="margin-top:-4px"><b style="color:' + bcol(me) + '">●</b> ' + esc(BOATS[me].name) + '</p>';
     if (PGM === 'settimana') {
       return h + '<div class="mywk">' + keys.map(function (d) {
         var bd = PROGRAM[d] && PROGRAM[d].boats[me], st = bd && !bd.off ? (bd.stops || []).filter(function (z) { return !z.cancelled; }) : [];
@@ -1953,6 +1985,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
     var a = el.getAttribute('data-act'), g;
     if (a === 'pgm') { PGM = el.getAttribute('data-m'); render(); }
+    else if (a === 'pgb') { PGB = el.getAttribute('data-c'); render(); }
     else if (a === 'pgday') { viewDay = el.getAttribute('data-k'); PGM = 'giorno'; render(); }
     else if (a === 'bselc') { BF.sel = el.getAttribute('data-c'); render(); loadFiles(BF.sel); }
     else if (a === 'pgle') { PGE = !PGE; render(); }
@@ -2719,6 +2752,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     h += '<section class="card"><div class="row"><h3>Barche in tempo reale</h3><span class="muted" id="ldUpd">' + (MG.fleetAt ? 'aggiornato ' + hm(MG.fleetAt) : '') + '</span></div>' +
       '<div class="fleetbox ldmap" id="fleetBox"><div class="mtiles" id="fTiles"></div><svg class="msvg" id="fSvg" aria-hidden="true"></svg><div class="mhud" id="fHud"></div><div class="mattr">© OpenStreetMap · OpenSeaMap</div></div></section>';
     h += '<section class="card"><h3>Velocità</h3><div class="ldspd" id="ldSpd">' + ldSpeedInner() + '</div></section>';
+    if (isMgr()) { if (!ASG && !LD.asgL) { LD.asgL = 1; loadAsg(); } h += '<details class="card lddet asgd"' + (LD.asgOpen ? ' open' : '') + '><summary><b>Chi vede il programma di ogni barca</b><span class="secc">›</span></summary>' + asgCard() + '</details>'; }
     if (!isFullAcc() && isMgr()) h += '<details class="card lddet"><summary><b>Clienti: account con PIN</b></summary>' + custCard() + '</details>';
     setTimeout(drawFleet, 30);
     return h + '</div>';
@@ -3574,7 +3608,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01t';
+  var APP_V = '2026-11-01u';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -5499,7 +5533,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     SESSION = { role: role, name: name, t: Date.now(), token: token || null, offline: !!offline };
     try { localStorage.setItem(SKEY, JSON.stringify(SESSION)); } catch (e) {}
     loginStep = 'pin'; pinBuf = ''; loginErr = ''; loginNames = []; view = role === 'admin' ? 'logistica' : role === 'office' ? 'programma' : 'turno';
-    drawLogin(); render(); gpsApply(); loadContacts(); loadAdmin(); loadMyTasks(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); loadProgram().then(briefMaybe); sendPendingReqs(); pushInit(); loadDdt(); if (isOff()) loadXT().then(render); }); MG.opts = null; MG.list = null; MG.draft = null; MG.fleet = null;
+    drawLogin(); render(); gpsApply(); loadContacts(); loadAdmin(); loadMyTasks(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); Promise.all([loadProgram(), loadAsg()]).then(briefMaybe); sendPendingReqs(); pushInit(); loadDdt(); if (isOff()) loadXT().then(render); }); MG.opts = null; MG.list = null; MG.draft = null; MG.fleet = null;
   }
   function logout() {
     if (S.shift && !confirm('Hai un turno ancora aperto. Vuoi uscire dal profilo lo stesso?')) return;
@@ -5522,7 +5556,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   if (SESSION && SESSION.role === 'office') view = 'programma';
   if (SESSION) gpsApply();
   render();
-  if (SESSION) { loadContacts(); loadAdmin(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); loadProgram().then(briefMaybe); sendPendingReqs(); pushInit(); loadDdt(); if (isOff()) loadXT().then(render); }); }
+  if (SESSION) { loadContacts(); loadAdmin(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); Promise.all([loadProgram(), loadAsg()]).then(briefMaybe); sendPendingReqs(); pushInit(); loadDdt(); if (isOff()) loadXT().then(render); }); }
   if (SESSION && view === 'logistica' && isMgr()) setTimeout(function () { loadMgr(false); }, 400);
   updCheck(); setTimeout(midnightCheck, 1500); setTimeout(briefMaybe, 1200);
 })();
