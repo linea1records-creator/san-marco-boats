@@ -172,6 +172,8 @@ li.on .ddwk{background:#4FC3F7;border-color:#4FC3F7;color:#0B1317}.ddwk.ok{borde
 @media print{#dial,.chips,.btn,.hint,header,.topbar{display:none!important}.cut td{background:#fff!important}}
 .ddwup{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 0 4px}.ddwup span{width:100%;font-size:12.5px;color:#FFB74D;font-weight:700}
 .ddwup button{border:0;border-radius:10px;padding:9px 12px;background:#E65100;color:#fff;font:inherit;font-weight:800;font-size:14px}
+.ctg{display:flex;flex-direction:column;gap:8px;margin-top:10px}.ctgh h3{margin:0}.ctgh .muted{font-weight:400}
+.sosg .ctgh h3{color:#C62828}
 </style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -2151,20 +2153,73 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
 
   /* contatti */
+  /* ---------- Rubrica: Pietro modifica nomi e numeri, crea e ordina le categorie ---------- */
+  var CTE = { on: false, edit: null, groups: null };
   function viewContatti() {
-    var ced = tok() && isEditor();
-    return '<div class="wrap"><h2>Contatti</h2><p class="muted">Rubrica dell’azienda. I contatti vengono aggiunti man mano; dove manca il numero compare “Numero da inserire”.</p>' +
-      (ced ? '<section class="card" style="display:flex;flex-direction:column;gap:8px"><b>Aggiungi un numero</b><input class="field" id="ctNN" type="text" maxlength="80" placeholder="Nome" style="text-transform:none"><input class="field" id="ctNR" type="text" maxlength="80" placeholder="Ruolo (facoltativo)" style="text-transform:none"><input class="field" id="ctNP" type="tel" maxlength="30" placeholder="Telefono, es. +39 041 1234567" style="text-transform:none"><input class="field" id="ctNG" type="text" maxlength="60" list="ctGl" placeholder="Gruppo (scegli o scrivi)" style="text-transform:none"><datalist id="ctGl">' + CONTACTS.map(function (g) { return '<option value="' + esc(g.g) + '">'; }).join('') + '</datalist><label class="hint"><input type="checkbox" id="ctNS"> Numero di emergenza (SOS)</label><button class="btn primary" data-act="ctadd">Aggiungi alla rubrica</button></section>' : '') +
-      '<label class="hint" for="ctSearch">Cerca per nome, ruolo o numero</label><input id="ctSearch" class="field" style="text-transform:none" type="search" placeholder="Es. Pietro, meccanico, logistica" autocomplete="off">' +
-      CONTACTS.map(function (g) {
-        return '<section class="ctg" style="display:flex;flex-direction:column;gap:10px"><h3>' + esc(g.g) + '</h3><ul class="list">' + g.list.map(function (c) {
-          var s = (c.n + ' ' + c.r + ' ' + c.t + ' ' + g.g).toLowerCase();
-          return '<li class="ct' + (g.sos ? ' sos' : '') + '" data-s="' + esc(s) + '"><div><b>' + esc(c.n) + '</b><small>' + esc(c.r) + '</small>' + (c.t ? '<span class="mono">' + esc(c.t) + '</span>' : '<span class="hint">Numero da inserire</span>') + '</div>' +
-            (c.t ? '<div class="ctb"><a class="btn sm" href="tel:' + c.t.replace(/\s/g, '') + '">Chiama</a><button class="btn sm" data-act="copy" data-t="' + esc(c.t) + '">Copia</button>' + (ced && c.id ? '<button class="btn sm danger" data-act="ctdel" data-id="' + esc(c.id) + '" data-n="' + esc(c.n) + '">Elimina</button>' : '') + '</div>' : (ced && c.id ? '<div class="ctb"><button class="btn sm danger" data-act="ctdel" data-id="' + esc(c.id) + '" data-n="' + esc(c.n) + '">Elimina</button></div>' : '')) + '</li>';
-        }).join('') + '</ul></section>';
-      }).join('') + '<p id="ctNone" class="muted" hidden>Nessun contatto trovato.</p></div>';
+    var ced = tok() && (isEditor() || isFullAcc()), ed = ced && CTE.on;
+    var groups = CTE.groups || CONTACTS.map(function (g) { return { name: g.g, sos: g.sos }; });
+    var by = {}; CONTACTS.forEach(function (g) { by[g.g] = g; });
+    var h = '<div class="wrap"><div class="row"><h2>Rubrica</h2>' + (ced ? '<button class="btn sm' + (ed ? ' primary' : '') + '" data-act="ctedit">' + (ed ? 'Fatto' : '✎ Modifica') + '</button>' : '') + '</div>' +
+      '<input id="ctSearch" class="field" style="text-transform:none" type="search" placeholder="Cerca nome, ruolo o numero" autocomplete="off" aria-label="Cerca">';
+    groups.forEach(function (gr, gi) {
+      var g = by[gr.name] || { g: gr.name, sos: gr.sos, list: [] };
+      if (!g.list.length && !ed) return;
+      h += '<section class="ctg' + (gr.sos ? ' sosg' : '') + '"><div class="row ctgh"><h3>' + esc(gr.name) + ' <span class="muted">' + g.list.length + '</span></h3>' +
+        (ed ? '<span class="pgct"><button data-act="ctgmv" data-g="' + esc(gr.name) + '" data-d="-1"' + (gi ? '' : ' disabled') + ' aria-label="Su">↑</button><button data-act="ctgmv" data-g="' + esc(gr.name) + '" data-d="1"' + (gi < groups.length - 1 ? '' : ' disabled') + ' aria-label="Giù">↓</button><button data-act="ctgren" data-g="' + esc(gr.name) + '" aria-label="Rinomina">✎</button>' + (g.list.length ? '' : '<button data-act="ctgdel" data-g="' + esc(gr.name) + '" aria-label="Elimina categoria">✕</button>') + '</span>' : '') + '</div><ul class="list">';
+      h += g.list.map(function (c) {
+        var s = (c.n + ' ' + c.r + ' ' + c.t + ' ' + g.g).toLowerCase();
+        return '<li class="ct' + (gr.sos ? ' sos' : '') + '" data-s="' + esc(s) + '"><div><b>' + esc(c.n) + '</b>' + (c.r ? '<small>' + esc(c.r) + '</small>' : '') + (c.t ? '<span class="mono">' + esc(c.t) + '</span>' : '<span class="hint">Numero da inserire</span>') + '</div><div class="ctb">' +
+          (c.t && !ed ? '<a class="btn sm" href="tel:' + c.t.replace(/\s/g, '') + '">Chiama</a><button class="btn sm" data-act="copy" data-t="' + esc(c.t) + '">Copia</button>' : '') +
+          (ced && c.id && (ed || !c.t) ? '<button class="btn sm' + (c.t ? '' : ' primary') + '" data-act="ctopen" data-id="' + esc(c.id) + '">' + (c.t ? 'Modifica' : '+ Numero') + '</button>' : '') + '</div></li>';
+      }).join('') + '</ul>' + (ed ? '<button class="aslink" data-act="ctopen" data-g="' + esc(gr.name) + '">+ Aggiungi contatto in ' + esc(gr.name) + '</button>' : '') + '</section>';
+    });
+    if (ed) h += '<button class="btn" data-act="ctgnew">+ Nuova categoria</button>';
+    return h + '<p id="ctNone" class="muted" hidden>Nessun contatto trovato.</p></div>';
   }
-
+  function ctFind(id) { var r = null; CONTACTS.forEach(function (g) { g.list.forEach(function (c) { if (c.id === id) r = { c: c, g: g.g }; }); }); return r; }
+  function ctSheet(id, grp) {
+    var f = id ? ctFind(id) : null, c = f ? f.c : { n: '', r: '', t: '' }, g = f ? f.g : grp || '';
+    var groups = (CTE.groups || CONTACTS.map(function (x) { return { name: x.g }; })).map(function (x) { return x.name; });
+    CTE.edit = { id: id || null };
+    openSheet('<h2>' + (id ? 'Modifica contatto' : 'Nuovo contatto') + '</h2>' +
+      '<label class="muted" for="ctEn">Nome</label><input class="field" id="ctEn" maxlength="80" value="' + esc(c.n) + '" style="text-transform:none">' +
+      '<label class="muted" for="ctEp">Telefono</label><input class="field" id="ctEp" type="tel" maxlength="30" value="' + esc(c.t) + '" placeholder="Es. 333 123 4567">' +
+      '<label class="muted" for="ctEr">Ruolo o nota (facoltativo)</label><input class="field" id="ctEr" maxlength="80" value="' + esc(c.r) + '" style="text-transform:none">' +
+      '<label class="muted" for="ctEg">Categoria</label><select class="field" id="ctEg" style="text-transform:none">' + groups.map(function (n) { return '<option' + (n === g ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '<option value="__new">+ Nuova categoria…</option></select>' +
+      '<input class="field" id="ctEgn" maxlength="60" placeholder="Nome della nuova categoria" style="text-transform:none;display:none">' +
+      '<p class="muted" id="ctEm" role="status" style="min-height:1.3em"></p><div class="btns"><button class="btn primary" data-act="ctsave">Salva</button>' +
+      (id ? '<button class="btn danger" data-act="ctdel" data-id="' + esc(id) + '" data-n="' + esc(c.n) + '">Elimina contatto</button>' : '') + '<button class="btn quiet" data-act="close">Annulla</button></div>');
+  }
+  document.addEventListener('change', function (e) { if (e.target && e.target.id === 'ctEg') { var n = $('ctEgn'); if (n) { n.style.display = e.target.value === '__new' ? '' : 'none'; if (e.target.value === '__new') n.focus(); } } });
+  function ctSave() {
+    var m = $('ctEm'), nm = ($('ctEn').value || '').trim(), ph = ($('ctEp').value || '').trim(), gs = $('ctEg').value, g = gs === '__new' ? ($('ctEgn').value || '').trim() : gs;
+    if (!nm) { m.textContent = 'Scrivi il nome.'; return; }
+    if (ph && !/^[0-9 +().-]{3,}$/.test(ph)) { m.textContent = 'Il numero contiene caratteri non validi.'; return; }
+    if (!g) { m.textContent = 'Scegli o scrivi la categoria.'; return; }
+    m.textContent = 'Salvo…';
+    cl('rpc_contact_save', { p_id: CTE.edit && CTE.edit.id, p_grp: g, p_name: nm, p_role: ($('ctEr').value || '').trim(), p_phone: ph }).then(function (r) {
+      if (r && r.ok) { closeSheet(); toast('Contatto salvato'); loadContacts(true); } else m.textContent = 'Non sono riuscito a salvare.';
+    }).catch(function () { m.textContent = 'Serve la connessione.'; });
+  }
+  function ctGroupSheet(old) {
+    CTE.gold = old || null;
+    openSheet('<h2>' + (old ? 'Rinomina categoria' : 'Nuova categoria') + '</h2><input class="field" id="ctGn" maxlength="60" value="' + esc(old || '') + '" placeholder="Es. Fornitori" style="text-transform:none">' +
+      '<label class="hint"><input type="checkbox" id="ctGs"' + (old && (CTE.groups || []).some(function (g) { return g.name === old && g.sos; }) ? ' checked' : '') + '> Categoria di emergenza (in rosso, in cima)</label>' +
+      '<p class="muted" id="ctGm" role="status" style="min-height:1.3em"></p><div class="btns"><button class="btn primary" data-act="ctgsave">Salva</button><button class="btn quiet" data-act="close">Annulla</button></div>');
+    setTimeout(function () { var x = $('ctGn'); if (x) x.focus(); }, 60);
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
+    var a = el.getAttribute('data-act');
+    if (a === 'ctedit') { CTE.on = !CTE.on; render(); }
+    else if (a === 'ctopen') ctSheet(el.getAttribute('data-id'), el.getAttribute('data-g'));
+    else if (a === 'ctsave') ctSave();
+    else if (a === 'ctgnew') ctGroupSheet(null);
+    else if (a === 'ctgren') ctGroupSheet(el.getAttribute('data-g'));
+    else if (a === 'ctgsave') { var nn = ($('ctGn').value || '').trim(), m = $('ctGm'); if (!nn) { m.textContent = 'Scrivi un nome.'; return; } cl('rpc_group_save', { p_old: CTE.gold, p_new: nn, p_sos: !!$('ctGs').checked }).then(function (r) { if (r && r.ok) { closeSheet(); toast('Categoria salvata'); loadContacts(true); } else m.textContent = r && r.error === 'esiste' ? 'Esiste già una categoria con questo nome.' : 'Non sono riuscito a salvare.'; }); }
+    else if (a === 'ctgmv') cl('rpc_group_move', { p_name: el.getAttribute('data-g'), p_dir: +el.getAttribute('data-d') }).then(function () { loadContacts(true); });
+    else if (a === 'ctgdel') cl('rpc_group_hide', { p_name: el.getAttribute('data-g') }).then(function (r) { toast(r && r.ok ? 'Categoria eliminata' : 'Svuota prima la categoria'); loadContacts(true); });
+  });
   /* barca */
   /* impostazioni */
   /* ---------- Sicurezza (solo Pietro): PIN di tutti, in tempo reale ---------- */
@@ -3677,7 +3732,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-01x';
+  var APP_V = '2026-11-01y';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -5048,7 +5103,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         if (r && r.ok) { toast('Numero aggiunto'); loadContacts(); } else toast(r && r.error === 'telefono_non_valido' ? 'Il numero non sembra valido' : 'Non sono riuscito a salvarlo. Controlla la connessione.'); });
       return;
     }
-    if (a === 'ctdel') { if (!confirm('Eliminare ' + el.getAttribute('data-n') + ' dalla rubrica?')) return; cl('rpc_contact_remove', { p_id: el.getAttribute('data-id') }).then(function (r) { if (r && r.ok) { toast('Contatto eliminato'); loadContacts(true); } else toast('Non sono riuscito a eliminarlo.'); }); return; }
+    if (a === 'ctdel') { if (!confirm('Eliminare ' + el.getAttribute('data-n') + ' dalla rubrica?')) return; cl('rpc_contact_remove', { p_id: el.getAttribute('data-id') }).then(function (r) { if (r && r.ok) { closeSheet(); toast('Contatto eliminato'); loadContacts(true); } else toast('Non sono riuscito a eliminarlo.'); }); return; }
     if (a === 'mgremove') { if (confirm('Eliminare questa consegna? Se la persona non l’ha ancora fatta, le sparisce dal telefono.')) cl('rpc_task_remove', { p_run: el.getAttribute('data-id') }).then(function (r) { loadMgr(false); toast(r && r.removed ? 'Consegna eliminata' : 'Non sono riuscito a eliminarla'); }); return; }
     if (a === 'mgpos') { var pi = +el.getAttribute('data-i'), ps = GPS.last;
       if (ps && Date.now() - ps.t < 120000) { MG.draft.stops[pi].coord = ps.la.toFixed(6) + ', ' + ps.lo.toFixed(6); render(); return; }
@@ -5278,16 +5333,12 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     cl('rpc_log_gps', { p_lat: c.latitude, p_lng: c.longitude, p_speed: v == null ? null : +v.toFixed(2), p_acc: c.accuracy == null ? null : +c.accuracy.toFixed(1) });
   }
   function loadContacts(force) {
-    cl('rpc_get_contacts', {}).then(function (rows) {
-      if (!rows) return;
-      if (!rows.length) { if (!force) return; }
-      var gs = [];
-      rows.forEach(function (r) {
-        var g = null; gs.forEach(function (x) { if (x.g === r.grp) g = x; });
-        if (!g) { g = { g: r.grp, sos: !!r.sos, list: [] }; gs.push(g); }
-        g.list.push({ n: r.name, r: r.role || '', t: r.phone || '', id: r.id });
-      });
-      CONTACTS = gs; if (view === 'contatti') render();
+    cl('rpc_contacts2', {}).then(function (r) {
+      if (!r || !r.items) return;
+      var gs = (r.groups || []).map(function (g) { return { g: g.name, sos: !!g.sos, list: [] }; }), by = {}; gs.forEach(function (g) { by[g.g] = g; });
+      r.items.forEach(function (x) { var g = by[x.grp]; if (!g) { g = by[x.grp] = { g: x.grp, sos: false, list: [] }; gs.push(g); } g.list.push({ n: x.name, r: x.role || '', t: x.phone || '', id: x.id }); });
+      CTE.groups = gs.map(function (g) { return { name: g.g, sos: g.sos }; });
+      CONTACTS = gs; if (view === 'contatti' && !document.querySelector('#layer .sheet')) render();
     });
   }
   function loadAdmin() {
