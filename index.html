@@ -183,6 +183,7 @@ li.on .ddwk{background:#4FC3F7;border-color:#4FC3F7;color:#0B1317}.ddwk.ok{borde
 .rubg{display:flex;flex-direction:column;gap:2px}.rubg>b{font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6}.rubg.sos>b{color:#C62828;opacity:1}
 .rubr{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid var(--line,#eef0f3)}.rubr span{flex:1;display:flex;flex-direction:column;min-width:0}.rubr small{font-size:13px;opacity:.7}
 .rubc{flex:none;width:44px;height:44px;border-radius:50%;background:#2E7D32;color:#fff;display:grid;place-items:center;text-decoration:none;font-size:20px}
+.rqbtn{display:flex;justify-content:space-between;align-items:center;font-weight:700;margin:4px 0 12px}.rqbtn b{background:#E65100;color:#fff;border-radius:999px;padding:0 8px;font-size:13px}
 </style></head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -2154,7 +2155,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         '<div class="hint">' + (r.boat && BOATS[r.boat] ? esc(BOATS[r.boat].name) + ' · ' : '') + hm(r.t) + ' del ' + dmy(r.t) + '</div>' +
         (r.closed ? '' : '<div class="btns two"><button class="btn sm" data-act="reqcopy" data-id="' + r.id + '">Copia messaggio</button><button class="btn sm" data-act="reqclose" data-id="' + r.id + '">Segna come risolta</button></div>') + '</li>';
     }
-    return '<div class="wrap"><h2>Di cosa hai bisogno?</h2><p class="muted">Scegli una categoria, dì cosa serve e quanto è urgente.</p>' +
+    return '<div class="wrap">' + (!isCrewOnly() && view === 'richieste' ? '<button class="aslink" data-act="nav" data-v="barca">‹ Barche</button>' : '') + '<h2>Di cosa hai bisogno?</h2><p class="muted">Scegli una categoria, dì cosa serve e quanto è urgente.</p>' +
       '<div class="cats">' + CATS.map(function (c) { return '<button class="cat' + (c.id === 'altro' ? ' wide' : '') + '" data-act="cat" data-id="' + c.id + '"><b>' + esc(c.name) + '</b><span>' + esc(c.hint) + '</span></button>'; }).join('') + '</div>' +
       '<h3 style="margin-top:8px">Le tue richieste</h3>' +
       (open.length || closed.length ? '<ul class="list">' + open.map(card).join('') + closed.map(card).join('') + '</ul>' + '<p class="hint">Le richieste restano salvate su questo telefono. Per inviarle alla logistica usa “Copia messaggio” e incollalo nella chat dell’azienda.</p>'
@@ -3538,7 +3539,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var code = curBoatCode(), ed = isEditor();
     if (!code) return '<div class="wrap"><div class="empty"><h2>Nessuna barca assegnata</h2><p>Inizia il turno per vedere scheda, motore e documenti della tua barca.</p><button class="btn primary" data-act="scan">Inizia turno</button></div></div>';
     var b = BOATS[code], mine = S.shift && S.shift.boat === code, E = BF.edit && BF.edit.code === code ? BF.edit : null, none = '<span class="muted">Da inserire</span>';
-    var h = '<div class="wrap">' + (isMgr() ? '<h2>Barche</h2>' + fleetBlock() + '<h3>Documenti e scheda di ogni barca</h3>' : '');
+    var h = '<div class="wrap">' + (isMgr() ? '<h2>Barche</h2>' + fleetBlock() + '<button class="btn rqbtn" data-act="nav" data-v="richieste">🧰 Richieste per le barche' + (S.requests.filter(function (r) { return !r.closed; }).length ? ' <b>' + S.requests.filter(function (r) { return !r.closed; }).length + '</b>' : '') + ' ›</button><h3>Documenti e scheda di ogni barca</h3>' : '');
     if (ed) h += '<div class="chips" role="group" aria-label="Barca">' + boatCodes().map(function (k) { return '<button class="chip" data-act="bsel" data-c="' + k + '" aria-pressed="' + (k === code ? 'true' : 'false') + '">' + esc(BOATS[k].name) + '</button>'; }).join('') + '</div>';
     function kv(list) {
       return '<dl class="kv">' + list.map(function (f) {
@@ -3626,7 +3627,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function setBg(hex) { S.bg = hex; save(); applyBg(hex); }
   applyBg(S.bg);
   function viewAltro() {
-    var items = [['ore', 'Ore lavorate', 'Tabella mensile delle ore di ogni dipendente'], ['programma', 'Programma', 'Giri e tappe dei prossimi giorni'], ['richieste', 'Richieste', 'Richieste per le barche'], ['ddt', 'DDT', 'Documenti di trasporto da consegnare e firmati'], ['cucina', 'Uscite dalla cucina', 'Orari in cui i carichi devono essere pronti'], ['admin', 'Storico turni', 'Turni passati, controllo tappe e statistiche'], ['impost', 'Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
+    var items = [['ore', 'Ore lavorate', 'Tabella mensile delle ore di ogni dipendente'], ['programma', 'Programma', 'Giri e tappe dei prossimi giorni'], ['ddt', 'DDT', 'Documenti di trasporto da consegnare e firmati'], ['cucina', 'Uscite dalla cucina', 'Orari in cui i carichi devono essere pronti'], ['impost', 'Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
     return '<div class="wrap"><h2>Altro</h2>' + items.map(function (x) {
       return '<button class="card" data-act="nav" data-v="' + x[0] + '" style="text-align:left;display:flex;flex-direction:column;gap:2px"><b>' + x[1] + '</b><span class="muted">' + x[2] + '</span></button>';
     }).join('') + '</div>';
@@ -3771,7 +3772,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02a';
+  var APP_V = '2026-11-02b';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4970,7 +4971,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   /* ---------- render ---------- */
   var NAV_ADMIN = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['ore', 'Ore'], ['barca', 'Barche'], ['programma', 'Programma'], ['contatti', 'Contatti']];
   var NAV_FULL = [['logistica', 'Logistica'], ['barca', 'Barche'], ['turno', 'Turno'], ['notifiche', 'Notifiche'], ['altro', 'Altro']];
-  var NAV_MGR = [['programma', 'Programma'], ['notifiche', 'Notifiche'], ['logistica', 'Logistica'], ['turno', 'Turno'], ['richieste', 'Richieste'], ['ddt', 'DDT'], ['contatti', 'Contatti'], ['barca', 'Barca']];
+  var NAV_MGR = [['programma', 'Programma'], ['notifiche', 'Notifiche'], ['logistica', 'Logistica'], ['turno', 'Turno'], ['ddt', 'DDT'], ['contatti', 'Contatti'], ['barca', 'Barca']];
   var NAV = [['turno', 'Turno'], ['programma', 'Programma'], ['barca', 'Barche']];
   var NAV_OFF = [['cucina', 'Cucina'], ['programma', 'Programma'], ['ddt', 'DDT'], ['contatti', 'Contatti']];
   function render() {
@@ -4978,7 +4979,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (isOff() && ['ddt', 'contatti', 'impost', 'programma', 'cucina'].indexOf(view) < 0) view = 'ddt';
     if (!isOff() && isAdm && ['turno', 'guida', 'richieste', 'ddt'].indexOf(view) >= 0) view = 'logistica';
     if (isAdm && ['turno', 'guida', 'richieste'].indexOf(view) >= 0) view = 'logistica';
-    if (!isAdm && !isFull && view === 'admin') view = 'turno';
+    if (!isAdm && view === 'admin') view = isFull ? 'logistica' : 'turno';
     if (view === 'altro' && !isFull) view = 'turno';
     if (view === 'nuovo') view = 'logistica';
     if (view === 'logistica' && !isMgr()) view = 'turno';
@@ -4993,6 +4994,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (view === 'pin' && !isFullAcc()) { view = 'impost'; cur = 'impost'; }
     if (isFull && ['ore', 'programma', 'richieste', 'impost', 'ddt', 'pin', 'admin', 'murano', 'cucina'].indexOf(cur) >= 0) cur = 'altro';
     if (isMgr() && cur === 'contatti') cur = 'notifiche';
+    if (isMgr() && cur === 'richieste') cur = 'barca';
     if (isCrewOnly() && ['richieste', 'contatti', 'ddt'].indexOf(cur) >= 0) cur = 'barca';
     var NV = isOff() ? NAV_OFF : isAdm ? NAV_ADMIN : isFull ? NAV_FULL : (isMgr() ? NAV_MGR : NAV);
     drawDial(NV, cur);
