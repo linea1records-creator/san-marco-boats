@@ -592,7 +592,7 @@ body.drive:not(.drive-open) .nav { display: none; }
 @container (max-height: 60px) { .tdx { display: none; } }
 
 /* Mimmo */
-.mim { width: 100%; gap: 8px; align-items: center; background: linear-gradient(180deg, #0E2A3A, #0E1A20); border-radius: 16px; box-shadow: inset 0 0 0 1px #24343B; padding: 8px; overflow: hidden; container-type: size; flex-direction: row; }
+.mim { display: flex; width: 100%; gap: 8px; align-items: center; background: linear-gradient(180deg, #0E2A3A, #0E1A20); border-radius: 16px; box-shadow: inset 0 0 0 1px #24343B; padding: 8px; overflow: hidden; container-type: size; flex-direction: row; }
 .mimd { flex: none; background: none; border: 0; padding: 0; width: min(38cqw, 90cqh, 150px); cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .mim .dol { width: 100%; height: auto; display: block; overflow: visible; }
 .mim .dbob { animation: dbob 3.2s ease-in-out infinite; transform-origin: 100px 80px; }
@@ -605,6 +605,22 @@ body.drive:not(.drive-open) .nav { display: none; }
 .mimb b { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #3C86C2; }
 .mimb.warn { border-left-color: #FFB300; } .mimb.bad { border-left-color: #E53935; background: #FFF1EF; }
 @media (prefers-reduced-motion: reduce) { .mim .dbob, .mim .deye, .mimd.talk .djaw { animation: none; } }
+/* Bebè Capitano: bambino a cartoni che dà le istruzioni e fa battute */
+.bb { display: flex; }
+.bb .mimd { width: min(34cqw, 95cqh, 140px); }
+.bb .bbs { width: 100%; height: auto; display: block; overflow: visible; }
+.bb .bbbob { animation: bbbob 2.6s ease-in-out infinite; transform-origin: 100px 120px; }
+.bb .bbeye { transform-origin: 100px 92px; animation: dblink 4.2s infinite; }
+.bb .bbmo { transform-origin: 100px 118px; } .bb .bbtg { transform-origin: 100px 120px; transform: scaleY(0); transition: transform .2s; }
+.mimd.talk .bbmo { animation: bbtalk .2s ease-in-out infinite alternate; } .mimd.talk .bbbob { animation-duration: 1s; }
+.mimd.joke .bbtg { transform: scaleY(1); } .mimd.joke .bbbob { animation: bbwig .5s ease-in-out 3; }
+.bb .mimb b { color: #E0A400; } .bb .mimb.joke { border-left-color: #FFD23F; background: #FFFBEA; }
+.bbh { font-size: 11px; color: #6B7A84; margin-top: auto; }
+@keyframes bbbob { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-3px) rotate(2deg); } }
+@keyframes bbtalk { from { transform: scaleY(1); } to { transform: scaleY(1.9); } }
+@keyframes bbwig { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+@media (prefers-reduced-motion: reduce) { .bb .bbbob, .bb .bbeye, .mimd.talk .bbmo { animation: none; } }
+
 
 /* widget cruscotto */
 .wgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 52px; grid-auto-flow: dense; gap: 10px; flex: 1; min-height: 0; overflow-y: auto; align-content: start; -webkit-overflow-scrolling: touch; }
@@ -2896,6 +2912,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       weather: '<div id="wxFace" class="wxv wx' + gwVar('weather') + '">' + wxInner() + '</div>',
       tide: '<div id="tdFace" class="tdv">' + tideInner() + '</div>',
       mimmo: '<div id="mimFace" class="mim">' + mimInner() + '</div>',
+      bebe: '<div id="bbFace" class="mim bb">' + bbInner() + '</div>',
       km: '<div class="tile"><div class="kms"><span>Tappa <b id="kmT">' + fmt2(sh.trip || 0) + '</b> km</span><span>Turno <b id="kmS">' + fmt1(sh.km || 0) + '</b> km</span><span><b id="spdN">' + (GPS.speed == null ? '–' : fmt1(GPS.speed * 1.94384)) + '</b> nodi</span></div></div>',
       next: !s ? '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (lastDoneIdx() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button><button class="chk fin" data-act="endsheet"><span class="chkt">Chiudi il turno</span></button></div><button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>' : '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (lastDoneIdx() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button>' +
         '<button class="chk" id="nextBtn" data-act="next" aria-label="' + esc(primary) + '"><span class="chkc"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" class="ring"/><path d="M13 25l8 8 15-17" class="tick"/></svg></span><span class="chkt">' + esc(primary) + '</span></button></div>' +
@@ -2926,12 +2943,13 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     weather: { vn: ['Compatto', 'Gradi', 'Termometro', 'Vento', 'Prossime ore'], n: 'Meteo e temperatura', sizes: { S: [1, 1], M: [2, 1] }, d: 'S' },
     tide: { n: 'Marea a Venezia', sizes: { S: [2, 1], M: [2, 3] }, d: 'S' },
     mimmo: { n: 'Mimmo il delfino', sizes: { S: [2, 2], M: [2, 3] }, d: 'S' },
+    bebe: { n: 'Bebè Capitano', sizes: { S: [2, 2], M: [2, 3] }, d: 'M' },
     km: { n: 'Km e nodi', sizes: { S: [1, 1], M: [2, 1] }, d: 'S' },
     clock: { n: 'Orario', sizes: { S: [1, 1], M: [2, 1], L: [2, 2] }, d: 'S' },
     ddt: { n: 'DDT da firmare', sizes: { S: [1, 1], M: [2, 1] }, d: 'M' },
     next: { n: 'Sono arrivato', sizes: { S: [2, 1], M: [2, 2] }, d: 'M', fixed: true }
   };
-  var GW_ORDER = ['stop', 'ddt', 'map', 'speed', 'weather', 'km', 'clock', 'tide', 'mimmo', 'next'];
+  var GW_ORDER = ['stop', 'ddt', 'bebe', 'map', 'speed', 'weather', 'km', 'clock', 'tide', 'mimmo', 'next'];
   var MAP_STYLES = [['dark', 'Scuro'], ['blue', 'Blu notte'], ['green', 'Verde radar'], ['light', 'Chiaro']];
   var MAP_COLS = [['#FF8A3D', 'Arancione'], ['#FFD54F', 'Giallo'], ['#66BB6A', 'Verde'], ['#F06292', 'Rosa'], ['#FFFFFF', 'Bianco'], ['#4FC3F7', 'Azzurro']];
   var GWE = { on: false, drag: null };
@@ -2941,6 +2959,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     g.hidden = g.hidden || {}; g.size = g.size || {}; g.v = g.v || {}; if (g.hidden.clock === undefined) g.hidden.clock = true; if (g.hidden.tide === undefined) g.hidden.tide = true; if (g.hidden.mimmo === undefined) g.hidden.mimmo = true; g.map = g.map || { style: 'dark', route: '#FF8A3D', boat: '#4FC3F7' };
     var o = (g.order || []).filter(function (k) { return GWD[k]; });
     if (o.length && o.indexOf('ddt') < 0) { var si = o.indexOf('stop'); o.splice(si >= 0 ? si + 1 : 0, 0, 'ddt'); }
+    if (o.length && o.indexOf('bebe') < 0) { var bi = o.indexOf('ddt'); o.splice(bi >= 0 ? bi + 1 : 0, 0, 'bebe'); }
     GW_ORDER.forEach(function (k) { if (o.indexOf(k) < 0) o.push(k); });
     g.order = o; g.hidden.next = false; return g;
   }
@@ -4188,7 +4207,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02q';
+  var APP_V = '2026-11-02r';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -5418,6 +5437,71 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   setInterval(function () { if (view === 'guida' && S.shift && !document.hidden) mimPaint(true); }, 3500);
 
+
+  /* ---------- Bebè Capitano: ti dice cosa fare e ogni tanto fa una battuta ---------- */
+  var BB_JOKES = [
+    'Sai perché i gondolieri non litigano mai? Perché remano tutti dalla stessa parte!',
+    'Acqua alta? Tranquillo capo, io ho il pannolino impermeabile!',
+    'Ponte basso in arrivo: tu abbassa la testa, io sono già basso di mio!',
+    'Se arriviamo in ritardo diciamo che c’era traffico… di gabbiani!',
+    'Perché il polpo sarebbe un ottimo trasportatore? Otto braccia, otto polibox!',
+    'A Murano soffiano il vetro. Io soffio solo le bolle di sapone.',
+    'La mia pappa preferita? Sarde in saor… frullate!',
+    'Non correre troppo: anche i vaporetti fanno merenda.',
+    'Il colmo per un barcaiolo? Avere una vita piena di alti e bassi… di marea!',
+    'Io il timone lo so tenere benissimo. È il biberon che mi scappa.',
+    'Sai cosa dice un’onda all’altra? Niente, si salutano con la mano!',
+    'Capo, il GPS sono io: gira a destra… no, l’altra destra!',
+    'Cosa fa un pesce in ufficio? Nuota tra le pratiche!',
+    'Se vedi un gabbiano che ride, è perché ha letto il programma di domani.',
+    'Il mio nodo marinaro preferito? Quello delle scarpe… che non so ancora fare.'
+  ];
+  var BB = { key: '', text: 'Ciao capo! Sono il Bebè Capitano: ti dico io cosa fare. Toccami per una battuta!', lvl: 'ok', joke: null, jokeT: 0, lastJ: Date.now(), ji: Math.floor(Math.random() * 15), talking: false };
+  var BABY = '<svg viewBox="0 0 200 170" class="bbs" aria-hidden="true"><g class="bbbob">' +
+    '<path d="M52 168 Q56 132 100 128 Q144 132 148 168 Z" fill="#F4C542"/><path d="M78 131 Q100 146 122 131" fill="none" stroke="#D9A92A" stroke-width="3"/>' +
+    '<circle cx="44" cy="92" r="13" fill="#C98B5E"/><circle cx="156" cy="92" r="13" fill="#C98B5E"/>' +
+    '<circle cx="100" cy="88" r="56" fill="#D99A6C"/><ellipse cx="72" cy="106" rx="11" ry="7" fill="#E9837A" opacity=".55"/><ellipse cx="128" cy="106" rx="11" ry="7" fill="#E9837A" opacity=".55"/>' +
+    '<path d="M96 40 Q100 30 106 38" fill="none" stroke="#5A3A24" stroke-width="3" stroke-linecap="round"/>' +
+    '<g class="bbeye"><ellipse cx="80" cy="88" rx="9" ry="10" fill="#fff"/><ellipse cx="120" cy="88" rx="9" ry="10" fill="#fff"/><circle cx="82" cy="90" r="5.5" fill="#2B1B12"/><circle cx="118" cy="90" r="5.5" fill="#2B1B12"/><circle cx="84" cy="87.5" r="1.8" fill="#fff"/><circle cx="120" cy="87.5" r="1.8" fill="#fff"/></g>' +
+    '<path d="M70 74 Q80 69 89 73 M111 73 Q120 69 130 74" fill="none" stroke="#5A3A24" stroke-width="2.6" stroke-linecap="round"/>' +
+    '<path d="M95 102 Q100 106 105 102" fill="none" stroke="#A9683F" stroke-width="2.4" stroke-linecap="round"/>' +
+    '<g class="bbmo"><path d="M88 116 Q100 128 112 116 Q100 121 88 116 Z" fill="#7A2E2A"/></g>' +
+    '<g class="bbtg"><path d="M93 119 Q93 134 100 135 Q107 134 107 119 Z" fill="#F07C8F"/><path d="M100 121 V131" stroke="#D85B70" stroke-width="1.4"/></g>' +
+    '<path d="M54 52 Q100 18 146 52 Q100 42 54 52 Z" fill="#FFFFFF" stroke="#C9D3DA" stroke-width="2"/><path d="M50 54 Q100 40 150 54 L148 62 Q100 50 52 62 Z" fill="#1655C8"/><circle cx="100" cy="30" r="5" fill="#E53935"/>' +
+    '</g></svg>';
+  function bbMsg() { var m = mimmoMsg(); return m || { key: 'off', text: 'Inizia il turno e partiamo, capo!', lvl: 'ok' }; }
+  function bbInner() {
+    var m = bbMsg(), j = BB.joke && Date.now() - BB.jokeT < 14000;
+    if (!j) { BB.text = m.text; BB.lvl = m.lvl; if (!BB.key) BB.key = m.key; }
+    return '<button class="mimd' + (BB.talking ? ' talk' : '') + (j ? ' joke' : '') + '" data-act="bbjoke" aria-label="Bebè Capitano: tocca per una battuta">' + BABY + '</button>' +
+      '<div class="mimb ' + (j ? 'joke' : BB.lvl) + '" id="bbBub" role="status" aria-live="polite" data-act="bbsay"><b>Bebè Capitano</b><span id="bbTx">' + esc(j ? BB.joke : BB.text) + '</span><span class="bbh">Tocca il bebè per una battuta</span></div>';
+  }
+  function bbTalk(on) { BB.talking = on; var b = document.querySelector('#bbFace .mimd'); if (b) b.classList.toggle('talk', on); }
+  function bbSpeak(t) {
+    MIM.last = Date.now(); window.__lastSay = Date.now();
+    if (!('speechSynthesis' in window)) { bbTalk(true); setTimeout(function () { bbTalk(false); }, Math.min(6000, 600 + t.length * 55)); return; }
+    try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(t); u.lang = 'it-IT'; u.pitch = 1.8; u.rate = 1.08; u.onstart = function () { bbTalk(true); }; u.onend = u.onerror = function () { bbTalk(false); }; speechSynthesis.speak(u); } catch (e) { bbTalk(false); }
+  }
+  function bbJoke(speak) {
+    BB.ji = (BB.ji + 1) % BB_JOKES.length; BB.joke = BB_JOKES[BB.ji]; BB.jokeT = Date.now(); BB.lastJ = Date.now();
+    var f = $('bbFace'); if (f) f.innerHTML = bbInner();
+    if (speak) bbSpeak(BB.joke);
+  }
+  function bbPaint(auto) {
+    var f = $('bbFace'); if (!f) return;
+    var m = bbMsg(), changed = m.key !== BB.key;
+    if (changed) { BB.joke = null; BB.key = m.key; BB.text = m.text; BB.lvl = m.lvl; f.innerHTML = bbInner(); var mimOn = !!$('mimFace'); if (auto && !mimOn && S.voice && Date.now() - MIM.last > 20000 && Date.now() - (window.__lastSay || 0) > 7000 && view === 'guida') bbSpeak(m.text); return; }
+    // una battuta ogni tanto, solo se le istruzioni sono tranquille e la barca non sta arrivando
+    if (m.lvl === 'ok' && !BB.joke && Date.now() - BB.lastJ > 75000 && !/Ci siamo|davanti|arrivati/.test(m.text)) { bbJoke(false); return; }
+    if (BB.joke && Date.now() - BB.jokeT >= 14000) { BB.joke = null; f.innerHTML = bbInner(); return; }
+    if (!BB.joke && BB.text !== m.text) { BB.text = m.text; BB.lvl = m.lvl; var tx = $('bbTx'), bub = $('bbBub'); if (tx) tx.textContent = m.text; if (bub) bub.className = 'mimb ' + m.lvl; }
+  }
+  setInterval(function () { if (view === 'guida' && !document.hidden) bbPaint(true); }, 3500);
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'bbjoke') bbJoke(true);
+    else if (a === 'bbsay') { var m = bbMsg(); BB.joke = null; BB.key = m.key; var f = $('bbFace'); if (f) f.innerHTML = bbInner(); bbSpeak(m.text); }
+  });
   /* ---------- render ---------- */
   var NAV_ADMIN = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['stat', 'Statistiche'], ['barca', 'Barche'], ['contatti', 'Contatti']];
   var NAV_FULL = [['logistica', 'Logistica'], ['barca', 'Barche'], ['turno', 'Turno'], ['notifiche', 'Notifiche'], ['altro', 'Altro']];
