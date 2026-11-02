@@ -270,6 +270,14 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 
 .colli .clsec{margin-top:14px;padding:6px 0 2px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#5B6870;font-weight:700}.colli{max-height:78vh;overflow:auto}.clbtns{position:sticky;bottom:0;background:#fff;padding-top:8px}.clchip{display:block;width:100%;text-align:left;border:0;border-radius:10px;padding:7px 10px;margin-bottom:6px;background:#12384F;color:#BFE6FF;font:inherit;font-weight:700;font-size:14px}.clchip.no{background:#3D2E00;color:#FFD54F}
 .colli .clr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid #E3E8EC}.colli .clr b{display:block;font-size:17px;color:#11181C}.colli .clr small{color:#5B6870}
+.sems .semlive{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin:-4px 0 10px;color:#5B6870;font-size:14px}.sems .semlive b{color:#11181C;font-family:var(--font-mono)}
+.sems .semgo{border-radius:14px;padding:12px 14px;background:#EAF6EC;color:#1B5E20;font-weight:700;font-size:16px;margin-bottom:10px}.sems .semgo.late{background:#FDECEA;color:#B71C1C}.sems .semgo.soon{background:#FFF6DC;color:#7A5300}.sems .semgo small{display:block;font-weight:500;font-size:13px;opacity:.85;margin-top:2px}
+.sems .semnote{border-left:4px solid #F9A825;background:#FFF8E1;color:#5D4300;border-radius:10px;padding:10px 12px;font-weight:600;margin-bottom:10px}
+.sems .semtip{background:#EEF4F8;color:#24404F;border-radius:10px;padding:9px 12px;font-size:14px;margin-top:8px}
+.sems .clr .semn{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#12384F;color:#BFE6FF;font-size:13px;font-weight:800;margin-right:6px;vertical-align:2px}
+.sems .clr .semx{display:block;color:#7A5300;font-size:13px;margin-top:2px}.sems .clr .semd{display:inline-block;background:#E3F2FD;color:#0D47A1;border-radius:999px;padding:1px 8px;font-size:12px;font-weight:700;margin-top:3px}
+.sems .semtot{display:flex;justify-content:space-between;align-items:center;padding:10px 0 2px;border-top:2px solid #11181C;font-weight:800;font-size:17px;color:#11181C}
+.sems .semck{display:flex;gap:10px;align-items:center;width:100%;text-align:left;border:1px solid #CDD6DC;background:#fff;border-radius:12px;padding:11px 12px;margin-bottom:6px;font:inherit;font-size:15px;color:#11181C}.sems .semck i{flex:none;width:24px;height:24px;border-radius:7px;border:2px solid #90A4AE;display:grid;place-items:center;font-style:normal;font-weight:800;color:#fff}.sems .semck[aria-pressed=true]{background:#EAF6EC;border-color:#81C784}.sems .semck[aria-pressed=true] i{background:#2E7D32;border-color:#2E7D32}
 .clst{display:flex;align-items:center;gap:6px}.clst button{width:44px;height:44px;border-radius:12px;border:1px solid #CDD6DC;background:#F1F4F6;font-size:24px;font-weight:700;color:#11181C}.clst input{width:64px;height:44px;text-align:center;font-size:22px;font-weight:800;border:1px solid #CDD6DC;border-radius:12px;color:#11181C;background:#fff}
 
 .probb{background:#5A3A00;color:#FFE3A3;font-weight:700;font-size:13px;border-radius:10px;padding:6px 10px;margin-bottom:6px}
@@ -5992,7 +6000,9 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (hav(GPS.last.la, GPS.last.lo, tg[0], tg[1]) <= ARR_R) {
       sh.arr[k] = Date.now(); save();
       // checkpoint raggiunto: il tasto Consegna fatta si sblocca e si illumina (l'ora di arrivo è questa)
-      toast('📍 Arrivato a ' + s.name); if (S.voice && view === 'guida') say('Arrivato a ' + s.name + '. Quando hai consegnato tocca Consegna fatta.');
+      toast('📍 Arrivato a ' + s.name);
+      if (isSem(s.name)) { if (view === 'guida') render(); setTimeout(function () { semSheet(i, true); }, 400); return; }
+      if (S.voice && view === 'guida') say('Arrivato a ' + s.name + '. Quando hai consegnato tocca Consegna fatta.');
       if (view === 'guida') render();
     }
   }
@@ -6125,7 +6135,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   function colliChip(i) {
     var s = stops()[i]; if (!s || s.maint || isBenz(s.name) || isPane(s.name) || /^(darsena|scalo)\b/i.test(String(s.name).trim())) return '';
-    if (isSem(s.name)) { var l = legAfter(i), t = colliTodo(); if (!t.length) return ''; return '<button class="clchip" data-act="clopen" data-l="' + (l.length ? l : t.slice(0, 1)).join(',') + '">📦 Polybox delle consegne' + (l.length ? ' (' + esc(l.map(function (j) { return stops()[j].name; }).join(', ')) + '…)' : '') + '</button>'; }
+    if (isSem(s.name)) return '<button class="clchip" data-act="semopen" data-i="' + i + '">🏛 Scheda Seminario · carico e partenza</button>';
     var v = colliGet(i); return '<button class="clchip' + (v == null ? ' no' : '') + '" data-act="clopen" data-l="' + i + '">📦 ' + (v == null ? 'Segna i polybox' : v + (v === 1 ? ' polybox' : ' polybox')) + '</button>';
   }
   document.addEventListener('click', function (e) {
@@ -6141,6 +6151,84 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       save(); closeSheet(); toast(n0 ? 'Polybox segnati' : 'Nessun numero inserito'); render();
     }
   });
+  /* ---------- Scheda Seminario: si apre da sola al checkpoint GPS e aiuta a organizzare la partenza ---------- */
+  var SEM = { i: null, leaving: false };
+  var SEM_CK = [['poly', 'Polybox contati, chiusi e in barca'], ['ddt', 'DDT delle consegne a bordo'], ['carr', 'Carrello in barca'], ['vuoti', 'Vuoti del giro prima scaricati']];
+  function semKey(i) { return S.shift.day + ':' + i; }
+  function semLeg(i) { var l = legAfter(i); return l.filter(function (j) { return !S.shift.done[j]; }); }
+  function semLive(i) {
+    var sh = S.shift, all = stops(), t0 = sh.arr && sh.arr[arrKey(i)], l = semLeg(i), f = l.length ? all[l[0]] : null, nx = nextStop(i), h = '';
+    var tg = COORDS[all[i].name], d = tg && GPS.last ? hav(GPS.last.la, GPS.last.lo, tg[0], tg[1]) : null;
+    var live = '<span>' + (t0 ? 'Arrivato alle <b>' + hm(t0) + '</b> · qui da <b>' + Math.max(0, Math.round((Date.now() - t0) / 60000)) + ' min</b>' : 'Ora <b>' + hm(Date.now()) + '</b>') + '</span>' + (d != null && d > ARR_R ? '<span>· ' + fmtDist(d) + ' dal Seminario</span>' : '');
+    var tgt = f || nx;
+    if (tgt && tgt.t && !tgt.ind) {
+      var now = new Date(), left = mins(tgt.t) - (now.getHours() * 60 + now.getMinutes());
+      h = '<div class="semgo' + (left < 0 ? ' late' : left <= 10 ? ' soon' : '') + '">' + (left < 0 ? 'In ritardo di ' + (-left) + ' min' : left === 0 ? 'Si parte adesso' : 'Partenza tra ' + left + ' min') + '<small>' + (f ? 'Prima consegna' : 'Prossima tappa') + ': ' + esc(tgt.name) + ' alle ' + esc(tgt.t) + '</small></div>';
+    } else if (tgt) h = '<div class="semgo">Prossima: ' + esc(tgt.name) + '<small>orario da definire</small></div>';
+    else h = '<div class="semgo">Ultima tappa del turno</div>';
+    return { live: live, go: h };
+  }
+  function semTot() { var n = 0, any = false; Array.prototype.forEach.call(document.querySelectorAll('.sems .clst input'), function (x) { if (x.value !== '') { any = true; n += Math.max(0, +x.value || 0); } }); var e = $('semTot'); if (e) e.textContent = any ? n + ' polybox' : '–'; }
+  function semSheet(i, auto) {
+    var sh = S.shift; if (!sh) return; var all = stops(), sp = all[i]; if (!sp) return;
+    SEM.i = i; var l = semLeg(i), ck = (sh.semck && sh.semck[semKey(i)]) || {}, lv = semLive(i), nDdt = 0;
+    var rows = l.map(function (j, k) {
+      var z = all[j], v = colliGet(j), dd = ddtForStop(z).length; nDdt += dd;
+      return '<div class="clr"><div><b><span class="semn">' + (k + 1) + '</span>' + esc(z.name) + '</b>' + (z.t ? '<small>' + esc(stopTime(z)) + '</small>' : '') +
+        (z.note ? '<span class="semx">' + esc(z.note) + '</span>' : '') + (dd ? '<span class="semd">📄 ' + dd + ' DDT da far firmare</span>' : '') + '</div>' +
+        '<div class="clst"><button data-act="clm" data-j="' + j + '" aria-label="Meno">−</button><input type="number" inputmode="numeric" min="0" max="200" id="cl' + j + '" value="' + (v == null ? '' : v) + '" placeholder="0"><button data-act="clp" data-j="' + j + '" aria-label="Più">+</button></div></div>';
+    }).join('');
+    var tip = l.length > 1 ? '<div class="semtip">💡 Carica per prima <b>' + esc(all[l[l.length - 1]].name) + '</b> (in fondo) e per ultima <b>' + esc(all[l[0]].name) + '</b>, così la prima consegna resta a portata di mano.</div>' : '';
+    var items = SEM_CK.filter(function (c) { return c[0] !== 'ddt' || nDdt; }).filter(function (c) { return c[0] !== 'poly' || l.length; });
+    openSheet('<div class="dfxs colli sems" id="semS" data-i="' + i + '"><h2>🏛 Al Seminario</h2><div class="semlive" id="semLive">' + lv.live + '</div><div id="semGo">' + lv.go + '</div>' +
+      (sp.note ? '<div class="semnote">Da fare qui: ' + esc(sp.note) + '</div>' : '') +
+      '<div class="clsec">Cosa caricare in barca' + (l.length ? ' · ' + l.length + (l.length === 1 ? ' consegna' : ' consegne') : '') + '</div>' +
+      (l.length ? rows + '<div class="semtot"><span>Totale da caricare</span><span id="semTot">–</span></div>' + tip : '<p class="muted">In questo giro non ci sono consegne da caricare.</p>') +
+      '<div class="clsec">Prima di partire</div>' + items.map(function (c) { return '<button class="semck" data-act="semck" data-k="' + c[0] + '" aria-pressed="' + !!ck[c[0]] + '"><i>' + (ck[c[0]] ? '✓' : '') + '</i>' + c[1] + '</button>'; }).join('') +
+      '<div class="btns clbtns"><button class="btn primary" data-act="semgo" data-l="' + l.join(',') + '">' + (sh.done[i] ? 'Salva' : 'Salva e parti') + '</button><button class="btn quiet" data-act="semsave" data-l="' + l.join(',') + '">Salva, resto qui</button></div></div>');
+    semTot();
+    if (auto && S.voice !== false) {
+      var f = l.length ? all[l[0]] : null;
+      say('Sei al Seminario. ' + (sp.note ? sp.note + '. ' : '') + (l.length ? 'Da caricare ' + l.length + (l.length === 1 ? ' consegna' : ' consegne') + '. Prima consegna ' + f.name + (f.t ? ' alle ' + f.t : '') + '.' : 'Nessuna consegna da caricare.'));
+    }
+  }
+  function semSaveColli(list) {
+    var sh = S.shift, all = stops(), n0 = 0; sh.colli = sh.colli || {};
+    list.forEach(function (j) {
+      var inp = $('cl' + j); if (!inp || inp.value === '') return; var n = Math.max(0, Math.min(200, Math.round(+inp.value || 0))), z = all[j]; sh.colli[sh.day + ':' + j] = n; n0++;
+      if (z && !z.local) cl('rpc_colli_set', { p_day: sh.day, p_boat: sh.boat, p_stop: z.name, p_planned: z.t || '', p_n: n });
+    });
+    save(); return n0;
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el || !S.shift) return; var a = el.getAttribute('data-act');
+    if (a === 'semopen') semSheet(+el.getAttribute('data-i'), false);
+    else if ((a === 'clm' || a === 'clp') && $('semS')) setTimeout(semTot, 0);
+    else if (a === 'semck') {
+      var sh = S.shift, k = semKey(SEM.i); sh.semck = sh.semck || {}; var c = sh.semck[k] = sh.semck[k] || {}, ck = el.getAttribute('data-k');
+      c[ck] = !c[ck]; save(); el.setAttribute('aria-pressed', c[ck] ? 'true' : 'false'); el.querySelector('i').textContent = c[ck] ? '✓' : '';
+    }
+    else if (a === 'semsave' || a === 'semgo') {
+      var lst = (el.getAttribute('data-l') || '').split(',').filter(String).map(Number), i = SEM.i, n0 = semSaveColli(lst);
+      if (a === 'semgo' && i != null && !S.shift.done[i]) {
+        var miss = lst.filter(function (j) { var x = $('cl' + j); return !x || x.value === ''; }).length;
+        if (miss && !el.getAttribute('data-sure')) { el.setAttribute('data-sure', '1'); el.textContent = 'Parti lo stesso'; toast('Mancano i polybox di ' + miss + (miss === 1 ? ' consegna' : ' consegne')); return; }
+        closeSheet(); SEM.leaving = true; try { finish(i, 'ok', ''); } finally { SEM.leaving = false; }
+        var n = curIdx(); if (n >= 0) say('Buon giro. Prossima tappa: ' + stops()[n].name + '.'); return;
+      }
+      closeSheet(); toast(n0 ? 'Polybox salvati' : 'Salvato'); render();
+    }
+  });
+  document.addEventListener('input', function (e) { if (e.target && e.target.closest && e.target.closest('.sems')) semTot(); });
+  // finché la scheda è aperta si aggiorna; se la barca si allontana dal Seminario si chiude da sola
+  setInterval(function () {
+    var box = $('semS'); if (!box || !S.shift) return; var i = +box.getAttribute('data-i'), sp = stops()[i]; if (!sp) return;
+    var lv = semLive(i), a = $('semLive'), b = $('semGo'); if (a) a.innerHTML = lv.live; if (b) b.innerHTML = lv.go;
+    var tg = COORDS[sp.name]; if (tg && gpsFresh() && S.shift.arr && S.shift.arr[arrKey(i)] && hav(GPS.last.la, GPS.last.lo, tg[0], tg[1]) > 300) {
+      var lst = []; Array.prototype.forEach.call(box.querySelectorAll('.clst input'), function (x) { lst.push(+x.id.slice(2)); }); semSaveColli(lst);
+      closeSheet(); toast('Sei partito dal Seminario · polybox salvati'); if (!S.shift.done[i]) render();
+    }
+  }, 5000);
   function holdIdx() { var sh = S.shift; return sh && sh.hold != null && sh.done[sh.hold] ? sh.hold : null; }
   function holdNext() { if (S.shift) { S.shift.hold = null; save(); } spoken = ''; view = 'guida'; render(); var n = curIdx(); if (n >= 0) say('Prossima tappa: ' + stops()[n].name + '.'); else say(boatDay().onCall ? 'Hai finito le tappe. Resta reperibile per le emergenze, poi chiudi il turno.' : 'Hai finito il giro. Chiudi il turno.'); }
   function finish(i, status, reason, auto) {
@@ -6158,7 +6246,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     }
     S.shift.step = 0; S.shift.trip = 0; save(); spoken = '';
     if (status === 'ok' && sp && isBenz(sp.name) && !refuelGet(i)) setTimeout(function () { refuelSheet(i); }, 600);
-    if (status === 'ok' && sp && isSem(sp.name)) { var lg = legAfter(i); if (!lg.length) lg = colliTodo(i).slice(0, 1); if (lg.length) setTimeout(function () { colliSheet(lg, true); }, 600); }
+    if (status === 'ok' && sp && isSem(sp.name) && !SEM.leaving) { var lg = legAfter(i); if (!lg.length) lg = colliTodo(i).slice(0, 1); if (lg.length) setTimeout(function () { colliSheet(lg, true); }, 600); }
     var n = curIdx();
     if (S.shift.hold != null) { toast((auto ? '📍 GPS: arrivato a ' : 'Arrivato a ') + (sp ? sp.name : '')); if (S.voice) say('Arrivato a ' + (sp ? sp.name : '') + '. Quando hai finito tocca Avanti.'); spoken = 'hold'; view = 'guida'; render(); return; }
     toast(status === 'ok' ? 'Tappa completata' : 'Problema segnalato');
