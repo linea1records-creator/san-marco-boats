@@ -254,6 +254,8 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 .tbr.late .tbs,.tbr.late .tbc{color:#FF5A4F}.tbr.late .tbo{color:#FF5A4F}
 .tbr.gone{opacity:.42}.tbr.gone .tbs{color:#8FA3B0}.tbr.gone .tbk{background:#2E7D32;border-color:#2E7D32;color:#fff}
 @keyframes tbbl{50%{opacity:.35}}
+.l10{display:flex;flex-direction:column}.l10r{padding:10px 0;border-top:1px solid var(--line,#e3e8ec);display:flex;flex-direction:column;gap:4px;align-items:flex-start}.l10r:first-child{border-top:0}.l10h{display:flex;justify-content:space-between;width:100%;gap:8px;font-size:16px}.l10p{display:inline-block;padding:3px 8px;border-radius:999px;font-size:12.5px;font-weight:700;background:rgba(127,127,127,.15)}.l10p.ok{background:#E3F4E6;color:#1E6B2E}.l10p.late{background:#FDE7E5;color:#B3261E}.l10p.early{background:#E4EEFC;color:#1655C8}.l10p.bad{background:#FFF1D6;color:#8A5300}
+
 .ntcs{text-align:center}.ntci{font-size:54px;line-height:1}.ntcs .big{font-size:20px;line-height:1.4;text-align:left}
 
 #nextBtn.near{animation:arrpulse 1.4s ease-in-out infinite}@keyframes arrpulse{0%,100%{box-shadow:0 0 0 0 rgba(67,160,71,.0)}50%{box-shadow:0 0 0 8px rgba(67,160,71,.55)}}
@@ -1399,7 +1401,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function endShift() {
     var sh = S.shift, all = stops(), li = all.length - 1, fin = Promise.resolve();
     // tappa finale con orario indicativo (Darsena): l'arrivo è l'ora di fine turno
-    if (li >= 0 && all[li].ind && !sh.done[li] && !all[li].cancelled) { sh.done[li] = { status: 'ok', reason: '', t: Date.now(), auto: true }; save(); fin = cl('rpc_stop_event', { p_stop: all[li].name, p_status: 'ok', p_reason: null, p_planned: null }).catch(function () {}); }
+    if (li >= 0 && all[li].ind && !sh.done[li] && !all[li].cancelled) { sh.done[li] = { status: 'ok', reason: '', t: Date.now(), auto: true }; save(); fin = cl('rpc_stop_event2', { p_stop: all[li].name, p_status: 'ok', p_reason: null, p_planned: null }).catch(function () {}); }
     var b = boat(), c = counts(), photo = sh.end && sh.end.photo, dl = PROGRAM[sh.day].short;
     fin.then(function () { return cl('rpc_end_shift', { p_km: +(sh.km || 0).toFixed(2), p_total: c.total }); });
     (photo ? makeThumb(photo) : Promise.resolve('')).then(function (th) {
@@ -1622,6 +1624,17 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     h += '<section class="card"><h3>Puntualità di ogni trasportatore</h3>' + (d.delay_by.length ? d.delay_by.map(function (x) {
       return '<div class="str"><div class="strh"><b>' + esc(x.who) + '</b><span class="' + dlCls(x.avg) + '">' + dlTxt(x.avg) + '</span></div>' + dlBar(x.avg) + '<small>' + x.n + ' consegne · ' + Math.round(x.ontime / x.n * 100) + '% in orario · ' + x.late + ' in ritardo</small></div>';
     }).join('') : '<p class="muted">Nessun dato.</p>') + '</section>';
+    // ultime 10 consegne con l'esito
+    var L10 = d.last || [];
+    h += '<section class="card"><h3>Ultime 10 consegne</h3>' + (L10.length ? '<div class="l10">' + L10.map(function (x) {
+      var dt = new Date(x.at), when = dt.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' }) + ' ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes()), dl = x.delay, es, cl2;
+      if (x.status !== 'ok') { es = 'Problema' + (x.reason ? ': ' + x.reason : ''); cl2 = 'bad'; }
+      else if (dl == null) { es = 'Completata · senza orario'; cl2 = ''; }
+      else if (Math.abs(dl) <= 5) { es = 'Completata in orario' + (dl ? ' (' + (dl > 0 ? '+' : '') + dl + ' min)' : ''); cl2 = 'ok'; }
+      else if (dl > 0) { es = 'Completata in ritardo di ' + dl + ' min'; cl2 = 'late'; }
+      else { es = 'Completata in anticipo di ' + (-dl) + ' min'; cl2 = 'early'; }
+      return '<div class="l10r"><div class="l10h"><b>' + esc(x.stop) + '</b><span class="mono">' + esc(when) + '</span></div><div class="muted">' + (BOATS[x.boat] ? esc(BOATS[x.boat].name) : esc(x.boat || '')) + ' · ' + esc(String(x.who || '').split(' ')[0]) + (x.planned ? ' · previsto ' + esc(x.planned) : '') + '</div><span class="l10p ' + cl2 + '">' + esc(es) + '</span></div>';
+    }).join('') + '</div>' : '<p class="muted">Ancora nessuna consegna.</p>') + '</section>';
     var maxH = Math.max.apply(null, d.hours.map(function (x) { return x.min; }).concat([1]));
     h += '<section class="card"><div class="row"><h3>Ore lavorate</h3><button class="aslink" data-act="nav" data-v="ore">Tabella dettagliata ›</button></div>' + (d.hours.length ? d.hours.map(function (x) {
       return '<div class="stb"><span class="stbn">' + esc(x.who) + '</span><span class="stbb"><i style="width:' + (x.min / maxH * 100).toFixed(1) + '%"></i></span><span class="stbv">' + hmin(x.min) + '<small>' + x.shifts + ' turni · ' + x.km + ' km</small></span></div>';
@@ -4262,7 +4275,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02w';
+  var APP_V = '2026-11-02x';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
