@@ -4293,7 +4293,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02zm';
+  var APP_V = '2026-11-02zn';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -5954,7 +5954,11 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   // il tasto Sono arrivato si sblocca solo al checkpoint GPS (100 m); senza GPS o senza posizione della tappa resta libero
   function gpsFresh() { return !!(GPS.last && Date.now() - GPS.last.t < 120000 && GPS.state === 'on'); }
+  // chi oggi lavora senza GPS: le sue conferme valgono sempre (nome → giorno)
+  var GPS_FREE = { elia: '2026-11-02' };
+  function gpsFreeToday() { var n = ddtNorm(SESSION && SESSION.name || '').split(' ')[0]; return GPS_FREE[n] === todayKey(); }
   function canArrive(i) {
+    if (gpsFreeToday()) return true;
     var s = stops()[i]; if (!s || s.maint) return true; var tg = COORDS[s.name]; if (!tg || !gpsFresh()) return true;
     return hav(GPS.last.la, GPS.last.lo, tg[0], tg[1]) <= ARR_R;
   }
