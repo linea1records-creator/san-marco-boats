@@ -24,6 +24,7 @@ details[open] .secc{transform:rotate(90deg)}
 .pnv{font-family:ui-monospace,Menlo,monospace;font-size:22px;letter-spacing:.12em}
 .pnno{font-size:13px;opacity:.6;font-style:italic}
 .ldtop{align-items:center}.ddtb{font-weight:800;letter-spacing:.06em;min-width:64px}
+.bzpp{display:flex;flex-wrap:wrap;gap:6px}.bzh{display:flex;flex-direction:column;gap:2px;padding:10px 0;border-bottom:1px solid var(--line,#e4e7ec)}.bzh:last-child{border-bottom:0}.bzh .row1{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.bztot{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px}.bztot div{border:1px solid var(--line,#e4e7ec);border-radius:12px;padding:8px 10px}.bztot b{display:block;font-size:20px}
 .pdtw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:6px -4px 0}.pdt{width:100%;border-collapse:collapse;font-size:13.5px;table-layout:auto}.pdt th{text-align:left;font-weight:600;color:var(--muted,#667);font-size:11px;text-transform:uppercase;letter-spacing:.02em;padding:6px 4px;border-bottom:1px solid var(--line,#d0d5dd)}.pdt td{padding:8px 4px;border-bottom:1px solid var(--line,#e4e7ec);vertical-align:top}.pdt td.mono{font-variant-numeric:tabular-nums;white-space:nowrap}.pdl{color:#b42318;font-weight:700;white-space:nowrap}.pde{color:#1d4ed8;font-weight:600;white-space:nowrap}.pdo{color:#067647;font-weight:600}.pdx{border:0;background:none;color:var(--primary,#1d4ed8);text-decoration:underline;font:inherit;padding:2px 0;cursor:pointer;display:block;text-align:left}.pdsum{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
 .pbsteps{list-style:none;margin:10px 0 4px;padding:0;display:flex;flex-direction:column;gap:0}.pbsteps li{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;padding:5px 0;position:relative;opacity:.55}.pbsteps li.on,.pbsteps li.cur{opacity:1}.pbsteps li i{width:16px;height:16px;border-radius:50%;margin-top:3px;box-shadow:0 0 0 2px var(--line,#d0d5dd) inset}.pbsteps li.on i{background:#16a34a;box-shadow:none}.pbsteps li.cur i{background:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,.18)}.pbsteps li span{display:flex;flex-direction:column}.pbsteps li small{color:var(--muted,#667);font-size:12.5px}.pbn{font-size:44px;font-weight:800;line-height:1}.pbhead{display:flex;align-items:center;gap:14px}.pbmsg{border-left:4px solid #2563eb;padding:8px 10px;border-radius:8px;background:rgba(37,99,235,.06)}.pbmsg.seen{border-left-color:var(--line,#d0d5dd);background:transparent}.pbbig{font-size:20px;font-weight:700}
 .seg2{display:inline-flex;border-radius:10px;box-shadow:0 0 0 1px var(--line,#d0d5dd);overflow:hidden}
@@ -1250,7 +1251,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
      Turno, GPS, consegne, foto e firme restano solo su questo telefono: niente viene mandato al server,
      quindi nessuno lo vede (né clienti, né Lisa, né la dashboard) e statistiche e ore non cambiano. */
   var GHOST = false; try { GHOST = localStorage.getItem('smb-ghost') === '1'; } catch (e) {}
-  var GHOST_BLOCK = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_log_gps', 'rpc_stop_event2', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_colli_set', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_task_update', 'rpc_pos_share', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_shift_void'];
+  var GHOST_BLOCK = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_log_gps', 'rpc_stop_event2', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_colli_set', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_refuel_add2', 'rpc_refuel_void', 'rpc_fuel_set', 'rpc_task_update', 'rpc_pos_share', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_shift_void'];
   function ghostAllowed() { return !!(SESSION && SESSION.name && /avicolli/i.test(SESSION.name)); }
   function ghostSet(on) {
     try {
@@ -1307,6 +1308,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<path d="M17 55c3-2.5 6-2.5 8 0s5 2.5 8 0 5-2.5 8 0 4 2.5 6 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
   }
   var ICONS = {
+    benzina: '<path d="M4 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16M3 21h13M7 8h5M15 9l3 2v7a1.5 1.5 0 0 0 3 0V9l-3-3"/>',
     polybox: '<path d="M3 8l9-4 9 4v9l-9 4-9-4z"/><path d="M3 8l9 4 9-4M12 12v9"/>',
     nuovo: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/>',
     turno: '<path d="M3 15l2 4h14l2-4zM12 3v8M8 7h8"/>',
@@ -2482,7 +2484,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var code = BF.sel || (S.shift && S.shift.boat) || myBoatCode() || boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO'; })[0];
     if (!BF.files[code] && tok() && !BF.loading) { BF.loading = true; setTimeout(function () { BF.loading = false; loadFiles(code); }, 0); }
     var files = BF.files[code], labels = DOCS.slice();
-    var h = '<div class="wrap"><h2>Barche</h2><h3>Documenti per i controlli</h3>' +
+    var h = '<div class="wrap"><h2>Barche</h2><button class="card" data-act="nav" data-v="benzina" style="text-align:left;display:flex;flex-direction:column;gap:2px"><b>⛽ Benzina</b><span class="muted">Livello delle barche, carica lo scontrino, storico dei rifornimenti</span></button><h3>Documenti per i controlli</h3>' +
       '<div class="chips" role="group" aria-label="Barca">' + boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO'; }).map(function (k) { return '<button class="chip" data-act="bselc" data-c="' + k + '" aria-pressed="' + (k === code ? 'true' : 'false') + '">' + esc(BOATS[k].name) + '</button>'; }).join('') + '</div>';
     if (!tok()) h += '<p class="hint">Serve la connessione per vedere i documenti.</p>';
     else if (!files) h += '<p class="muted">Carico i documenti…</p>';
@@ -2568,6 +2570,112 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     else if (a === 'pglshow') { g = pglGet(); delete g.hidden[el.getAttribute('data-c')]; save(); render(); }
     else if (a === 'ldpick' && view === 'programma') { viewDay = el.getAttribute('data-k'); if (!PROGRAM[viewDay]) viewDay = null; render(); }
   });
+  /* ---------- Benzina: livelli in tempo reale, scontrini con litri, barca e chi c'era, storico ---------- */
+  var BZ = { d: null, t: 0, loading: false, err: '', f: null, lv: null, busy: false, all: false };
+  function bzLoad() {
+    if (BZ.loading || !tok()) return Promise.resolve(); BZ.loading = true; BZ.t = Date.now();
+    return cl('rpc_fuel_overview', {}).then(function (r) { BZ.loading = false; if (r && r.boats) { BZ.d = r; BZ.err = ''; } else BZ.err = 'Non riesco a leggere i dati della benzina.'; if (view === 'benzina' && !BZ.f && !BZ.lv) render(); }).catch(function () { BZ.loading = false; });
+  }
+  setInterval(function () { if (view === 'benzina' && !document.hidden && !BZ.f && !BZ.lv && Date.now() - BZ.t > 20000) bzLoad(); }, 5000);
+  function bzBoats() { return boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO'; }); }
+  function bzNum(v) { return String(Math.round(+v * 100) / 100).replace('.', ','); }
+  function bzWhen(ts) { var d = new Date(ts); return d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · ' + d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); }
+  function bzLocalNow() { var d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); }
+  function bzGauges() {
+    var D = BZ.d;
+    return '<section class="card"><h3>⛽ Livello delle barche</h3>' + D.boats.filter(function (x) { return BOATS[x.boat] && x.boat !== 'TULLIO' && !BOATS[x.boat].test; }).map(function (x) {
+      var p = x.pct == null ? null : +x.pct, cls = p == null ? '' : p <= 25 ? 'low' : p <= 50 ? 'mid' : 'ok', cf = fuelCfg(x.boat);
+      var h = '<div class="fur"><div class="furh"><b><span style="color:' + bcol(x.boat) + '">●</span> ' + esc(BOATS[x.boat].name) + '</b><span class="' + cls + '">' + (x.level ? esc(x.level) + (cf.type === 'l' && /^\d/.test(x.level) ? ' su ' + cf.max : '') : 'nessun dato') + '</span></div>' +
+        '<div class="furb"><i class="' + cls + '" style="width:' + (p == null ? 0 : p) + '%"></i><em style="left:25%"></em><em style="left:50%"></em><em style="left:75%"></em></div>' +
+        '<small>' + (x.at ? 'segnato da ' + esc(String(x.who || '').split(' ')[0]) + ' · ' + esc(ntWhen(x.at)) : 'Ancora nessuna lettura') + (x.since_l ? ' · <b>+' + bzNum(x.since_l) + ' L</b> riforniti dopo' : '') + (p != null && p <= 25 ? ' · <b class="lowt">da rifornire</b>' : '') + '</small>';
+      if (BZ.lv === x.boat) {
+        h += cf.type === 'l' ? '<div style="display:flex;gap:8px;margin-top:8px"><input class="field" id="bzLvN" type="number" inputmode="numeric" min="0" max="' + cf.max + '" placeholder="litri nel serbatoio" style="flex:1"><button class="btn primary sm" data-act="bzlvsave" data-c="' + x.boat + '">Salva</button></div>'
+          : '<div class="seg2 fuelq" style="margin-top:8px">' + FUEL_Q.map(function (q) { return '<button data-act="bzlvq" data-c="' + x.boat + '" data-l="' + q[0] + '" data-p="' + q[1] + '">' + q[0] + '</button>'; }).join('') + '</div>';
+        h += '<button class="btn sm" data-act="bzlvno" style="margin-top:6px">Annulla</button>';
+      } else h += '<button class="btn sm" data-act="bzlv" data-c="' + x.boat + '" style="margin-top:6px">Segna il livello adesso</button>';
+      return h + '</div>';
+    }).join('') + '<p class="hint">Si aggiorna da solo: a fine turno, quando qualcuno segna il livello o registra un pieno.</p></section>';
+  }
+  function bzForm() {
+    var f = BZ.f, D = BZ.d;
+    if (!f) return '<button class="btn primary" data-act="bznew">🧾 Carica uno scontrino della benzina</button>';
+    var bs = bzBoats();
+    return '<section class="card" style="display:flex;flex-direction:column;gap:8px"><h3>🧾 Nuovo rifornimento</h3>' +
+      '<div class="clsec">Barca</div><div class="chips">' + bs.map(function (c) { return '<button class="chip" data-act="bzboat" data-c="' + c + '" aria-pressed="' + (c === f.boat) + '">' + esc(BOATS[c].name) + '</button>'; }).join('') + '</div>' +
+      '<div class="clsec">Foto dello scontrino</div><div id="bzPh">' + (f.photo ? '<img src="' + f.photo + '" alt="Scontrino" class="rfimg"><button class="btn sm" data-act="bzshot">Rifai la foto</button>' : '<button class="btn" data-act="bzshot">📷 Fotografa o scegli lo scontrino</button>') + '</div>' +
+      '<label class="clsec" for="bzL">Litri riforniti</label><input id="bzL" class="field txt" type="text" inputmode="decimal" autocomplete="off" placeholder="es. 25,40" value="' + esc(f.l || '') + '">' +
+      '<label class="clsec" for="bzE">Importo € (facoltativo)</label><input id="bzE" class="field txt" type="text" inputmode="decimal" autocomplete="off" placeholder="es. 48,90" value="' + esc(f.e || '') + '">' +
+      '<label class="clsec" for="bzAt">Quando</label><input id="bzAt" class="field" type="datetime-local" value="' + esc(f.at) + '" max="' + bzLocalNow() + '">' +
+      '<div class="clsec">Chi c’era</div><div class="bzpp">' + (D.people || []).map(function (p) { return '<button class="chip" data-act="bzwho" data-id="' + esc(p.id) + '" aria-pressed="' + (f.who.indexOf(p.id) >= 0) + '">' + esc(p.name) + '</button>'; }).join('') + '</div>' +
+      '<button class="check" data-act="bzfull" aria-pressed="' + (f.full ? 'true' : 'false') + '"><i>✓</i><span>Ho fatto il pieno (il livello della barca va a pieno)</span></button>' +
+      (BZ.err ? '<div class="note" role="alert">' + esc(BZ.err) + '</div>' : '') +
+      '<button class="btn primary" data-act="bzsave"' + (BZ.busy ? ' disabled' : '') + '>' + (BZ.busy ? 'Salvo…' : 'Salva rifornimento') + '</button><button class="btn" data-act="bzcancel">Annulla</button></section>';
+  }
+  function bzHistory() {
+    var D = BZ.d, H = D.history || [], list = BZ.all ? H : H.slice(0, 15), mn = new Date().toLocaleDateString('it-IT', { month: 'long' });
+    var tot = '<div class="bztot">' + D.boats.filter(function (x) { return BOATS[x.boat] && x.boat !== 'TULLIO' && !BOATS[x.boat].test; }).map(function (x) {
+      return '<div><span class="muted" style="font-size:13px">' + esc(BOATS[x.boat].name) + '</span><b>' + bzNum(x.month_l || 0) + ' L</b><span class="muted" style="font-size:12.5px">' + (x.month_eur ? bzNum((+x.month_eur).toFixed(2)) + ' € · ' : '') + 'a ' + esc(mn) + '</span></div>';
+    }).join('') + '</div>';
+    var h = '<section class="card"><h3>📒 Storico dei rifornimenti</h3>' + tot;
+    if (!H.length) return h + '<p class="muted" style="margin-top:8px">Ancora nessun rifornimento.</p></section>';
+    h += list.map(function (x) {
+      return '<div class="bzh"><div class="row1"><b><span style="color:' + bcol(x.boat) + '">●</span> ' + esc(BOATS[x.boat] ? BOATS[x.boat].name : x.boat) + ' · ' + bzNum(x.liters) + ' L' + (x.euro ? ' · ' + bzNum((+x.euro).toFixed(2)) + ' €' : '') + (x.full ? ' · pieno' : '') + '</b><span class="mono muted" style="font-size:13px;white-space:nowrap">' + esc(bzWhen(x.at)) + '</span></div>' +
+        '<span class="muted" style="font-size:13.5px">' + (x.present && x.present.length ? 'C’erano: ' + esc(x.present.join(', ')) : 'Chi c’era: non indicato') + (x.who ? ' · caricato da ' + esc(String(x.who).split(' ')[0]) : '') + '</span>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">' + (x.has_photo ? '<button class="btn sm" data-act="bzph" data-id="' + esc(x.id) + '">🧾 Scontrino</button>' : '<span class="muted" style="font-size:13px">senza scontrino</span>') + (x.can_del ? '<button class="btn sm quiet" data-act="bzdel" data-id="' + esc(x.id) + '">Elimina</button>' : '') + '</div></div>';
+    }).join('');
+    if (H.length > 15) h += '<button class="btn sm" data-act="bzall" style="margin-top:8px">' + (BZ.all ? 'Mostra solo gli ultimi' : 'Mostra tutti (' + H.length + ')') + '</button>';
+    return h + '</section>';
+  }
+  function viewBenzina() {
+    if (!BZ.d && !BZ.loading && !BZ.err) bzLoad(); else if (!BZ.loading && Date.now() - BZ.t > 20000 && !BZ.f && !BZ.lv) bzLoad();
+    var back = isFullAcc() && !isAdmOnly() ? '<button class="aslink" data-act="nav" data-v="altro">‹ Altro</button>' : isCrewOnly() || (isMgr() && !isFullAcc()) ? '<button class="aslink" data-act="nav" data-v="barca">‹ Barche</button>' : '';
+    var h = '<div class="wrap">' + back + '<h2>⛽ Benzina</h2>';
+    if (!BZ.d) return h + (BZ.err ? '<div class="note" role="alert">' + esc(BZ.err) + '</div><button class="btn" data-act="bzreload">Riprova</button>' : '<div class="card"><p class="muted">Carico…</p></div>') + '</div>';
+    return h + bzGauges() + bzForm() + bzHistory() + '</div>';
+  }
+  function isAdmOnly() { return !!(SESSION && SESSION.role === 'admin' && !SESSION.works); }
+  function bzKeep() { var f = BZ.f; if (!f) return; var l = $('bzL'), e = $('bzE'), at = $('bzAt'); if (l) f.l = l.value; if (e) f.e = e.value; if (at) f.at = at.value; }
+  function bzShot() {
+    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.style.display = 'none';
+    inp.onchange = function () {
+      var fl = inp.files && inp.files[0]; inp.remove(); if (!fl || !BZ.f) return;
+      loadImg(fl).then(function (img) {
+        var sc = Math.min(1, 1400 / Math.max(img.naturalWidth, img.naturalHeight)), w = Math.round(img.naturalWidth * sc), hh = Math.round(img.naturalHeight * sc), cv = document.createElement('canvas');
+        cv.width = w; cv.height = hh; cv.getContext('2d').drawImage(img, 0, 0, w, hh); bzKeep(); BZ.f.photo = cv.toDataURL('image/jpeg', .78); render();
+      }).catch(function () { toast('Non riesco a leggere la foto'); });
+    };
+    document.body.appendChild(inp); inp.click();
+  }
+  function bzAfter(r, msg) { BZ.busy = false; if (r && r.ok) { if (msg) toast(msg); bzLoad(); } else { toast('Non salvato: controlla la connessione'); render(); } }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act'); if (a.indexOf('bz') !== 0) return;
+    if (a === 'bzreload') { BZ.err = ''; bzLoad().then(render); }
+    else if (a === 'bznew') { var me = BZ.d && BZ.d.me; BZ.f = { boat: (S.shift && S.shift.boat) || myBoatCode() || bzBoats()[0], photo: null, l: '', e: '', at: bzLocalNow(), who: me && (BZ.d.people || []).some(function (p) { return p.id === me; }) ? [me] : [], full: false }; BZ.err = ''; render(); }
+    else if (a === 'bzcancel') { BZ.f = null; BZ.err = ''; render(); }
+    else if (a === 'bzboat') { bzKeep(); BZ.f.boat = el.getAttribute('data-c'); render(); }
+    else if (a === 'bzwho') { bzKeep(); var id = el.getAttribute('data-id'), i = BZ.f.who.indexOf(id); if (i >= 0) BZ.f.who.splice(i, 1); else BZ.f.who.push(id); render(); }
+    else if (a === 'bzfull') { bzKeep(); BZ.f.full = !BZ.f.full; render(); }
+    else if (a === 'bzshot') bzShot();
+    else if (a === 'bzsave') {
+      bzKeep(); var f = BZ.f, l = parseFloat(String(f.l || '').replace(',', '.')), eu = parseFloat(String(f.e || '').replace(',', '.'));
+      if (!f.photo) { BZ.err = 'Aggiungi la foto dello scontrino.'; render(); return; }
+      if (!(l > 0 && l <= 500)) { BZ.err = 'Scrivi quanti litri hai rifornito.'; render(); var li = $('bzL'); if (li) li.focus(); return; }
+      var at = f.at ? new Date(f.at) : new Date(); if (isNaN(at.getTime()) || at.getTime() > Date.now() + 600000) { BZ.err = 'Controlla data e ora.'; render(); return; }
+      var cf = fuelCfg(f.boat); BZ.busy = true; BZ.err = ''; render();
+      cl('rpc_refuel_add2', { p_boat: f.boat, p_liters: l, p_euro: eu > 0 ? eu : null, p_photo: f.photo, p_present: f.who, p_at: at.toISOString(), p_full: !!f.full, p_level: f.full ? (cf.type === 'l' ? cf.max + ' L' : 'Pieno') : null }).then(function (r) {
+        if (r && r.ok) { BZ.f = null; } else if (r && r.error) { BZ.busy = false; BZ.err = r.error === 'data' ? 'La data non va bene (massimo 120 giorni fa).' : 'Controlla i dati e riprova.'; render(); return; }
+        bzAfter(r, 'Rifornimento salvato: ' + bzNum(l) + ' litri');
+      });
+    }
+    else if (a === 'bzph') { cl('rpc_refuel_photo2', { p_id: el.getAttribute('data-id') }).then(function (r) { if (r && r.photo) openSheet('<h2>Scontrino</h2><img src="' + r.photo + '" alt="Scontrino della benzina" style="width:100%;border-radius:12px"><div class="btns"><button class="btn primary" data-act="close">Chiudi</button></div>'); else toast('Scontrino non disponibile'); }); }
+    else if (a === 'bzdel') { if (!confirm('Eliminare questo rifornimento dallo storico?')) return; cl('rpc_refuel_void', { p_id: el.getAttribute('data-id') }).then(function (r) { bzAfter(r, 'Rifornimento eliminato'); }); }
+    else if (a === 'bzall') { BZ.all = !BZ.all; render(); }
+    else if (a === 'bzlv') { BZ.lv = el.getAttribute('data-c'); render(); var n = $('bzLvN'); if (n) n.focus(); }
+    else if (a === 'bzlvno') { BZ.lv = null; render(); }
+    else if (a === 'bzlvq') { var c = el.getAttribute('data-c'); BZ.lv = null; cl('rpc_fuel_set', { p_boat: c, p_level: el.getAttribute('data-l'), p_pct: +el.getAttribute('data-p') }).then(function (r) { bzAfter(r, 'Livello aggiornato'); }); }
+    else if (a === 'bzlvsave') { var c2 = el.getAttribute('data-c'), mx = fuelCfg(c2).max, v = parseFloat(String(($('bzLvN') || {}).value || '').replace(',', '.')); if (!(v >= 0 && v <= mx)) { toast('Scrivi i litri da 0 a ' + mx); return; } BZ.lv = null; cl('rpc_fuel_set', { p_boat: c2, p_level: Math.round(v) + ' L', p_pct: Math.round(v / mx * 100) }).then(function (r) { bzAfter(r, 'Livello aggiornato'); }); }
+  });
+
   /* ---------- Resoconto dei giorni passati: orario di consegna, ritardo, polybox, DDT ---------- */
   var PD = {};
   function pdLoad(k) {
@@ -4374,7 +4482,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function pbAfter(r, okMsg) { PB.busy = false; if (r && r.ok) { if (okMsg) toast(okMsg); pbLoad(); } else { toast('Non salvato: controlla la connessione'); render(); } }
 
   function viewAltro() {
-    var items = [['ddtgiro', '📄 DDT del giro', 'Le tue consegne del giorno: carica, vedi e fai firmare i DDT'], ['stat', '📊 Statistiche', 'Ore lavorate, consegne, puntualità, barche e DDT firmati'], ['cucina', '👨‍🍳 Uscite dalla cucina', 'Orari in cui i carichi devono essere pronti'], ['polybox', '📦 Polybox Murano', 'Dove sono i polybox vuoti, quanti sono, e messaggi a Sergio (furgone)'], ['impost', '⚙️ Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
+    var items = [['ddtgiro', '📄 DDT del giro', 'Le tue consegne del giorno: carica, vedi e fai firmare i DDT'], ['stat', '📊 Statistiche', 'Ore lavorate, consegne, puntualità, barche e DDT firmati'], ['cucina', '👨‍🍳 Uscite dalla cucina', 'Orari in cui i carichi devono essere pronti'], ['benzina', '⛽ Benzina', 'Livello delle barche in tempo reale, scontrini e storico dei rifornimenti'], ['polybox', '📦 Polybox Murano', 'Dove sono i polybox vuoti, quanti sono, e messaggi a Sergio (furgone)'], ['impost', '⚙️ Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
     return '<div class="wrap"><h2>Altro</h2>' + items.map(function (x) {
       return '<button class="card" data-act="nav" data-v="' + x[0] + '" style="text-align:left;display:flex;flex-direction:column;gap:2px"><b>' + x[1] + '</b><span class="muted">' + x[2] + '</span></button>';
     }).join('') + '</div>';
@@ -6184,7 +6292,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     ddtUpFile(t, cls[0], f);
   });
   /* ---------- render ---------- */
-  var NAV_ADMIN = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['stat', 'Statistiche'], ['barca', 'Barche'], ['contatti', 'Contatti']];
+  var NAV_ADMIN = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['stat', 'Statistiche'], ['barca', 'Barche'], ['benzina', 'Benzina'], ['contatti', 'Contatti']];
   var NAV_FULL = [['logistica', 'Logistica'], ['barca', 'Barche'], ['turno', 'Turno'], ['notifiche', 'Notifiche'], ['altro', 'Altro']];
   var NAV_MGR = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['turno', 'Turno'], ['barca', 'Barca'], ['contatti', 'Contatti']];
   var NAV = [['turno', 'Turno'], ['programma', 'Programma'], ['ddtgiro', 'DDT'], ['barca', 'Barche'], ['notifiche', 'Chat']];
@@ -6197,6 +6305,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (isOff() && ['ddt', 'contatti', 'impost', 'programma', 'cucina', 'notifiche'].indexOf(view) < 0) view = 'ddt';
     if (isVan() && ['polybox', 'contatti', 'impost', 'programma'].indexOf(view) < 0) view = 'polybox';
     if (view === 'polybox' && !isVan() && !isMgr() && !isFullAcc()) view = 'turno';
+    if (view === 'benzina' && (isVan() || isOff())) view = isVan() ? 'polybox' : 'ddt';
     if (!isOff() && isAdm && ['turno', 'guida', 'richieste', 'ddt'].indexOf(view) >= 0) view = 'logistica';
     if (isAdm && ['turno', 'guida', 'richieste'].indexOf(view) >= 0) view = 'logistica';
     if (!isAdm && view === 'admin') view = isFull ? 'logistica' : 'turno';
@@ -6212,7 +6321,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var g = $('gear'); g.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS.gear + '</svg>'; if (view === 'impost') g.setAttribute('aria-current', 'page'); else g.removeAttribute('aria-current');
     var cur = view === 'guida' ? 'turno' : view;
     if (view === 'pin' && !isFullAcc()) { view = 'impost'; cur = 'impost'; }
-    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'polybox'].indexOf(cur) >= 0) cur = 'altro';
+    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'polybox', 'benzina'].indexOf(cur) >= 0) cur = 'altro';
+    if (!isFull && !isAdm && cur === 'benzina') cur = 'barca';
     if (isAdm && cur === 'polybox') cur = 'logistica';
     if (isAdm && cur === 'ore') cur = 'stat';
     if (view === 'stat' && !isMgr()) view = 'turno';
@@ -6225,7 +6335,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurno, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, murano: viewMurano, polybox: viewPolybox, cucina: viewCucina, stat: viewStat }[view] || viewTurno;
+    var fn = { admin: viewAdmin, turno: viewTurno, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, cucina: viewCucina, stat: viewStat }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     var m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); m.scrollTop = (view === 'guida') ? 0 : sc;
     if (view === 'ddt') ddApplySearch();
