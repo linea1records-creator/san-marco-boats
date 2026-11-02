@@ -1334,8 +1334,18 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (GPS.dt) clearInterval(GPS.dt);
     GPS.id = null; GPS.dt = null; GPS.last = null; GPS.speed = null; GPS.state = 'off';
   }
+  /* ---------- risparmio batteria: GPS e schermo acceso solo mentre l'app è aperta ---------- */
+  var WAKE = null;
+  function wakeOn() { try { if (!navigator.wakeLock || WAKE || document.hidden) return; navigator.wakeLock.request('screen').then(function (w) { WAKE = w; w.addEventListener('release', function () { WAKE = null; }); }).catch(function () {}); } catch (e) {} }
+  function wakeOff() { try { if (WAKE) WAKE.release(); } catch (e) {} WAKE = null; }
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { gpsStop(); if (typeof locStop === 'function') locStop(); wakeOff(); }
+    else { gpsApply(); if (S.shift && view === 'guida') wakeOn(); }
+  });
+  window.addEventListener('pagehide', function () { gpsStop(); if (typeof locStop === 'function') locStop(); });
   function gpsApply() {
     gpsStop();
+    if (document.hidden) { if (typeof locStop === 'function') locStop(); updateInstr(); return; } // app chiusa o in secondo piano: GPS spento
     if (typeof locApply === 'function') locApply();
     if (!S.shift) { updateInstr(); return; }
     if (S.demo) {
@@ -1412,7 +1422,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var go = function () {
       S.shift = { boat: code, day: day, start: Date.now(), done: {}, step: 0, pre: [], km: 0, trip: 0, end: null, who: SESSION ? SESSION.name : '' };
       save(); closeSheet(); view = 'guida'; spoken = '';
-      try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(function () {}); } catch (e) {}
+      wakeOn();
       toast('Turno iniziato su ' + BOATS[code].name);
       gpsApply(); render(); setTimeout(loadMyTasks, 600); setTimeout(function () { noticeCheck(true); }, 1500);
     };
@@ -1773,7 +1783,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       if (diff <= 10) r.classList.add('soon');
     });
   }
-  setInterval(cuTick, 1000);
+  setInterval(function () { if (!document.hidden) cuTick(); }, 1000);
   setInterval(function () { if (view === 'cucina' && !document.hidden) render(); }, 60000);
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
@@ -2823,7 +2833,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var d = new Date(), pad = function (n) { return (n < 10 ? '0' : '') + n; };
     return '<b class="ckt">' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + '<small>:' + pad(d.getSeconds()) + '</small></b><span class="ckd">' + d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }) + '</span>';
   }
-  setInterval(function () { var c = $('clkF'); if (c) c.innerHTML = clockInner(); }, 1000);
+  setInterval(function () { if (document.hidden) return; var c = $('clkF'); if (c) c.innerHTML = clockInner(); }, 1000);
   function delayInfo(t) {
     if (!t || !S.shift || S.shift.day !== todayKey()) return null;
     var d = new Date(), n = d.getHours() * 60 + d.getMinutes() - mins(t);
@@ -4178,7 +4188,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       if (ch && view === 'notifiche') { var b = $('waBody'), atEnd = !b || b.scrollHeight - b.scrollTop - b.clientHeight < 80; var ta = $('tcIn'), txt = ta ? ta.value : ''; render(); var ta2 = $('tcIn'); if (ta2) ta2.value = txt; if (atEnd) { var b2 = $('waBody'); if (b2) b2.scrollTop = b2.scrollHeight; } }
     });
   }
-  setInterval(function () { if (!document.hidden && tok()) { if (view === 'notifiche' && TC.open) loadTCmsgs(); else loadTC(); } }, 5000);
+  // chat: veloce solo quando è aperta, altrimenti ogni 30 secondi (meno batteria)
+  var TCP = 0; setInterval(function () { if (document.hidden || !tok()) return; TCP++; if (view === 'notifiche' && TC.open) loadTCmsgs(); else if (view === 'notifiche' || TCP % 6 === 0) loadTC(); }, 5000);
   function tcBadge() {
     var b = document.querySelector('#dial .ditem[data-v="notifiche"]'); if (!b) return;
     var n = (TC.list || []).reduce(function (s, c) { return s + (+c.unread || 0); }, 0) + (NT.unread || 0);
@@ -4311,7 +4322,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02zp';
+  var APP_V = '2026-11-02zq';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4919,7 +4930,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<div class="muted" style="font-size:13px">La posizione si aggiorna quando l’app è aperta' + (S.shift ? '; durante il tuo turno usa il GPS della barca' : '') + '.</div></section>';
     return h;
   }
-  setInterval(function () { if (!document.hidden) loadPeople(); }, 30000);
+  setInterval(function () { if (!document.hidden && (view === 'admin' || view === 'logistica')) loadPeople(); }, 30000);
 
   /* ---------- Clienti: link per seguire la barca (gestione) ---------- */
   var CU = { list: null, name: '', stop: '', err: '', busy: false };
@@ -5842,6 +5853,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var NAV = [['turno', 'Turno'], ['programma', 'Programma'], ['ddtgiro', 'DDT'], ['barca', 'Barche'], ['notifiche', 'Chat']];
   var NAV_OFF = [['cucina', 'Cucina'], ['programma', 'Programma'], ['ddt', 'DDT'], ['notifiche', 'Chat'], ['contatti', 'Contatti']];
   function render() {
+    if (S.shift && view === 'guida' && !document.hidden) wakeOn(); else wakeOff();
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isOff() && ['ddt', 'contatti', 'impost', 'programma', 'cucina', 'notifiche'].indexOf(view) < 0) view = 'ddt';
     if (!isOff() && isAdm && ['turno', 'guida', 'richieste', 'ddt'].indexOf(view) >= 0) view = 'logistica';
