@@ -24,6 +24,7 @@ details[open] .secc{transform:rotate(90deg)}
 .pnv{font-family:ui-monospace,Menlo,monospace;font-size:22px;letter-spacing:.12em}
 .pnno{font-size:13px;opacity:.6;font-style:italic}
 .ldtop{align-items:center}.ddtb{font-weight:800;letter-spacing:.06em;min-width:64px}
+.pdtw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:6px -4px 0}.pdt{width:100%;border-collapse:collapse;font-size:13.5px;table-layout:auto}.pdt th{text-align:left;font-weight:600;color:var(--muted,#667);font-size:11px;text-transform:uppercase;letter-spacing:.02em;padding:6px 4px;border-bottom:1px solid var(--line,#d0d5dd)}.pdt td{padding:8px 4px;border-bottom:1px solid var(--line,#e4e7ec);vertical-align:top}.pdt td.mono{font-variant-numeric:tabular-nums;white-space:nowrap}.pdl{color:#b42318;font-weight:700;white-space:nowrap}.pde{color:#1d4ed8;font-weight:600;white-space:nowrap}.pdo{color:#067647;font-weight:600}.pdx{border:0;background:none;color:var(--primary,#1d4ed8);text-decoration:underline;font:inherit;padding:2px 0;cursor:pointer;display:block;text-align:left}.pdsum{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
 .pbsteps{list-style:none;margin:10px 0 4px;padding:0;display:flex;flex-direction:column;gap:0}.pbsteps li{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;padding:5px 0;position:relative;opacity:.55}.pbsteps li.on,.pbsteps li.cur{opacity:1}.pbsteps li i{width:16px;height:16px;border-radius:50%;margin-top:3px;box-shadow:0 0 0 2px var(--line,#d0d5dd) inset}.pbsteps li.on i{background:#16a34a;box-shadow:none}.pbsteps li.cur i{background:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,.18)}.pbsteps li span{display:flex;flex-direction:column}.pbsteps li small{color:var(--muted,#667);font-size:12.5px}.pbn{font-size:44px;font-weight:800;line-height:1}.pbhead{display:flex;align-items:center;gap:14px}.pbmsg{border-left:4px solid #2563eb;padding:8px 10px;border-radius:8px;background:rgba(37,99,235,.06)}.pbmsg.seen{border-left-color:var(--line,#d0d5dd);background:transparent}.pbbig{font-size:20px;font-weight:700}
 .seg2{display:inline-flex;border-radius:10px;box-shadow:0 0 0 1px var(--line,#d0d5dd);overflow:hidden}
 .seg2 button{border:0;background:none;padding:7px 12px;font:inherit;font-weight:600;color:inherit;cursor:pointer}
@@ -2552,7 +2553,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     else if (!(bd.stops || []).length) h += '<p class="big">' + (bd.onCall ? 'Nessun giro fisso: sei reperibile.' : 'Nessuna tappa.') + '</p>';
     else { var mine = S.shift && S.shift.day === k && S.shift.boat === me, cur = mine ? curIdx() : -2; h += '<ul class="stl">' + bd.stops.map(function (s, i) { return pgStopLi(s, i, mine, cur); }).join('') + '</ul>'; }
     if (bd && bd.onCall && (bd.stops || []).length) h += '<div class="note"><b>Emergenze.</b> Dopo il giro resti reperibile.</div>';
-    return h + '</section><p class="hint">Gli orari possono subire variazioni. Per dubbi scrivi alla logistica.</p></div>';
+    return h + '</section>' + pdReport(k, [me]) + '<p class="hint">Gli orari possono subire variazioni. Per dubbi scrivi alla logistica.</p></div>';
   }
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
@@ -2567,6 +2568,48 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     else if (a === 'pglshow') { g = pglGet(); delete g.hidden[el.getAttribute('data-c')]; save(); render(); }
     else if (a === 'ldpick' && view === 'programma') { viewDay = el.getAttribute('data-k'); if (!PROGRAM[viewDay]) viewDay = null; render(); }
   });
+  /* ---------- Resoconto dei giorni passati: orario di consegna, ritardo, polybox, DDT ---------- */
+  var PD = {};
+  function pdLoad(k) {
+    var c = PD[k] = PD[k] || {}; if (c.loading) return; c.loading = true;
+    cl('rpc_day_report', { p_day: k }).then(function (r) { c.loading = false; c.t = Date.now(); if (r && r.events) { c.d = r; c.err = ''; } else c.err = 'Non riesco a leggere il resoconto.'; if (view === 'programma') render(); }).catch(function () { c.loading = false; });
+  }
+  function pdNorm(t) { return String(t || '').toLowerCase().replace(/[^a-z0-9àèéìòù]+/g, ' ').trim(); }
+  function pdReport(k, ids) {
+    if (!k || k > todayKey() || !tok() || !ids || !ids.length) return '';
+    var c = PD[k]; if (!c || (!c.loading && (!c.d || (k === todayKey() && Date.now() - (c.t || 0) > 60000)))) pdLoad(k);
+    c = PD[k];
+    var h = '<section class="card"><h3>📋 Resoconto delle consegne</h3><p class="muted" style="font-size:13.5px">Orario reale di consegna, ritardo rispetto al programma, polybox portati e DDT.' + (k === todayKey() ? ' Si aggiorna durante il giorno.' : '') + '</p>';
+    if (!c.d) return h + '<p class="muted">' + esc(c.err || 'Carico…') + '</p></section>';
+    var D = c.d, day = PROGRAM[k], used = {}, totN = 0, totLate = 0, totDone = 0;
+    function evFor(id, z) {
+      var best = null; D.events.forEach(function (e, i) { if (used[i] || e.boat !== id || pdNorm(e.stop) !== pdNorm(z.name)) return; if (!best || (z.t && e.t === z.t)) best = { e: e, i: i }; });
+      if (best) used[best.i] = 1; return best && best.e;
+    }
+    function colliFor(id, name, t) { var m = D.colli.filter(function (x) { return x.boat === id && pdNorm(x.stop) === pdNorm(name); }); var ex = m.filter(function (x) { return (x.t || '') === (t || ''); }); return (ex.length ? ex : m).reduce(function (a, x) { return a + (+x.n || 0); }, 0) || null; }
+    function ddtFor(id, name) { return D.ddts.filter(function (x) { return (!x.boat || x.boat === id) && (pdNorm(x.stop) === pdNorm(name) || pdNorm(x.customer) === pdNorm(name)); }); }
+    function row(id, t, name, note, e, ind) {
+      var at = e ? new Date(e.at).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : '', late = '';
+      if (e && e.status !== 'ok') late = '<span class="pdl" title="' + esc(e.reason || '') + '">Problema</span>' + (e.reason ? '<small class="muted" style="display:block">' + esc(e.reason) + '</small>' : '');
+      else if (e && t && !ind) { var m = Math.round((Date.parse(e.at) - new Date(k + 'T' + t + ':00').getTime()) / 60000); if (m >= 3) { late = '<span class="pdl">+' + m + ' min</span>'; totLate++; } else if (m <= -3) late = '<span class="pde">−' + (-m) + ' min</span>'; else late = '<span class="pdo">puntuale</span>'; }
+      else if (e) late = '<span class="muted">—</span>';
+      if (e && e.status === 'ok') totDone++;
+      var n = colliFor(id, name, t); if (n) totN += n;
+      var dd = ddtFor(id, name).map(function (x) { var lab = (x.customer || 'DDT') + (x.status === 'signed' ? ' ✓' : ''); return x.open ? '<button class="pdx" data-act="pdddt" data-id="' + esc(x.id) + '" data-s="' + (x.status === 'signed' ? 1 : 0) + '">' + esc(lab) + '</button>' : '<span style="display:block">' + esc(lab) + '</span>'; }).join('');
+      return '<tr><td class="mono"><span class="muted">' + esc(t || '—') + '</span><b style="display:block">' + (at ? esc(at) : '–') + '</b></td><td><b>' + esc(name) + '</b>' + (note ? '<small class="muted" style="display:block">' + esc(note) + '</small>' : '') + (!e && k < todayKey() ? '<small class="muted" style="display:block">non segnata</small>' : '') + '</td><td>' + late + '</td><td class="mono" style="text-align:center">' + (n ? '<b>' + n + '</b>' : '<span class="muted">—</span>') + '</td><td>' + (dd || '<span class="muted">—</span>') + '</td></tr>';
+    }
+    var body = '';
+    ids.forEach(function (id) {
+      var bd = day && day.boats[id]; if (!bd || bd.off) return;
+      var rows = (bd.stops || []).filter(function (z) { return !z.cancelled; }).map(function (z) { return row(id, z.t, z.name, '', evFor(id, z), z.ind); });
+      D.events.forEach(function (e, i) { if (!used[i] && e.boat === id) { used[i] = 1; rows.push(row(id, e.t, e.stop, 'consegna aggiunta', e, !e.t)); } });
+      if (!rows.length) return;
+      body += '<h4 style="margin:12px 0 0">' + esc((BOATS[id] || {}).name || id) + '</h4><div class="pdtw"><table class="pdt"><thead><tr><th>Ora<br>prev./reale</th><th>Tappa</th><th>Ritardo</th><th>Poly&shy;box</th><th>DDT</th></tr></thead><tbody>' + rows.join('') + '</tbody></table></div>';
+    });
+    if (!body) return h + '<p class="muted">Nessuna consegna registrata in questo giorno.</p></section>';
+    return h + '<div class="pdsum"><span class="pill">' + totDone + ' consegne fatte</span><span class="pill">' + totN + ' polybox</span><span class="pill' + (totLate ? ' bad' : ' ok') + '">' + totLate + ' in ritardo</span></div>' + body + '</section>';
+  }
+
   function viewProgramma() {
     if (isCrewOnly()) return viewProgrammaCrew();
     // giorni senza programma ma con consegne aggiunte (es. una domenica): li mostro lo stesso
@@ -2602,6 +2645,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       if (bd.onCall) h += '<div class="note"><b>Emergenze.</b> Resta reperibile durante il turno.</div>';
       h += '</section>';
     });
+    h += pdReport(k, ids);
     if (TL) {
       var xt = TL.filter(function (t) { return t.status !== 'annullata' && isoOf(t.created_at) === k; });
       if (day.virtual) h += '<p class="muted">Nessun giro in programma per questo giorno: qui sotto le consegne aggiunte.</p>';
@@ -6676,6 +6720,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       return; }
     if (a === 'mgcancel') { if (confirm('Annullare le tappe non ancora fatte di questa consegna?')) cl('rpc_task_cancel', { p_run: el.getAttribute('data-id') }).then(function () { loadMgr(false); toast('Tappe annullate'); }); return; }
     if (a === 'gear') { view = 'impost'; render(); return; }
+    if (a === 'pdddt') { var pid = el.getAttribute('data-id'); if (el.getAttribute('data-s') === '1') ddtSignedAct(pid, false); else ddtOpenOriginal(pid); return; }
     if (a === 'pbreload') { PB.err = ''; pbLoad().then(render); return; }
     if (a === 'pbvan') { var pdy = el.getAttribute('data-day'), px = el.getAttribute('data-x'); el.disabled = true; cl('rpc_polybox_van', { p_day: pdy, p_action: px }).then(function (r) { pbAfter(r, px === 'pick' ? 'Polybox sul furgone' : px === 'drop' ? 'Polybox arrivati a Zelarino' : 'Passo annullato'); }); return; }
     if (a === 'pbqty') { PB.qty = el.getAttribute('data-day'); render(); var qi = $('pbQty'); if (qi) { qi.focus(); qi.select(); } return; }
