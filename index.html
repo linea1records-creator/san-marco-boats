@@ -24,7 +24,7 @@ details[open] .secc{transform:rotate(90deg)}
 .pnv{font-family:ui-monospace,Menlo,monospace;font-size:22px;letter-spacing:.12em}
 .pnno{font-size:13px;opacity:.6;font-style:italic}
 .ldtop{align-items:center}.ddtb{font-weight:800;letter-spacing:.06em;min-width:64px}
-.trbox{height:330px}.tro{display:flex;flex-direction:column;gap:6px}.tro .row1{display:flex;gap:10px;align-items:flex-start}.tro .em{font-size:28px;line-height:1}.tro .wh{font-weight:700}.trsrc{font-size:13px;color:var(--muted,#667)}.trpick .field,.trpick select,.trbox+p{text-transform:none}.trpick{display:flex;flex-direction:column;gap:8px;border-top:1px dashed var(--line,#d0d5dd);padding-top:8px}.trhist{font-size:13px;margin:0;padding-left:18px}
+.trbox{height:330px;touch-action:pan-y}.trbox.trfs{position:fixed;inset:0;height:auto;border-radius:0;z-index:9500;touch-action:none}body.trfsopen{overflow:hidden}.trctl{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:8px;z-index:3}.trbox.trfs .trctl{top:calc(12px + env(safe-area-inset-top))}.trctl button{width:44px;height:44px;border-radius:12px;border:0;background:rgba(255,255,255,.95);color:#111;font-size:22px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.35);display:grid;place-items:center;cursor:pointer}.trinfo{position:absolute;left:10px;right:64px;bottom:28px;z-index:3;display:none}.trbox.trfs .trinfo:not(:empty){display:flex;flex-direction:column;gap:2px;background:rgba(255,255,255,.96);color:#111;border-radius:14px;padding:10px 12px;box-shadow:0 2px 10px rgba(0,0,0,.35);font-size:14px;margin-bottom:env(safe-area-inset-bottom)}.trinfo span{font-size:13px;color:#444}.tro{display:flex;flex-direction:column;gap:6px}.tro .row1{display:flex;gap:10px;align-items:flex-start}.tro .em{font-size:28px;line-height:1}.tro .wh{font-weight:700}.trsrc{font-size:13px;color:var(--muted,#667)}.trpick .field,.trpick select,.trbox+p{text-transform:none}.trpick{display:flex;flex-direction:column;gap:8px;border-top:1px dashed var(--line,#d0d5dd);padding-top:8px}.trhist{font-size:13px;margin:0;padding-left:18px}
 .bzpp{display:flex;flex-wrap:wrap;gap:6px}.bzh{display:flex;flex-direction:column;gap:2px;padding:10px 0;border-bottom:1px solid var(--line,#e4e7ec)}.bzh:last-child{border-bottom:0}.bzh .row1{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.bztot{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px}.bztot div{border:1px solid var(--line,#e4e7ec);border-radius:12px;padding:8px 10px}.bztot b{display:block;font-size:20px}
 .pdtw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:6px -4px 0}.pdt{width:100%;border-collapse:collapse;font-size:13.5px;table-layout:auto}.pdt th{text-align:left;font-weight:600;color:var(--muted,#667);font-size:11px;text-transform:uppercase;letter-spacing:.02em;padding:6px 4px;border-bottom:1px solid var(--line,#d0d5dd)}.pdt td{padding:8px 4px;border-bottom:1px solid var(--line,#e4e7ec);vertical-align:top}.pdt td.mono{font-variant-numeric:tabular-nums;white-space:nowrap}.pdl{color:#b42318;font-weight:700;white-space:nowrap}.pde{color:#1d4ed8;font-weight:600;white-space:nowrap}.pdo{color:#067647;font-weight:600}.pdx{border:0;background:none;color:var(--primary,#1d4ed8);text-decoration:underline;font:inherit;padding:2px 0;cursor:pointer;display:block;text-align:left}.pdsum{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
 .pbf{padding:0;overflow:hidden}.pbfh{width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}.pbfi{font-size:26px;line-height:1}.pbft{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.pbft small{color:var(--muted,#667);font-size:13px}.pbfc{font-size:24px;color:var(--muted,#667);transition:transform .15s}.pbf.op .pbfc{transform:rotate(90deg)}.pbfb{padding:0 16px 16px;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line,#e4e7ec);padding-top:12px}.pbtop{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 12px}.pbtop div{border:1px solid var(--line,#e4e7ec);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column}.pbtop b{font-size:26px}.pbsum2{display:flex;flex-direction:column;gap:2px}.pbcl{list-style:none;margin:0;padding:0}.pbcl li{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line,#e4e7ec)}
@@ -2639,31 +2639,115 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     });
     return out;
   }
+  // mappa: vista (zoom intero + centro in pixel del mondo), raggruppamento secondo lo zoom, gesti con due dita
+  function trFit(list, W, H) {
+    var z, cx, cy;
+    if (!list.length) { z = 13; return { z: z, cx: tileX(12.3350, z), cy: tileY(45.4370, z) }; }
+    for (z = 16; z >= 10; z--) { var xs = list.map(function (b) { return tileX(b.lo, z); }), ys = list.map(function (b) { return tileY(b.la, z); }); if (Math.max.apply(null, xs) - Math.min.apply(null, xs) <= W - 90 && Math.max.apply(null, ys) - Math.min.apply(null, ys) <= H - 80) break; }
+    var xs2 = list.map(function (b) { return tileX(b.lo, z); }), ys2 = list.map(function (b) { return tileY(b.la, z); });
+    return { z: z, cx: (Math.max.apply(null, xs2) + Math.min.apply(null, xs2)) / 2, cy: (Math.max.apply(null, ys2) + Math.min.apply(null, ys2)) / 2 };
+  }
+  function trZoomTo(z, fx, fy) { // zoom intorno al punto (fx, fy) dello schermo
+    var v = TR.view, box = $('trBox'); if (!v || !box) return;
+    z = Math.max(10, Math.min(19, z)); if (z === v.z) return;
+    var W = box.clientWidth, H = box.clientHeight; if (fx == null) { fx = W / 2; fy = H / 2; }
+    var wx = v.cx - W / 2 + fx, wy = v.cy - H / 2 + fy, k = Math.pow(2, z - v.z);
+    TR.view = { z: z, cx: wx * k - fx + W / 2, cy: wy * k - fy + H / 2 }; drawTrack();
+  }
   function drawTrack() {
     var box = $('trBox'); if (!box || !TR.d) return;
     var W = box.clientWidth, H = box.clientHeight; if (W < 40 || H < 40) return;
-    var list = trMarkers(), z, cx, cy;
-    if (!list.length) { z = 13; cx = tileX(12.3350, z); cy = tileY(45.4370, z); }
-    else {
-      for (z = 16; z >= 10; z--) { var xs = list.map(function (b) { return tileX(b.lo, z); }), ys = list.map(function (b) { return tileY(b.la, z); }); if (Math.max.apply(null, xs) - Math.min.apply(null, xs) <= W - 120 && Math.max.apply(null, ys) - Math.min.apply(null, ys) <= H - 90) break; }
-      var xs2 = list.map(function (b) { return tileX(b.lo, z); }), ys2 = list.map(function (b) { return tileY(b.la, z); });
-      cx = (Math.max.apply(null, xs2) + Math.min.apply(null, xs2)) / 2; cy = (Math.max.apply(null, ys2) + Math.min.apply(null, ys2)) / 2;
-    }
-    var x0 = cx - W / 2, y0 = cy - H / 2; paintTiles($('trTiles'), TR.keys, z, x0, y0, W, H, true);
-    var groups = [];
-    list.forEach(function (m) { var x = tileX(m.lo, z) - x0, y = tileY(m.la, z) - y0, G = groups.filter(function (q) { return Math.abs(q.x - x) < 60 && Math.abs(q.y - y) < 44; })[0]; if (G) G.items.push(m); else groups.push({ x: x, y: y, items: [m] }); });
+    var list = trMarkers();
+    if (!TR.view) TR.view = trFit(list, W, H);
+    var v = TR.view, z = v.z, x0 = v.cx - W / 2, y0 = v.cy - H / 2;
+    var tl = $('trTiles'), svg = $('trSvg'); tl.style.transform = svg.style.transform = '';
+    paintTiles(tl, TR.keys, z, x0, y0, W, H, true);
+    // raggruppo gli oggetti che sullo schermo si sovrappongono (meno di 34 px): da lontano un'unica pila nella posizione esatta
+    var pts = list.map(function (m) { return { m: m, x: tileX(m.lo, z) - x0, y: tileY(m.la, z) - y0 }; }), groups = [];
+    pts.forEach(function (p) { var G = groups.filter(function (q) { return Math.abs(q.x - p.x) < 64 && Math.abs(q.y - p.y) < 46; })[0]; if (G) { G.items.push(p); G.x = G.items.reduce(function (a, q) { return a + q.x; }, 0) / G.items.length; G.y = G.items.reduce(function (a, q) { return a + q.y; }, 0) / G.items.length; } else groups.push({ x: p.x, y: p.y, items: [p] }); });
     var g = '';
-    groups.forEach(function (G) {
-      G.items.forEach(function (m, i) {
-        var x = G.x + (i - (G.items.length - 1) / 2) * 30, y = G.y, sel = TR.sel === m.id;
-        g += '<g data-trm="' + esc(m.id) + '" style="cursor:pointer"><circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (sel ? 17 : 14) + '" fill="#fff" stroke="' + (sel ? '#2563eb' : '#111') + '" stroke-width="' + (sel ? 3 : 1.5) + '"/><text x="' + x.toFixed(1) + '" y="' + (y + 6).toFixed(1) + '" text-anchor="middle" font-size="17">' + esc(m.em) + '</text></g>';
-      });
-      var lab = G.items.length === 1 ? G.items[0].lab : G.items.length + ' oggetti';
-      g += '<text x="' + G.x.toFixed(1) + '" y="' + (G.y + 32).toFixed(1) + '" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">' + esc(lab) + '</text>';
+    groups.forEach(function (G, gi) {
+      var n = G.items.length, x = G.x, y = G.y;
+      if (n === 1 || z >= 18) {
+        // vicini: ognuno nel suo punto esatto (se coincidono proprio, li apro a ventaglio)
+        G.items.forEach(function (p, i) {
+          var px = p.x, py = p.y;
+          if (n > 1) { var a = i / n * Math.PI * 2; px += Math.cos(a) * 22; py += Math.sin(a) * 22; }
+          var m = p.m, sel = TR.sel === m.id;
+          g += '<g data-trm="' + esc(m.id) + '" style="cursor:pointer"><circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="' + (sel ? 17 : 14) + '" fill="#fff" stroke="' + (sel ? '#2563eb' : '#111') + '" stroke-width="' + (sel ? 3 : 1.5) + '"/><text x="' + px.toFixed(1) + '" y="' + (py + 6).toFixed(1) + '" text-anchor="middle" font-size="17">' + esc(m.em) + '</text>' +
+            (n === 1 ? '<text x="' + px.toFixed(1) + '" y="' + (py + 32).toFixed(1) + '" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">' + esc(m.lab) + '</text>' : '') + '</g>';
+        });
+        return;
+      }
+      // pila: dischi sovrapposti nella posizione esatta + numero
+      var ems = G.items.map(function (p) { return p.m.em; }), uniq = ems.filter(function (e, i) { return ems.indexOf(e) === i; }).slice(0, 3), stack = '';
+      for (var k = Math.min(n, 3) - 1; k >= 0; k--) stack += '<circle cx="' + (x + k * 4).toFixed(1) + '" cy="' + (y - k * 4).toFixed(1) + '" r="15" fill="#fff" stroke="#111" stroke-width="1.5"/>';
+      g += '<g data-trc="' + gi + '" style="cursor:pointer">' + stack + '<text x="' + x.toFixed(1) + '" y="' + (y + 6).toFixed(1) + '" text-anchor="middle" font-size="16">' + esc(uniq[0]) + '</text>' +
+        '<circle cx="' + (x + 15).toFixed(1) + '" cy="' + (y - 16).toFixed(1) + '" r="10" fill="#2563eb"/><text x="' + (x + 15).toFixed(1) + '" y="' + (y - 12).toFixed(1) + '" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">' + n + '</text>' +
+        '<text x="' + x.toFixed(1) + '" y="' + (y + 32).toFixed(1) + '" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">' + esc(uniq.join(' ') + ' ' + n + ' oggetti') + '</text></g>';
     });
-    var svg = $('trSvg'); svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.innerHTML = g;
+    TR.groups = groups;
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.innerHTML = g;
     $('trHud').textContent = list.length ? '' : 'Nessun oggetto con posizione sulla mappa';
+    var inf = $('trInfo'); if (inf) inf.innerHTML = trInfoHtml();
   }
+  function trInfoHtml() {
+    if (!TR.fs || !TR.sel || !TR.d) return '';
+    var o = (TR.d.objects || []).filter(function (x) { return x.id === TR.sel; })[0], t = '', sub = '';
+    if (o) { t = (o.emoji || '📦') + ' ' + o.name; sub = trWhere(o.where) + ' · ' + trSource(o.where); }
+    else if (TR.sel.indexOf('ph') === 0) { var x = (TR.d.pb_here || []).filter(function (q) { return 'ph' + q.stop + q.day === TR.sel; })[0]; if (x) { t = '📦 ' + x.n + ' polybox · ' + (x.name || x.stop); sub = 'Consegnati ' + pbDayLab(x.day) + (x.t ? ' alle ' + x.t : '') + ' · ' + trBoatName(x.boat); } }
+    else if (TR.sel.indexOf('pb') === 0) { var b = (TR.d.polybox || []).filter(function (q) { return 'pb' + q.day === TR.sel; })[0]; if (b) { t = '📦 ' + b.n + ' polybox di Murano'; sub = TR_PB[+b.stage] || ''; } }
+    return t ? '<b>' + esc(t) + '</b><span>' + esc(sub) + '</span>' : '';
+  }
+  function trSetFs(on) {
+    TR.fs = !!on; document.body.classList.toggle('trfsopen', TR.fs);
+    var box = $('trBox'); if (box) box.classList.toggle('trfs', TR.fs);
+    var b = $('trFsBtn'); if (b) { b.textContent = TR.fs ? '✕' : '⤢'; b.setAttribute('aria-label', TR.fs ? 'Chiudi la mappa a schermo intero' : 'Apri la mappa a schermo intero'); }
+    TR.view = null; setTimeout(drawTrack, 30);
+  }
+  // gesti: una dita per spostare (solo a schermo intero, così fuori si scorre la pagina), due dita per spostare e zoomare
+  (function () {
+    var G = null;
+    function pts(e) { var r = $('trBox').getBoundingClientRect(); return Array.prototype.map.call(e.touches, function (t) { return { x: t.clientX - r.left, y: t.clientY - r.top }; }); }
+    function live() {
+      if (!G) return; var tl = $('trTiles'), svg = $('trSvg'); if (!tl) return;
+      var tr = 'translate(' + G.dx + 'px,' + G.dy + 'px) scale(' + G.k + ')'; tl.style.transformOrigin = svg.style.transformOrigin = G.ox + 'px ' + G.oy + 'px'; tl.style.transform = svg.style.transform = tr;
+    }
+    function finish() {
+      if (!G || !TR.view) { G = null; return; }
+      var box = $('trBox'), W = box.clientWidth, H = box.clientHeight, v = TR.view;
+      // punto del mondo sotto il centro dopo il gesto
+      var cxS = W / 2, cyS = H / 2, preX = (cxS - G.dx - G.ox) / G.k + G.ox, preY = (cyS - G.dy - G.oy) / G.k + G.oy;
+      var wx = v.cx - W / 2 + preX, wy = v.cy - H / 2 + preY, dz = Math.round(Math.log(G.k) / Math.LN2), z = Math.max(10, Math.min(19, v.z + dz)), kk = Math.pow(2, z - v.z);
+      TR.view = { z: z, cx: wx * kk, cy: wy * kk }; G = null; drawTrack();
+    }
+    document.addEventListener('touchstart', function (e) {
+      var box = $('trBox'); if (!box || !box.contains(e.target) || e.target.closest('button')) return;
+      if (e.touches.length >= 2 || TR.fs) {
+        e.preventDefault(); var p = pts(e);
+        if (p.length >= 2) G = { mode: 2, sx: (p[0].x + p[1].x) / 2, sy: (p[0].y + p[1].y) / 2, d0: Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y), dx: G ? G.dx : 0, dy: G ? G.dy : 0, bdx: G ? G.dx : 0, bdy: G ? G.dy : 0, k: G ? G.k : 1, k0: G ? G.k : 1, ox: (p[0].x + p[1].x) / 2, oy: (p[0].y + p[1].y) / 2, moved: true };
+        else G = { mode: 1, sx: p[0].x, sy: p[0].y, dx: 0, dy: 0, bdx: 0, bdy: 0, k: 1, k0: 1, ox: 0, oy: 0, moved: false, t0: Date.now(), tgt: e.target };
+      }
+    }, { passive: false });
+    document.addEventListener('touchmove', function (e) {
+      if (!G) return; e.preventDefault(); var p = pts(e);
+      if (G.mode === 2 && p.length >= 2) { var mx = (p[0].x + p[1].x) / 2, my = (p[0].y + p[1].y) / 2, d = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y); G.k = Math.max(.25, Math.min(8, G.k0 * d / (G.d0 || 1))); G.dx = G.bdx + mx - G.sx; G.dy = G.bdy + my - G.sy; }
+      else if (G.mode === 1 && p.length === 1) { G.dx = p[0].x - G.sx; G.dy = p[0].y - G.sy; if (Math.abs(G.dx) + Math.abs(G.dy) > 6) G.moved = true; }
+      live();
+    }, { passive: false });
+    document.addEventListener('touchend', function (e) {
+      if (!G) return;
+      if (G.mode === 2 && e.touches.length === 1) return; // aspetto che si alzino tutte e due le dita
+      if (G.mode === 1 && !G.moved) { var t = G.tgt; G = null; var tl = $('trTiles'); if (tl) { tl.style.transform = ''; $('trSvg').style.transform = ''; } if (t) t.dispatchEvent(new MouseEvent('click', { bubbles: true })); return; }
+      finish();
+    });
+    // computer: rotellina per lo zoom, trascinamento col mouse
+    document.addEventListener('wheel', function (e) { var box = $('trBox'); if (!box || !box.contains(e.target) || !TR.view) return; e.preventDefault(); var r = box.getBoundingClientRect(); trZoomTo(TR.view.z + (e.deltaY < 0 ? 1 : -1), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+    var M = null;
+    document.addEventListener('mousedown', function (e) { var box = $('trBox'); if (!box || !box.contains(e.target) || e.target.closest('button')) return; M = { x: e.clientX, y: e.clientY, moved: false }; });
+    document.addEventListener('mousemove', function (e) { if (!M) return; var dx = e.clientX - M.x, dy = e.clientY - M.y; if (Math.abs(dx) + Math.abs(dy) > 4) M.moved = true; if (!M.moved) return; G = { mode: 1, dx: dx, dy: dy, k: 1, ox: 0, oy: 0 }; live(); });
+    document.addEventListener('mouseup', function () { if (!M) return; var mv = M.moved; M = null; if (mv) { TR.noclick = Date.now(); finish(); } else G = null; });
+  })();
   function trMovePanel(o) {
     var D = TR.d, w = o.where || {};
     var h = '<div class="trpick"><b>Dov’è adesso “' + esc(o.name) + '”?</b>' +
@@ -2698,12 +2782,15 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     return h + '</section>';
   }
   function viewTracking() {
+    if (TR.fs) document.body.classList.add('trfsopen');
     if (!TR.d && !TR.loading && !TR.err) trLoad(); else if (!TR.loading && Date.now() - TR.t > 20000 && !TR.mv && !TR.ed) trLoad();
     var back = '<button class="aslink" data-act="nav" data-v="home">‹ Home</button>';
     var h = '<div class="wrap">' + back + '<h2>📍 Tracking oggetti</h2>';
     if (!TR.d) return h + (TR.err ? '<div class="note" role="alert">' + esc(TR.err) + '</div><button class="btn" data-act="trreload">Riprova</button>' : '<div class="card"><p class="muted">Carico…</p></div>') + '</div>';
     setTimeout(drawTrack, 30);
-    h += '<section class="card"><div class="fleetbox trbox" id="trBox"><div class="mtiles" id="trTiles"></div><svg class="msvg" id="trSvg" style="pointer-events:auto"></svg><div class="mhud" id="trHud"></div><div class="mattr">© OpenStreetMap · OpenSeaMap</div></div><p class="hint">Tocca un simbolo sulla mappa per trovare l’oggetto qui sotto. La posizione si aggiorna da sola con le tappe, la fine dei turni, i rifornimenti e le conferme.</p></section>';
+    h += '<section class="card"><div class="fleetbox trbox' + (TR.fs ? ' trfs' : '') + '" id="trBox"><div class="mtiles" id="trTiles"></div><svg class="msvg" id="trSvg" style="pointer-events:auto"></svg><div class="mhud" id="trHud"></div>' +
+      '<div class="trctl"><button id="trFsBtn" data-act="trfs" aria-label="' + (TR.fs ? 'Chiudi la mappa a schermo intero' : 'Apri la mappa a schermo intero') + '">' + (TR.fs ? '✕' : '⤢') + '</button><button data-act="trzin" aria-label="Avvicina">+</button><button data-act="trzout" aria-label="Allontana">−</button><button data-act="trfit" aria-label="Mostra tutti gli oggetti">◎</button></div>' +
+      '<div class="trinfo" id="trInfo">' + trInfoHtml() + '</div><div class="mattr">© OpenStreetMap · OpenSeaMap</div></div><p class="hint">Due dita per spostare e zoomare la mappa, ⤢ per lo schermo intero. Da lontano gli oggetti vicini stanno in una pila col numero: tocca la pila o avvicinati per vederli uno per uno.</p></section>';
     if (TR.d.mgr) h += TR.ed ? trEdit() : '<button class="btn" data-act="trnew">+ Aggiungi un oggetto da tracciare</button>';
     var pb = TR.d.polybox || [];
     var here = TR.d.pb_here || [];
@@ -2719,10 +2806,18 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function trKeepEd() { var e = TR.ed; if (!e) return; var em = $('trEm'), nm = $('trNm'), qt = $('trQt'), bt = $('trBt'); if (em) e.emoji = em.value; if (nm) e.name = nm.value; if (qt) e.qty = qt.value === '' ? null : qt.value; if (bt) e.boat = bt.value || null; }
   document.addEventListener('click', function (e) {
     var mk = e.target.closest ? e.target.closest('[data-trm]') : null;
+    if (TR.noclick && Date.now() - TR.noclick < 300) return;
+    var ck = e.target.closest ? e.target.closest('[data-trc]') : null;
+    if (ck && view === 'tracking' && TR.groups && TR.view) { var Gc = TR.groups[+ck.getAttribute('data-trc')]; if (Gc) trZoomTo(TR.view.z + 2, Gc.x, Gc.y); return; }
+    if (mk && view === 'tracking' && TR.fs) { TR.sel = mk.getAttribute('data-trm'); drawTrack(); return; }
     if (mk && view === 'tracking') { var id = mk.getAttribute('data-trm'); TR.sel = id; drawTrack(); var card = id.indexOf('ph') === 0 ? $('trophere') : id.indexOf('pb') === 0 ? document.querySelector('.tro') : $('tro' + id); if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act'); if (a.indexOf('tr') !== 0) return;
     var obj = TR.mv;
     if (a === 'trreload') { TR.err = ''; trLoad().then(render); }
+    else if (a === 'trfs') trSetFs(!TR.fs);
+    else if (a === 'trzin') { if (TR.view) trZoomTo(TR.view.z + 1); }
+    else if (a === 'trzout') { if (TR.view) trZoomTo(TR.view.z - 1); }
+    else if (a === 'trfit') { TR.view = null; drawTrack(); }
     else if (a === 'trmove') { TR.mv = el.getAttribute('data-id'); render(); }
     else if (a === 'trmvno') { TR.mv = null; render(); }
     else if (a === 'trmv' && obj) { var hh = el.getAttribute('data-h'); if (hh === 'boat') trSend({ p_obj: obj, p_holder: 'boat', p_boat: el.getAttribute('data-c') }, 'Segnato sulla ' + trBoatName(el.getAttribute('data-c'))); else trSend({ p_obj: obj, p_holder: 'person' }, 'Segnato: ce l’hai tu'); }
@@ -6512,6 +6607,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var NAV_VAN = [['polybox', 'Polybox'], ['tracking', 'Tracking'], ['programma', 'Programma'], ['contatti', 'Contatti']];
   var NAV_OFF = [['cucina', 'Cucina'], ['programma', 'Programma'], ['ddt', 'DDT'], ['notifiche', 'Chat'], ['contatti', 'Contatti']];
   function render() {
+    if (view !== 'tracking' && typeof TR !== 'undefined' && TR && TR.fs) { TR.fs = false; document.body.classList.remove('trfsopen'); }
     if (GHOST && !document.getElementById('ghostBar')) { var gb = document.createElement('div'); gb.id = 'ghostBar'; gb.setAttribute('role', 'status'); gb.textContent = '👻 MODALITÀ PROVA · nessuno ti vede · niente viene salvato'; gb.style.cssText = 'position:sticky;top:0;left:0;right:0;z-index:99999;background:#7c3aed;color:#fff;font:600 12px/1.2 system-ui,sans-serif;text-align:center;padding:calc(4px + env(safe-area-inset-top)) 10px 4px;pointer-events:none'; document.body.insertBefore(gb, document.body.firstChild); }
     if (S.shift && view === 'guida' && !document.hidden) wakeOn(); else wakeOff();
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
