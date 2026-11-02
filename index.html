@@ -254,6 +254,8 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 .tbr.late .tbs,.tbr.late .tbc{color:#FF5A4F}.tbr.late .tbo{color:#FF5A4F}
 .tbr.gone{opacity:.42}.tbr.gone .tbs{color:#8FA3B0}.tbr.gone .tbk{background:#2E7D32;border-color:#2E7D32;color:#fff}
 @keyframes tbbl{50%{opacity:.35}}
+.ldl li.lddone>span:nth-child(2){opacity:.6}.ldl li.lddone>span:nth-child(2),.ldl li>span:nth-child(2){flex:1}.lddn{margin-left:auto;align-self:center;font-size:12.5px;font-weight:800;border-radius:999px;padding:2px 8px;white-space:nowrap}.lddn.ok{background:#E3F4E6;color:#1E6B2E}.lddn.bad{background:#FFF1D6;color:#8A5300}
+
 .nxfoot{display:flex;gap:8px;flex:none}.nxfoot>*{flex:1;margin:0!important}.nxskip{display:block;width:100%;margin:6px 0 0;border:1px dashed #4E6670;border-radius:12px;background:none;color:#B8C7CC;font:inherit;font-weight:700;font-size:14px;padding:8px}
 
 #nextBtn.locked{filter:grayscale(1);opacity:.55}#nextBtn{position:relative}#nextBtn .chkl{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:12px;font-weight:700;letter-spacing:.02em;opacity:.95}
@@ -3258,6 +3260,19 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     return (MG.list || []).filter(function (t) { return t.status !== 'annullata' && isoOf(t.created_at) === k && crew && ddtNorm(t.who).indexOf(crew) === 0; });
   }
   function ldFleet(code) { return (MG.fleet || []).filter(function (b) { return b.code === code; })[0] || null; }
+  // consegne fatte oggi (dal navigatore): il programma le mostra con l'ora vera
+  var DEVT = { k: null, d: null, t: 0 };
+  function loadDayEv(k) { if (!tok() || (DEVT.k === k && Date.now() - DEVT.t < 20000)) return; DEVT.t = Date.now(); cl('rpc_day_events', { p_day: k }).then(function (r) { if (Array.isArray(r)) { var ch = DEVT.k !== k || JSON.stringify(r) !== JSON.stringify(DEVT.d); DEVT.k = k; DEVT.d = r; if (ch && (view === 'logistica' || view === 'programma') && !document.querySelector('#layer .sheet') && !(document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))) render(); } }); }
+  setInterval(function () { if (!document.hidden && view === 'logistica') loadDayEv(todayKey()); }, 25000);
+  function dayDone(k, c, st) {
+    var out = {}; if (DEVT.k !== k || !DEVT.d) return out; var used = {};
+    st.forEach(function (z, i) {
+      var nz = ddtNorm(z.name);
+      for (var j = 0; j < DEVT.d.length; j++) { var v = DEVT.d[j]; if (used[j] || v.boat !== c || ddtNorm(v.stop) !== nz) continue; if (v.t && z.t && v.t !== z.t) continue; used[j] = 1; out[i] = v; break; }
+    });
+    return out;
+  }
+  function ldDone(v) { return v ? '<span class="lddn ' + (v.status === 'ok' ? 'ok' : 'bad') + '">' + (v.status === 'ok' ? '✓ ' : '⚠ ') + hm(Date.parse(v.at)) + '</span>' : ''; }
   function ldDay(k) {
     var P = PROGRAM[k], isToday = k === todayKey(), bs = ldBoats(); if (bs.indexOf(LD.boat) < 0) LD.boat = bs[0];
     var tabs = '<div class="ldtabs">' + bs.map(function (c) {
@@ -3266,12 +3281,13 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     }).join('') + '</div>';
     return tabs + '<div class="ldcols">' + bs.map(function (c) {
       var bd = P && P.boats[c], st = bd && !bd.off ? (bd.stops || []) : [], tk = ldTasks(k, c), f = isToday ? ldFleet(c) : null;
+      if (isToday) loadDayEv(k); var dd = isToday ? dayDone(k, c, st) : {};
       var state = !bd || bd.off ? 'Non in servizio' : st.length ? st.length + (st.length === 1 ? ' tappa' : ' tappe') : bd.onCall ? 'Reperibile' : 'Nessuna tappa';
       var live = f && f.active ? '<span class="pill ok">In giro · ' + (f.ok || 0) + '/' + (f.total || st.length) + '</span>' : '';
       return '<section class="ldb' + (LD.boat === c ? ' sel' : '') + '" style="--bc:' + bcol(c) + '"><div class="ldbh"><b>' + esc(BOATS[c].name) + '</b><span class="muted">' + esc(BOATS[c].crew || '') + ' · ' + state + '</span>' + live + '</div>' +
         (st.length || tk.length ? '<ol class="ldl">' + st.map(function (z, i) {
           var ren = isFullAcc() ? ' data-act="ldren" data-k="' + k + '" data-b="' + c + '" data-i="' + i + '" role="button" tabindex="0" title="Tocca per rinominare"' : '';
-          return '<li' + (z.cancelled ? ' class="ldx"' : isFullAcc() ? ' class="ldr"' : '') + ren + '><span class="ldt">' + esc(z.t ? stopTime(z) : '––:––') + '</span><span>' + esc(z.name) + (z.note ? '<em>' + esc(z.note) + '</em>' : '') + '</span>' + (isFullAcc() ? '<i class="ldpen" aria-hidden="true">✎</i>' : '') + '</li>';
+          return '<li' + (z.cancelled ? ' class="ldx"' : dd[i] ? ' class="lddone' + (isFullAcc() ? ' ldr' : '') + '"' : isFullAcc() ? ' class="ldr"' : '') + ren + '><span class="ldt">' + esc(z.t ? stopTime(z) : '––:––') + '</span><span>' + esc(z.name) + (z.note ? '<em>' + esc(z.note) + '</em>' : '') + '</span>' + ldDone(dd[i]) + (isFullAcc() ? '<i class="ldpen" aria-hidden="true">✎</i>' : '') + '</li>';
         }).join('') + tk.map(function (t) {
           return '<li class="ldk"><span class="ldt">' + esc(t.t || '––:––') + '</span><span>+ ' + esc(t.name) + '<em>' + (t.status === 'fatta' ? 'Fatta' : t.status === 'problema' ? 'Problema' : 'Aggiunta in giornata') + '</em></span></li>';
         }).join('') + '</ol>' : '') + '</section>';
@@ -4293,7 +4309,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02zn';
+  var APP_V = '2026-11-02zo';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
