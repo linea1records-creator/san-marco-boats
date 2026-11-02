@@ -254,6 +254,8 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 .tbr.late .tbs,.tbr.late .tbc{color:#FF5A4F}.tbr.late .tbo{color:#FF5A4F}
 .tbr.gone{opacity:.42}.tbr.gone .tbs{color:#8FA3B0}.tbr.gone .tbk{background:#2E7D32;border-color:#2E7D32;color:#fff}
 @keyframes tbbl{50%{opacity:.35}}
+.ddwup{display:flex;flex-direction:column;gap:6px}.ddwub{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.ddwub b{flex:1;min-width:90px;color:#F2F7F5;font-size:14px}.ddwub button{border:0;border-radius:9px;padding:7px 10px;background:#1655C8;color:#fff;font:inherit;font-weight:700;font-size:13px}.ddwup.more .ddwub button{background:#1D2C33;color:#DCE7E4}
+
 .colli .clsec{margin-top:14px;padding:6px 0 2px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#5B6870;font-weight:700}.colli{max-height:78vh;overflow:auto}.clbtns{position:sticky;bottom:0;background:#fff;padding-top:8px}.clchip{display:block;width:100%;text-align:left;border:0;border-radius:10px;padding:7px 10px;margin-bottom:6px;background:#12384F;color:#BFE6FF;font:inherit;font-weight:700;font-size:14px}.clchip.no{background:#3D2E00;color:#FFD54F}
 .colli .clr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid #E3E8EC}.colli .clr b{display:block;font-size:17px;color:#11181C}.colli .clr small{color:#5B6870}
 .clst{display:flex;align-items:center;gap:6px}.clst button{width:44px;height:44px;border-radius:12px;border:1px solid #CDD6DC;background:#F1F4F6;font-size:24px;font-weight:700;color:#11181C}.clst input{width:64px;height:44px;text-align:center;font-size:22px;font-weight:800;border:1px solid #CDD6DC;border-radius:12px;color:#11181C;background:#fff}
@@ -2141,19 +2143,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       D[o + 3] = 255;
     }
     co.putImageData(O, 0, 0);
-    // sfondo: carta stimata con una sfocatura forte, poi divisa → bianco uniforme, ombre via
-    var bw = Math.max(8, Math.round(OW / 28)), bh = Math.max(8, Math.round(OH / 28)), bg = document.createElement('canvas'); bg.width = bw; bg.height = bh;
-    var cb = bg.getContext('2d'); cb.imageSmoothingQuality = 'high'; cb.drawImage(out, 0, 0, bw, bh);
-    var Bd = cb.getImageData(0, 0, bw, bh); // massimo locale: la carta è la parte più chiara
-    var bmax = new Uint8ClampedArray(Bd.data.length);
-    for (var yy = 0; yy < bh; yy++) for (var xx = 0; xx < bw; xx++) for (var c2 = 0; c2 < 3; c2++) { var mv = 0; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var ty = Math.min(bh - 1, Math.max(0, yy + dy)), tx = Math.min(bw - 1, Math.max(0, xx + dx)); mv = Math.max(mv, Bd.data[(ty * bw + tx) * 4 + c2]); } bmax[(yy * bw + xx) * 4 + c2] = mv; bmax[(yy * bw + xx) * 4 + 3] = 255; }
-    cb.putImageData(new ImageData(bmax, bw, bh), 0, 0);
-    var big = document.createElement('canvas'); big.width = OW; big.height = OH; var cg = big.getContext('2d'); cg.imageSmoothingQuality = 'high'; cg.filter = 'blur(' + Math.round(OW / 60) + 'px)'; cg.drawImage(bg, -OW * .02, -OH * .02, OW * 1.04, OH * 1.04);
-    var G = cg.getImageData(0, 0, OW, OH).data, P = co.getImageData(0, 0, OW, OH), E = P.data;
-    for (var t = 0; t < E.length; t += 4) {
-      for (var c3 = 0; c3 < 3; c3++) { var v = E[t + c3] / Math.max(40, G[t + c3]); v = Math.min(1, v * 1.06); v = v > .9 ? 1 : Math.pow(v / .9, 1.45); E[t + c3] = v * 255; }
-    }
-    co.putImageData(P, 0, 0);
+    // niente correzioni di colore o contrasto: il DDT resta com'è, solo ritagliato e raddrizzato
     return out;
   }
   // Schermata per controllare/spostare i 4 angoli prima di confermare
@@ -2261,7 +2251,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (!DD.loaded && !DD.busy) loadDdt().then(function () { if (view === 'murano') render(); });
     var k = MU.day, list = muStops(k), canUp = isOff() || isMgr() || isFullAcc();
     var h = '<div class="wrap"><button class="aslink" data-act="nav" data-v="ddt">‹ DDT</button><div class="row"><h2>📁 DDT · Murano</h2></div>' +
-      '<p class="muted">Fai una foto al DDT: lo ritaglio, lo raddrizzo e tolgo lo sfondo. Quando il cliente firma sul telefono, la firma va nel riquadro “Firma del cessionario” della copia digitale.</p>' +
+      '<p class="muted">Fai una foto al DDT: la ritaglio e la raddrizzo, senza cambiare i colori. Quando il cliente firma sul telefono, la firma va nel riquadro “Firma del cessionario” della copia digitale.</p>' +
       '<div class="ldnav"><button class="btn sm" data-act="mumove" data-n="-1" aria-label="Giorno prima">‹</button><b>' + (k === todayKey() ? 'Oggi · ' : k === ldShift(todayKey(), 1) ? 'Domani · ' : '') + esc(pgDateLabel(k)) + '</b><button class="btn sm" data-act="mumove" data-n="1" aria-label="Giorno dopo">›</button></div>';
     if (!list.length) return h + '<div class="card"><p class="muted">Nessuna consegna a Murano in questo giorno.</p></div></div>';
     h += list.map(function (o) {
@@ -2996,7 +2986,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         '<button class="chk' + (rev ? ' revgo' : S.shift && S.shift.arr && S.shift.arr[S.shift.day + ':' + i] ? ' near' : '') + '" id="nextBtn" data-act="' + (rev ? 'revexit' : 'next') + '" aria-label="' + esc(primary) + '"><span class="chkc"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" class="ring"/><path d="M13 25l8 8 15-17" class="tick"/></svg></span><span class="chkt">' + esc(primary) + '</span></button></div>' +
         '<button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>'
     };
-    var g = gwGet(), ed = GWE.on, cz = ddwCur(), noDdt = !ddwList().length && !(cz && driverDdt(cz.name, cz.note)), vis = g.order.filter(function (k) { return !g.hidden[k] && !(k === 'ddt' && noDdt && !ed); }), gone = g.order.filter(function (k) { return g.hidden[k]; });
+    var g = gwGet(), ed = GWE.on, cz = ddwCur(), noDdt = !ddwList().length && !(cz && ddwMuranoUp(cz, [])), vis = g.order.filter(function (k) { return !g.hidden[k] && !(k === 'ddt' && noDdt && !ed); }), gone = g.order.filter(function (k) { return g.hidden[k]; });
     var grid = vis.map(function (k) {
       var d = GWD[k], sz = gwSize(k), dm = d.sizes[sz];
       return '<div class="wd w-' + k + (dm[0] === 2 ? ' w2' : '') + (ed ? ' ed' : '') + '" data-w="' + k + '" style="grid-column:span ' + dm[0] + ';grid-row:span ' + dm[1] + '">' + parts[k] +
@@ -4285,7 +4275,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02ze';
+  var APP_V = '2026-11-02zf';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4431,15 +4421,20 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   // a Murano (uno per cliente) e al Pane il trasportatore fotografa i DDT dalla fermata
   function ddwMuranoUp(cur, all) {
-    if (!cur || !driverDdt(cur.name, cur.note)) return '';
+    if (!cur || cur.maint) return '';
+    var nm = String(cur.name || '').trim();
+    if (!driverDdt(cur.name, cur.note) && (/^(darsena|scalo|seminario)\b/i.test(nm) || /certosa/i.test(nm))) return '';
     var cls = isPane(cur.name) ? ['Pane'] : muClients(cur.name), here = all.filter(function (x) { return ddwHere(x, cur); });
     var miss = cls.filter(function (cn) { return !here.some(function (x) { return ddtNorm(x.customer) === ddtNorm(cn); }); });
-    if (!miss.length) return '';
-    return '<div class="ddwup"><span>Carica i DDT di questa fermata</span>' + miss.map(function (cn) { return '<button data-act="ddwshot" data-c="' + esc(cn) + '">📷 ' + esc(cn) + '</button>'; }).join('') + '</div>';
+    var mk = function (cn, lab) { return '<span class="ddwub"><b>' + esc(lab) + '</b><button data-act="ddwshot" data-m="cam" data-c="' + esc(cn) + '">📷 Foto</button><button data-act="ddwshot" data-m="file" data-c="' + esc(cn) + '">📄 PDF / file</button></span>'; };
+    if (miss.length) return '<div class="ddwup"><span>Carica i DDT di questa fermata</span>' + miss.map(function (cn) { return mk(cn, cn); }).join('') + '</div>';
+    // c'è già: si può comunque aggiungerne un altro
+    return '<div class="ddwup more"><span>Aggiungi un DDT</span>' + (cls.length > 1 ? cls.map(function (cn) { return mk(cn, cn); }).join('') : mk(cls[0], cls[0])) + '</div>';
   }
-  function ddwShot(cn) {
+  function ddwUpMissing(cur, all) { var h = ddwMuranoUp(cur, all); return h && h.indexOf('ddwup more') < 0 ? h : ''; }
+  function ddwShot(cn, mode) {
     var cur = ddwCur(); if (!cur || !S.shift) return;
-    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*,application/pdf'; inp.setAttribute('capture', 'environment'); inp.style.display = 'none';
+    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = mode === 'cam' ? 'image/*' : 'image/*,application/pdf'; if (mode === 'cam') inp.setAttribute('capture', 'environment'); inp.style.display = 'none';
     inp.onchange = function () {
       var f = inp.files && inp.files[0]; inp.remove(); if (!f) return; var pp = null;
       muranoPrep(f, cur.name, cur.note, cn).then(function (p) { pp = p; toast('Carico il DDT di ' + cn + '…'); return ddtFileData(p.file); }).then(function (o) {
@@ -4451,16 +4446,16 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     };
     document.body.appendChild(inp); inp.click();
   }
-  document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="ddwshot"]') : null; if (el) ddwShot(el.getAttribute('data-c')); });
+  document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="ddwshot"]') : null; if (el) ddwShot(el.getAttribute('data-c'), el.getAttribute('data-m') || 'cam'); });
   // nel cruscotto solo un tasto piccolo: apre la finestra per scegliere i DDT da firmare
   function ddwMini() {
-    var cur = ddwCur(), all = ddwList(), pend = all.filter(function (x) { return x.status === 'pending'; }), nh = pend.filter(function (x) { return ddwHere(x, cur); }).length, up = !!ddwMuranoUp(cur, all);
+    var cur = ddwCur(), all = ddwList(), pend = all.filter(function (x) { return x.status === 'pending'; }), nh = pend.filter(function (x) { return ddwHere(x, cur); }).length, up = !!(cur && driverDdt(cur.name, cur.note) && ddwUpMissing(cur, all));
     return '<button class="ddwmini' + (nh || up ? ' here' : '') + '" data-act="ddwopen"><span class="ddwmi">📄</span><span class="ddwmt"><b>DDT</b><small>' + (up && !nh ? 'da caricare' : nh ? nh + ' da firmare qui' : pend.length ? pend.length + ' da firmare' : 'nessuno da firmare') + '</small></span></button>';
   }
   function ddwOpen() { openSheet('<div class="ddwsheet2"><div id="ddwFace" class="ddwsheet">' + ddwInner() + '</div><div class="btns"><button class="btn quiet" data-act="close">Chiudi</button></div></div>'); }
   function ddwBadge() {
     var cur0 = ddwCur(), pend = ddwList().filter(function (x) { return x.status === 'pending'; });
-    if (!pend.length) return ddwMuranoUp(cur0, ddwList()) ? '<button class="ddwbadge here" data-act="ddwgo" aria-label="DDT da caricare">📷 DDT da caricare</button>' : '';
+    if (!pend.length) return ddwUpMissing(cur0, ddwList()) && driverDdt(cur0.name, cur0.note) ? '<button class="ddwbadge here" data-act="ddwgo" aria-label="DDT da caricare">📷 DDT da caricare</button>' : '';
     var cur = cur0, nh = pend.filter(function (x) { return ddwHere(x, cur); }).length;
     return '<button class="ddwbadge' + (nh ? ' here' : '') + '" data-act="ddwgo" aria-label="DDT da firmare">📄 ' + (nh ? nh + ' DDT qui' : pend.length + ' DDT') + '</button>';
   }
