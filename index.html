@@ -2627,8 +2627,13 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function trMarkers() {
     var D = TR.d, out = [];
     (D.objects || []).forEach(function (o) { var p = trPos(o.where); if (p) out.push({ id: o.id, la: p[0], lo: p[1], em: o.emoji || '📦', lab: o.name + (o.qty ? ' ×' + o.qty : '') }); });
+    var here = D.pb_here || [], muDays = {};
+    here.forEach(function (x) {
+      var p = x.lat != null ? [+x.lat, +x.lng] : COORDS[x.stop]; if (x.murano) muDays[String(x.day).slice(0, 10)] = 1;
+      if (p) out.push({ id: 'ph' + x.stop + x.day, la: p[0], lo: p[1], em: '📦', lab: x.n + ' · ' + x.stop });
+    });
     (D.polybox || []).forEach(function (b) {
-      var st = +b.stage, p = st === 0 ? COORDS['Murano'] : st === 2 ? COORDS['Scalo fluviale'] : null;
+      var st = +b.stage, p = st === 0 ? (muDays[String(b.day).slice(0, 10)] ? null : COORDS['Murano']) : st === 2 ? COORDS['Scalo fluviale'] : null;
       if (st === 1) { var bp = (D.boats || []).filter(function (x) { return x.code === 'PATANA'; })[0]; if (bp && bp.lat != null) p = [bp.lat, bp.lng]; }
       if (p) out.push({ id: 'pb' + b.day, la: p[0], lo: p[1], em: '📦', lab: b.n + ' polybox' });
     });
@@ -2701,6 +2706,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     h += '<section class="card"><div class="fleetbox trbox" id="trBox"><div class="mtiles" id="trTiles"></div><svg class="msvg" id="trSvg" style="pointer-events:auto"></svg><div class="mhud" id="trHud"></div><div class="mattr">© OpenStreetMap · OpenSeaMap</div></div><p class="hint">Tocca un simbolo sulla mappa per trovare l’oggetto qui sotto. La posizione si aggiorna da sola con le tappe, la fine dei turni, i rifornimenti e le conferme.</p></section>';
     if (TR.d.mgr) h += TR.ed ? trEdit() : '<button class="btn" data-act="trnew">+ Aggiungi un oggetto da tracciare</button>';
     var pb = TR.d.polybox || [];
+    var here = TR.d.pb_here || [];
+    if (here.length) { var tot = here.reduce(function (a, x) { return a + (+x.n || 0); }, 0); h += '<section class="card tro" id="trophere"><div class="row1"><span class="em" aria-hidden="true">📦</span><div style="flex:1"><b>Polybox lasciati ai clienti · ' + tot + '</b>' + here.map(function (x) { return '<div><span class="wh">' + x.n + ' · ' + esc(x.name || x.stop) + '</span> <span class="trsrc">' + esc(pbDayLab(x.day)) + (x.t ? ' alle ' + esc(x.t) : '') + ' · ' + esc(trBoatName(x.boat)) + '</span></div>'; }).join('') + '<div class="trsrc">⚙️ messi in automatico dove sono stati consegnati, col numero segnato alla consegna</div></div></div></section>'; }
     if (pb.length) h += '<section class="card tro"><div class="row1"><span class="em" aria-hidden="true">📦</span><div style="flex:1"><b>Polybox di Murano</b>' + pb.map(function (b) { return '<div><span class="wh">' + b.n + ' · ' + esc(TR_PB[+b.stage] || '') + '</span> <span class="trsrc">(consegnati ' + esc(pbDayLab(b.day)) + ')</span></div>'; }).join('') + '<div class="trsrc">⚙️ si aggiornano da soli con il giro della Patana e le conferme di Sergio</div></div></div>' + (isVan() || pbIsMgr() ? '<button class="btn sm" data-act="nav" data-v="polybox">Apri la sezione Polybox</button>' : '') + '</section>';
     return h + (TR.d.objects || []).map(trCard).join('') + '<button class="btn sm" data-act="trreload" style="margin-top:8px">Aggiorna</button></div>';
   }
@@ -2712,7 +2719,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function trKeepEd() { var e = TR.ed; if (!e) return; var em = $('trEm'), nm = $('trNm'), qt = $('trQt'), bt = $('trBt'); if (em) e.emoji = em.value; if (nm) e.name = nm.value; if (qt) e.qty = qt.value === '' ? null : qt.value; if (bt) e.boat = bt.value || null; }
   document.addEventListener('click', function (e) {
     var mk = e.target.closest ? e.target.closest('[data-trm]') : null;
-    if (mk && view === 'tracking') { var id = mk.getAttribute('data-trm'); TR.sel = id; drawTrack(); var card = id.indexOf('pb') === 0 ? document.querySelector('.tro') : $('tro' + id); if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+    if (mk && view === 'tracking') { var id = mk.getAttribute('data-trm'); TR.sel = id; drawTrack(); var card = id.indexOf('ph') === 0 ? $('trophere') : id.indexOf('pb') === 0 ? document.querySelector('.tro') : $('tro' + id); if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act'); if (a.indexOf('tr') !== 0) return;
     var obj = TR.mv;
     if (a === 'trreload') { TR.err = ''; trLoad().then(render); }
