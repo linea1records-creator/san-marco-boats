@@ -678,6 +678,23 @@ body.drive:not(.drive-open) .nav { display: none; }
 
 
 /* widget cruscotto */
+.pew { display: flex; flex-direction: column; gap: 6px; background: #0E1A20; border-radius: 12px; border-left: 4px solid #FFB74D; box-shadow: inset 0 0 0 1px #24343B; padding: 8px 10px; color: #F2F7F5; overflow: hidden; }
+.pew .peh { display: flex; align-items: center; gap: 6px; flex: none; }
+.pew .peh b { font-size: 14px; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pew .pen { background: #13232A; color: #D7E3E0; border: 1px solid #2C3C44; border-radius: 8px; min-width: 32px; min-height: 32px; font-size: 16px; font-weight: 700; }
+.pew .peb { display: flex; gap: 6px; flex: none; }
+.pew .peb button { flex: 1; min-height: 34px; border-radius: 999px; border: 1px solid var(--bc); background: transparent; color: #F2F7F5; font-size: 13px; font-weight: 700; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pew .peb button[aria-pressed=true] { background: var(--bc); color: #0A1317; }
+.pew .pel { flex: 1; min-height: 0; overflow-y: auto; margin: 0; padding: 0; list-style: none; -webkit-overflow-scrolling: touch; }
+.pew .pel li button { display: flex; width: 100%; gap: 10px; align-items: baseline; text-align: left; background: none; border: 0; border-bottom: 1px solid #1B2A31; color: #F2F7F5; font: inherit; padding: 9px 2px; min-height: 40px; }
+.pew .pel .pt { font-family: var(--font-mono); color: #9FB4BB; font-size: 14px; flex: none; width: 46px; }
+.pew .pel .pn { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; }
+.pew .pel .pn em { display: block; font-style: normal; font-weight: 400; font-size: 12px; color: #8FA6AE; }
+.pew .pel .pk { flex: none; font-size: 13px; color: #66BB6A; font-weight: 700; }
+.pew .pel li.cur .pn { color: #FFB74D; } .pew .pel li.x .pn { text-decoration: line-through; color: #6F858D; }
+.pew .pel li.dn .pn { color: #8FA6AE; }
+.pew .pea { flex: none; min-height: 40px; border-radius: 10px; border: 1px dashed #FFB74D; background: transparent; color: #FFB74D; font-size: 15px; font-weight: 700; }
+.pew .pemt { color: #8FA6AE; font-size: 14px; padding: 8px 2px; }
 .wgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 52px; grid-auto-flow: dense; gap: 10px; flex: 1; min-height: 0; overflow-y: auto; align-content: start; -webkit-overflow-scrolling: touch; }
 .wd { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .wd > * { flex: 1; min-height: 0; }
@@ -1159,6 +1176,27 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function dateParts(k) { var d = new Date(k + 'T12:00:00'); return { dow: d.getDay(), n: d.getDate(), m: d.getMonth() }; }
   var PCO = {}; // coordinate dei posti nuovi arrivati col programma
   function applyProgram(days) {
+    var _sh = S && S.shift, _ob = _sh && PROGRAM[_sh.day] && PROGRAM[_sh.day].boats[_sh.boat], _os = _ob ? (_ob.stops || []).map(function (z) { return { name: z.name, t: z.t || '' }; }) : null;
+    applyProgram0(days);
+    try { if (_os && S.shift === _sh) shiftRemap(_os); } catch (e) {}
+  }
+  // rimappa lo stato del turno (consegne fatte, polybox, foto…) se le tappe di oggi sono state aggiunte, tolte o spostate
+  function shiftRemap(os) {
+    var sh = S.shift, nb = PROGRAM[sh.day] && PROGRAM[sh.day].boats[sh.boat], ns = nb ? nb.stops || [] : [], used = {}, map = {};
+    if (JSON.stringify(os) === JSON.stringify(ns.map(function (z) { return { name: z.name, t: z.t || '' }; }))) return;
+    os.forEach(function (o, i) { for (var j = 0; j < ns.length; j++) if (!used[j] && ns[j].name === o.name && (ns[j].t || '') === o.t) { used[j] = 1; map[i] = j; return; } });
+    os.forEach(function (o, i) { if (map[i] != null) return; for (var j = 0; j < ns.length; j++) if (!used[j] && ns[j].name === o.name) { used[j] = 1; map[i] = j; return; } });
+    var L0 = os.length, L1 = ns.length;
+    function mi(i) { i = +i; return i >= L0 ? i - L0 + L1 : (map[i] != null ? map[i] : null); }
+    var nd = {}; Object.keys(sh.done || {}).forEach(function (i) { var j = mi(i); if (j != null) nd[j] = sh.done[i]; }); sh.done = nd;
+    ['colli', 'probs', 'refuel', 'proof', 'semck'].forEach(function (f) {
+      if (!sh[f]) return; var o = {}; Object.keys(sh[f]).forEach(function (k) { var m = /^(.*):(\d+)$/.exec(k); if (!m || m[1] !== sh.day) { o[k] = sh[f][k]; return; } var j = mi(m[2]); if (j != null) o[m[1] + ':' + j] = sh[f][k]; }); sh[f] = o;
+    });
+    if (sh.arr) { var a = {}; Object.keys(sh.arr).forEach(function (k) { var m = /^([^:]+):(\d+):(.*)$/.exec(k); if (!m || m[1] !== sh.day) { a[k] = sh.arr[k]; return; } var j = mi(m[2]); if (j != null) a[m[1] + ':' + j + ':' + m[3]] = sh.arr[k]; }); sh.arr = a; }
+    if (sh.hold != null) sh.hold = mi(sh.hold); if (sh.rev != null) sh.rev = mi(sh.rev);
+    try { save(); } catch (e) {}
+  }
+  function applyProgram0(days) {
     var P = JSON.parse(JSON.stringify(BASE_PROGRAM)), K = BASE_KEYS.slice();
     Object.keys(days || {}).forEach(function (k) {
       var d = days[k]; if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || !d || typeof d.boats !== 'object') return;
@@ -3035,6 +3073,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       speed: gwVar('speed') === 0 ? '<div class="gz sm" id="spFace">' + speedInner() + '</div>' : '<div class="spv sp' + gwVar('speed') + '" id="spFace">' + speedInner() + '</div>',
       clock: '<div class="clk" id="clkF">' + clockInner() + '</div>',
       pay: '<div class="payw" id="payF">' + payInner() + '</div>',
+      prog: '<div class="pew" id="peF">' + peInner() + '</div>',
       weather: '<div id="wxFace" class="wxv wx' + gwVar('weather') + '">' + wxInner() + '</div>',
       tide: '<div id="tdFace" class="tdv">' + tideInner() + '</div>',
       mimmo: '<div id="mimFace" class="mim">' + mimInner() + '</div>',
@@ -3044,7 +3083,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         '<button class="chk' + (hold ? ' holdgo' : rev ? ' revgo' : !canArrive(i) ? ' locked' : S.shift && S.shift.arr && S.shift.arr[arrKey(i)] && canArrive(i) && arrDist(i) != null && arrDist(i) <= ARR_R ? ' near' : '') + '" id="nextBtn" data-act="' + (hold ? 'holdnext' : rev ? 'revexit' : 'next') + '" aria-label="' + esc(primary) + '"><span class="chkc"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" class="ring"/><path d="M13 25l8 8 15-17" class="tick"/></svg></span><span class="chkt">' + esc(primary) + '</span>' + (!hold && !rev && !canArrive(i) ? '<small class="chkl" id="nextLock">' + lockTxt(i) + '</small>' : '') + '</span></button></div>' +
         '<div class="nxfoot">' + (hold || rev ? '' : '<button class="nxskip" data-act="skipask">Salta tappa</button>') + '<button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div></div>'
     };
-    var g = gwGet(), ed = GWE.on, cz = ddwCur(), noDdt = !ddwList().length && !(cz && ddwMuranoUp(cz, [])), vis = g.order.filter(function (k) { return !g.hidden[k] && !(k === 'ddt' && noDdt && !ed); }), gone = g.order.filter(function (k) { return g.hidden[k]; });
+    var g = gwGet(); g = { order: g.order.filter(function (k) { return k !== 'prog' || isFullAcc(); }), hidden: g.hidden, v: g.v, size: g.size, map: g.map };
+    var ed = GWE.on, cz = ddwCur(), noDdt = !ddwList().length && !(cz && ddwMuranoUp(cz, [])), vis = g.order.filter(function (k) { return !g.hidden[k] && !(k === 'ddt' && noDdt && !ed); }), gone = g.order.filter(function (k) { return g.hidden[k]; });
     var grid = vis.map(function (k) {
       var d = GWD[k], sz = gwSize(k), dm = d.sizes[sz];
       return '<div class="wd w-' + k + (dm[0] === 2 ? ' w2' : '') + (ed ? ' ed' : '') + '" data-w="' + k + '" style="grid-column:span ' + dm[0] + ';grid-row:span ' + dm[1] + '">' + parts[k] +
@@ -3061,6 +3101,65 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<button class="btn gwb" data-act="gwedit" aria-label="Impostazioni del cruscotto">⚙</button></div></div>';
   }
 
+  /* ---------- Widget "Modifica programma" (solo Pietro): tappe di oggi di ogni barca, modifica, aggiungi, elimina ---------- */
+  var PE = { b: null, k: null, e: null };
+  function peBoats() { return ['PATANA', 'TOPPETTA', 'ARDEMAR'].filter(function (c) { return BOATS[c] && !BOATS[c].gone; }); }
+  function peBoat() { var bs = peBoats(); if (!PE.b || bs.indexOf(PE.b) < 0) PE.b = S.shift && bs.indexOf(S.shift.boat) >= 0 ? S.shift.boat : bs[0]; return PE.b; }
+  function peDay() { if (!PE.k) PE.k = todayKey(); return PE.k; }
+  function peInner() {
+    var b = peBoat(), k = peDay(), P = PROGRAM[k], bd = P && P.boats[b], st = bd && !bd.off ? bd.stops || [] : [], mine = S.shift && S.shift.boat === b && S.shift.day === k, cur = mine ? curIdx() : -1;
+    var dd = {}; if (!mine && k === todayKey() && tok()) { loadDayEv(k); dd = dayDone(k, b, st); }
+    var lab = k === todayKey() ? 'Oggi' : k === ldShift(todayKey(), 1) ? 'Domani' : pgFmt(k);
+    return '<div class="peh"><button class="pen" data-act="peday" data-n="-1" aria-label="Giorno prima">‹</button><b>Programma · ' + esc(lab) + '</b><button class="pen" data-act="peday" data-n="1" aria-label="Giorno dopo">›</button></div>' +
+      '<div class="peb">' + peBoats().map(function (c) { return '<button data-act="peboat" data-c="' + c + '" style="--bc:' + bcol(c) + '" aria-pressed="' + (c === b) + '">' + esc(BOATS[c].name) + '</button>'; }).join('') + '</div>' +
+      (st.length ? '<ol class="pel">' + st.map(function (z, i) {
+        var done = mine ? S.shift.done[i] : dd[i], cls = z.cancelled ? 'x' : done ? 'dn' : i === cur ? 'cur' : '';
+        return '<li class="' + cls + '"><button data-act="peedit" data-i="' + i + '"><span class="pt">' + esc(z.t || '––:––') + '</span><span class="pn">' + esc(z.maint ? 'Verifica barche' : z.name) + (z.note ? '<em>' + esc(z.note) + '</em>' : '') + '</span>' + (done ? '<span class="pk">✓</span>' : '') + '</button></li>';
+      }).join('') + '</ol>' : '<div class="pemt">' + (bd && bd.off ? 'Barca non in servizio' : 'Nessuna tappa') + '</div>') +
+      '<button class="pea" data-act="peadd">＋ Aggiungi tappa</button>';
+  }
+  function peRefresh() { var el = $('peF'); if (el) el.innerHTML = peInner(); }
+  function peSheet(i) {
+    var b = peBoat(), k = peDay(), P = PROGRAM[k], st = P && P.boats[b] ? P.boats[b].stops || [] : [], z = i == null ? null : st[i];
+    PE.e = { b: b, k: k, i: i };
+    var names = Object.keys(COORDS).filter(function (n) { return !/^Verifica/i.test(n); }).sort();
+    openSheet('<div class="dfxs colli"><h2>' + (z ? 'Modifica tappa' : 'Nuova tappa') + '</h2><p class="muted">' + esc(BOATS[b].name) + ' · ' + esc(pgDateLabel(k)) + '</p>' +
+      '<div class="clsec">Luogo</div><input class="field txt" id="peN" list="peNames" maxlength="60" autocomplete="off" style="text-transform:none" placeholder="es. Caritas" value="' + esc(z ? z.name : '') + '"><datalist id="peNames">' + names.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist>' +
+      '<p class="muted" id="peW" style="min-height:1.2em;margin:4px 0 0"></p>' +
+      '<div class="clsec">Orario</div><input class="field txt" id="peT" type="time" value="' + esc(z ? z.t || '' : '') + '">' +
+      '<div class="clsec">Nota (facoltativa)</div><input class="field txt" id="peO" maxlength="200" style="text-transform:none" placeholder="es. lasciare 2 polybox" value="' + esc(z ? (z.cancelled && z.note0 != null ? z.note0 : z.note || '') : '') + '">' +
+      '<div class="btns clbtns"><button class="btn primary" data-act="pesave">' + (z ? 'Salva' : 'Aggiungi') + '</button>' + (z ? '<button class="btn danger" data-act="pedel">Elimina tappa</button>' : '') + '<button class="btn quiet" data-act="close">Annulla</button></div></div>');
+    peWarn(); if (!z) setTimeout(function () { var x = $('peN'); if (x) x.focus(); }, 60);
+  }
+  function peWarn() { var n = ($('peN') || {}).value, w = $('peW'); if (w) w.textContent = n && n.trim() && !COORDS[n.trim()] ? '⚠ Posizione non nota: il GPS non riconoscerà l’arrivo.' : ''; }
+  function peSave(del) {
+    var E = PE.e; if (!E) return; var day = asDayFromProgram(E.k), bb = day.boats[E.b]; if (!bb) return; var st = bb.stops, what;
+    if (del) { var x = st[E.i]; if (!x) return; st.splice(E.i, 1); what = 'Eliminata ' + (x.t ? x.t + ' ' : '') + x.name + ' · ' + BOATS[E.b].name; }
+    else {
+      var n = String(($('peN') || {}).value || '').replace(/\s+/g, ' ').trim(), t = String(($('peT') || {}).value || '').trim(), no = String(($('peO') || {}).value || '').trim();
+      if (!n) { var w = $('peW'); if (w) w.textContent = 'Scrivi il luogo.'; return; }
+      var o = E.i != null && st[E.i] ? st[E.i] : { name: '', t: '', note: '' }, old = o.name;
+      if (E.i != null) st.splice(E.i, 1);
+      o.name = n; o.t = t; o.note = no; if (old !== n) { delete o.lat; delete o.lng; } if (o.lat == null && COORDS[n]) { o.lat = COORDS[n][0]; o.lng = COORDS[n][1]; }
+      var at = st.length; if (t) { for (var j = 0; j < st.length; j++) if (st[j].t && st[j].t > t) { at = j; break; } } else if (E.i != null) at = Math.min(E.i, st.length);
+      st.splice(at, 0, o); bb.off = false;
+      what = (E.i != null ? 'Modificata ' : 'Aggiunta ') + (t ? t + ' ' : '') + n + ' · ' + BOATS[E.b].name;
+    }
+    what += ' ' + pgFmt(E.k); PE.e = null; closeSheet(); toast('Salvo…');
+    progPublish([day], what).then(function (u) { render(); undoBar(what, function () { progUndo(u.prev, what); }); })
+      .catch(function () { toast('Non riesco a salvare: controlla la connessione'); });
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'peboat') { PE.b = el.getAttribute('data-c'); peRefresh(); }
+    else if (a === 'peday') { PE.k = ldShift(peDay(), +el.getAttribute('data-n')); if (PE.k < todayKey()) PE.k = todayKey(); peRefresh(); }
+    else if (a === 'peedit') peSheet(+el.getAttribute('data-i'));
+    else if (a === 'peadd') peSheet(null);
+    else if (a === 'pesave') peSave(false);
+    else if (a === 'pedel') { if (!el.getAttribute('data-sure')) { el.setAttribute('data-sure', '1'); el.textContent = 'Tocca ancora per eliminare'; return; } peSave(true); }
+  });
+  document.addEventListener('input', function (e) { if (e.target && e.target.id === 'peN') peWarn(); });
+
   /* ---------- widget del cruscotto GPS ---------- */
   var GWD = {
     stop: { vn: ST_NAMES, n: 'Tappa e consegne', sizes: { S: [2, 3], M: [2, 4], L: [2, 5] }, d: 'M' },
@@ -3072,11 +3171,12 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     bebe: { n: 'Bebè Capitano', sizes: { S: [2, 2], M: [2, 3] }, d: 'M' },
     km: { n: 'Km e nodi', sizes: { S: [1, 1], M: [2, 1] }, d: 'S' },
     clock: { n: 'Orario', sizes: { S: [1, 1], M: [2, 1], L: [2, 2] }, d: 'S' },
+    prog: { n: 'Modifica programma', sizes: { S: [2, 3], M: [2, 4], L: [2, 6] }, d: 'M' },
     pay: { n: 'Guadagno del turno', sizes: { S: [1, 1], M: [2, 1], L: [2, 2] }, d: 'M' },
     ddt: { n: 'DDT da firmare', sizes: { S: [1, 1], M: [2, 1] }, d: 'M' },
     next: { n: 'Consegna fatta', sizes: { S: [2, 2], M: [2, 3] }, d: 'M', fixed: true }
   };
-  var GW_ORDER = ['stop', 'ddt', 'bebe', 'pay', 'map', 'speed', 'weather', 'km', 'clock', 'tide', 'mimmo', 'next'];
+  var GW_ORDER = ['stop', 'prog', 'ddt', 'bebe', 'pay', 'map', 'speed', 'weather', 'km', 'clock', 'tide', 'mimmo', 'next'];
   var MAP_STYLES = [['dark', 'Scuro'], ['blue', 'Blu notte'], ['green', 'Verde radar'], ['light', 'Chiaro']];
   var MAP_COLS = [['#FF8A3D', 'Arancione'], ['#FFD54F', 'Giallo'], ['#66BB6A', 'Verde'], ['#F06292', 'Rosa'], ['#FFFFFF', 'Bianco'], ['#4FC3F7', 'Azzurro']];
   var GWE = { on: false, drag: null };
@@ -3087,6 +3187,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var o = (g.order || []).filter(function (k) { return GWD[k]; });
     if (o.length && o.indexOf('ddt') < 0) { var si = o.indexOf('stop'); o.splice(si >= 0 ? si + 1 : 0, 0, 'ddt'); }
     if (o.length && o.indexOf('bebe') < 0) { var bi = o.indexOf('ddt'); o.splice(bi >= 0 ? bi + 1 : 0, 0, 'bebe'); }
+    if (o.length && o.indexOf('prog') < 0) { var qi = o.indexOf('stop'); o.splice(qi >= 0 ? qi + 1 : 0, 0, 'prog'); }
     if (o.length && o.indexOf('pay') < 0) { var pi = o.indexOf('bebe'); o.splice(pi >= 0 ? pi + 1 : 0, 0, 'pay'); }
     GW_ORDER.forEach(function (k) { if (o.indexOf(k) < 0) o.push(k); });
     g.order = o; g.hidden.next = false; return g;
