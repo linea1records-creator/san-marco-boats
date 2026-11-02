@@ -254,6 +254,8 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 .tbr.late .tbs,.tbr.late .tbc{color:#FF5A4F}.tbr.late .tbo{color:#FF5A4F}
 .tbr.gone{opacity:.42}.tbr.gone .tbs{color:#8FA3B0}.tbr.gone .tbk{background:#2E7D32;border-color:#2E7D32;color:#fff}
 @keyframes tbbl{50%{opacity:.35}}
+.dgs .dgr{border-top:1px solid var(--line,#e3e8ec);padding:8px 0;display:flex;flex-direction:column;gap:6px}.dgc{font-size:15px}.dgd{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.dgn{flex:1;min-width:80px;font-weight:600}.dgu{display:flex;gap:6px;flex-wrap:wrap}.dgs.ddover{box-shadow:0 0 0 3px #1655C8}
+
 .ddwup{display:flex;flex-direction:column;gap:6px}.ddwub{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.ddwub b{flex:1;min-width:90px;color:#F2F7F5;font-size:14px}.ddwub button{border:0;border-radius:9px;padding:7px 10px;background:#1655C8;color:#fff;font:inherit;font-weight:700;font-size:13px}.ddwup.more .ddwub button{background:#1D2C33;color:#DCE7E4}
 
 .colli .clsec{margin-top:14px;padding:6px 0 2px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#5B6870;font-weight:700}.colli{max-height:78vh;overflow:auto}.clbtns{position:sticky;bottom:0;background:#fff;padding-top:8px}.clchip{display:block;width:100%;text-align:left;border:0;border-radius:10px;padding:7px 10px;margin-bottom:6px;background:#12384F;color:#BFE6FF;font:inherit;font-weight:700;font-size:14px}.clchip.no{background:#3D2E00;color:#FFD54F}
@@ -1217,7 +1219,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var ICONS = {
     nuovo: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/>',
     turno: '<path d="M3 15l2 4h14l2-4zM12 3v8M8 7h8"/>',
-    ddt: '<path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"/>', stat: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>', cucina: '<path d="M6 3v8a3 3 0 0 0 6 0V3M9 3v18M17 3c-2 2-2 6 0 8v10"/>', murano: '<path d="M4 7h11M4 7v12h11V7M7 7V4h11v12h-3M7 11h5M7 15h5"/><path d="M16 20l2-2 3 3"/>',
+    ddt: '<path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"/>', ddtgiro: '<path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"/>', stat: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>', cucina: '<path d="M6 3v8a3 3 0 0 0 6 0V3M9 3v18M17 3c-2 2-2 6 0 8v10"/>', murano: '<path d="M4 7h11M4 7v12h11V7M7 7V4h11v12h-3M7 11h5M7 15h5"/><path d="M16 20l2-2 3 3"/>',
     programma: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
     richieste: '<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9zM12 11v6M9 14h6"/>',
     contatti: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6 7-6s7 2 7 6"/>',
@@ -4034,7 +4036,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function setBg(hex) { S.bg = hex; save(); applyBg(hex); }
   applyBg(S.bg);
   function viewAltro() {
-    var items = [['stat', '📊 Statistiche', 'Ore lavorate, consegne, puntualità, barche e DDT firmati'], ['cucina', '👨‍🍳 Uscite dalla cucina', 'Orari in cui i carichi devono essere pronti'], ['impost', '⚙️ Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
+    var items = [['ddtgiro', '📄 DDT del giro', 'Le tue consegne del giorno: carica, vedi e fai firmare i DDT'], ['stat', '📊 Statistiche', 'Ore lavorate, consegne, puntualità, barche e DDT firmati'], ['cucina', '👨‍🍳 Uscite dalla cucina', 'Orari in cui i carichi devono essere pronti'], ['impost', '⚙️ Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
     return '<div class="wrap"><h2>Altro</h2>' + items.map(function (x) {
       return '<button class="card" data-act="nav" data-v="' + x[0] + '" style="text-align:left;display:flex;flex-direction:column;gap:2px"><b>' + x[1] + '</b><span class="muted">' + x[2] + '</span></button>';
     }).join('') + '</div>';
@@ -4275,7 +4277,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02zf';
+  var APP_V = '2026-11-02zg';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4308,7 +4310,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       if (!r || !r.items) { DD.err = true; if (view === 'ddt') render(); return; }
       DD.err = false; DD.loaded = true; DD.items = r.items; DD.office = !!r.office;
       var need = DD.office && !DD.carriers ? cl('rpc_ddt_carriers', {}).then(function (c) { if (c && c.length) DD.carriers = c; }) : Promise.resolve();
-      return need.then(function () { ddtBadge(); ddwRefresh(); if (view === 'ddt' && !document.getElementById('sigScreen') && !document.querySelector('#layer .sheet')) render(); });
+      return need.then(function () { ddtBadge(); ddwRefresh(); if ((view === 'ddt' || view === 'ddtgiro') && !document.getElementById('sigScreen') && !document.querySelector('#layer .sheet')) render(); });
     }).catch(function () { DD.busy = false; });
   }
   setInterval(function () { if (!document.hidden && tok()) loadDdt(); }, 60000);
@@ -4434,17 +4436,25 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function ddwUpMissing(cur, all) { var h = ddwMuranoUp(cur, all); return h && h.indexOf('ddwup more') < 0 ? h : ''; }
   function ddwShot(cn, mode) {
     var cur = ddwCur(); if (!cur || !S.shift) return;
+    ddtUpSelf({ name: cur.name, note: cur.note, day: S.shift.day, boat: S.shift.boat }, cn, mode);
+  }
+  // caricamento DDT del trasportatore (dal navigatore o dalla pagina DDT)
+  function ddtUpSelf(t, cn, mode) {
+    var cur = t;
     var inp = document.createElement('input'); inp.type = 'file'; inp.accept = mode === 'cam' ? 'image/*' : 'image/*,application/pdf'; if (mode === 'cam') inp.setAttribute('capture', 'environment'); inp.style.display = 'none';
-    inp.onchange = function () {
-      var f = inp.files && inp.files[0]; inp.remove(); if (!f) return; var pp = null;
+    inp.onchange = function () { var f = inp.files && inp.files[0]; inp.remove(); if (f) ddtUpFile(t, cn, f); };
+    document.body.appendChild(inp); inp.click();
+  }
+  function ddtUpFile(t, cn, f) {
+    var cur = t, pp = null;
+    {
       muranoPrep(f, cur.name, cur.note, cn).then(function (p) { pp = p; toast('Carico il DDT di ' + cn + '…'); return ddtFileData(p.file); }).then(function (o) {
-        return cl('rpc_ddt_add_self', { p_customer: cn, p_name: o.name, p_mime: o.mime, p_data: o.b64, p_date: S.shift.day, p_stop: cur.name, p_boat: S.shift.boat, p_box: pp && pp.box ? pp.box : null });
+        return cl('rpc_ddt_add_self', { p_customer: cn, p_name: o.name, p_mime: o.mime, p_data: o.b64, p_date: t.day, p_stop: cur.name, p_boat: t.boat, p_box: pp && pp.box ? pp.box : null });
       }).then(function (r) {
-        if (r && r.ok) { DDW.sel[r.id] = true; DDW.auto[r.id] = 1; toast('DDT di ' + cn + ' pronto da firmare'); loadDdt().then(function () { if (view === 'guida') render(); }); }
+        if (r && r.ok) { DDW.sel[r.id] = true; DDW.auto[r.id] = 1; toast('DDT di ' + cn + ' pronto da firmare'); loadDdt().then(function () { if (view === 'guida' || view === 'ddtgiro') render(); }); }
         else toast('Non sono riuscito a caricare il DDT: riprova');
       }).catch(function (e) { if (e === 'annullato') return; toast(e === 'big' ? 'PDF troppo grande (massimo 3 MB)' : 'Non riesco a leggere il file'); });
-    };
-    document.body.appendChild(inp); inp.click();
+    }
   }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="ddwshot"]') : null; if (el) ddwShot(el.getAttribute('data-c'), el.getAttribute('data-m') || 'cam'); });
   // nel cruscotto solo un tasto piccolo: apre la finestra per scegliere i DDT da firmare
@@ -5694,11 +5704,58 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       });
     }
   });
+
+  /* ---------- Pagina DDT del trasportatore: tutte le consegne del giorno, carica / vedi / firma ---------- */
+  var DG = { day: null, boat: null };
+  function viewDdtGiro() {
+    if (!DD.loaded && !DD.busy) loadDdt().then(function () { if (view === 'ddtgiro') render(); });
+    var k = DG.day || todayKey(), boats = myBoatCodes(); if (S.shift && boats.indexOf(S.shift.boat) < 0) boats.unshift(S.shift.boat);
+    if (!boats.length) boats = boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO'; });
+    var b = DG.boat && boats.indexOf(DG.boat) >= 0 ? DG.boat : boats[0], P = PROGRAM[k], bd = P && P.boats[b];
+    var h = '<div class="wrap"><h2>📄 DDT del giro</h2><div class="ldnav"><button class="btn sm" data-act="dgday" data-n="-1" aria-label="Giorno prima">‹</button><b>' + (k === todayKey() ? 'Oggi · ' : '') + esc(pgDateLabel(k)) + '</b><button class="btn sm" data-act="dgday" data-n="1" aria-label="Giorno dopo">›</button></div>';
+    if (boats.length > 1) h += '<div class="chips">' + boats.map(function (c) { return '<button class="chip" data-act="dgboat" data-c="' + c + '" aria-pressed="' + (c === b) + '">' + esc(BOATS[c].name) + '</button>'; }).join('') + '</div>';
+    var list = [];
+    if (bd && !bd.off) (bd.stops || []).forEach(function (z, i) { if (z.cancelled || z.maint) return; var nm = String(z.name || '').trim(); if (!driverDdt(z.name, z.note) && (/^(darsena|scalo|seminario)\b/i.test(nm) || /certosa/i.test(nm))) return; list.push({ name: z.name, note: z.note, t: z.t, ind: z.ind }); });
+    if (k === todayKey()) (X.my || []).forEach(function (t) { if (t.name && !list.some(function (z) { return ddtNorm(z.name) === ddtNorm(t.name); })) list.push({ name: t.name, note: t.note || '', t: '', extra: true }); });
+    if (!list.length) return h + '<div class="card"><p class="muted">Nessuna consegna con DDT in questo giorno.</p></div></div>';
+    h += list.map(function (z) {
+      var cls = isPane(z.name) ? ['Pane'] : muClients(z.name), have = ddtOfStop(k, z.name);
+      var rows = cls.map(function (cn) {
+        var mine = have.filter(function (x) { return cls.length === 1 || ddtNorm(x.customer) === ddtNorm(cn); });
+        var t = { name: z.name, note: z.note, day: k, boat: b };
+        return '<div class="dgr">' + (cls.length > 1 ? '<b class="dgc">' + esc(cn) + '</b>' : '') + mine.map(function (x) {
+          var sg = x.status === 'signed';
+          return '<div class="dgd"><span class="pill ' + (sg ? 'go' : 'ok') + '">' + (sg ? '✓ Firmato' : 'Da firmare') + '</span><span class="dgn">' + esc(x.customer) + '</span>' +
+            '<button class="btn sm" data-act="' + (sg ? 'ddtget' : 'ddtview') + '" data-id="' + x.id + '">' + (sg ? 'Copia' : 'Apri') + '</button>' + (sg ? '' : '<button class="btn sm primary" data-act="dgsign" data-id="' + x.id + '">Firma</button>') + '<button class="btn sm" data-act="ddwfix" data-id="' + x.id + '" aria-label="Correggi">⋯</button></div>';
+        }).join('') + '<div class="dgu"><button class="btn sm" data-act="dgup" data-m="cam" data-c="' + esc(cn) + '" data-s="' + esc(z.name) + '" data-no="' + esc(z.note || '') + '">📷 Foto</button><button class="btn sm" data-act="dgup" data-m="file" data-c="' + esc(cn) + '" data-s="' + esc(z.name) + '" data-no="' + esc(z.note || '') + '">📄 PDF / file</button></div></div>';
+      }).join('');
+      var nOk = have.filter(function (x) { return x.status === 'signed'; }).length;
+      return '<section class="card dgs' + (DG.drop === z.name ? ' ddover' : '') + '" data-dgdrop="' + esc(z.name) + '" data-no="' + esc(z.note || '') + '"><div class="row"><h3 style="margin:0">' + esc(z.name) + '</h3><span class="muted">' + (z.t ? (z.ind ? 'circa ' : '') + esc(z.t) : z.extra ? 'straordinaria' : '') + '</span></div>' +
+        '<p class="muted" style="margin:2px 0 6px">' + (have.length ? have.length + ' DDT · ' + nOk + ' firmati' : 'Nessun DDT caricato') + '</p>' + rows + '</section>';
+    }).join('');
+    return h + '<p class="hint">Sul computer puoi anche trascinare il PDF sopra la consegna.</p></div>';
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'dgday') { DG.day = ldShift(DG.day || todayKey(), +el.getAttribute('data-n')); render(); }
+    else if (a === 'dgboat') { DG.boat = el.getAttribute('data-c'); render(); }
+    else if (a === 'dgup') { var k = DG.day || todayKey(), bs = myBoatCodes(); ddtUpSelf({ name: el.getAttribute('data-s'), note: el.getAttribute('data-no'), day: k, boat: DG.boat || (S.shift && S.shift.boat) || bs[0] || null }, el.getAttribute('data-c'), el.getAttribute('data-m')); }
+    else if (a === 'dgsign') { SIGQ = []; SIGQ.total = 1; sigOpen(el.getAttribute('data-id')); }
+  });
+  document.addEventListener('dragover', function (e) { var c = e.target.closest ? e.target.closest('[data-dgdrop]') : null; if (!c) return; e.preventDefault(); c.classList.add('ddover'); });
+  document.addEventListener('dragleave', function (e) { var c = e.target.closest ? e.target.closest('[data-dgdrop]') : null; if (c && !c.contains(e.relatedTarget)) c.classList.remove('ddover'); });
+  document.addEventListener('drop', function (e) {
+    var c = e.target.closest ? e.target.closest('[data-dgdrop]') : null; if (!c) return; e.preventDefault(); c.classList.remove('ddover');
+    var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (!f) return;
+    var nm = c.getAttribute('data-dgdrop'), cls = isPane(nm) ? ['Pane'] : muClients(nm), k = DG.day || todayKey(), bs = myBoatCodes();
+    var t = { name: nm, note: c.getAttribute('data-no'), day: k, boat: DG.boat || (S.shift && S.shift.boat) || bs[0] || null };
+    ddtUpFile(t, cls[0], f);
+  });
   /* ---------- render ---------- */
   var NAV_ADMIN = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['stat', 'Statistiche'], ['barca', 'Barche'], ['contatti', 'Contatti']];
   var NAV_FULL = [['logistica', 'Logistica'], ['barca', 'Barche'], ['turno', 'Turno'], ['notifiche', 'Notifiche'], ['altro', 'Altro']];
   var NAV_MGR = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['turno', 'Turno'], ['barca', 'Barca'], ['contatti', 'Contatti']];
-  var NAV = [['turno', 'Turno'], ['programma', 'Programma'], ['barca', 'Barche'], ['notifiche', 'Chat']];
+  var NAV = [['turno', 'Turno'], ['programma', 'Programma'], ['ddtgiro', 'DDT'], ['barca', 'Barche'], ['notifiche', 'Chat']];
   var NAV_OFF = [['cucina', 'Cucina'], ['programma', 'Programma'], ['ddt', 'DDT'], ['notifiche', 'Chat'], ['contatti', 'Contatti']];
   function render() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
@@ -5730,7 +5787,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurno, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, murano: viewMurano, cucina: viewCucina, stat: viewStat }[view] || viewTurno;
+    var fn = { admin: viewAdmin, turno: viewTurno, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, murano: viewMurano, cucina: viewCucina, stat: viewStat }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     var m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); m.scrollTop = (view === 'guida') ? 0 : sc;
     if (view === 'ddt') ddApplySearch();
