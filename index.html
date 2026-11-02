@@ -2653,8 +2653,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       h += '<section class="ctg' + (gr.sos ? ' sosg' : '') + '"><div class="row ctgh"><h3>' + esc(gr.name) + ' <span class="muted">' + g.list.length + '</span></h3>' +
         (ed ? '<span class="pgct"><button data-act="ctgmv" data-g="' + esc(gr.name) + '" data-d="-1"' + (gi ? '' : ' disabled') + ' aria-label="Su">↑</button><button data-act="ctgmv" data-g="' + esc(gr.name) + '" data-d="1"' + (gi < groups.length - 1 ? '' : ' disabled') + ' aria-label="Giù">↓</button><button data-act="ctgren" data-g="' + esc(gr.name) + '" aria-label="Rinomina">✎</button>' + (g.list.length ? '' : '<button data-act="ctgdel" data-g="' + esc(gr.name) + '" aria-label="Elimina categoria">✕</button>') + '</span>' : '') + '</div><ul class="list">';
       h += g.list.map(function (c) {
-        var s = (c.n + ' ' + c.r + ' ' + c.t + ' ' + g.g).toLowerCase();
-        return '<li class="ct' + (gr.sos ? ' sos' : '') + '" data-s="' + esc(s) + '"><div><b>' + esc(c.n) + '</b>' + (c.r ? '<small>' + esc(c.r) + '</small>' : '') + (c.t ? '<span class="mono">' + esc(c.t) + '</span>' : '<span class="hint">Numero da inserire</span>') + '</div><div class="ctb">' +
+        var s = (c.n + ' ' + c.r + ' ' + c.t + ' ' + (c.e || '') + ' ' + g.g).toLowerCase();
+        return '<li class="ct' + (gr.sos ? ' sos' : '') + '" data-s="' + esc(s) + '"><div><b>' + esc(c.n) + '</b>' + (c.r ? '<small>' + esc(c.r) + '</small>' : '') + (c.t ? '<span class="mono">' + esc(c.t) + '</span>' : '<span class="hint">Numero da inserire</span>') + (c.e ? '<span class="mono" style="font-size:13px">✉ ' + esc(c.e) + '</span>' : '') + '</div><div class="ctb">' +
           (c.t && !ed ? '<a class="btn sm" href="tel:' + c.t.replace(/\s/g, '') + '">Chiama</a><button class="btn sm" data-act="copy" data-t="' + esc(c.t) + '">Copia</button>' : '') +
           (ced && c.id && (ed || !c.t) ? '<button class="btn sm' + (c.t ? '' : ' primary') + '" data-act="ctopen" data-id="' + esc(c.id) + '">' + (c.t ? 'Modifica' : '+ Numero') + '</button>' : '') + '</div></li>';
       }).join('') + '</ul>' + (ed ? '<button class="aslink" data-act="ctopen" data-g="' + esc(gr.name) + '">+ Aggiungi contatto in ' + esc(gr.name) + '</button>' : '') + '</section>';
@@ -2685,12 +2685,13 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   });
   function ctFind(id) { var r = null; CONTACTS.forEach(function (g) { g.list.forEach(function (c) { if (c.id === id) r = { c: c, g: g.g }; }); }); return r; }
   function ctSheet(id, grp) {
-    var f = id ? ctFind(id) : null, c = f ? f.c : { n: '', r: '', t: '' }, g = f ? f.g : grp || '';
+    var f = id ? ctFind(id) : null, c = f ? f.c : { n: '', r: '', t: '', e: '' }, g = f ? f.g : grp || '';
     var groups = (CTE.groups || CONTACTS.map(function (x) { return { name: x.g }; })).map(function (x) { return x.name; });
     CTE.edit = { id: id || null };
     openSheet('<h2>' + (id ? 'Modifica contatto' : 'Nuovo contatto') + '</h2>' +
       '<label class="muted" for="ctEn">Nome</label><input class="field" id="ctEn" maxlength="80" value="' + esc(c.n) + '" style="text-transform:none">' +
       '<label class="muted" for="ctEp">Telefono</label><input class="field" id="ctEp" type="tel" maxlength="30" value="' + esc(c.t) + '" placeholder="Es. 333 123 4567">' +
+      '<label class="muted" for="ctEe">Email (facoltativa · riceve i DDT firmati)</label><input class="field" id="ctEe" type="email" inputmode="email" autocomplete="off" maxlength="120" value="' + esc(c.e || '') + '" placeholder="Es. segreteria@scuola.it" style="text-transform:none">' +
       '<label class="muted" for="ctEr">Ruolo o nota (facoltativo)</label><input class="field" id="ctEr" maxlength="80" value="' + esc(c.r) + '" style="text-transform:none">' +
       '<label class="muted" for="ctEg">Categoria</label><select class="field" id="ctEg" style="text-transform:none">' + groups.map(function (n) { return '<option' + (n === g ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '<option value="__new">+ Nuova categoria…</option></select>' +
       '<input class="field" id="ctEgn" maxlength="60" placeholder="Nome della nuova categoria" style="text-transform:none;display:none">' +
@@ -2703,9 +2704,11 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (!nm) { m.textContent = 'Scrivi il nome.'; return; }
     if (ph && !/^[0-9 +().-]{3,}$/.test(ph)) { m.textContent = 'Il numero contiene caratteri non validi.'; return; }
     if (!g) { m.textContent = 'Scegli o scrivi la categoria.'; return; }
+    var em = (($('ctEe') || {}).value || '').trim();
+    if (em && !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(em)) { m.textContent = 'L’email non sembra valida.'; return; }
     m.textContent = 'Salvo…';
-    cl('rpc_contact_save', { p_id: CTE.edit && CTE.edit.id, p_grp: g, p_name: nm, p_role: ($('ctEr').value || '').trim(), p_phone: ph }).then(function (r) {
-      if (r && r.ok) { closeSheet(); toast('Contatto salvato'); loadContacts(true); } else m.textContent = 'Non sono riuscito a salvare.';
+    cl('rpc_contact_save2', { p_id: CTE.edit && CTE.edit.id, p_grp: g, p_name: nm, p_role: ($('ctEr').value || '').trim(), p_phone: ph, p_email: em }).then(function (r) {
+      if (r && r.ok) { closeSheet(); toast('Contatto salvato'); loadContacts(true); } else m.textContent = r && r.error === 'email_non_valida' ? 'L’email non sembra valida.' : 'Non sono riuscito a salvare.';
     }).catch(function () { m.textContent = 'Serve la connessione.'; });
   }
   function ctGroupSheet(old) {
@@ -4734,10 +4737,12 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<div class="row"><span>Trasportatore</span><b>' + esc(x.carrier) + '</b></div>' +
       '<div class="row"><span>Stato</span><b>' + (pend ? 'Da consegnare' : 'Firmato da ' + esc(x.signed_by || '')) + '</b></div>' +
       (!pend ? '<div class="row"><span>Firmato il</span><b>' + esc(ntWhen(x.signed_at)) + '</b></div>' : '') +
+      (!pend ? '<div class="row"><span>Email al cliente</span><b>' + (x.mailed_at ? '✓ ' + esc(x.mailed_to || '') + ' · ' + esc(ntWhen(x.mailed_at)) : x.mail_error ? '⚠ ' + esc(x.mail_error.slice(0, 80)) : 'Non inviata') + '</b></div>' : '') +
       (x.note ? '<div class="note"><b>Note:</b> ' + esc(x.note) + '</div>' : '') + '</div>' +
       '<div class="btns"><button class="btn" data-act="ddtview" data-id="' + id + '">Apri il DDT</button>' +
       (pend && x.mine ? '<button class="btn primary" data-act="ddtsign" data-id="' + id + '">Fai firmare il cliente</button>' : '') +
       (!pend ? '<button class="btn primary" data-act="ddtget" data-id="' + id + '">DDT firmato (PDF / immagine)</button>' : '') +
+      (!pend && (DD.office || x.mine) ? '<button class="btn" data-act="ddtmail" data-id="' + id + '">📧 ' + (x.mailed_at ? 'Reinvia al cliente' : 'Invia al cliente') + '</button>' : '') +
       (pend && DD.office ? '<button class="btn quiet" data-act="ddtcancel" data-id="' + id + '">Annulla questo DDT</button>' : '') +
       '<button class="btn quiet" data-act="close">Chiudi</button></div>');
   }
@@ -4859,6 +4864,24 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     } catch (e) { return null; }
   }
   function asciiTxt(t) { return String(t || '').replace(/[^\x20-\x7E -ÿ]/g, '?'); }
+  /* ---------- DDT firmato → email al cliente (se nella rubrica c'è un contatto con lo stesso nome e un'email) ---------- */
+  function blobB64(b) { return new Promise(function (res, rej) { var r = new FileReader(); r.onload = function () { res(String(r.result).split(',')[1] || ''); }; r.onerror = rej; r.readAsDataURL(b); }); }
+  function ddtMail(id, force) {
+    return ddtSignedBuild(id).then(function (o) {
+      return blobB64(o.blob).then(function (b64) {
+        return fetch(SB_URL + '/functions/v1/ddt-mail', { method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ token: tok(), id: id, name: o.name, mime: o.blob.type || 'application/pdf', data: b64, force: !!force }) });
+      });
+    }).then(function (r) { return r.json(); }).then(function (j) {
+      if (j && j.ok) toast('📧 DDT firmato inviato a ' + j.to);
+      else if (j && j.skip === 'no_email') { if (force) toast('Nella rubrica non c’è un’email per ' + (j.customer || 'questo cliente')); }
+      else if (j && j.skip === 'already') { if (force) toast('Già inviato a ' + j.to); }
+      else if (j && j.error === 'non_configurato') { if (force) toast('L’invio delle email non è ancora attivo'); }
+      else toast('Email del DDT non partita' + (force ? '' : ': si può reinviare dal DDT'));
+      if (typeof loadDdt === 'function' && (view === 'ddt' || force)) loadDdt().then(function () { if (view === 'ddt') render(); });
+      return j;
+    }).catch(function () { if (force) toast('Email non inviata: controlla la connessione'); });
+  }
+  document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="ddtmail"]') : null; if (!el) return; el.disabled = true; el.textContent = 'Invio…'; ddtMail(el.getAttribute('data-id'), true).then(function () { el.disabled = false; el.textContent = '📧 Reinvia al cliente'; }); });
   function ddtSignedBuild(id) {
     return Promise.all([cl('rpc_ddt_file', { p_id: id }), cl('rpc_ddt_signature', { p_id: id })]).then(function (r) {
       var f = r[0], g = r[1]; if (!f || !f.data || !g || !g.sig) throw new Error('nodata');
@@ -4983,7 +5006,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       return cloud('rpc_ddt_sign', { p_token: tok(), p_id: id, p_signer: nm, p_sig: img, p_lat: loc ? loc[0] : null, p_lng: loc ? loc[1] : null });
     }).then(function (r) {
       if (r && r.ok) {
-        var xb = ddtFind(id); sigClose(); delete DDW.sel[id];
+        var xb = ddtFind(id); sigClose(); delete DDW.sel[id]; setTimeout(function () { ddtMail(id, false); }, 1500);
         if (SIGQ.length) { var nx = SIGQ.shift(), done = (SIGQ.total || 0) - SIGQ.length - 1; toast('Firmato ' + (xb ? xb.customer : '') + ' · ' + done + ' di ' + SIGQ.total); loadDdt().then(function () { sigOpen(nx); }); return; }
         var multi = SIGQ.total > 1; SIGQ.total = 0; toast(multi ? 'Tutti i DDT selezionati sono firmati' : 'DDT firmato e salvato');
         loadDdt().then(function () { if (view === 'guida') { render(); if (!multi && xb && xb.box) ddtSignedAct(id, false); else cnsBack(); } else if (xb && xb.box) ddtSignedAct(id, false); else ddtDetail(id); });
@@ -6739,7 +6762,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     cl('rpc_contacts2', {}).then(function (r) {
       if (!r || !r.items) return;
       var gs = (r.groups || []).map(function (g) { return { g: g.name, sos: !!g.sos, list: [] }; }), by = {}; gs.forEach(function (g) { by[g.g] = g; });
-      r.items.forEach(function (x) { var g = by[x.grp]; if (!g) { g = by[x.grp] = { g: x.grp, sos: false, list: [] }; gs.push(g); } g.list.push({ n: x.name, r: x.role || '', t: x.phone || '', id: x.id }); });
+      r.items.forEach(function (x) { var g = by[x.grp]; if (!g) { g = by[x.grp] = { g: x.grp, sos: false, list: [] }; gs.push(g); } g.list.push({ n: x.name, r: x.role || '', t: x.phone || '', e: x.email || '', id: x.id }); });
       CTE.groups = gs.map(function (g) { return { name: g.g, sos: g.sos }; });
       CONTACTS = gs; if (view === 'contatti' && !document.querySelector('#layer .sheet')) render();
     });
