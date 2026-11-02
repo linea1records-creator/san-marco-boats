@@ -4285,7 +4285,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02zc';
+  var APP_V = '2026-11-02zd';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -5654,11 +5654,11 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function ddwFix(id) {
     var x = DD.items.filter(function (y) { return y.id === id; })[0]; if (!x) return; DFX.id = id; DFX.armed = false;
     openSheet('<div class="dfxs"><h2>DDT di ' + esc(x.customer) + '</h2><p class="muted">' + esc(x.stop || '') + (x.status === 'signed' ? ' · già firmato' : ' · da firmare') + '</p>' +
-      '<div class="btns"><button class="btn" data-act="dfxview">👁 Vedi il file</button>' +
-      '<button class="btn primary" data-act="dfxrep">🔁 Sostituisci con un altro file</button>' +
+      '<div class="btns">' + (x.status === 'signed' ? '<button class="btn primary" data-act="dfxresign">✍️ Rifai la firma</button>' : '') + '<button class="btn" data-act="dfxview">👁 Vedi il file</button>' +
+      '<button class="btn' + (x.status === 'signed' ? '' : ' primary') + '" data-act="dfxrep">🔁 Sostituisci con un altro file</button>' +
       '<button class="btn danger" data-act="dfxdel" id="dfxDel">🗑 Cancella questo DDT</button>' +
       '<button class="btn quiet" data-act="dfxback">Indietro</button></div>' +
-      (x.status === 'signed' ? '<p class="hint">Attenzione: è già firmato. Se lo sostituisci o lo cancelli la firma si perde e va rifatta.</p>' : '') + '</div>');
+      (x.status === 'signed' ? '<p class="hint">È già firmato. Con “Rifai la firma” il cliente firma di nuovo lo stesso DDT: la nuova firma sostituisce la vecchia, che resta in archivio.</p>' : '') + '</div>');
   }
   function dfxItem() { return DD.items.filter(function (y) { return y.id === DFX.id; })[0] || null; }
   function dfxReplace() {
@@ -5681,6 +5681,14 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (a === 'ddwfix') { ddwFix(el.getAttribute('data-id')); }
     else if (a === 'dfxview' && DFX.id) { ddtOpenOriginal(DFX.id); }
     else if (a === 'dfxrep') { dfxReplace(); }
+    else if (a === 'dfxresign' && DFX.id) {
+      el.disabled = true;
+      cl('rpc_ddt_resign', { p_id: DFX.id }).then(function (r) {
+        if (!r || !r.ok) { el.disabled = false; toast('Non riesco a preparare la nuova firma'); return; }
+        closeSheet(); DDW.sel[r.id] = true; DDW.auto[r.id] = 1;
+        loadDdt().then(function () { SIGQ = []; SIGQ.total = 1; sigOpen(r.id); });
+      });
+    }
     else if (a === 'dfxback') { closeSheet(); if (view === 'guida') ddwOpen(); }
     else if (a === 'dfxdel') {
       if (!DFX.armed) { DFX.armed = true; el.textContent = 'Tocca di nuovo per cancellare'; return; }
