@@ -278,6 +278,12 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 .sems .clr .semx{display:block;color:#7A5300;font-size:13px;margin-top:2px}.sems .clr .semd{display:inline-block;background:#E3F2FD;color:#0D47A1;border-radius:999px;padding:1px 8px;font-size:12px;font-weight:700;margin-top:3px}
 .sems .semtot{display:flex;justify-content:space-between;align-items:center;padding:10px 0 2px;border-top:2px solid #11181C;font-weight:800;font-size:17px;color:#11181C}
 .sems .semck{display:flex;gap:10px;align-items:center;width:100%;text-align:left;border:1px solid #CDD6DC;background:#fff;border-radius:12px;padding:11px 12px;margin-bottom:6px;font:inherit;font-size:15px;color:#11181C}.sems .semck i{flex:none;width:24px;height:24px;border-radius:7px;border:2px solid #90A4AE;display:grid;place-items:center;font-style:normal;font-weight:800;color:#fff}.sems .semck[aria-pressed=true]{background:#EAF6EC;border-color:#81C784}.sems .semck[aria-pressed=true] i{background:#2E7D32;border-color:#2E7D32}
+.cnss .cnsh{color:#5B6870;font-size:14px;margin:-4px 0 10px}.cnss .cnsh b{color:#11181C;font-family:var(--font-mono)}
+.cnss .cnsnote{border-left:4px solid #F9A825;background:#FFF8E1;color:#5D4300;border-radius:10px;padding:10px 12px;font-weight:600;margin-bottom:6px}
+.cnss .cnspb{display:inline-block;background:#E3F2FD;color:#0D47A1;border-radius:999px;padding:3px 10px;font-size:14px;font-weight:700;margin-bottom:4px}
+.cnss .cnsd{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid #E3E8EC}.cnss .cnsd .tx{flex:1;min-width:0}.cnss .cnsd b{display:block;color:#11181C;font-size:16px}.cnss .cnsd small{color:#5B6870}.cnss .cnsd .ok{color:#1E8E4E;font-weight:700}
+.cnss .cnsph{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.cnss .cnsph img{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid #CDD6DC}
+.cnss .cnsdone{width:100%;min-height:64px;font-size:20px;font-weight:800;border:0;border-radius:16px;background:#2E7D32;color:#fff}
 .clst{display:flex;align-items:center;gap:6px}.clst button{width:44px;height:44px;border-radius:12px;border:1px solid #CDD6DC;background:#F1F4F6;font-size:24px;font-weight:700;color:#11181C}.clst input{width:64px;height:44px;text-align:center;font-size:22px;font-weight:800;border:1px solid #CDD6DC;border-radius:12px;color:#11181C;background:#fff}
 
 .probb{background:#5A3A00;color:#FFE3A3;font-weight:700;font-size:13px;border-radius:10px;padding:6px 10px;margin-bottom:6px}
@@ -3005,7 +3011,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         '<p class="huge">Vai a ' + esc(s.name) + '</p>' +
         (s.note ? '<div class="note"><b>Alla tappa:</b> ' + esc(s.note) + '</div>' : '') +
         '<div class="muted">' + (next ? 'Dopo: ' + esc(next.name) + (next.t ? ' alle ' + esc(next.t) : '') : 'Ultima tappa del giro') + '</div>';
-      primary = (isSem(s.name) || isBenz(s.name) || /^(darsena|scalo)\b/i.test(String(s.name).trim())) ? 'Tappa fatta' : 'Consegna fatta';
+      primary = (isSem(s.name) || isBenz(s.name) || /^(darsena|scalo)\b/i.test(String(s.name).trim())) ? 'Tappa fatta' : 'Sono arrivato';
       speech = 'Tappa ' + (i + 1) + ' di ' + all.length + '. Vai a ' + s.name + '. ' + (s.t ? 'Arrivo previsto alle ' + s.t + '.' : 'Orario da definire.') + (s.note ? ' ' + s.note + '.' : '');
     } else {
       body = '<h3>Operazioni a ' + esc(s.name) + '</h3>' + (s.note ? '<p class="note big">' + esc(s.note) + '</p>' : '<p class="big">Ormeggia in sicurezza e svolgi le operazioni previste per questa tappa.</p>') +
@@ -4010,7 +4016,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var b = BOATS[code], mine = S.shift && S.shift.boat === code, E = BF.edit && BF.edit.code === code ? BF.edit : null, none = '<span class="muted">Da inserire</span>';
     if (isMgr() && !BF.dati) {
       var nrq = S.requests.filter(function (r) { return !r.closed; }).length;
-      return '<div class="wrap"><h2>Barche</h2>' + fleetBlock() + fuelBlock() + refuelBlock() + endPhBlock() +
+      return '<div class="wrap"><h2>Barche</h2>' + fleetBlock() + fuelBlock() + refuelBlock() + endPhBlock() + proofBlock() +
         '<button class="btn rqbtn dd2" data-act="bdati">📋 DATI E DOCUMENTI <span>scheda, motore e documenti di ogni barca ›</span></button>' +
         '<button class="btn rqbtn" data-act="nav" data-v="richieste">🧰 Richieste per le barche' + (nrq ? ' <b>' + nrq + '</b>' : '') + ' ›</button></div>';
     }
@@ -4879,7 +4885,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         var xb = ddtFind(id); sigClose(); delete DDW.sel[id];
         if (SIGQ.length) { var nx = SIGQ.shift(), done = (SIGQ.total || 0) - SIGQ.length - 1; toast('Firmato ' + (xb ? xb.customer : '') + ' · ' + done + ' di ' + SIGQ.total); loadDdt().then(function () { sigOpen(nx); }); return; }
         var multi = SIGQ.total > 1; SIGQ.total = 0; toast(multi ? 'Tutti i DDT selezionati sono firmati' : 'DDT firmato e salvato');
-        loadDdt().then(function () { if (view === 'guida') { render(); if (!multi && xb && xb.box) ddtSignedAct(id, false); } else if (xb && xb.box) ddtSignedAct(id, false); else ddtDetail(id); });
+        loadDdt().then(function () { if (view === 'guida') { render(); if (!multi && xb && xb.box) ddtSignedAct(id, false); else cnsBack(); } else if (xb && xb.box) ddtSignedAct(id, false); else ddtDetail(id); });
       }
       else sigMsg(r && r.error === 'gia_firmato' ? 'Questo DDT risulta già firmato.' : 'Non sono riuscito a salvare. Riprova.');
     }).catch(function () { sigMsg('Nessuna connessione: la firma non è stata salvata. Riprova.'); });
@@ -6002,6 +6008,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       // checkpoint raggiunto: il tasto Consegna fatta si sblocca e si illumina (l'ora di arrivo è questa)
       toast('📍 Arrivato a ' + s.name);
       if (isSem(s.name)) { if (view === 'guida') render(); setTimeout(function () { semSheet(i, true); }, 400); return; }
+      if (isDel(s)) { if (view === 'guida') render(); setTimeout(function () { if (!$('sigScreen') && !$('ddView')) cnsSheet(i, true); }, 400); return; }
       if (S.voice && view === 'guida') say('Arrivato a ' + s.name + '. Quando hai consegnato tocca Consegna fatta.');
       if (view === 'guida') render();
     }
@@ -6229,6 +6236,76 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       closeSheet(); toast('Sei partito dal Seminario · polybox salvati'); if (!S.shift.done[i]) render();
     }
   }, 5000);
+  /* ---------- Scheda Consegna: al checkpoint (100 m) o con "Sono arrivato" → DDT, foto prova di consegna, Consegna fatta ---------- */
+  var CNS = { i: null, ph: {}, busy: false };
+  function isDel(z) { return !!(z && !z.maint && !z.cancelled && !isSem(z.name) && !isBenz(z.name) && !/^(darsena|scalo)\b/i.test(String(z.name).trim())); }
+  function cnsKey(i) { return S.shift.day + ':' + i; }
+  function cnsDdts(z) { return ddwList().filter(function (x) { return ddwHere(x, z); }); }
+  function cnsSheet(i, auto) {
+    var sh = S.shift; if (!sh || sh.done[i]) return; var z = stops()[i]; if (!z) return;
+    CNS.i = i; var t0 = sh.arr && sh.arr[arrKey(i)], dd = cnsDdts(z), v = colliGet(i), ph = CNS.ph[cnsKey(i)] || [], np = (sh.proof && sh.proof[cnsKey(i)]) || 0;
+    var dl = dd.length ? dd.map(function (x) {
+      var sg = x.status === 'signed';
+      return '<div class="cnsd"><div class="tx"><b>📄 ' + esc(x.customer) + '</b><small>' + (x.number ? 'N. ' + esc(x.number) + ' · ' : '') + (sg ? '<span class="ok">✓ firmato</span>' : 'da firmare') + '</small></div>' +
+        '<button class="btn sm" data-act="ddtview" data-id="' + x.id + '">Apri</button>' + (sg ? '' : '<button class="btn sm primary" data-act="ddtsign" data-id="' + x.id + '">Fai firmare</button>') + '</div>';
+    }).join('') : '<p class="muted">Nessun DDT per questa consegna.</p>';
+    openSheet('<div class="dfxs colli cnss" id="cnsS"><h2>📦 ' + esc(z.name) + '</h2>' +
+      '<div class="cnsh">' + (t0 ? 'Arrivato alle <b>' + hm(t0) + '</b>' : 'Ora <b>' + hm(Date.now()) + '</b>') + (z.t ? ' · prevista alle <b>' + esc(stopTime(z)) + '</b>' : '') + '</div>' +
+      (z.note ? '<div class="cnsnote">' + esc(z.note) + '</div>' : '') + (v != null ? '<span class="cnspb">📦 ' + v + ' polybox da consegnare</span>' : '') +
+      '<div class="clsec">DDT</div>' + dl +
+      '<div class="clsec">Prova di consegna (facoltativa)</div>' +
+      '<div class="cnsph" id="cnsPh">' + ph.map(function (u) { return '<img src="' + u + '" alt="Foto della consegna">'; }).join('') + '</div>' +
+      (np ? '<p class="muted" style="margin:0 0 6px">' + np + (np === 1 ? ' foto salvata' : ' foto salvate') + '</p>' : '') +
+      '<button class="btn" data-act="cnsshot">📷 ' + (np ? 'Aggiungi un’altra foto' : 'Fai la foto della consegna') + '</button>' +
+      '<div class="btns clbtns"><button class="cnsdone" data-act="cnsdone">✓ Consegna fatta</button><button class="btn quiet" data-act="cnsclose">Chiudi, non ho ancora finito</button></div></div>');
+    if (auto) say('Arrivato a ' + z.name + '.' + (dd.filter(function (x) { return x.status === 'pending'; }).length ? ' Hai un DDT da far firmare.' : '') + ' Quando hai finito tocca Consegna fatta.');
+  }
+  function cnsBack() { var i = CNS.i; if (i != null && S.shift && !S.shift.done[i] && curIdx() === i && view === 'guida') cnsSheet(i, false); }
+  function cnsShot() {
+    var i = CNS.i, sh = S.shift; if (i == null || !sh) return; var z = stops()[i];
+    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.setAttribute('capture', 'environment'); inp.style.display = 'none';
+    inp.onchange = function () {
+      var f = inp.files && inp.files[0]; inp.remove(); if (!f) return;
+      loadImg(f).then(function (img) {
+        var sc = Math.min(1, 1400 / Math.max(img.naturalWidth, img.naturalHeight)), w = Math.round(img.naturalWidth * sc), h = Math.round(img.naturalHeight * sc), cv = document.createElement('canvas');
+        cv.width = w; cv.height = h; cv.getContext('2d').drawImage(img, 0, 0, w, h); var u = cv.toDataURL('image/jpeg', .75), k = cnsKey(i);
+        (CNS.ph[k] = CNS.ph[k] || []).push(u); var box = $('cnsPh'); if (box) box.insertAdjacentHTML('beforeend', '<img src="' + u + '" alt="Foto della consegna">');
+        if (z.local) return;
+        var fx = GPS.last && Date.now() - GPS.last.t < 120000 ? GPS.last : null;
+        toast('Salvo la foto…');
+        cl('rpc_delivery_proof_add', { p_day: sh.day, p_boat: sh.boat, p_stop: z.name, p_planned: z.t || '', p_photo: u, p_lat: fx ? fx.la : null, p_lng: fx ? fx.lo : null }).then(function (r) {
+          if (r && r.ok) { sh.proof = sh.proof || {}; sh.proof[k] = (sh.proof[k] || 0) + 1; save(); toast('📷 Foto della consegna salvata'); }
+          else toast('Foto non salvata: controlla la connessione e rifalla');
+        });
+      }).catch(function () { toast('Non riesco a leggere la foto'); });
+    };
+    document.body.appendChild(inp); inp.click();
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el || !S.shift) return; var a = el.getAttribute('data-act');
+    if (a === 'cnsshot') cnsShot();
+    else if (a === 'cnsclose') { closeSheet(); }
+    else if (a === 'cnsdone') {
+      var i = CNS.i; if (i == null || S.shift.done[i] || curIdx() !== i) { closeSheet(); return; }
+      closeSheet(); finish(i, 'ok', ''); CNS.i = null;
+      var n = curIdx(); if (n >= 0) say('Consegna fatta. Prossima tappa: ' + stops()[n].name + '.');
+    }
+    else if (a === 'sigcancel') setTimeout(cnsBack, 0);
+  });
+  // Barche (responsabili): ultime foto di prova di consegna
+  var PRF = { d: null, t: 0 };
+  function loadProofs() { if (!tok()) return; PRF.t = Date.now(); cl('rpc_delivery_proof_list', { p_limit: 15 }).then(function (r) { if (Array.isArray(r)) { PRF.d = r; var el = $('prfBox'); if (el) el.innerHTML = proofInner(); } }); }
+  function proofInner() {
+    if (!PRF.d) return '<p class="muted">Carico…</p>'; if (!PRF.d.length) return '<p class="muted">Ancora nessuna foto di consegna.</p>';
+    return '<div class="l10">' + PRF.d.map(function (x) {
+      return '<div class="l10r"><div class="l10h"><b>' + esc(x.stop) + '</b><span class="mono">' + esc(ntWhen(x.at)) + '</span></div><div class="muted">' + esc(String(x.who || '').split(' ')[0]) + (x.boat && BOATS[x.boat] ? ' · ' + esc(BOATS[x.boat].name) : '') + '</div><button class="btn sm" data-act="prfph" data-id="' + x.id + '">📷 Vedi la foto</button></div>';
+    }).join('') + '</div>';
+  }
+  function proofBlock() { if (!PRF.d || Date.now() - PRF.t > 30000) setTimeout(loadProofs, 0); return '<section class="card"><h3>📷 Prove di consegna</h3><div id="prfBox">' + proofInner() + '</div></section>'; }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act="prfph"]') : null; if (!el) return;
+    cl('rpc_delivery_proof_photo', { p_id: el.getAttribute('data-id') }).then(function (r) { if (r && r.photo) openSheet('<h2>Prova di consegna</h2><img src="' + r.photo + '" alt="Foto della consegna" style="width:100%;border-radius:12px"><div class="btns"><button class="btn primary" data-act="close">Chiudi</button></div>'); else toast('Foto non disponibile'); });
+  });
   function holdIdx() { var sh = S.shift; return sh && sh.hold != null && sh.done[sh.hold] ? sh.hold : null; }
   function holdNext() { if (S.shift) { S.shift.hold = null; save(); } spoken = ''; view = 'guida'; render(); var n = curIdx(); if (n >= 0) say('Prossima tappa: ' + stops()[n].name + '.'); else say(boatDay().onCall ? 'Hai finito le tappe. Resta reperibile per le emergenze, poi chiudi il turno.' : 'Hai finito il giro. Chiudi il turno.'); }
   function finish(i, status, reason, auto) {
@@ -6453,6 +6530,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (i < 0) return;
     if (a === 'drvexit') { view = 'turno'; render(); return; }
     if (a === 'next' && !canArrive(i)) { toast('Si sblocca quando la barca arriva alla tappa (100 m). Se il GPS non funziona usa Salta questa tappa.'); return; }
+    if (a === 'next' && isDel(stops()[i])) { cnsSheet(i, false); return; }
     if (a === 'next') { if (el.classList && el.classList.contains('done')) return; if (el.classList) el.classList.add('done'); setTimeout(advance, 420); return; }
     if (a === 'back') { if (sh.step > 0) { sh.step--; save(); render(); } return; }
     if (a === 'repeat') { say(window.__speech || ''); return; }
