@@ -738,6 +738,10 @@ body.drive-open .main { padding-bottom: 176px; }
 .clk .ckt { font-family: var(--font-mono); font-weight: 600; font-size: min(24cqw, 66cqh); line-height: 1; font-variant-numeric: tabular-nums; }
 .clk .ckt small { font-size: .5em; color: #8FA6AE; }
 .clk .ckd { font-size: clamp(10px, 14cqh, 16px); color: #8FA6AE; text-transform: capitalize; }
+.wd .payw { container-type: size; width: 100%; height: 100%; border-radius: 12px; background: #0E1A20; border-left: 4px solid #66BB6A; box-shadow: inset 0 0 0 1px #24343B; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: #F2F7F5; overflow: hidden; }
+.payw .pyv { font-family: var(--font-mono); font-weight: 700; font-size: min(17cqw, 52cqh); line-height: 1; font-variant-numeric: tabular-nums; color: #9CE59F; white-space: nowrap; }
+.payw .pyv small { font-size: .45em; color: #8FA6AE; }
+.payw .pys { font-size: clamp(10px, 13cqh, 14px); color: #8FA6AE; font-family: var(--font-mono); white-space: nowrap; }
 @container (max-height: 70px) { .clk .ckd { display: none; } }
 @container (max-width: 150px) { .clk .ckt small { display: none; } }
 .wedit { flex-wrap: wrap; }
@@ -2834,6 +2838,13 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     return '<b class="ckt">' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + '<small>:' + pad(d.getSeconds()) + '</small></b><span class="ckd">' + d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }) + '</span>';
   }
   setInterval(function () { if (document.hidden) return; var c = $('clkF'); if (c) c.innerHTML = clockInner(); }, 1000);
+  // guadagno del turno in tempo reale: 10 €/ora = 1000 centesimi / 60 min = 16,67 centesimi al minuto
+  var PAY_H = 10, PAY_CMIN = PAY_H * 100 / 60;
+  function payInner() {
+    var sh = S.shift, ms = sh && sh.start ? Math.max(0, (sh.end || Date.now()) - sh.start) : 0, eur = ms / 3600000 * PAY_H, p = fmt2(eur).split(',');
+    return '<b class="pyv">' + p[0] + '<small>,' + p[1] + ' €</small></b><span class="pys">' + dur(ms) + ' · ' + fmt2(PAY_CMIN) + ' ¢/min</span>';
+  }
+  setInterval(function () { if (document.hidden) return; var c = $('payF'); if (c) c.innerHTML = payInner(); }, 1000);
   function delayInfo(t) {
     if (!t || !S.shift || S.shift.day !== todayKey()) return null;
     var d = new Date(), n = d.getHours() * 60 + d.getMinutes() - mins(t);
@@ -3009,6 +3020,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       map: mapHtml(),
       speed: gwVar('speed') === 0 ? '<div class="gz sm" id="spFace">' + speedInner() + '</div>' : '<div class="spv sp' + gwVar('speed') + '" id="spFace">' + speedInner() + '</div>',
       clock: '<div class="clk" id="clkF">' + clockInner() + '</div>',
+      pay: '<div class="payw" id="payF">' + payInner() + '</div>',
       weather: '<div id="wxFace" class="wxv wx' + gwVar('weather') + '">' + wxInner() + '</div>',
       tide: '<div id="tdFace" class="tdv">' + tideInner() + '</div>',
       mimmo: '<div id="mimFace" class="mim">' + mimInner() + '</div>',
@@ -3046,10 +3058,11 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     bebe: { n: 'Bebè Capitano', sizes: { S: [2, 2], M: [2, 3] }, d: 'M' },
     km: { n: 'Km e nodi', sizes: { S: [1, 1], M: [2, 1] }, d: 'S' },
     clock: { n: 'Orario', sizes: { S: [1, 1], M: [2, 1], L: [2, 2] }, d: 'S' },
+    pay: { n: 'Guadagno del turno', sizes: { S: [1, 1], M: [2, 1], L: [2, 2] }, d: 'M' },
     ddt: { n: 'DDT da firmare', sizes: { S: [1, 1], M: [2, 1] }, d: 'M' },
     next: { n: 'Consegna fatta', sizes: { S: [2, 2], M: [2, 3] }, d: 'M', fixed: true }
   };
-  var GW_ORDER = ['stop', 'ddt', 'bebe', 'map', 'speed', 'weather', 'km', 'clock', 'tide', 'mimmo', 'next'];
+  var GW_ORDER = ['stop', 'ddt', 'bebe', 'pay', 'map', 'speed', 'weather', 'km', 'clock', 'tide', 'mimmo', 'next'];
   var MAP_STYLES = [['dark', 'Scuro'], ['blue', 'Blu notte'], ['green', 'Verde radar'], ['light', 'Chiaro']];
   var MAP_COLS = [['#FF8A3D', 'Arancione'], ['#FFD54F', 'Giallo'], ['#66BB6A', 'Verde'], ['#F06292', 'Rosa'], ['#FFFFFF', 'Bianco'], ['#4FC3F7', 'Azzurro']];
   var GWE = { on: false, drag: null };
@@ -3060,6 +3073,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var o = (g.order || []).filter(function (k) { return GWD[k]; });
     if (o.length && o.indexOf('ddt') < 0) { var si = o.indexOf('stop'); o.splice(si >= 0 ? si + 1 : 0, 0, 'ddt'); }
     if (o.length && o.indexOf('bebe') < 0) { var bi = o.indexOf('ddt'); o.splice(bi >= 0 ? bi + 1 : 0, 0, 'bebe'); }
+    if (o.length && o.indexOf('pay') < 0) { var pi = o.indexOf('bebe'); o.splice(pi >= 0 ? pi + 1 : 0, 0, 'pay'); }
     GW_ORDER.forEach(function (k) { if (o.indexOf(k) < 0) o.push(k); });
     g.order = o; g.hidden.next = false; return g;
   }
