@@ -1244,7 +1244,20 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     { g: 'Logistica', list: [
       { n: 'Logistica Ristorazione San Marco', r: 'Programma, orari e variazioni', t: '' } ] }
   ];
-  var KEY = 'smb-state-v2';
+  /* ---------- Modalità prova (fantasma): solo per Pietro Avicolli ----------
+     Turno, GPS, consegne, foto e firme restano solo su questo telefono: niente viene mandato al server,
+     quindi nessuno lo vede (né clienti, né Lisa, né la dashboard) e statistiche e ore non cambiano. */
+  var GHOST = false; try { GHOST = localStorage.getItem('smb-ghost') === '1'; } catch (e) {}
+  var GHOST_BLOCK = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_log_gps', 'rpc_stop_event2', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_colli_set', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_task_update', 'rpc_pos_share', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_shift_void'];
+  function ghostAllowed() { return !!(SESSION && SESSION.name && /avicolli/i.test(SESSION.name)); }
+  function ghostSet(on) {
+    try {
+      if (on) { var real = JSON.parse(localStorage.getItem('smb-state-v2') || '{}'), g = JSON.parse(localStorage.getItem('smb-state-ghost') || 'null'); real.shift = null; real.requests = []; real.history = (g && g.history) || []; localStorage.setItem('smb-state-ghost', JSON.stringify(real)); localStorage.setItem('smb-ghost', '1'); }
+      else { var gs = JSON.parse(localStorage.getItem('smb-state-ghost') || '{}'); gs.shift = null; localStorage.setItem('smb-state-ghost', JSON.stringify(gs)); localStorage.removeItem('smb-ghost'); }
+    } catch (e) {}
+    location.reload();
+  }
+  var KEY = GHOST ? 'smb-state-ghost' : 'smb-state-v2';
 
   var S = { shift: null, history: [], voice: true, demo: false, requests: [] };
   try {
@@ -2815,6 +2828,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<button class="check" data-act="voice" aria-pressed="' + (S.voice ? 'true' : 'false') + '"><i>✓</i><span>Voce attiva</span></button></div>' +
       '<div class="card"><h3>Velocità e chilometri</h3><p class="muted">Il contachilometri usa il GPS del telefono. Se il telefono non lo permette, puoi vedere come appare con valori simulati.</p>' +
       '<button class="check" data-act="simgps" aria-pressed="' + (S.demo ? 'true' : 'false') + '"><i>✓</i><span>Simula velocità e km (prova)</span></button></div>') +
+      (ghostAllowed() || GHOST ? '<div class="card"><h3>👻 Modalità prova</h3><p class="muted">Usi l’app esattamente come in un turno vero (GPS, consegne, foto, firme) ma <b>nessuno ti vede</b>: niente posizione ai clienti, a Lisa o sulla mappa, niente avvisi, e statistiche e ore lavorate non cambiano. I dati della prova restano solo su questo telefono.</p>' +
+        (S.shift ? '<p class="muted"><b>Prima chiudi il turno in corso</b> per ' + (GHOST ? 'uscire dalla' : 'entrare in') + ' modalità prova.</p>' : '<button class="btn' + (GHOST ? '' : ' primary') + '" data-act="ghostsw">' + (GHOST ? 'Esci dalla modalità prova' : 'Entra in modalità prova') + '</button>') + '</div>' : '') +
       '</div>';
   }
 
@@ -4867,6 +4882,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   /* ---------- DDT firmato → email al cliente (se nella rubrica c'è un contatto con lo stesso nome e un'email) ---------- */
   function blobB64(b) { return new Promise(function (res, rej) { var r = new FileReader(); r.onload = function () { res(String(r.result).split(',')[1] || ''); }; r.onerror = rej; r.readAsDataURL(b); }); }
   function ddtMail(id, force) {
+    if (GHOST) { if (force) toast('Modalità prova: nessuna email inviata'); return Promise.resolve(null); }
     return ddtSignedBuild(id).then(function (o) {
       return blobB64(o.blob).then(function (b64) {
         return fetch(SB_URL + '/functions/v1/ddt-mail', { method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ token: tok(), id: id, name: o.name, mime: o.blob.type || 'application/pdf', data: b64, force: !!force }) });
@@ -5001,6 +5017,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var nm = '';
     if (SIG.pts < 40) { sigMsg('La firma è vuota o troppo corta: fai firmare di nuovo.'); return; }
     if (!tok()) { sigMsg('Serve la connessione per salvare la firma.'); return; }
+    if (GHOST) { sigClose(); SIGQ.length = 0; SIGQ.total = 0; toast('Modalità prova: firma provata, il DDT non è stato firmato davvero'); return; }
     sigMsg('Salvo la firma…'); var id = SIG.id, img = sigExport();
     sigLoc().then(function (loc) {
       return cloud('rpc_ddt_sign', { p_token: tok(), p_id: id, p_signer: nm, p_sig: img, p_lat: loc ? loc[0] : null, p_lng: loc ? loc[1] : null });
@@ -6026,6 +6043,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var NAV = [['turno', 'Turno'], ['programma', 'Programma'], ['ddtgiro', 'DDT'], ['barca', 'Barche'], ['notifiche', 'Chat']];
   var NAV_OFF = [['cucina', 'Cucina'], ['programma', 'Programma'], ['ddt', 'DDT'], ['notifiche', 'Chat'], ['contatti', 'Contatti']];
   function render() {
+    if (GHOST && !document.getElementById('ghostBar')) { var gb = document.createElement('div'); gb.id = 'ghostBar'; gb.setAttribute('role', 'status'); gb.textContent = '👻 MODALITÀ PROVA · nessuno ti vede · niente viene salvato'; gb.style.cssText = 'position:sticky;top:0;left:0;right:0;z-index:99999;background:#7c3aed;color:#fff;font:600 12px/1.2 system-ui,sans-serif;text-align:center;padding:calc(4px + env(safe-area-inset-top)) 10px 4px;pointer-events:none'; document.body.insertBefore(gb, document.body.firstChild); }
     if (S.shift && view === 'guida' && !document.hidden) wakeOn(); else wakeOff();
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isOff() && ['ddt', 'contatti', 'impost', 'programma', 'cucina', 'notifiche'].indexOf(view) < 0) view = 'ddt';
@@ -6637,6 +6655,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (a === 'drvmenu') { document.body.classList.toggle('drive-open'); return; }
     if (a === 'day') { viewDay = el.getAttribute('data-k'); render(); return; }
     if (a === 'voice') { S.voice = !S.voice; if (!S.voice) { try { speechSynthesis.cancel(); } catch (x) {} } save(); render(); return; }
+    if (a === 'ghostsw') { if (S.shift) { toast('Prima chiudi il turno in corso'); return; } if (!GHOST && !ghostAllowed()) return; ghostSet(!GHOST); return; }
     if (a === 'simgps') { S.demo = !S.demo; save(); gpsApply(); render(); return; }
     if (a === 'copy') { copyText(el.getAttribute('data-t'), 'Numero copiato'); return; }
     /* richieste */
@@ -6740,6 +6759,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var DEV = ''; try { DEV = localStorage.getItem('smb-dev') || ''; if (!DEV) { DEV = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now(); localStorage.setItem('smb-dev', DEV); } } catch (e) { DEV = 'dev' + Date.now(); }
   var loginNames = [], loginPin = '', loginOffline = false, CLOUDADM = null, lastGpsSent = 0;
   function cloud(fn, args) {
+    if (GHOST && GHOST_BLOCK.indexOf(fn) >= 0) return Promise.resolve({ ok: true, ghost: true });
     return fetch(SB_URL + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(args || {}) }).then(function (r) {
       return r.json().then(function (j) { if (!r.ok) throw { api: true, msg: (j && (j.message || j.hint)) || 'errore' }; return j; });
     });
@@ -6747,6 +6767,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function tok() { return SESSION && SESSION.token ? SESSION.token : null; }
   function cl(fn, args) {
     if (!tok()) return Promise.resolve(null);
+    if (GHOST && GHOST_BLOCK.indexOf(fn) >= 0) return Promise.resolve({ ok: true, ghost: true, id: 'ghost-' + Date.now() });
     args = args || {}; args.p_token = tok();
     return cloud(fn, args).catch(function (e) {
       if (e && e.api && /non_autorizzato/.test(e.msg)) { sessionExpired(); }
