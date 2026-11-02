@@ -254,6 +254,8 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 .tbr.late .tbs,.tbr.late .tbc{color:#FF5A4F}.tbr.late .tbo{color:#FF5A4F}
 .tbr.gone{opacity:.42}.tbr.gone .tbs{color:#8FA3B0}.tbr.gone .tbk{background:#2E7D32;border-color:#2E7D32;color:#fff}
 @keyframes tbbl{50%{opacity:.35}}
+.probb{background:#5A3A00;color:#FFE3A3;font-weight:700;font-size:13px;border-radius:10px;padding:6px 10px;margin-bottom:6px}
+
 .revb{background:#1E6B2E;color:#fff;font-weight:700;font-size:13px;letter-spacing:.03em;border-radius:10px;padding:6px 10px;margin-bottom:6px}#nextBtn.revgo .chkc{opacity:.5}
 
 .l10{display:flex;flex-direction:column}.l10r{padding:10px 0;border-top:1px solid var(--line,#e3e8ec);display:flex;flex-direction:column;gap:4px;align-items:flex-start}.l10r:first-child{border-top:0}.l10h{display:flex;justify-content:space-between;width:100%;gap:8px;font-size:16px}.l10p{display:inline-block;padding:3px 8px;border-radius:999px;font-size:12.5px;font-weight:700;background:rgba(127,127,127,.15)}.l10p.ok{background:#E3F4E6;color:#1E6B2E}.l10p.late{background:#FDE7E5;color:#B3261E}.l10p.early{background:#E4EEFC;color:#1655C8}.l10p.bad{background:#FFF1D6;color:#8A5300}
@@ -1173,6 +1175,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   try { var _eb = JSON.parse(localStorage.getItem('smb-binfo') || '{}'); Object.keys(_eb).forEach(function (c) { if (!BOATS[c] && _eb[c] && typeof _eb[c] === 'object') BOATS[c] = { name: _eb[c].name || c, crew: _eb[c].crew || '', giro: _eb[c].giro || '', extra: true }; }); } catch (e) {}
   // 2 novembre 2026: si riparte da zero, via la cronologia dei turni di prova anche dal telefono
   try { if (!localStorage.getItem('smb-zero-1102')) { S.history = []; if (S.shift && S.shift.start < Date.parse('2026-11-01T23:10:00Z')) S.shift = null; localStorage.setItem('smb-zero-1102', '1'); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (x) {} } } catch (e) {}
+  try { if (S.shift && !localStorage.getItem('smb-prob-1102')) { var _sh = S.shift; Object.keys(_sh.done || {}).forEach(function (k) { var r = _sh.done[k]; if (r && r.status !== 'ok' && !/annullat|saltat/i.test(r.reason || '')) { _sh.probs = _sh.probs || {}; (_sh.probs[_sh.day + ':' + k] = _sh.probs[_sh.day + ':' + k] || []).push({ r: r.reason || 'Problema', t: r.t }); delete _sh.done[k]; } }); localStorage.setItem('smb-prob-1102', '1'); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (x) {} } } catch (e) {}
   fillBoatDays();
   if (S.shift && (!BOATS[S.shift.boat] || !/^\d{4}-\d{2}-\d{2}$/.test(S.shift.day || ''))) S.shift = null;
   if (S.shift) ensureDay(S.shift.day);
@@ -1551,9 +1554,9 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     );
   }
   function problemSheet() {
-    openSheet('<h2>Che problema c’è?</h2><p class="muted">La tappa viene segnata con il problema e passi alla successiva.</p><div class="btns">' +
+    openSheet('<h2>Che problema c’è?</h2><p class="muted">Il problema viene scritto alla logistica e la consegna resta da fare: quando riesci a consegnare tocca “Sono arrivato”.</p><div class="btns">' +
       REASONS.map(function (r, i) { return '<button class="btn" data-act="reason" data-i="' + i + '">' + esc(r) + '</button>'; }).join('') +
-      '</div><button class="btn quiet" data-act="close">Annulla</button>');
+      '</div><button class="btn quiet" data-act="close">Annulla</button><hr style="border:0;border-top:1px solid var(--line,#ddd);margin:14px 0"><p class="muted">Solo se la consegna non si farà proprio (per esempio annullata):</p><button class="btn danger" data-act="skipstop">Salta questa consegna</button>');
   }
 
   /* ---------- views ---------- */
@@ -2975,7 +2978,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var sh = S.shift;
     setTimeout(function () { loadWx(false); loadTide(false); drawMap(); }, 50);
     var parts = {
-      stop: '<div class="stpanel">' + (rev ? '<div class="revb">✓ ' + (rev.status === 'ok' ? 'Già consegnata' : 'Già segnata con problema') + ' alle ' + hm(rev.t) + ' · non si ripete</div>' : '') + '<div class="stbody" id="stFace">' + (s ? stopInner(s, i, all) : freePanel(c)) + '</div></div>',
+      stop: '<div class="stpanel">' + (rev ? '<div class="revb">✓ ' + (rev.status === 'ok' ? 'Già consegnata' : 'Già segnata con problema') + ' alle ' + hm(rev.t) + ' · non si ripete</div>' : '') + (s && i >= 0 ? probBanner(i) : '') + '<div class="stbody" id="stFace">' + (s ? stopInner(s, i, all) : freePanel(c)) + '</div></div>',
       ddt: '<div id="ddwMini">' + ddwMini() + '</div>',
       map: mapHtml(),
       speed: gwVar('speed') === 0 ? '<div class="gz sm" id="spFace">' + speedInner() + '</div>' : '<div class="spv sp' + gwVar('speed') + '" id="spFace">' + speedInner() + '</div>',
@@ -4278,7 +4281,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02y';
+  var APP_V = '2026-11-02z';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -5477,7 +5480,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var sh = S.shift; if (!sh) return null;
     var all = stops(), i = curIdx(); if (i < 0) return { key: 'fine', text: 'Giro finito! Ormeggia con calma e chiudi il turno. Bravissimi!', lvl: 'ok' };
     var s = all[i], step = s.maint ? sh.step : 0, key = i + ':' + step, main = '', lvl = 'ok';
-    if (s.cancelled) return { key: key + ':cx', text: 'Ehi! La consegna a ' + s.name + ' è stata annullata dal cliente. Puoi saltarla con Problema, motivo "Annullata dal cliente".', lvl: 'warn' };
+    if (s.cancelled) return { key: key + ':cx', text: 'Ehi! La consegna a ' + s.name + ' è stata annullata dal cliente. Puoi saltarla da Problema, tasto "Salta questa consegna".', lvl: 'warn' };
     if (s.maint) main = 'È il momento della verifica barche: controlla tutto con calma.';
     else if (step === 1) main = 'Siamo a ' + s.name + '! ' + (s.note ? s.note + '.' : 'Ormeggia piano e fai le operazioni previste.');
     else {
@@ -5746,6 +5749,16 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     }
   }
   function arrAt(i) { var sh = S.shift, t = sh && sh.arr && sh.arr[sh.day + ':' + i]; return t ? new Date(t).toISOString() : null; }
+  // Problema: resta scritto (alla logistica e sulla tappa) ma la consegna resta attiva
+  function probList(i) { var sh = S.shift; return (sh && sh.probs && sh.probs[sh.day + ':' + i]) || []; }
+  function probText(i) { return probList(i).map(function (p) { return p.r; }).join(', '); }
+  function probNote(i, r) {
+    var sh = S.shift, sp = stops()[i]; if (!sh || !sp) return;
+    sh.probs = sh.probs || {}; var k = sh.day + ':' + i; (sh.probs[k] = sh.probs[k] || []).push({ r: r, t: Date.now() }); save();
+    if (!sp.local) { if (sp.extra && sp.id) cl('rpc_task_update', { p_task: sp.id, p_status: 'in_corso', p_reason: r, p_lat: null, p_lng: null }); cl('rpc_stop_problem', { p_stop: sp.name, p_reason: r }); }
+    toast('Problema scritto alla logistica · la consegna resta da fare'); render();
+  }
+  function probBanner(i) { var l = probList(i); return l.length ? '<div class="probb">⚠ ' + l.map(function (p) { return esc(p.r) + ' (' + hm(p.t) + ')'; }).join(' · ') + '</div>' : ''; }
   function finish(i, status, reason) {
     if (S.shift.done[i]) return; // già consegnata: vale la prima
     S.shift.done[i] = { status: status, reason: reason, t: Date.now() }; S.shift.rev = null;
@@ -5754,7 +5767,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       var fx = GPS.last && Date.now() - GPS.last.t < 60000 ? GPS.last : null;
       (fx ? cl('rpc_log_gps', { p_lat: fx.la, p_lng: fx.lo, p_speed: null, p_acc: null }) : Promise.resolve()).then(function () {
         if (sp.extra) cl('rpc_task_update', { p_task: sp.id, p_status: status === 'ok' ? 'fatta' : 'problema', p_reason: reason || null, p_lat: fx ? fx.la : null, p_lng: fx ? fx.lo : null });
-        else cl('rpc_stop_event2', { p_stop: sp.name, p_status: status, p_reason: reason || null, p_planned: sp.ind ? null : (sp.t || null), p_at: status === 'ok' ? arrAt(i) : null });
+        else cl('rpc_stop_event2', { p_stop: sp.name, p_status: status, p_reason: reason || (probText(i) ? 'Problema segnalato: ' + probText(i) : null), p_planned: sp.ind ? null : (sp.t || null), p_at: status === 'ok' ? arrAt(i) : null });
       });
     }
     S.shift.step = 0; S.shift.trip = 0; save(); spoken = '';
@@ -5964,7 +5977,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (a === 'back') { if (sh.step > 0) { sh.step--; save(); render(); } return; }
     if (a === 'repeat') { say(window.__speech || ''); return; }
     if (a === 'problem') { problemSheet(); return; }
-    if (a === 'reason') { closeSheet(); finish(i, 'problem', REASONS[+el.getAttribute('data-i')]); return; }
+    if (a === 'reason') { closeSheet(); probNote(i, REASONS[+el.getAttribute('data-i')]); return; }
+    if (a === 'skipstop') { closeSheet(); finish(i, 'problem', 'Consegna saltata' + (probText(i) ? ' · ' + probText(i) : '')); return; }
   });
   document.addEventListener('submit', function (e) {
     if (e.target.id !== 'manualForm') return;
