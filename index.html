@@ -254,6 +254,8 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 .tbr.late .tbs,.tbr.late .tbc{color:#FF5A4F}.tbr.late .tbo{color:#FF5A4F}
 .tbr.gone{opacity:.42}.tbr.gone .tbs{color:#8FA3B0}.tbr.gone .tbk{background:#2E7D32;border-color:#2E7D32;color:#fff}
 @keyframes tbbl{50%{opacity:.35}}
+.nxskip{display:block;width:100%;margin:6px 0 0;border:1px dashed #4E6670;border-radius:12px;background:none;color:#B8C7CC;font:inherit;font-weight:700;font-size:14px;padding:8px}
+
 #nextBtn.locked{filter:grayscale(1);opacity:.55}#nextBtn{position:relative}#nextBtn .chkl{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:12px;font-weight:700;letter-spacing:.02em;opacity:.95}
 
 #nextBtn.holdgo{background:linear-gradient(180deg,#2E7D32,#1E5E22);animation:arrpulse 1.4s ease-in-out infinite}#nextBtn.holdgo .chkc{opacity:.9}
@@ -2963,7 +2965,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         '<p class="huge">Vai a ' + esc(s.name) + '</p>' +
         (s.note ? '<div class="note"><b>Alla tappa:</b> ' + esc(s.note) + '</div>' : '') +
         '<div class="muted">' + (next ? 'Dopo: ' + esc(next.name) + (next.t ? ' alle ' + esc(next.t) : '') : 'Ultima tappa del giro') + '</div>';
-      primary = 'Sono arrivato';
+      primary = (isSem(s.name) || isBenz(s.name) || /^(darsena|scalo)\b/i.test(String(s.name).trim())) ? 'Tappa fatta' : 'Consegna fatta';
       speech = 'Tappa ' + (i + 1) + ' di ' + all.length + '. Vai a ' + s.name + '. ' + (s.t ? 'Arrivo previsto alle ' + s.t + '.' : 'Orario da definire.') + (s.note ? ' ' + s.note + '.' : '');
     } else {
       body = '<h3>Operazioni a ' + esc(s.name) + '</h3>' + (s.note ? '<p class="note big">' + esc(s.note) + '</p>' : '<p class="big">Ormeggia in sicurezza e svolgi le operazioni previste per questa tappa.</p>') +
@@ -2992,8 +2994,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       bebe: '<div id="bbFace" class="mim bb">' + bbInner() + '</div>',
       km: '<div class="tile"><div class="kms"><span>Tappa <b id="kmT">' + fmt2(sh.trip || 0) + '</b> km</span><span>Turno <b id="kmS">' + fmt1(sh.km || 0) + '</b> km</span><span><b id="spdN">' + (GPS.speed == null ? '–' : fmt1(GPS.speed * 1.94384)) + '</b> nodi</span></div></div>',
       next: !s ? '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (prevDone() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button><button class="chk fin" data-act="endsheet"><span class="chkt">Chiudi il turno</span></button></div><button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>' : '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (prevDone() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button>' +
-        '<button class="chk' + (hold ? ' holdgo' : rev ? ' revgo' : !canArrive(i) ? ' locked' : S.shift && S.shift.arr && S.shift.arr[S.shift.day + ':' + i] ? ' near' : '') + '" id="nextBtn" data-act="' + (hold ? 'holdnext' : rev ? 'revexit' : 'next') + '" aria-label="' + esc(primary) + '"><span class="chkc"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" class="ring"/><path d="M13 25l8 8 15-17" class="tick"/></svg></span><span class="chkt">' + esc(primary) + '</span>' + (!hold && !rev && !canArrive(i) ? '<small class="chkl" id="nextLock">' + lockTxt(i) + '</small>' : '') + '</span></button></div>' +
-        '<button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>'
+        '<button class="chk' + (hold ? ' holdgo' : rev ? ' revgo' : !canArrive(i) ? ' locked' : S.shift && S.shift.arr && S.shift.arr[arrKey(i)] && canArrive(i) && arrDist(i) != null && arrDist(i) <= ARR_R ? ' near' : '') + '" id="nextBtn" data-act="' + (hold ? 'holdnext' : rev ? 'revexit' : 'next') + '" aria-label="' + esc(primary) + '"><span class="chkc"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" class="ring"/><path d="M13 25l8 8 15-17" class="tick"/></svg></span><span class="chkt">' + esc(primary) + '</span>' + (!hold && !rev && !canArrive(i) ? '<small class="chkl" id="nextLock">' + lockTxt(i) + '</small>' : '') + '</span></button></div>' +
+        (hold || rev ? '' : '<button class="nxskip" data-act="skipask">Salta questa tappa</button>') + '<button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>'
     };
     var g = gwGet(), ed = GWE.on, cz = ddwCur(), noDdt = !ddwList().length && !(cz && ddwMuranoUp(cz, [])), vis = g.order.filter(function (k) { return !g.hidden[k] && !(k === 'ddt' && noDdt && !ed); }), gone = g.order.filter(function (k) { return g.hidden[k]; });
     var grid = vis.map(function (k) {
@@ -4284,7 +4286,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02zk';
+  var APP_V = '2026-11-02zl';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -5931,16 +5933,16 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function arrCheck() {
     var sh = S.shift; if (!sh || !GPS.last || holdIdx() != null) return; var i = curIdx(); if (i < 0) return;
     var s = stops()[i]; if (!s || s.cancelled || (s.maint && sh.step)) return; var tg = COORDS[s.name]; if (!tg) return;
-    sh.arr = sh.arr || {}; var k = sh.day + ':' + i;
+    sh.arr = sh.arr || {}; var k = arrKey(i);
     var lk0 = $('nextLock'); if (lk0) lk0.textContent = lockTxt(i);
     var nb0 = $('nextBtn'); if (nb0 && view === 'guida' && revIdx() == null && nb0.classList.contains('locked') !== !canArrive(i)) { render(); return; }
     if (sh.arr[k]) return;
     var lk = $('nextLock'); if (lk) lk.textContent = lockTxt(i);
     if (hav(GPS.last.la, GPS.last.lo, tg[0], tg[1]) <= ARR_R) {
       sh.arr[k] = Date.now(); save();
-      // il GPS conferma l'arrivo: la consegna è segnata, si resta qui finché non tocchi Avanti
-      if (!s.maint && !sh.done[i]) { finish(i, 'ok', '', true); }
-      else { toast('Sei arrivato a ' + s.name); var nb = $('nextBtn'); if (nb) nb.classList.add('near'); }
+      // checkpoint raggiunto: il tasto Consegna fatta si sblocca e si illumina (l'ora di arrivo è questa)
+      toast('📍 Arrivato a ' + s.name); if (S.voice && view === 'guida') say('Arrivato a ' + s.name + '. Quando hai consegnato tocca Consegna fatta.');
+      if (view === 'guida') render();
     }
   }
   // il tasto Sono arrivato si sblocca solo al checkpoint GPS (100 m); senza GPS o senza posizione della tappa resta libero
@@ -5950,8 +5952,28 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     return hav(GPS.last.la, GPS.last.lo, tg[0], tg[1]) <= ARR_R;
   }
   function arrDist(i) { var s = stops()[i], tg = s && COORDS[s.name]; return tg && GPS.last ? hav(GPS.last.la, GPS.last.lo, tg[0], tg[1]) : null; }
-  function lockTxt(i) { var d = arrDist(i); return '🔒 si sblocca a 100 m' + (d != null ? ' · mancano ' + fmtDist(d) : ''); }
-  function arrAt(i) { var sh = S.shift, t = sh && sh.arr && sh.arr[sh.day + ':' + i]; return t ? new Date(t).toISOString() : null; }
+  function lockTxt(i) { var d = arrDist(i); return '🔒 si sblocca arrivato alla tappa' + (d != null ? ' · mancano ' + fmtDist(d) : ''); }
+  function arrKey(i) { var z = stops()[i]; return S.shift.day + ':' + i + ':' + (z ? z.name + '@' + (z.t || '') : ''); }
+  function arrAt(i) { var sh = S.shift, t = sh && sh.arr && sh.arr[arrKey(i)]; return t && Date.now() - t < 4 * 3600e3 ? new Date(t).toISOString() : null; }
+  // Salta questa tappa: per quando il GPS non funziona o la consegna non si fa
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el || !S.shift) return; var a = el.getAttribute('data-act'), i = curIdx(); if (i < 0) return;
+    var sp = stops()[i];
+    if (a === 'skipask') openSheet('<div class="dfxs"><h2>Saltare ' + esc(sp.name) + '?</h2><p class="muted">Usa questi tasti solo se il GPS non ha funzionato o se la consegna non si fa.</p><div class="btns">' +
+      '<button class="btn primary" data-act="skipdone">✓ Consegnata, ma il GPS non l’ha vista</button><button class="btn danger" data-act="skipno">✕ Non consegnata: salta</button><button class="btn quiet" data-act="close">Annulla</button></div></div>');
+    else if (a === 'skipdone') { closeSheet(); finish(i, 'ok', 'Confermata a mano (GPS non arrivato)'); }
+    else if (a === 'skipno') { closeSheet(); finish(i, 'problem', 'Consegna saltata' + (probText(i) ? ' · ' + probText(i) : '')); }
+  });
+  // tappe annullate dalla logistica: si riaprono anche sul telefono
+  function syncVoided() {
+    if (!tok() || !S.shift) return;
+    cl('rpc_shift_voided', {}).then(function (r) {
+      if (!Array.isArray(r) || !r.length || !S.shift) return; var all = stops(), ch = false;
+      r.forEach(function (v) { all.forEach(function (z, j) { var d = S.shift.done[j]; if (d && d.status === 'ok' && z.name === v.stop && (z.t || '') === (v.t || '')) { delete S.shift.done[j]; if (S.shift.arr) delete S.shift.arr[arrKey(j)]; ch = true; } }); });
+      if (ch) { S.shift.hold = null; S.shift.rev = null; save(); if (view === 'guida' || view === 'turno') render(); toast('La logistica ha riaperto una tappa'); }
+    });
+  }
+  setInterval(function () { if (!document.hidden) syncVoided(); }, 60000); setTimeout(syncVoided, 2500);
   // Problema: resta scritto (alla logistica e sulla tappa) ma la consegna resta attiva
   function probList(i) { var sh = S.shift; return (sh && sh.probs && sh.probs[sh.day + ':' + i]) || []; }
   function probText(i) { return probList(i).map(function (p) { return p.r; }).join(', '); }
@@ -6070,7 +6092,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (S.shift.done[i]) return; // già consegnata: vale la prima
     S.shift.done[i] = { status: status, reason: reason, t: Date.now(), gps: !!auto }; S.shift.rev = null;
     // arrivato: la tappa resta sullo schermo con il tasto Avanti (le tappe saltate passano subito)
-    var sp0 = stops()[i]; S.shift.hold = status === 'ok' && !(sp0 && sp0.maint) ? i : null;
+    S.shift.hold = null;
     var sp = stops()[i];
     if (sp && !sp.local) {
       var fx = GPS.last && Date.now() - GPS.last.t < 60000 ? GPS.last : null;
@@ -6287,7 +6309,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var i = curIdx();
     if (i < 0) return;
     if (a === 'drvexit') { view = 'turno'; render(); return; }
-    if (a === 'next' && !canArrive(i)) { toast('Sono arrivato si sblocca quando la barca è a 100 metri dalla tappa'); return; }
+    if (a === 'next' && !canArrive(i)) { toast('Si sblocca quando la barca arriva alla tappa (100 m). Se il GPS non funziona usa Salta questa tappa.'); return; }
     if (a === 'next') { if (el.classList && el.classList.contains('done')) return; if (el.classList) el.classList.add('done'); setTimeout(advance, 420); return; }
     if (a === 'back') { if (sh.step > 0) { sh.step--; save(); render(); } return; }
     if (a === 'repeat') { say(window.__speech || ''); return; }
