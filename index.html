@@ -254,6 +254,8 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 .tbr.late .tbs,.tbr.late .tbc{color:#FF5A4F}.tbr.late .tbo{color:#FF5A4F}
 .tbr.gone{opacity:.42}.tbr.gone .tbs{color:#8FA3B0}.tbr.gone .tbk{background:#2E7D32;border-color:#2E7D32;color:#fff}
 @keyframes tbbl{50%{opacity:.35}}
+.rfs .rfin{font-size:22px;font-weight:700}.rfs .chip:not([aria-pressed=true]){color:#11181C;border-color:#CDD6DC}.rfimg{display:block;width:100%;max-height:150px;object-fit:contain;border-radius:10px;background:#f1f4f6;margin-bottom:6px}.rfs .chips{display:flex;gap:6px;flex-wrap:wrap}
+
 .dgs .dgr{border-top:1px solid var(--line,#e3e8ec);padding:8px 0;display:flex;flex-direction:column;gap:6px}.dgc{font-size:15px}.dgd{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.dgn{flex:1;min-width:80px;font-weight:600}.dgu{display:flex;gap:6px;flex-wrap:wrap}.dgs.ddover{box-shadow:0 0 0 3px #1655C8}
 
 .ddwup{display:flex;flex-direction:column;gap:6px}.ddwub{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.ddwub b{flex:1;min-width:90px;color:#F2F7F5;font-size:14px}.ddwub button{border:0;border-radius:9px;padding:7px 10px;background:#1655C8;color:#fff;font:inherit;font-weight:700;font-size:13px}.ddwup.more .ddwub button{background:#1D2C33;color:#DCE7E4}
@@ -2974,7 +2976,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var sh = S.shift;
     setTimeout(function () { loadWx(false); loadTide(false); drawMap(); }, 50);
     var parts = {
-      stop: '<div class="stpanel">' + (rev ? '<div class="revb">✓ ' + (rev.status === 'ok' ? 'Già consegnata' : 'Già segnata con problema') + ' alle ' + hm(rev.t) + ' · non si ripete</div>' : '') + (s && i >= 0 ? probBanner(i) + (rev ? '' : colliChip(i)) : '') + '<div class="stbody" id="stFace">' + (s ? stopInner(s, i, all) : freePanel(c)) + '</div></div>',
+      stop: '<div class="stpanel">' + (rev ? '<div class="revb">✓ ' + (rev.status === 'ok' ? 'Già consegnata' : 'Già segnata con problema') + ' alle ' + hm(rev.t) + ' · non si ripete</div>' : '') + (s && i >= 0 ? probBanner(i) + refuelChip(i) + (rev ? '' : colliChip(i)) : '') + '<div class="stbody" id="stFace">' + (s ? stopInner(s, i, all) : freePanel(c)) + '</div></div>',
       ddt: '<div id="ddwMini">' + ddwMini() + '</div>',
       map: mapHtml(),
       speed: gwVar('speed') === 0 ? '<div class="gz sm" id="spFace">' + speedInner() + '</div>' : '<div class="spv sp' + gwVar('speed') + '" id="spFace">' + speedInner() + '</div>',
@@ -3944,7 +3946,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var b = BOATS[code], mine = S.shift && S.shift.boat === code, E = BF.edit && BF.edit.code === code ? BF.edit : null, none = '<span class="muted">Da inserire</span>';
     if (isMgr() && !BF.dati) {
       var nrq = S.requests.filter(function (r) { return !r.closed; }).length;
-      return '<div class="wrap"><h2>Barche</h2>' + fleetBlock() + fuelBlock() + endPhBlock() +
+      return '<div class="wrap"><h2>Barche</h2>' + fleetBlock() + fuelBlock() + refuelBlock() + endPhBlock() +
         '<button class="btn rqbtn dd2" data-act="bdati">📋 DATI E DOCUMENTI <span>scheda, motore e documenti di ogni barca ›</span></button>' +
         '<button class="btn rqbtn" data-act="nav" data-v="richieste">🧰 Richieste per le barche' + (nrq ? ' <b>' + nrq + '</b>' : '') + ' ›</button></div>';
     }
@@ -4277,7 +4279,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02zh';
+  var APP_V = '2026-11-02zi';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -5942,18 +5944,80 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     toast('Problema scritto alla logistica · la consegna resta da fare'); render();
   }
   function probBanner(i) { var l = probList(i); return l.length ? '<div class="probb">⚠ ' + l.map(function (p) { return esc(p.r) + ' (' + hm(p.t) + ')'; }).join(' · ') + '</div>' : ''; }
+  /* ---------- Rifornimento al benzinaio: foto dello scontrino + litri ---------- */
+  function isBenz(n) { return /benzin/i.test(n || ''); }
+  var RF = { photo: null, boat: null, busy: false };
+  function refuelGet(i) { var sh = S.shift; return sh && sh.refuel && sh.refuel[sh.day + ':' + i]; }
+  function refuelChip(i) {
+    var s = stops()[i]; if (!s || !isBenz(s.name)) return ''; var r = refuelGet(i);
+    return '<button class="clchip' + (r ? '' : ' no') + '" data-act="rfopen" data-i="' + i + '">⛽ ' + (r ? 'Rifornimento segnato: ' + fmt1(r.l).replace(',0', '') + ' litri' : 'Carica scontrino e litri') + '</button>';
+  }
+  function refuelSheet(i) {
+    var sh = S.shift; if (!sh) return; RF.i = i; RF.photo = null; RF.boat = RF.boat && BOATS[RF.boat] ? RF.boat : sh.boat;
+    var bs = boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO'; });
+    openSheet('<div class="dfxs colli rfs"><h2>⛽ Rifornimento</h2><p class="muted">Fotografa lo scontrino e scrivi i litri fatti.</p>' +
+      '<div class="clsec">Barca</div><div class="chips">' + bs.map(function (c) { return '<button class="chip" data-act="rfboat" data-c="' + c + '" aria-pressed="' + (c === RF.boat) + '">' + esc(BOATS[c].name) + '</button>'; }).join('') + '</div>' +
+      '<div class="clsec">Scontrino</div><div id="rfPh"><button class="btn" data-act="rfshot">📷 Fotografa lo scontrino</button></div>' +
+      '<div class="clsec">Litri</div><input id="rfL" class="field txt rfin" type="text" inputmode="decimal" autocomplete="off" placeholder="es. 25,40">' +
+      '<div class="clsec">Importo € (facoltativo)</div><input id="rfE" class="field txt rfin" type="text" inputmode="decimal" autocomplete="off" placeholder="es. 48,90">' +
+      '<div class="btns clbtns"><button class="btn primary" data-act="rfsave">Salva rifornimento</button><button class="btn quiet" data-act="close">Non ho fatto benzina</button></div></div>');
+  }
+  function refuelShot() {
+    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.setAttribute('capture', 'environment'); inp.style.display = 'none';
+    inp.onchange = function () {
+      var f = inp.files && inp.files[0]; inp.remove(); if (!f) return;
+      loadImg(f).then(function (img) {
+        var sc = Math.min(1, 1400 / Math.max(img.naturalWidth, img.naturalHeight)), w = Math.round(img.naturalWidth * sc), h = Math.round(img.naturalHeight * sc), cv = document.createElement('canvas');
+        cv.width = w; cv.height = h; cv.getContext('2d').drawImage(img, 0, 0, w, h); RF.photo = cv.toDataURL('image/jpeg', .78);
+        var b = $('rfPh'); if (b) b.innerHTML = '<img src="' + RF.photo + '" alt="Scontrino" class="rfimg"><button class="btn sm" data-act="rfshot">Rifai la foto</button>';
+      }).catch(function () { toast('Non riesco a leggere la foto'); });
+    };
+    document.body.appendChild(inp); inp.click();
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'rfopen') refuelSheet(+el.getAttribute('data-i'));
+    else if (a === 'rfshot') refuelShot();
+    else if (a === 'rfboat') { RF.boat = el.getAttribute('data-c'); Array.prototype.forEach.call(document.querySelectorAll('[data-act=rfboat]'), function (b) { b.setAttribute('aria-pressed', b === el ? 'true' : 'false'); }); }
+    else if (a === 'rfsave') {
+      var l = parseFloat(String(($('rfL') || {}).value || '').replace(',', '.')), eu = parseFloat(String(($('rfE') || {}).value || '').replace(',', '.'));
+      if (!RF.photo) { toast('Fotografa lo scontrino'); return; }
+      if (!(l > 0 && l <= 500)) { toast('Scrivi quanti litri hai fatto'); var li = $('rfL'); if (li) li.focus(); return; }
+      if (RF.busy) return; RF.busy = true; el.disabled = true; el.textContent = 'Salvo…';
+      cl('rpc_refuel_add', { p_boat: RF.boat, p_liters: l, p_euro: eu > 0 ? eu : null, p_photo: RF.photo }).then(function (r) {
+        RF.busy = false;
+        if (r && r.ok) { var sh = S.shift; if (sh && RF.i != null) { sh.refuel = sh.refuel || {}; sh.refuel[sh.day + ':' + RF.i] = { l: l, e: eu > 0 ? eu : null, b: RF.boat, t: Date.now() }; save(); } closeSheet(); toast('Rifornimento salvato: ' + l + ' litri'); render(); }
+        else { el.disabled = false; el.textContent = 'Salva rifornimento'; toast('Non riesco a salvare: controlla la connessione e riprova'); }
+      });
+    }
+  });
+  // per i responsabili, in Barche: ultimi rifornimenti con lo scontrino
+  var RFL = { d: null, t: 0 };
+  function loadRefuels() { if (!tok()) return; RFL.t = Date.now(); cl('rpc_refuel_list', { p_limit: 10 }).then(function (r) { if (Array.isArray(r)) { RFL.d = r; var el = $('rfBox'); if (el) el.innerHTML = refuelInner(); } }); }
+  function refuelInner() {
+    if (!RFL.d) return '<p class="muted">Carico…</p>'; if (!RFL.d.length) return '<p class="muted">Ancora nessun rifornimento.</p>';
+    return '<div class="l10">' + RFL.d.map(function (x) {
+      return '<div class="l10r"><div class="l10h"><b>' + (BOATS[x.boat] ? esc(BOATS[x.boat].name) : esc(x.boat)) + ' · ' + esc(String(+x.liters).replace('.', ',')) + ' L' + (x.euro ? ' · ' + esc((+x.euro).toFixed(2).replace('.', ',')) + ' €' : '') + '</b><span class="mono">' + esc(ntWhen(x.at)) + '</span></div><div class="muted">' + esc(String(x.who || '').split(' ')[0]) + '</div>' +
+        (x.has_photo ? '<button class="btn sm" data-act="rfph" data-id="' + x.id + '">🧾 Vedi lo scontrino</button>' : '') + '</div>';
+    }).join('') + '</div>';
+  }
+  function refuelBlock() { if (!RFL.d || Date.now() - RFL.t > 30000) setTimeout(loadRefuels, 0); return '<section class="card"><h3>⛽ Rifornimenti</h3><div id="rfBox">' + refuelInner() + '</div></section>'; }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act="rfph"]') : null; if (!el) return;
+    cl('rpc_refuel_photo', { p_id: el.getAttribute('data-id') }).then(function (r) { if (r && r.photo) openSheet('<h2>Scontrino</h2><img src="' + r.photo + '" alt="Scontrino della benzina" style="width:100%;border-radius:12px"><div class="btns"><button class="btn primary" data-act="close">Chiudi</button></div>'); else toast('Scontrino non disponibile'); });
+  });
   // Polybox: al Seminario si segna quanti colli ha ogni consegna del giro che parte
   function isSem(n) { return /seminario/i.test(n || ''); }
   function legAfter(i) {
     var all = stops(), out = [];
-    for (var j = i + 1; j < all.length; j++) { var z = all[j]; if (isSem(z.name)) break; if (z.cancelled || z.maint || /^(darsena|scalo)\b/i.test(String(z.name).trim())) continue; out.push(j); }
+    for (var j = i + 1; j < all.length; j++) { var z = all[j]; if (isSem(z.name)) break; if (z.cancelled || z.maint || isBenz(z.name) || /^(darsena|scalo)\b/i.test(String(z.name).trim())) continue; out.push(j); }
     return out;
   }
   function colliGet(i) { var sh = S.shift; var v = sh && sh.colli && sh.colli[sh.day + ':' + i]; return v == null ? null : v; }
   // tutte le consegne ancora da fare oggi (senza Seminario, Darsena, Scalo)
   function colliTodo(from) {
     var all = stops(), sh = S.shift, out = [];
-    for (var j = 0; j < all.length; j++) { var z = all[j]; if (sh.done[j] || z.cancelled || z.maint || isSem(z.name) || /^(darsena|scalo)\b/i.test(String(z.name).trim()) || (from != null && j < from)) continue; out.push(j); }
+    for (var j = 0; j < all.length; j++) { var z = all[j]; if (sh.done[j] || z.cancelled || z.maint || isSem(z.name) || isBenz(z.name) || isPane(z.name) || /^(darsena|scalo)\b/i.test(String(z.name).trim()) || (from != null && j < from)) continue; out.push(j); }
     return out;
   }
   function colliSheet(list, auto) {
@@ -5965,7 +6029,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<div class="btns clbtns"><button class="btn primary" data-act="clsave" data-l="' + list.concat(rest).join(',') + '">Salva</button><button class="btn quiet" data-act="close">Dopo</button></div></div>');
   }
   function colliChip(i) {
-    var s = stops()[i]; if (!s || s.maint || /^(darsena|scalo)\b/i.test(String(s.name).trim())) return '';
+    var s = stops()[i]; if (!s || s.maint || isBenz(s.name) || isPane(s.name) || /^(darsena|scalo)\b/i.test(String(s.name).trim())) return '';
     if (isSem(s.name)) { var l = legAfter(i), t = colliTodo(); if (!t.length) return ''; return '<button class="clchip" data-act="clopen" data-l="' + (l.length ? l : t.slice(0, 1)).join(',') + '">📦 Polybox delle consegne' + (l.length ? ' (' + esc(l.map(function (j) { return stops()[j].name; }).join(', ')) + '…)' : '') + '</button>'; }
     var v = colliGet(i); return '<button class="clchip' + (v == null ? ' no' : '') + '" data-act="clopen" data-l="' + i + '">📦 ' + (v == null ? 'Segna i polybox' : v + (v === 1 ? ' polybox' : ' polybox')) + '</button>';
   }
@@ -5994,6 +6058,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       });
     }
     S.shift.step = 0; S.shift.trip = 0; save(); spoken = '';
+    if (status === 'ok' && sp && isBenz(sp.name) && !refuelGet(i)) setTimeout(function () { refuelSheet(i); }, 600);
     if (status === 'ok' && sp && isSem(sp.name)) { var lg = legAfter(i); if (!lg.length) lg = colliTodo(i).slice(0, 1); if (lg.length) setTimeout(function () { colliSheet(lg, true); }, 600); }
     var n = curIdx();
     toast(status === 'ok' ? 'Tappa completata' : 'Problema segnalato');
