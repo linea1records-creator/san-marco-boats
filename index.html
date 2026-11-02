@@ -736,7 +736,7 @@ body.drive-open .main { padding-bottom: 176px; }
 .ddbar { display: flex; align-items: center; gap: 10px; padding: 10px 12px calc(10px) 12px; padding-top: max(10px, env(safe-area-inset-top, 0px)); background: #1b1b1b; color: #fff; }
 .ddbar .btn { width: auto; min-height: 40px; padding: 6px 14px; } .ddbar span { flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ddview iframe { flex: 1; width: 100%; border: 0; background: #fff; } .ddopen { color: #9CC4FF; font-size: 13px; text-align: center; padding: 8px; background: #1b1b1b; }
-.ddimg { flex: 1; overflow: auto; background: #222; display: grid; place-items: start center; } .ddimg img { max-width: 100%; height: auto; display: block; }
+.ddimg { flex: 1; overflow: auto; background: #222; display: grid; place-items: start center; } .ddimg img { max-width: 100%; height: auto; display: block; } #ddPdf { display: block; padding: 0; } .ddload { color: #ccc; text-align: center; padding: 30px; }
 .sigscreen { position: fixed; inset: 0; z-index: 60; background: #fff; color: #0A0F1A; overflow: hidden; }
 .sigland { position: absolute; top: 0; left: 0; transform-origin: 0 0; display: flex; flex-direction: column; gap: 8px; padding: 10px max(12px, env(safe-area-inset-left, 0px)) 10px; box-sizing: border-box; background: #fff; }
 .sigbar { display: flex; align-items: center; gap: 8px; } .sigbar .btn { min-height: 46px; padding: 0 16px; flex: none; width: auto; margin: 0; }
@@ -2235,7 +2235,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function ddtSkip(name, note) { return /^(darsena|scalo|seminario)\b/i.test(String(name || '').trim()) || /certosa/i.test(name || '') || driverDdt(name, note); }
   function muClients(name) { var a = String(name || '').split(/\s*(?:\/|·)\s*/).map(function (x) { return x.trim(); }).filter(Boolean); return a.length ? a : [name]; }
   // DDT normali (non Murano): riquadro "Firma del destinatario", firma in nero
-  var SIGBOX_STD = { x: .639, y: .589, w: .311, h: .054, ink: 'k' };
+  var SIGBOX_STD = { x: .636, y: .586, w: .31, h: .04, ink: 'k' };
   function muranoPrep(f, name, note, cust, quick) {
     if (!f) return Promise.resolve({ file: f, box: null });
     var mu = isMurano(name, note), box = mu ? SIGBOX_DEF : isPane(name) ? null : SIGBOX_STD;
@@ -4281,7 +4281,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02z';
+  var APP_V = '2026-11-02za';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4564,8 +4564,35 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var url = URL.createObjectURL(blob), isPdf = blob.type === 'application/pdf', d = document.createElement('div');
     d.id = 'ddView'; d.className = 'ddview';
     d.innerHTML = '<div class="ddbar"><button class="btn" data-act="ddvclose">Chiudi</button><span>' + esc(name) + '</span>' + (extra || '') + '</div>' +
-      (isPdf ? '<iframe title="DDT" src="' + url + '"></iframe><a class="ddopen" href="' + url + '" target="_blank" rel="noopener">Non si vede bene? Apri in una nuova scheda</a>' : '<div class="ddimg"><img alt="DDT" src="' + url + '"></div>');
+      (isPdf ? '<div class="ddimg" id="ddPdf"><p class="ddload">Apro il DDT…</p></div><a class="ddopen" href="' + url + '" target="_blank" rel="noopener">Apri il PDF originale</a>' : '<div class="ddimg"><img alt="DDT" src="' + url + '"></div>');
     d.setAttribute('data-url', url); document.body.appendChild(d);
+    if (isPdf) pdfRender(blob, $('ddPdf'), url);
+  }
+  // il PDF si disegna a larghezza schermo (dentro un riquadro il telefono lo mostra tagliato a destra)
+  var PDFJS = null;
+  function loadPdfJs() {
+    if (PDFJS) return PDFJS;
+    PDFJS = new Promise(function (res, rej) {
+      if (window.pdfjsLib) { res(window.pdfjsLib); return; }
+      var sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      sc.onload = function () { if (!window.pdfjsLib) { rej(new Error('lib')); return; } window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; res(window.pdfjsLib); };
+      sc.onerror = function () { PDFJS = null; rej(new Error('lib')); }; document.head.appendChild(sc);
+    });
+    return PDFJS;
+  }
+  function pdfRender(blob, box, url) {
+    if (!box) return;
+    Promise.all([loadPdfJs(), blob.arrayBuffer()]).then(function (a) { return a[0].getDocument({ data: new Uint8Array(a[1]) }).promise; }).then(function (doc) {
+      box.innerHTML = ''; var W = Math.max(320, box.clientWidth || window.innerWidth), dpr = Math.min(3, window.devicePixelRatio || 1), chain = Promise.resolve();
+      for (var n = 1; n <= doc.numPages; n++) (function (n) {
+        chain = chain.then(function () { return doc.getPage(n); }).then(function (pg) {
+          var v0 = pg.getViewport({ scale: 1 }), sc = W / v0.width * dpr, vp = pg.getViewport({ scale: sc }), cv = document.createElement('canvas');
+          cv.width = Math.round(vp.width); cv.height = Math.round(vp.height); cv.style.width = '100%'; cv.style.height = 'auto'; cv.style.display = 'block'; cv.style.background = '#fff'; cv.style.marginBottom = '8px';
+          box.appendChild(cv); return pg.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+        });
+      })(n);
+      return chain;
+    }).catch(function () { box.innerHTML = '<iframe title="DDT" src="' + url + '" style="width:100%;height:100%;border:0;background:#fff"></iframe>'; });
   }
   function ddtViewClose() { var d = document.getElementById('ddView'); if (!d) return; try { URL.revokeObjectURL(d.getAttribute('data-url')); } catch (e) {} d.remove(); }
   function ddtDeliver(blob, name) {
