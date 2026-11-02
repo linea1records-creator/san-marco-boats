@@ -254,6 +254,10 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 .tbr.late .tbs,.tbr.late .tbc{color:#FF5A4F}.tbr.late .tbo{color:#FF5A4F}
 .tbr.gone{opacity:.42}.tbr.gone .tbs{color:#8FA3B0}.tbr.gone .tbk{background:#2E7D32;border-color:#2E7D32;color:#fff}
 @keyframes tbbl{50%{opacity:.35}}
+.clchip{display:block;width:100%;text-align:left;border:0;border-radius:10px;padding:7px 10px;margin-bottom:6px;background:#12384F;color:#BFE6FF;font:inherit;font-weight:700;font-size:14px}.clchip.no{background:#3D2E00;color:#FFD54F}
+.colli .clr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid #E3E8EC}.colli .clr b{display:block;font-size:17px;color:#11181C}.colli .clr small{color:#5B6870}
+.clst{display:flex;align-items:center;gap:6px}.clst button{width:44px;height:44px;border-radius:12px;border:1px solid #CDD6DC;background:#F1F4F6;font-size:24px;font-weight:700;color:#11181C}.clst input{width:64px;height:44px;text-align:center;font-size:22px;font-weight:800;border:1px solid #CDD6DC;border-radius:12px;color:#11181C;background:#fff}
+
 .probb{background:#5A3A00;color:#FFE3A3;font-weight:700;font-size:13px;border-radius:10px;padding:6px 10px;margin-bottom:6px}
 
 .revb{background:#1E6B2E;color:#fff;font-weight:700;font-size:13px;letter-spacing:.03em;border-radius:10px;padding:6px 10px;margin-bottom:6px}#nextBtn.revgo .chkc{opacity:.5}
@@ -2978,7 +2982,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var sh = S.shift;
     setTimeout(function () { loadWx(false); loadTide(false); drawMap(); }, 50);
     var parts = {
-      stop: '<div class="stpanel">' + (rev ? '<div class="revb">✓ ' + (rev.status === 'ok' ? 'Già consegnata' : 'Già segnata con problema') + ' alle ' + hm(rev.t) + ' · non si ripete</div>' : '') + (s && i >= 0 ? probBanner(i) : '') + '<div class="stbody" id="stFace">' + (s ? stopInner(s, i, all) : freePanel(c)) + '</div></div>',
+      stop: '<div class="stpanel">' + (rev ? '<div class="revb">✓ ' + (rev.status === 'ok' ? 'Già consegnata' : 'Già segnata con problema') + ' alle ' + hm(rev.t) + ' · non si ripete</div>' : '') + (s && i >= 0 ? probBanner(i) + (rev ? '' : colliChip(i)) : '') + '<div class="stbody" id="stFace">' + (s ? stopInner(s, i, all) : freePanel(c)) + '</div></div>',
       ddt: '<div id="ddwMini">' + ddwMini() + '</div>',
       map: mapHtml(),
       speed: gwVar('speed') === 0 ? '<div class="gz sm" id="spFace">' + speedInner() + '</div>' : '<div class="spv sp' + gwVar('speed') + '" id="spFace">' + speedInner() + '</div>',
@@ -4281,7 +4285,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02zb';
+  var APP_V = '2026-11-02zc';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -5829,6 +5833,38 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     toast('Problema scritto alla logistica · la consegna resta da fare'); render();
   }
   function probBanner(i) { var l = probList(i); return l.length ? '<div class="probb">⚠ ' + l.map(function (p) { return esc(p.r) + ' (' + hm(p.t) + ')'; }).join(' · ') + '</div>' : ''; }
+  // Polybox: al Seminario si segna quanti colli ha ogni consegna del giro che parte
+  function isSem(n) { return /seminario/i.test(n || ''); }
+  function legAfter(i) {
+    var all = stops(), out = [];
+    for (var j = i + 1; j < all.length; j++) { var z = all[j]; if (isSem(z.name)) break; if (z.cancelled || z.maint || /^(darsena|scalo)\b/i.test(String(z.name).trim())) continue; out.push(j); }
+    return out;
+  }
+  function colliGet(i) { var sh = S.shift; var v = sh && sh.colli && sh.colli[sh.day + ':' + i]; return v == null ? null : v; }
+  function colliSheet(list, auto) {
+    var all = stops(); if (!list.length) return;
+    openSheet('<div class="dfxs colli"><h2>📦 Quanti polybox?</h2><p class="muted">' + (auto ? 'Stai partendo dal Seminario: segna i colli di ogni consegna.' : 'Segna i colli di ogni consegna.') + '</p>' +
+      list.map(function (j) { var z = all[j], v = colliGet(j); return '<div class="clr"><div><b>' + esc(z.name) + '</b>' + (z.t ? '<small>' + esc(stopTime(z)) + '</small>' : '') + '</div><div class="clst"><button data-act="clm" data-j="' + j + '" aria-label="Meno">−</button><input type="number" inputmode="numeric" min="0" max="200" id="cl' + j + '" value="' + (v == null ? '' : v) + '" placeholder="0"><button data-act="clp" data-j="' + j + '" aria-label="Più">+</button></div></div>'; }).join('') +
+      '<div class="btns"><button class="btn primary" data-act="clsave" data-l="' + list.join(',') + '">Salva</button><button class="btn quiet" data-act="close">Dopo</button></div></div>');
+  }
+  function colliChip(i) {
+    var s = stops()[i]; if (!s || s.maint || /^(darsena|scalo)\b/i.test(String(s.name).trim())) return '';
+    if (isSem(s.name)) { var l = legAfter(i); return l.length ? '<button class="clchip" data-act="clopen" data-l="' + l.join(',') + '">📦 Polybox per ' + esc(l.map(function (j) { return stops()[j].name; }).join(', ')) + '</button>' : ''; }
+    var v = colliGet(i); return '<button class="clchip' + (v == null ? ' no' : '') + '" data-act="clopen" data-l="' + i + '">📦 ' + (v == null ? 'Segna i polybox' : v + (v === 1 ? ' polybox' : ' polybox')) + '</button>';
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'clopen') { colliSheet(el.getAttribute('data-l').split(',').map(Number), false); }
+    else if (a === 'clm' || a === 'clp') { var inp = $('cl' + el.getAttribute('data-j')); if (inp) inp.value = Math.max(0, Math.min(200, (+inp.value || 0) + (a === 'clp' ? 1 : -1))); }
+    else if (a === 'clsave') {
+      var sh = S.shift; if (!sh) return; sh.colli = sh.colli || {}; var all = stops(), n0 = 0;
+      el.getAttribute('data-l').split(',').map(Number).forEach(function (j) {
+        var inp = $('cl' + j); if (!inp || inp.value === '') return; var n = Math.max(0, Math.min(200, Math.round(+inp.value || 0))), z = all[j]; sh.colli[sh.day + ':' + j] = n; n0++;
+        if (z && !z.local) cl('rpc_colli_set', { p_day: sh.day, p_boat: sh.boat, p_stop: z.name, p_planned: z.t || '', p_n: n });
+      });
+      save(); closeSheet(); toast(n0 ? 'Polybox segnati' : 'Nessun numero inserito'); render();
+    }
+  });
   function finish(i, status, reason) {
     if (S.shift.done[i]) return; // già consegnata: vale la prima
     S.shift.done[i] = { status: status, reason: reason, t: Date.now() }; S.shift.rev = null;
@@ -5841,6 +5877,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       });
     }
     S.shift.step = 0; S.shift.trip = 0; save(); spoken = '';
+    if (status === 'ok' && sp && isSem(sp.name)) { var lg = legAfter(i).filter(function (j) { return colliGet(j) == null; }); if (lg.length) setTimeout(function () { colliSheet(lg, true); }, 600); }
     var n = curIdx();
     toast(status === 'ok' ? 'Tappa completata' : 'Problema segnalato');
     view = 'guida'; render();
