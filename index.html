@@ -2207,15 +2207,19 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function isMurano(name, note) { return MURANO_STOPS.indexOf(name) >= 0 || /murano/i.test(name || '') || /^murano\b/i.test(note || ''); }
   // per le consegne di Murano le foto passano dallo scanner (ritaglio + sfondo bianco) e il DDT sa dove va la firma
   // tappe che non hanno DDT della segreteria: Darsena, Scalo / Scalo fluviale (solo partenza) e Murano (li carica il trasportatore)
-  function ddtSkip(name, note) { return /^(darsena|scalo|seminario)\b/i.test(String(name || '').trim()) || /certosa/i.test(name || '') || isMurano(name, note); }
+  // il DDT del pane lo fotografa Pietro dal navigatore, come quelli di Murano
+  function isPane(name) { return /^pane\b/i.test(String(name || '').trim()); }
+  function driverDdt(name, note) { return isMurano(name, note) || isPane(name); }
+  function ddtSkip(name, note) { return /^(darsena|scalo|seminario)\b/i.test(String(name || '').trim()) || /certosa/i.test(name || '') || driverDdt(name, note); }
   function muClients(name) { var a = String(name || '').split(/\s*(?:\/|·)\s*/).map(function (x) { return x.trim(); }).filter(Boolean); return a.length ? a : [name]; }
   // DDT normali (non Murano): riquadro "Firma del destinatario", firma in nero
   var SIGBOX_STD = { x: .639, y: .589, w: .311, h: .054, ink: 'k' };
-  function muranoPrep(f, name, note, cust) {
+  function muranoPrep(f, name, note, cust, quick) {
     if (!f) return Promise.resolve({ file: f, box: null });
-    var mu = isMurano(name, note), box = mu ? SIGBOX_DEF : SIGBOX_STD;
+    var mu = isMurano(name, note), box = mu ? SIGBOX_DEF : isPane(name) ? null : SIGBOX_STD;
     if (/pdf/i.test(f.type || '') || /\.pdf$/i.test(f.name || '')) return Promise.resolve({ file: f, box: mu ? null : box });
-    if (!/^image\//.test(f.type)) return Promise.resolve({ file: f, box: null });
+    // la segreteria carica e basta: niente ritaglio
+    if (quick || !/^image\//.test(f.type)) return Promise.resolve({ file: f, box: null });
     return scanFile(f).then(function (cv) {
       return new Promise(function (res, rej) { cv.toBlob(function (b) { b ? res({ file: new File([b], 'DDT-' + String(cust || name).replace(/[^\w]+/g, '_') + '.jpg', { type: 'image/jpeg' }), box: box }) : rej('img'); }, 'image/jpeg', .88); });
     });
@@ -2284,7 +2288,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var k = isoOf(t.created_at), car = (DD.carriers || []).filter(function (c) { return c.id === t.assigned_to; })[0];
     if (!car) { toast('Il trasportatore di questa consegna non può ricevere DDT'); return; }
     var pp = null;
-    muranoPrep(f, t.name, t.note, t.name).then(function (p) { pp = p; toast('Carico il DDT per ' + t.name + '…'); return ddtFileData(p.file); }).then(function (o) {
+    muranoPrep(f, t.name, t.note, t.name, true).then(function (p) { pp = p; toast('Carico il DDT per ' + t.name + '…'); return ddtFileData(p.file); }).then(function (o) {
       return cl('rpc_ddt_add2', { p_carrier: car.id, p_number: '', p_customer: t.name, p_address: '', p_note: t.note || '', p_name: o.name, p_mime: o.mime, p_data: o.b64, p_date: k, p_stop: t.name, p_boat: t.boat_code || '' });
     }).then(function (r) { if (r && r.ok && r.id && pp && pp.box) return cl('rpc_ddt_set_box', { p_id: r.id, p_box: pp.box }).then(function () { return r; }); return r; }).then(function (r) {
       if (r && r.ok) { toast('DDT collegato a ' + t.name + ' → ' + car.name); loadDdt().then(function () { render(); }); }
@@ -2303,7 +2307,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var s = PROGRAM[k] && PROGRAM[k].boats[b] && PROGRAM[k].boats[b].stops[i]; if (!s || !f) return; cust = cust || s.name;
     var go = function (car) {
       var pp = null;
-      muranoPrep(f, s.name, s.note, cust).then(function (p) { pp = p; toast('Carico il DDT di ' + cust + '…'); return ddtFileData(p.file); }).then(function (o) {
+      muranoPrep(f, s.name, s.note, cust, true).then(function (p) { pp = p; toast('Carico il DDT di ' + cust + '…'); return ddtFileData(p.file); }).then(function (o) {
         return cl('rpc_ddt_add2', { p_carrier: car.id, p_number: '', p_customer: cust, p_address: '', p_note: s.note || '', p_name: o.name, p_mime: o.mime, p_data: o.b64, p_date: k, p_stop: s.name, p_boat: b });
       }).then(function (r) {
         if (r && r.ok) { toast('DDT di ' + cust + ' collegato a ' + s.name + ' → ' + car.name); (pp && pp.box && r.id ? cl('rpc_ddt_set_box', { p_id: r.id, p_box: pp.box }) : Promise.resolve()).then(function () { return loadDdt(); }).then(function () { render(); }); }
@@ -2965,7 +2969,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         '<button class="chk" id="nextBtn" data-act="next" aria-label="' + esc(primary) + '"><span class="chkc"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" class="ring"/><path d="M13 25l8 8 15-17" class="tick"/></svg></span><span class="chkt">' + esc(primary) + '</span></button></div>' +
         '<button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>'
     };
-    var g = gwGet(), ed = GWE.on, cz = ddwCur(), noDdt = !ddwList().length && !(cz && isMurano(cz.name, cz.note)), vis = g.order.filter(function (k) { return !g.hidden[k] && !(k === 'ddt' && noDdt && !ed); }), gone = g.order.filter(function (k) { return g.hidden[k]; });
+    var g = gwGet(), ed = GWE.on, cz = ddwCur(), noDdt = !ddwList().length && !(cz && driverDdt(cz.name, cz.note)), vis = g.order.filter(function (k) { return !g.hidden[k] && !(k === 'ddt' && noDdt && !ed); }), gone = g.order.filter(function (k) { return g.hidden[k]; });
     var grid = vis.map(function (k) {
       var d = GWD[k], sz = gwSize(k), dm = d.sizes[sz];
       return '<div class="wd w-' + k + (dm[0] === 2 ? ' w2' : '') + (ed ? ' ed' : '') + '" data-w="' + k + '" style="grid-column:span ' + dm[0] + ';grid-row:span ' + dm[1] + '">' + parts[k] +
@@ -4254,7 +4258,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02t';
+  var APP_V = '2026-11-02u';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4398,10 +4402,10 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       (other.length ? '<li class="ddwg">' + (here.length ? 'Altre tappe' : 'Di oggi') + '</li>' + other.map(row).join('') : '') + '</ul>' +
       '<button class="ddwgo" data-act="ddwsign"' + (nSel ? '' : ' disabled') + '>' + (nSel ? 'Fai firmare ' + (nSel === 1 ? '1 DDT' : nSel + ' DDT') : 'Seleziona i DDT da firmare') + '</button></div>';
   }
-  // alla fermata di Murano il trasportatore fotografa i DDT dei clienti (uno per cliente)
+  // a Murano (uno per cliente) e al Pane il trasportatore fotografa i DDT dalla fermata
   function ddwMuranoUp(cur, all) {
-    if (!cur || !isMurano(cur.name, cur.note)) return '';
-    var cls = muClients(cur.name), here = all.filter(function (x) { return ddwHere(x, cur); });
+    if (!cur || !driverDdt(cur.name, cur.note)) return '';
+    var cls = isPane(cur.name) ? ['Pane'] : muClients(cur.name), here = all.filter(function (x) { return ddwHere(x, cur); });
     var miss = cls.filter(function (cn) { return !here.some(function (x) { return ddtNorm(x.customer) === ddtNorm(cn); }); });
     if (!miss.length) return '';
     return '<div class="ddwup"><span>Carica i DDT di questa fermata</span>' + miss.map(function (cn) { return '<button data-act="ddwshot" data-c="' + esc(cn) + '">📷 ' + esc(cn) + '</button>'; }).join('') + '</div>';
@@ -5988,7 +5992,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     gpsStop(); loginStep = 'pin'; pinBuf = ''; loginErr = 'Sessione scaduta. Rientra con il PIN.'; drawLogin();
   }
   function cloudGps(c, v) {
-    if (!S.shift || !tok() || Date.now() - lastGpsSent < 8000) return;
+    // per imparare i percorsi: un punto ogni 4 secondi in movimento, ogni 20 da fermi
+    if (!S.shift || !tok() || Date.now() - lastGpsSent < (v != null && v > 0.8 ? 4000 : 20000)) return;
     lastGpsSent = Date.now();
     cl('rpc_log_gps', { p_lat: c.latitude, p_lng: c.longitude, p_speed: v == null ? null : +v.toFixed(2), p_acc: c.accuracy == null ? null : +c.accuracy.toFixed(1) });
   }
