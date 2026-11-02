@@ -97,7 +97,7 @@ details[open] .secc{transform:rotate(90deg)}
 .ddwk{flex:none;width:28px;height:28px;border-radius:8px;border:2px solid #4E6670;background:none;color:#fff;font:inherit;font-weight:800;display:grid;place-items:center;padding:0}
 li.on .ddwk{background:#4FC3F7;border-color:#4FC3F7;color:#0B1317}.ddwk.ok{border-color:#43A047;color:#43A047}
 .ddwt{flex:1;min-width:0;display:flex;flex-direction:column;cursor:pointer}.ddwt b{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ddwt small{font-size:12px;color:#9FB3B0}
-.ddwo{flex:none;border:0;border-radius:8px;padding:6px 10px;background:#1D2C33;color:#DCE7E4;font:inherit;font-size:13px;font-weight:700}
+.dfxs h2{color:#11181C}.dfxs .btn:not(.primary):not(.danger){color:#11181C}.ddwx{padding:6px 9px;font-size:16px;line-height:1}.ddwo{flex:none;border:0;border-radius:8px;padding:6px 10px;background:#1D2C33;color:#DCE7E4;font:inherit;font-size:13px;font-weight:700}
 .ddwgo{flex:none;border:0;border-radius:12px;padding:10px;background:#1655C8;color:#fff;font:inherit;font-weight:800;font-size:15px}.ddwgo:disabled{background:#1D2C33;color:#7E9399}
 .wd.flash{box-shadow:0 0 0 3px #4FC3F7;transition:box-shadow .3s}
 .cluster{position:relative}.ddwbz{position:absolute;top:6px;right:6px;z-index:5;pointer-events:none}
@@ -4281,7 +4281,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02za';
+  var APP_V = '2026-11-02zb';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4418,7 +4418,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       var sg = x.status === 'signed';
       return '<li class="' + (sg ? 'sg' : '') + (DDW.sel[x.id] && !sg ? ' on' : '') + '">' + (sg ? '<span class="ddwk ok">✓</span>' : '<button class="ddwk" data-act="ddwsel" data-id="' + x.id + '" aria-pressed="' + !!DDW.sel[x.id] + '" aria-label="Seleziona ' + esc(x.customer) + '">' + (DDW.sel[x.id] ? '✓' : '') + '</button>') +
         '<span class="ddwt" data-act="ddwsel" data-id="' + x.id + '"><b>' + esc(x.customer) + '</b><small>' + (sg ? 'firmato' : esc(x.stop && x.stop !== x.customer ? x.stop : 'da firmare')) + '</small></span>' +
-        '<button class="ddwo" data-act="' + (sg ? 'ddtget' : 'ddtview') + '" data-id="' + x.id + '">' + (sg ? 'Copia' : 'Apri') + '</button></li>';
+        '<button class="ddwo" data-act="' + (sg ? 'ddtget' : 'ddtview') + '" data-id="' + x.id + '">' + (sg ? 'Copia' : 'Apri') + '</button><button class="ddwo ddwx" data-act="ddwfix" data-id="' + x.id + '" aria-label="Correggi il DDT di ' + esc(x.customer) + '">⋯</button></li>';
     }
     return '<div class="ddwz"><div class="ddwh"><b>DDT</b><span>' + pend.length + ' da firmare</span></div>' + up + '<ul class="ddwl">' +
       (here.length ? '<li class="ddwg">Qui · ' + esc(cur.name) + '</li>' + here.map(row).join('') : '') +
@@ -5643,6 +5643,49 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
     if (a === 'ntcok' && NTC.cur) { var id = NTC.cur.id; NTC.cur = null; closeSheet(); cl('rpc_notice_seen', { p_id: id }).then(function () { setTimeout(function () { noticeCheck(true); }, 400); }); }
     else if (a === 'ntcsay' && NTC.cur) { var v0 = S.voice; S.voice = true; say(NTC.cur.body); S.voice = v0; }
+  });
+
+  /* ---------- DDT sbagliato: il trasportatore lo vede, lo cancella e lo ricarica ---------- */
+  var DFX = { id: null, armed: false };
+  function ddwFix(id) {
+    var x = DD.items.filter(function (y) { return y.id === id; })[0]; if (!x) return; DFX.id = id; DFX.armed = false;
+    openSheet('<div class="dfxs"><h2>DDT di ' + esc(x.customer) + '</h2><p class="muted">' + esc(x.stop || '') + (x.status === 'signed' ? ' · già firmato' : ' · da firmare') + '</p>' +
+      '<div class="btns"><button class="btn" data-act="dfxview">👁 Vedi il file</button>' +
+      '<button class="btn primary" data-act="dfxrep">🔁 Sostituisci con un altro file</button>' +
+      '<button class="btn danger" data-act="dfxdel" id="dfxDel">🗑 Cancella questo DDT</button>' +
+      '<button class="btn quiet" data-act="dfxback">Indietro</button></div>' +
+      (x.status === 'signed' ? '<p class="hint">Attenzione: è già firmato. Se lo sostituisci o lo cancelli la firma si perde e va rifatta.</p>' : '') + '</div>');
+  }
+  function dfxItem() { return DD.items.filter(function (y) { return y.id === DFX.id; })[0] || null; }
+  function dfxReplace() {
+    var x = dfxItem(); if (!x) return;
+    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*,application/pdf'; inp.style.display = 'none';
+    inp.onchange = function () {
+      var f = inp.files && inp.files[0]; inp.remove(); if (!f) return; var pp = null;
+      muranoPrep(f, x.stop || x.customer, '', x.customer).then(function (p) { pp = p; toast('Carico il nuovo DDT di ' + x.customer + '…'); return ddtFileData(p.file); }).then(function (o) {
+        // prima carico il nuovo, poi cancello il vecchio: così non si resta mai senza DDT
+        return cl('rpc_ddt_add_self', { p_customer: x.customer, p_name: o.name, p_mime: o.mime, p_data: o.b64, p_date: x.date || todayKey(), p_stop: x.stop || x.customer, p_boat: x.boat || (S.shift ? S.shift.boat : null), p_box: pp && pp.box ? pp.box : (x.box || null) });
+      }).then(function (r) {
+        if (!r || !r.ok) { toast('Non sono riuscito a caricare il nuovo DDT: il vecchio resta'); return; }
+        return cl('rpc_ddt_cancel_self', { p_id: x.id }).then(function () { DDW.sel[r.id] = true; DDW.auto[r.id] = 1; closeSheet(); toast('DDT sostituito'); return loadDdt(); }).then(function () { if (view === 'guida') render(); ddwRefresh(); });
+      }).catch(function (e) { if (e === 'annullato') return; toast(e === 'big' ? 'PDF troppo grande (massimo 3 MB)' : 'Non riesco a leggere il file'); });
+    };
+    document.body.appendChild(inp); inp.click();
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'ddwfix') { ddwFix(el.getAttribute('data-id')); }
+    else if (a === 'dfxview' && DFX.id) { ddtOpenOriginal(DFX.id); }
+    else if (a === 'dfxrep') { dfxReplace(); }
+    else if (a === 'dfxback') { closeSheet(); if (view === 'guida') ddwOpen(); }
+    else if (a === 'dfxdel') {
+      if (!DFX.armed) { DFX.armed = true; el.textContent = 'Tocca di nuovo per cancellare'; return; }
+      var x = dfxItem(); if (!x) return; el.disabled = true;
+      cl('rpc_ddt_cancel_self', { p_id: x.id }).then(function (r) {
+        if (r && r.ok) { delete DDW.sel[x.id]; closeSheet(); toast('DDT cancellato: puoi ricaricarlo'); loadDdt().then(function () { if (view === 'guida') render(); ddwRefresh(); }); }
+        else { el.disabled = false; toast('Non riesco a cancellarlo'); }
+      });
+    }
   });
   /* ---------- render ---------- */
   var NAV_ADMIN = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['stat', 'Statistiche'], ['barca', 'Barche'], ['contatti', 'Contatti']];
