@@ -254,6 +254,8 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 .tbr.late .tbs,.tbr.late .tbc{color:#FF5A4F}.tbr.late .tbo{color:#FF5A4F}
 .tbr.gone{opacity:.42}.tbr.gone .tbs{color:#8FA3B0}.tbr.gone .tbk{background:#2E7D32;border-color:#2E7D32;color:#fff}
 @keyframes tbbl{50%{opacity:.35}}
+.revb{background:#1E6B2E;color:#fff;font-weight:700;font-size:13px;letter-spacing:.03em;border-radius:10px;padding:6px 10px;margin-bottom:6px}#nextBtn.revgo .chkc{opacity:.5}
+
 .l10{display:flex;flex-direction:column}.l10r{padding:10px 0;border-top:1px solid var(--line,#e3e8ec);display:flex;flex-direction:column;gap:4px;align-items:flex-start}.l10r:first-child{border-top:0}.l10h{display:flex;justify-content:space-between;width:100%;gap:8px;font-size:16px}.l10p{display:inline-block;padding:3px 8px;border-radius:999px;font-size:12.5px;font-weight:700;background:rgba(127,127,127,.15)}.l10p.ok{background:#E3F4E6;color:#1E6B2E}.l10p.late{background:#FDE7E5;color:#B3261E}.l10p.early{background:#E4EEFC;color:#1655C8}.l10p.bad{background:#FFF1D6;color:#8A5300}
 
 .ntcs{text-align:center}.ntci{font-size:54px;line-height:1}.ntcs .big{font-size:20px;line-height:1.4;text-align:left}
@@ -2833,29 +2835,29 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     }).join('') + '</ol>';
   }
   function stopClassic(s, i, all) {
-    var n = 0, dn = 0, bar = '<div class="seg" aria-hidden="true">';
+    var n = 0, dn = 0, pos = 0, bar = '<div class="seg" aria-hidden="true">';
     for (var k = 0; k < all.length; k++) {
       var r = S.shift.done[k]; if (all[k].cancelled && !r) continue;
-      n++; if (r) dn++;
+      n++; if (r) dn++; if (k === i) pos = n;
       bar += '<i class="' + (r ? (r.status === 'ok' ? 'ok' : 'bad') : (k === i ? 'cur' : '')) + '"></i>';
     }
     bar += '</div>';
-    var nm = s.maint ? 'Verifica barche' : s.name, L = nm.length, fs = L <= 9 ? 72 : L <= 13 ? 56 : L <= 18 ? 42 : 32, di = s.maint || s.ind ? null : delayInfo(s.t), nx = nextStop(i);
+    var nm = s.maint ? 'Verifica barche' : s.name, L = nm.length, fs = L <= 9 ? 72 : L <= 13 ? 56 : L <= 18 ? 42 : 32, di = s.maint || s.ind || S.shift.done[i] ? null : delayInfo(s.t), nx = nextStop(i);
     var badge = s.extra && s.urgency && s.urgency !== 'normale' ? '<span class="urg u-' + s.urgency + '">' + (s.urgency === 'emergenza' ? 'EMERGENZA' : 'URGENTE') + '</span>' : (s.extra ? '<span class="urg u-extra">' + (s.local ? 'META LIBERA' : 'STRAORDINARIA') + '</span>' : '');
-    return '<div class="sthead"><span class="lab">Tappa ' + Math.min(dn + 1, n) + ' di ' + n + '</span>' + bar + '</div>' + badge +
+    return '<div class="sthead"><span class="lab">Tappa ' + (S.shift.done[i] && pos ? pos : Math.min(dn + 1, n)) + ' di ' + n + '</span>' + bar + '</div>' + badge +
       '<b class="gname" style="font-size:' + fs + 'px">' + esc(nm) + '</b>' +
       '<div class="stfoot"><span class="gtime">' + (s.t ? 'ore ' + esc(stopTime(s)) : 'orario da definire') + '</span>' + (di ? '<span class="gdl ' + di[1] + '">' + di[0] + '</span>' : '') + '</div>' +
       (s.note ? '<div class="stnote">' + esc(s.note) + '</div>' : '') + (s.extra && s.by ? '<div class="stinfo">Assegnata da ' + esc(s.by) + '</div>' : '') + routeInfo(s, i) +
       queueHtml(i);
   }
   function stopHead(i, all) {
-    var n = 0, dn = 0, bar = '<div class="seg" aria-hidden="true">';
+    var n = 0, dn = 0, pos = 0, bar = '<div class="seg" aria-hidden="true">';
     for (var k = 0; k < all.length; k++) {
       var r = S.shift.done[k]; if (all[k].cancelled && !r) continue;
-      n++; if (r) dn++;
+      n++; if (r) dn++; if (k === i) pos = n;
       bar += '<i class="' + (r ? (r.status === 'ok' ? 'ok' : 'bad') : (k === i ? 'cur' : '')) + '"></i>';
     }
-    return '<div class="sthead"><span class="lab">Tappa ' + Math.min(dn + 1, n) + ' di ' + n + '</span>' + bar + '</div></div>';
+    return '<div class="sthead"><span class="lab">Tappa ' + (S.shift.done[i] && pos ? pos : Math.min(dn + 1, n)) + ' di ' + n + '</span>' + bar + '</div></div>';
   }
   function stopBadge(s) { return s.extra && s.urgency && s.urgency !== 'normale' ? '<span class="urg u-' + s.urgency + '">' + (s.urgency === 'emergenza' ? 'EMERGENZA' : 'URGENTE') + '</span>' : (s.extra ? '<span class="urg u-extra">' + (s.local ? 'META LIBERA' : 'STRAORDINARIA') + '</span>' : ''); }
   function stopRotta(s, i, all) {
@@ -2872,7 +2874,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       (s.note ? '<div class="stnote">' + esc(s.note) + '</div>' : '');
   }
   function stopInner(s, i, all) { var v = gwVar('stop'); return (v === 1 ? stopRotta(s, i, all) : v === 2 ? stopTimeline(s, i, all) : stopClassic(s, i, all)); }
-  function refreshStop() { var el = $('stFace'); if (!el || !S.shift) return; var i = curIdx(); if (i < 0) return; el.innerHTML = stopInner(stops()[i], i, stops()); }
+  function refreshStop() { var el = $('stFace'); if (!el || !S.shift) return; var i = revIdx(); if (i == null) i = curIdx(); if (i < 0) return; el.innerHTML = stopInner(stops()[i], i, stops()); }
 
   function wxIcon(k) {
     var cloud = '<path d="M14 34h20a8 8 0 0 0 .8-15.96A11 11 0 0 0 13.6 21.2 7 7 0 0 0 14 34z" fill="#DCE8E5"/>', g = '';
@@ -2939,7 +2941,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
   function viewGuida() {
     if (!S.shift) return viewTurno();
-    var b = boat(), bd = boatDay(), all = stops(), i = curIdx(), c = counts(), FREE = i < 0;
+    var b = boat(), bd = boatDay(), all = stops(), i = curIdx(), c = counts(), FREE = i < 0, R = revIdx();
+    if (R != null) { var dn = S.shift.done[R]; return guidaCluster(all[R], R, all, FREE ? 'Torna alla fine del giro' : 'Torna a ' + all[i].name, '', c, dn); }
     // nessuna tappa da fare: il navigatore resta acceso (mappa, GPS, velocità) e si può scegliere una meta
     if (FREE) return guidaCluster(null, -1, all, '', '', c);
     var s = all[i], step = s.maint ? S.shift.step : 0, labels = s.maint ? ['Verifica'] : ['Rotta'], last = labels.length - 1;
@@ -2968,11 +2971,11 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
     return guidaCluster(s, i, all, primary, speech, c);
   }
-  function guidaCluster(s, i, all, primary, speech, c) {
+  function guidaCluster(s, i, all, primary, speech, c, rev) {
     var sh = S.shift;
     setTimeout(function () { loadWx(false); loadTide(false); drawMap(); }, 50);
     var parts = {
-      stop: '<div class="stpanel"><div class="stbody" id="stFace">' + (s ? stopInner(s, i, all) : freePanel(c)) + '</div></div>',
+      stop: '<div class="stpanel">' + (rev ? '<div class="revb">✓ ' + (rev.status === 'ok' ? 'Già consegnata' : 'Già segnata con problema') + ' alle ' + hm(rev.t) + ' · non si ripete</div>' : '') + '<div class="stbody" id="stFace">' + (s ? stopInner(s, i, all) : freePanel(c)) + '</div></div>',
       ddt: '<div id="ddwMini">' + ddwMini() + '</div>',
       map: mapHtml(),
       speed: gwVar('speed') === 0 ? '<div class="gz sm" id="spFace">' + speedInner() + '</div>' : '<div class="spv sp' + gwVar('speed') + '" id="spFace">' + speedInner() + '</div>',
@@ -2982,8 +2985,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       mimmo: '<div id="mimFace" class="mim">' + mimInner() + '</div>',
       bebe: '<div id="bbFace" class="mim bb">' + bbInner() + '</div>',
       km: '<div class="tile"><div class="kms"><span>Tappa <b id="kmT">' + fmt2(sh.trip || 0) + '</b> km</span><span>Turno <b id="kmS">' + fmt1(sh.km || 0) + '</b> km</span><span><b id="spdN">' + (GPS.speed == null ? '–' : fmt1(GPS.speed * 1.94384)) + '</b> nodi</span></div></div>',
-      next: !s ? '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (lastDoneIdx() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button><button class="chk fin" data-act="endsheet"><span class="chkt">Chiudi il turno</span></button></div><button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>' : '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (lastDoneIdx() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button>' +
-        '<button class="chk' + (S.shift && S.shift.arr && S.shift.arr[S.shift.day + ':' + i] ? ' near' : '') + '" id="nextBtn" data-act="next" aria-label="' + esc(primary) + '"><span class="chkc"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" class="ring"/><path d="M13 25l8 8 15-17" class="tick"/></svg></span><span class="chkt">' + esc(primary) + '</span></button></div>' +
+      next: !s ? '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (prevDone() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button><button class="chk fin" data-act="endsheet"><span class="chkt">Chiudi il turno</span></button></div><button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>' : '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (prevDone() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button>' +
+        '<button class="chk' + (rev ? ' revgo' : S.shift && S.shift.arr && S.shift.arr[S.shift.day + ':' + i] ? ' near' : '') + '" id="nextBtn" data-act="' + (rev ? 'revexit' : 'next') + '" aria-label="' + esc(primary) + '"><span class="chkc"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" class="ring"/><path d="M13 25l8 8 15-17" class="tick"/></svg></span><span class="chkt">' + esc(primary) + '</span></button></div>' +
         '<button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>'
     };
     var g = gwGet(), ed = GWE.on, cz = ddwCur(), noDdt = !ddwList().length && !(cz && driverDdt(cz.name, cz.note)), vis = g.order.filter(function (k) { return !g.hidden[k] && !(k === 'ddt' && noDdt && !ed); }), gone = g.order.filter(function (k) { return g.hidden[k]; });
@@ -2999,7 +3002,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<div class="cgps" id="gpsSt">' + esc(gpsText()) + '</div></div>';
     return '<div class="wrap drv">' + cluster +
       '<div class="minirow drvbtns"' + (GWE.on ? ' hidden' : '') + '><button class="btn" data-act="drvmenu" aria-label="Menu">Menu</button>' +
-      (!s ? '' : s.maint ? '<button class="btn danger" data-act="maintreq">Problema</button>' : '<button class="btn danger" data-act="problem">Problema</button>') +
+      (!s || rev ? '' : s.maint ? '<button class="btn danger" data-act="maintreq">Problema</button>' : '<button class="btn danger" data-act="problem">Problema</button>') +
       '<button class="btn gwb" data-act="gwedit" aria-label="Impostazioni del cruscotto">⚙</button></div></div>';
   }
 
@@ -4275,7 +4278,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02x';
+  var APP_V = '2026-11-02y';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4400,7 +4403,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (!s) return false; var n = ddtNorm(s.name), st = ddtNorm(x.stop), cu = ddtNorm(x.customer);
     return (st && (st === n || n.indexOf(st) >= 0 || st.indexOf(n) >= 0)) || (!st && cu && (n.indexOf(cu) >= 0 || cu.indexOf(n) >= 0));
   }
-  function ddwCur() { var i = curIdx(); return i >= 0 ? stops()[i] : null; }
+  function ddwCur() { var r = revIdx(); if (r != null) return stops()[r]; var i = curIdx(); return i >= 0 ? stops()[i] : null; }
   function ddwInner() {
     var all = ddwList(), cur = ddwCur(), here = all.filter(function (x) { return ddwHere(x, cur); }), other = all.filter(function (x) { return !ddwHere(x, cur); });
     // alla tappa giusta i DDT ancora da firmare sono già selezionati
@@ -5718,12 +5721,17 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     Object.keys(S.shift.done).forEach(function (k) { var r = S.shift.done[k]; if (r && r.t > bt) { bt = r.t; best = +k; } });
     return best;
   }
+  // tappe già fatte, in ordine di consegna
+  function doneOrder() { var d = S.shift ? S.shift.done : {}; return Object.keys(d).filter(function (k) { return d[k]; }).map(Number).sort(function (a, b) { return d[a].t - d[b].t; }); }
+  function revIdx() { var sh = S.shift; return sh && sh.rev != null && sh.done[sh.rev] ? sh.rev : null; }
+  function prevDone() { var o = doneOrder(), r = revIdx(); if (r == null) return o.length ? o[o.length - 1] : -1; var p = o.indexOf(r); return p > 0 ? o[p - 1] : -1; }
+  // Indietro: rivedi la tappa già consegnata (DDT, note) senza rifarla. Vale solo la prima consegna.
   function goBack() {
-    var k = lastDoneIdx(); if (k < 0) { toast('Sei alla prima tappa'); return; }
-    var sp = stops()[k]; delete S.shift.done[k]; S.shift.step = 0; S.shift.trip = 0; save(); spoken = '';
-    if (sp && sp.extra && sp.id) cl('rpc_task_update', { p_task: sp.id, p_status: 'in_corso', p_reason: null, p_lat: null, p_lng: null });
-    toast('Torni a ' + (sp ? (sp.maint ? 'Verifica barche' : sp.name) : 'tappa precedente')); view = 'guida'; render();
+    var k = prevDone(); if (k < 0) { toast('Non ci sono altre tappe prima'); return; }
+    var sp = stops()[k], d = S.shift.done[k]; S.shift.rev = k; save(); spoken = '';
+    toast((sp ? (sp.maint ? 'Verifica barche' : sp.name) : 'Tappa') + ' · già fatta alle ' + hm(d.t)); view = 'guida'; render();
   }
+  function revExit() { if (S.shift) { S.shift.rev = null; save(); } spoken = ''; view = 'guida'; render(); }
   // checkpoint GPS: entro 100 metri dalla tappa sei arrivato (l'ora di arrivo è quella dell'ingresso nel cerchio)
   var ARR_R = 100;
   function arrCheck() {
@@ -5739,7 +5747,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   function arrAt(i) { var sh = S.shift, t = sh && sh.arr && sh.arr[sh.day + ':' + i]; return t ? new Date(t).toISOString() : null; }
   function finish(i, status, reason) {
-    S.shift.done[i] = { status: status, reason: reason, t: Date.now() };
+    if (S.shift.done[i]) return; // già consegnata: vale la prima
+    S.shift.done[i] = { status: status, reason: reason, t: Date.now() }; S.shift.rev = null;
     var sp = stops()[i];
     if (sp && !sp.local) {
       var fx = GPS.last && Date.now() - GPS.last.t < 60000 ? GPS.last : null;
@@ -5945,9 +5954,11 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       endShift(); return;
     }
     if (a === 'pre') { var k = +el.getAttribute('data-i'); sh.pre[k] = !sh.pre[k]; save(); render(); return; }
+    if (a === 'goback') { goBack(); return; }
+    if (a === 'revexit') { revExit(); return; }
+    if (revIdx() != null && (a === 'next' || a === 'problem' || a === 'reason')) { revExit(); return; }
     var i = curIdx();
     if (i < 0) return;
-    if (a === 'goback') { goBack(); return; }
     if (a === 'drvexit') { view = 'turno'; render(); return; }
     if (a === 'next') { if (el.classList && el.classList.contains('done')) return; if (el.classList) el.classList.add('done'); setTimeout(advance, 420); return; }
     if (a === 'back') { if (sh.step > 0) { sh.step--; save(); render(); } return; }
