@@ -254,6 +254,8 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 .tbr.late .tbs,.tbr.late .tbc{color:#FF5A4F}.tbr.late .tbo{color:#FF5A4F}
 .tbr.gone{opacity:.42}.tbr.gone .tbs{color:#8FA3B0}.tbr.gone .tbk{background:#2E7D32;border-color:#2E7D32;color:#fff}
 @keyframes tbbl{50%{opacity:.35}}
+.ntcs{text-align:center}.ntci{font-size:54px;line-height:1}.ntcs .big{font-size:20px;line-height:1.4;text-align:left}
+
 #nextBtn.near{animation:arrpulse 1.4s ease-in-out infinite}@keyframes arrpulse{0%,100%{box-shadow:0 0 0 0 rgba(67,160,71,.0)}50%{box-shadow:0 0 0 8px rgba(67,160,71,.55)}}
 
 .endph h3 .req{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#E53935;margin-left:6px}
@@ -1378,7 +1380,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       save(); closeSheet(); view = 'guida'; spoken = '';
       try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(function () {}); } catch (e) {}
       toast('Turno iniziato su ' + BOATS[code].name);
-      gpsApply(); render(); setTimeout(loadMyTasks, 600);
+      gpsApply(); render(); setTimeout(loadMyTasks, 600); setTimeout(function () { noticeCheck(true); }, 1500);
     };
     if (tok()) { cl('rpc_start_shift', { p_boat: code }).then(function (r) { if (r && r.error) { scanMsg(startErr(r.error), true); return; } go(); cl('rpc_set_plan', { p_plan: stops().map(function (z) { return { name: z.name, t: z.ind ? '' : (z.t || '') }; }) }); }); } else go();
   }
@@ -4260,7 +4262,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02v';
+  var APP_V = '2026-11-02w';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -5572,6 +5574,29 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
     if (a === 'bbjoke') bbJoke(true);
     else if (a === 'bbsay') { var m = bbMsg(); BB.joke = null; BB.key = m.key; var f = $('bbFace'); if (f) f.innerHTML = bbInner(); bbSpeak(m.text); }
+  });
+
+  /* ---------- Avvisi a inizio turno (scritti dalla logistica per una persona) ---------- */
+  var NTC = { busy: false, cur: null };
+  function noticeCheck(force) {
+    if (!tok() || !S.shift || NTC.busy || NTC.cur) return;
+    if (!force && $('layer') && $('layer').innerHTML) return;
+    NTC.busy = true;
+    cl('rpc_notice_pending', {}).then(function (r) {
+      NTC.busy = false; if (!Array.isArray(r) || !r.length) return;
+      if ($('layer') && $('layer').innerHTML && !force) return;
+      var n = r[0]; NTC.cur = n;
+      openSheet('<div class="ntcs"><div class="ntci">📣</div><h2>' + esc(n.title || 'Avviso per te') + '</h2><p class="big">' + esc(n.body) + '</p>' + (n.from ? '<p class="muted">Da ' + esc(n.from) + '</p>' : '') +
+        '<div class="btns"><button class="btn primary" data-act="ntcok">Ho capito</button><button class="btn quiet" data-act="ntcsay">🔊 Ascolta</button></div></div>');
+      if (S.voice) say(n.body);
+    });
+  }
+  setInterval(function () { if (!document.hidden) noticeCheck(false); }, 60000);
+  setTimeout(function () { noticeCheck(false); }, 3000);
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'ntcok' && NTC.cur) { var id = NTC.cur.id; NTC.cur = null; closeSheet(); cl('rpc_notice_seen', { p_id: id }).then(function () { setTimeout(function () { noticeCheck(true); }, 400); }); }
+    else if (a === 'ntcsay' && NTC.cur) { var v0 = S.voice; S.voice = true; say(NTC.cur.body); S.voice = v0; }
   });
   /* ---------- render ---------- */
   var NAV_ADMIN = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['stat', 'Statistiche'], ['barca', 'Barche'], ['contatti', 'Contatti']];
