@@ -254,7 +254,7 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 .tbr.late .tbs,.tbr.late .tbc{color:#FF5A4F}.tbr.late .tbo{color:#FF5A4F}
 .tbr.gone{opacity:.42}.tbr.gone .tbs{color:#8FA3B0}.tbr.gone .tbk{background:#2E7D32;border-color:#2E7D32;color:#fff}
 @keyframes tbbl{50%{opacity:.35}}
-.nxskip{display:block;width:100%;margin:6px 0 0;border:1px dashed #4E6670;border-radius:12px;background:none;color:#B8C7CC;font:inherit;font-weight:700;font-size:14px;padding:8px}
+.nxfoot{display:flex;gap:8px;flex:none}.nxfoot>*{flex:1;margin:0!important}.nxskip{display:block;width:100%;margin:6px 0 0;border:1px dashed #4E6670;border-radius:12px;background:none;color:#B8C7CC;font:inherit;font-weight:700;font-size:14px;padding:8px}
 
 #nextBtn.locked{filter:grayscale(1);opacity:.55}#nextBtn{position:relative}#nextBtn .chkl{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:12px;font-weight:700;letter-spacing:.02em;opacity:.95}
 
@@ -358,6 +358,13 @@ body.chatopen .nav,body.chatopen .nokia{display:none}
 .furb{position:relative;height:14px;border-radius:7px;background:rgba(127,127,127,.15);overflow:hidden;margin:6px 0 4px}.furb i{display:block;height:100%;border-radius:7px;background:#2E7D32}
 .furb i.mid{background:#F9A825}.furb i.low{background:#D93025}.furb em{position:absolute;top:0;bottom:0;width:1px;background:rgba(0,0,0,.18)}
 .fur small{font-size:12.5px;color:var(--muted,#667)}.furh .low,.lowt{color:#D93025}.furh .mid{color:#B26A00}.furh .ok{color:#2E7D32}
+
+/* tasto grande del navigatore: la scritta sta sempre dentro */
+body.drive .nxrow .chk{min-width:0;overflow:hidden;gap:10px;padding:10px 12px}
+body.drive .nxrow .chk .chkc{width:46px;height:46px}
+body.drive .nxrow .chk .chkt{min-width:0;font-size:clamp(16px,5.4vw,24px);line-height:1.05;white-space:normal;overflow-wrap:break-word}
+body.drive #nextBtn.locked{padding-bottom:26px}
+#nextBtn .chkl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 8px;font-size:11.5px}
 </style><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Caveat:wght@600;700&family=Inter:wght@500;700;800&display=swap">
 </head><body>
 <title>San Marco Boat</title>
@@ -2995,7 +3002,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       km: '<div class="tile"><div class="kms"><span>Tappa <b id="kmT">' + fmt2(sh.trip || 0) + '</b> km</span><span>Turno <b id="kmS">' + fmt1(sh.km || 0) + '</b> km</span><span><b id="spdN">' + (GPS.speed == null ? '–' : fmt1(GPS.speed * 1.94384)) + '</b> nodi</span></div></div>',
       next: !s ? '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (prevDone() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button><button class="chk fin" data-act="endsheet"><span class="chkt">Chiudi il turno</span></button></div><button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>' : '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (prevDone() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button>' +
         '<button class="chk' + (hold ? ' holdgo' : rev ? ' revgo' : !canArrive(i) ? ' locked' : S.shift && S.shift.arr && S.shift.arr[arrKey(i)] && canArrive(i) && arrDist(i) != null && arrDist(i) <= ARR_R ? ' near' : '') + '" id="nextBtn" data-act="' + (hold ? 'holdnext' : rev ? 'revexit' : 'next') + '" aria-label="' + esc(primary) + '"><span class="chkc"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" class="ring"/><path d="M13 25l8 8 15-17" class="tick"/></svg></span><span class="chkt">' + esc(primary) + '</span>' + (!hold && !rev && !canArrive(i) ? '<small class="chkl" id="nextLock">' + lockTxt(i) + '</small>' : '') + '</span></button></div>' +
-        (hold || rev ? '' : '<button class="nxskip" data-act="skipask">Salta questa tappa</button>') + '<button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>'
+        '<div class="nxfoot">' + (hold || rev ? '' : '<button class="nxskip" data-act="skipask">Salta tappa</button>') + '<button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div></div>'
     };
     var g = gwGet(), ed = GWE.on, cz = ddwCur(), noDdt = !ddwList().length && !(cz && ddwMuranoUp(cz, [])), vis = g.order.filter(function (k) { return !g.hidden[k] && !(k === 'ddt' && noDdt && !ed); }), gone = g.order.filter(function (k) { return g.hidden[k]; });
     var grid = vis.map(function (k) {
@@ -3026,7 +3033,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     km: { n: 'Km e nodi', sizes: { S: [1, 1], M: [2, 1] }, d: 'S' },
     clock: { n: 'Orario', sizes: { S: [1, 1], M: [2, 1], L: [2, 2] }, d: 'S' },
     ddt: { n: 'DDT da firmare', sizes: { S: [1, 1], M: [2, 1] }, d: 'M' },
-    next: { n: 'Sono arrivato', sizes: { S: [2, 1], M: [2, 2] }, d: 'M', fixed: true }
+    next: { n: 'Consegna fatta', sizes: { S: [2, 2], M: [2, 3] }, d: 'M', fixed: true }
   };
   var GW_ORDER = ['stop', 'ddt', 'bebe', 'map', 'speed', 'weather', 'km', 'clock', 'tide', 'mimmo', 'next'];
   var MAP_STYLES = [['dark', 'Scuro'], ['blue', 'Blu notte'], ['green', 'Verde radar'], ['light', 'Chiaro']];
@@ -4286,7 +4293,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02zl';
+  var APP_V = '2026-11-02zm';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -5952,7 +5959,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     return hav(GPS.last.la, GPS.last.lo, tg[0], tg[1]) <= ARR_R;
   }
   function arrDist(i) { var s = stops()[i], tg = s && COORDS[s.name]; return tg && GPS.last ? hav(GPS.last.la, GPS.last.lo, tg[0], tg[1]) : null; }
-  function lockTxt(i) { var d = arrDist(i); return '🔒 si sblocca arrivato alla tappa' + (d != null ? ' · mancano ' + fmtDist(d) : ''); }
+  function lockTxt(i) { var d = arrDist(i); return '🔒 si sblocca alla tappa' + (d != null ? ' · ' + fmtDist(d) : ''); }
   function arrKey(i) { var z = stops()[i]; return S.shift.day + ':' + i + ':' + (z ? z.name + '@' + (z.t || '') : ''); }
   function arrAt(i) { var sh = S.shift, t = sh && sh.arr && sh.arr[arrKey(i)]; return t && Date.now() - t < 4 * 3600e3 ? new Date(t).toISOString() : null; }
   // Salta questa tappa: per quando il GPS non funziona o la consegna non si fa
