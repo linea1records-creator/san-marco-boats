@@ -4277,7 +4277,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02zg';
+  var APP_V = '2026-11-02zh';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -4636,6 +4636,54 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       }; im.onerror = function () { rej(new Error('img')); }; im.src = 'data:image/png;base64,' + b64;
     });
   }
+  // DDT fotografati: trova da solo la casella "Firma del destinatario" (linee della tabella in basso), così la firma ci finisce dentro
+  function sigCellDetect(img) {
+    try {
+      var nw = img.naturalWidth, nh = img.naturalHeight, W = 800, H = Math.round(nh * W / nw); if (H < 400) return null;
+      var c = document.createElement('canvas'); c.width = W; c.height = H; var cx = c.getContext('2d'); cx.drawImage(img, 0, 0, W, H);
+      var D = cx.getImageData(0, 0, W, H).data, g = new Float32Array(W * H), x, y, i;
+      for (i = 0; i < W * H; i++) g[i] = D[i * 4] * .299 + D[i * 4 + 1] * .587 + D[i * 4 + 2] * .114;
+      // sfocatura a scatola (raggio 15) per il confronto locale
+      var R = 15, tmp = new Float32Array(W * H), bl = new Float32Array(W * H);
+      for (y = 0; y < H; y++) { var acc = 0, o = y * W; for (x = -R; x <= R; x++) acc += g[o + Math.min(W - 1, Math.max(0, x))]; for (x = 0; x < W; x++) { tmp[o + x] = acc / (2 * R + 1); acc += g[o + Math.min(W - 1, x + R + 1)] - g[o + Math.max(0, x - R)]; } }
+      for (x = 0; x < W; x++) { var a2 = 0; for (y = -R; y <= R; y++) a2 += tmp[Math.min(H - 1, Math.max(0, y)) * W + x]; for (y = 0; y < H; y++) { bl[y * W + x] = a2 / (2 * R + 1); a2 += tmp[Math.min(H - 1, y + R + 1) * W + x] - tmp[Math.max(0, y - R) * W + x]; } }
+      var dk = new Uint8Array(W * H); for (i = 0; i < W * H; i++) dk[i] = g[i] < bl[i] - 18 ? 1 : 0;
+      function at(xx, yy) { return xx >= 0 && yy >= 0 && xx < W && yy < H ? dk[yy * W + xx] : 0; }
+      // righe orizzontali lunghe (tollerando una leggera inclinazione)
+      var rows = [];
+      for (y = 0; y < H; y++) {
+        var best = 0, cur = 0, miss = 0;
+        for (x = 0; x < W; x++) {
+          var v = 0; for (var k = -3; k <= 3 && !v; k++) v = at(x, y + k);
+          if (v) { cur += cur ? 1 + miss : 1; miss = 0; } else if (cur) { miss++; if (miss > 4) { cur = 0; miss = 0; } }
+          if (cur > best) best = cur;
+        }
+        if (best > .35 * W) rows.push(y);
+      }
+      var ys = [], grp = [];
+      rows.forEach(function (r) { if (grp.length && r - grp[grp.length - 1] <= 8) grp.push(r); else { if (grp.length) ys.push(grp.reduce(function (a, b) { return a + b; }, 0) / grp.length); grp = [r]; } });
+      if (grp.length) ys.push(grp.reduce(function (a, b) { return a + b; }, 0) / grp.length);
+      var foot = ys.filter(function (v) { return v > .8 * H; })[0], lim = (foot || H) - .15 * H, cand = ys.filter(function (v) { return v < lim && v > .3 * H; });
+      if (!cand.length) return null; var top = Math.round(cand[cand.length - 1]);
+      // linee verticali che scendono dalla riga della firma
+      var runs = [];
+      for (x = 0; x < W; x++) {
+        var n = 0, ms = 0;
+        for (y = top + 3; y < Math.min(H, top + .2 * H); y++) {
+          var w = 0; for (var k2 = -3; k2 <= 3 && !w; k2++) w = at(x + k2, y);
+          if (w) { n += 1 + ms; ms = 0; } else { ms++; if (ms > 3) break; }
+        }
+        runs.push(n);
+      }
+      var vs = [], vg = [];
+      for (x = 0; x < W; x++) if (runs[x] > .025 * H) { if (vg.length && x - vg[vg.length - 1] <= 6) vg.push(x); else { if (vg.length) vs.push(vg); vg = [x]; } }
+      if (vg.length) vs.push(vg);
+      vs = vs.map(function (a) { return { x: a.reduce(function (p, q) { return p + q; }, 0) / a.length, r: Math.max.apply(null, a.map(function (q) { return runs[q]; })) }; });
+      var sep = vs.filter(function (v) { return v.x > .45 * W && v.x < .8 * W && v.r > .03 * H && v.r < .13 * H; })[0]; if (!sep) return null;
+      var rt = vs.filter(function (v) { return v.x > sep.x + .15 * W && v.x < .985 * W; })[0], right = rt ? rt.x : Math.min(.97 * W, sep.x + .3 * W), rh = sep.r;
+      return { x: (sep.x + .008 * W) / W, y: (top + .28 * rh) / H, w: (right - sep.x - .016 * W) / W, h: .62 * rh / H, ink: 'k', auto: true };
+    } catch (e) { return null; }
+  }
   function asciiTxt(t) { return String(t || '').replace(/[^\x20-\x7E -ÿ]/g, '?'); }
   function ddtSignedBuild(id) {
     return Promise.all([cl('rpc_ddt_file', { p_id: id }), cl('rpc_ddt_signature', { p_id: id })]).then(function (r) {
@@ -4672,6 +4720,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         var im = new Image(), sg = new Image(), n = 0, go = function () {
           if (++n < 2) return;
           if (g.box) { // firma dentro il riquadro del modulo (Murano: cessionario · altri: destinatario)
+            if (g.box.ink === 'k') { var auto = sigCellDetect(im); if (auto) g.box = auto; }
             var W1 = im.naturalWidth, H1 = im.naturalHeight, fs1 = Math.max(13, Math.round(W1 / 70)), F1 = fs1 * 2 + 18, cv1 = document.createElement('canvas'), c1 = cv1.getContext('2d');
             cv1.width = W1; cv1.height = H1 + F1; c1.fillStyle = '#fff'; c1.fillRect(0, 0, W1, H1 + F1); c1.drawImage(im, 0, 0);
             var sc0 = document.createElement('canvas'); sc0.width = sg.naturalWidth; sc0.height = sg.naturalHeight; sc0.getContext('2d').drawImage(sg, 0, 0);
