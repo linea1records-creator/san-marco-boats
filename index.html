@@ -254,6 +254,8 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 .tbr.late .tbs,.tbr.late .tbc{color:#FF5A4F}.tbr.late .tbo{color:#FF5A4F}
 .tbr.gone{opacity:.42}.tbr.gone .tbs{color:#8FA3B0}.tbr.gone .tbk{background:#2E7D32;border-color:#2E7D32;color:#fff}
 @keyframes tbbl{50%{opacity:.35}}
+#nextBtn.near{animation:arrpulse 1.4s ease-in-out infinite}@keyframes arrpulse{0%,100%{box-shadow:0 0 0 0 rgba(67,160,71,.0)}50%{box-shadow:0 0 0 8px rgba(67,160,71,.55)}}
+
 .endph h3 .req{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#E53935;margin-left:6px}
 .endph.need{box-shadow:0 0 0 3px #E53935}
 .cartck{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:600;padding:12px 4px 2px;cursor:pointer}.cartck input{width:24px;height:24px;accent-color:#1655C8}
@@ -1336,7 +1338,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
           if (!GPS.ha) GPS.ha = { la: fla, lo: flo };
           else if (hav(GPS.ha.la, GPS.ha.lo, fla, flo) >= Math.max(20, acc * 1.5)) { GPS.hdg = angMix(GPS.hdg, bearing(GPS.ha.la, GPS.ha.lo, fla, flo), 0.6); GPS.ha = { la: fla, lo: flo }; }
         }
-        GPS.last = { la: fla, lo: flo, t: t }; canRecPoint(c.latitude, c.longitude, c.accuracy); if (S.shift) { S.shift.pos = { la: c.latitude, lo: c.longitude, t: Date.now() }; if (!S.shift.origin && c.accuracy != null && c.accuracy <= 100) { S.shift.origin = { la: c.latitude, lo: c.longitude, t: Date.now() }; lastGpsSent = 0; save(); } } cloudGps(c, v); GPS.speed = v; updateInstr();
+        GPS.last = { la: fla, lo: flo, t: t }; canRecPoint(c.latitude, c.longitude, c.accuracy); if (S.shift) { S.shift.pos = { la: c.latitude, lo: c.longitude, t: Date.now() }; if (!S.shift.origin && c.accuracy != null && c.accuracy <= 100) { S.shift.origin = { la: c.latitude, lo: c.longitude, t: Date.now() }; lastGpsSent = 0; save(); } } cloudGps(c, v); GPS.speed = v; arrCheck(); updateInstr();
       }, function (err) {
         if (err && err.code === 1) { GPS.state = 'denied'; GPS.speed = null; try { navigator.geolocation.clearWatch(GPS.id); } catch (e) {} GPS.id = null; }
         updateInstr();
@@ -2966,7 +2968,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       bebe: '<div id="bbFace" class="mim bb">' + bbInner() + '</div>',
       km: '<div class="tile"><div class="kms"><span>Tappa <b id="kmT">' + fmt2(sh.trip || 0) + '</b> km</span><span>Turno <b id="kmS">' + fmt1(sh.km || 0) + '</b> km</span><span><b id="spdN">' + (GPS.speed == null ? '–' : fmt1(GPS.speed * 1.94384)) + '</b> nodi</span></div></div>',
       next: !s ? '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (lastDoneIdx() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button><button class="chk fin" data-act="endsheet"><span class="chkt">Chiudi il turno</span></button></div><button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>' : '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (lastDoneIdx() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button>' +
-        '<button class="chk" id="nextBtn" data-act="next" aria-label="' + esc(primary) + '"><span class="chkc"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" class="ring"/><path d="M13 25l8 8 15-17" class="tick"/></svg></span><span class="chkt">' + esc(primary) + '</span></button></div>' +
+        '<button class="chk' + (S.shift && S.shift.arr && S.shift.arr[S.shift.day + ':' + i] ? ' near' : '') + '" id="nextBtn" data-act="next" aria-label="' + esc(primary) + '"><span class="chkc"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" class="ring"/><path d="M13 25l8 8 15-17" class="tick"/></svg></span><span class="chkt">' + esc(primary) + '</span></button></div>' +
         '<button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>'
     };
     var g = gwGet(), ed = GWE.on, cz = ddwCur(), noDdt = !ddwList().length && !(cz && driverDdt(cz.name, cz.note)), vis = g.order.filter(function (k) { return !g.hidden[k] && !(k === 'ddt' && noDdt && !ed); }), gone = g.order.filter(function (k) { return g.hidden[k]; });
@@ -4258,7 +4260,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02u';
+  var APP_V = '2026-11-02v';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -5463,7 +5465,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     else {
       var tg = COORDS[s.name], fx = GPS.last && Date.now() - GPS.last.t < 150000 ? GPS.last : null;
       if (tg && fx) {
-        var d = hav(fx.la, fx.lo, tg[0], tg[1]), tb = bearing(fx.la, fx.lo, tg[0], tg[1]), band = d < 40 ? 'a' : d < 150 ? 'b' : d < 500 ? 'c' : d < 1500 ? 'd' : 'e'; key += ':' + band;
+        var d = hav(fx.la, fx.lo, tg[0], tg[1]), tb = bearing(fx.la, fx.lo, tg[0], tg[1]), band = d <= ARR_R ? 'a' : d < 250 ? 'b' : d < 500 ? 'c' : d < 1500 ? 'd' : 'e'; key += ':' + band;
         var eta = GPS.speed != null && GPS.speed > 0.8 && d > 120 ? Math.round(d * 1.35 / GPS.speed / 60) : null;
         if (band === 'a') main = 'Ci siamo, arrivati a ' + s.name + '! Tocca "Sono arrivato".';
         else if (band === 'b') main = s.name + ' è proprio qui davanti: rallenta e prepara le cime.';
@@ -5684,6 +5686,20 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (sp && sp.extra && sp.id) cl('rpc_task_update', { p_task: sp.id, p_status: 'in_corso', p_reason: null, p_lat: null, p_lng: null });
     toast('Torni a ' + (sp ? (sp.maint ? 'Verifica barche' : sp.name) : 'tappa precedente')); view = 'guida'; render();
   }
+  // checkpoint GPS: entro 100 metri dalla tappa sei arrivato (l'ora di arrivo è quella dell'ingresso nel cerchio)
+  var ARR_R = 100;
+  function arrCheck() {
+    var sh = S.shift; if (!sh || !GPS.last) return; var i = curIdx(); if (i < 0) return;
+    var s = stops()[i]; if (!s || s.cancelled || (s.maint && sh.step)) return; var tg = COORDS[s.name]; if (!tg) return;
+    sh.arr = sh.arr || {}; var k = sh.day + ':' + i;
+    if (sh.arr[k]) return;
+    if (hav(GPS.last.la, GPS.last.lo, tg[0], tg[1]) <= ARR_R) {
+      sh.arr[k] = Date.now(); save(); toast('Sei arrivato a ' + s.name);
+      if (S.voice && view === 'guida') say('Sei arrivato a ' + s.name + '. Tocca Sono arrivato quando hai ormeggiato.');
+      var nb = $('nextBtn'); if (nb) nb.classList.add('near');
+    }
+  }
+  function arrAt(i) { var sh = S.shift, t = sh && sh.arr && sh.arr[sh.day + ':' + i]; return t ? new Date(t).toISOString() : null; }
   function finish(i, status, reason) {
     S.shift.done[i] = { status: status, reason: reason, t: Date.now() };
     var sp = stops()[i];
@@ -5691,7 +5707,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       var fx = GPS.last && Date.now() - GPS.last.t < 60000 ? GPS.last : null;
       (fx ? cl('rpc_log_gps', { p_lat: fx.la, p_lng: fx.lo, p_speed: null, p_acc: null }) : Promise.resolve()).then(function () {
         if (sp.extra) cl('rpc_task_update', { p_task: sp.id, p_status: status === 'ok' ? 'fatta' : 'problema', p_reason: reason || null, p_lat: fx ? fx.la : null, p_lng: fx ? fx.lo : null });
-        else cl('rpc_stop_event', { p_stop: sp.name, p_status: status, p_reason: reason || null, p_planned: sp.ind ? null : (sp.t || null) });
+        else cl('rpc_stop_event2', { p_stop: sp.name, p_status: status, p_reason: reason || null, p_planned: sp.ind ? null : (sp.t || null), p_at: status === 'ok' ? arrAt(i) : null });
       });
     }
     S.shift.step = 0; S.shift.trip = 0; save(); spoken = '';
