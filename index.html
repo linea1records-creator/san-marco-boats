@@ -1201,6 +1201,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   // 2 novembre 2026: si riparte da zero, via la cronologia dei turni di prova anche dal telefono
   try { if (!localStorage.getItem('smb-zero-1102')) { S.history = []; if (S.shift && S.shift.start < Date.parse('2026-11-01T23:10:00Z')) S.shift = null; localStorage.setItem('smb-zero-1102', '1'); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (x) {} } } catch (e) {}
   try { if (S.shift && !localStorage.getItem('smb-prob-1102')) { var _sh = S.shift; Object.keys(_sh.done || {}).forEach(function (k) { var r = _sh.done[k]; if (r && r.status !== 'ok' && !/annullat|saltat/i.test(r.reason || '')) { _sh.probs = _sh.probs || {}; (_sh.probs[_sh.day + ':' + k] = _sh.probs[_sh.day + ':' + k] || []).push({ r: r.reason || 'Problema', t: r.t }); delete _sh.done[k]; } }); localStorage.setItem('smb-prob-1102', '1'); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (x) {} } } catch (e) {}
+  // cruscotto di Elia rimesso uguale a quello predefinito (come Pietro), una volta sola
+  try { var _sn = JSON.parse(localStorage.getItem('smb-session') || '{}'); if (/^elia\b/i.test(_sn.name || '') && !localStorage.getItem('smb-gw-reset-1102')) { S.gw = null; S.voice = true; localStorage.setItem('smb-gw-reset-1102', '1'); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (x) {} } } catch (e) {}
   fillBoatDays();
   if (S.shift && (!BOATS[S.shift.boat] || !/^\d{4}-\d{2}-\d{2}$/.test(S.shift.day || ''))) S.shift = null;
   if (S.shift) ensureDay(S.shift.day);
@@ -4309,7 +4311,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02zo';
+  var APP_V = '2026-11-02zp';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -5971,7 +5973,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   // il tasto Sono arrivato si sblocca solo al checkpoint GPS (100 m); senza GPS o senza posizione della tappa resta libero
   function gpsFresh() { return !!(GPS.last && Date.now() - GPS.last.t < 120000 && GPS.state === 'on'); }
   // chi oggi lavora senza GPS: le sue conferme valgono sempre (nome → giorno)
-  var GPS_FREE = { elia: '2026-11-02' };
+  var GPS_FREE = {};
   function gpsFreeToday() { var n = ddtNorm(SESSION && SESSION.name || '').split(' ')[0]; return GPS_FREE[n] === todayKey(); }
   function canArrive(i) {
     if (gpsFreeToday()) return true;
