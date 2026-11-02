@@ -1109,6 +1109,25 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 .afil { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .afil label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
 .afil select { min-height: 46px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 16px; padding: 0 10px; }
+/* ---------- schermata Home a icone (come le app del telefono) ---------- */
+.nav.hm { left: calc(50% - 34px); width: 68px; height: 68px; }
+.nav.hm .nav-in { width: 68px; height: 68px; }
+.nav.hm.off { display: none; }
+.nav .homebtn { pointer-events: auto; width: 64px; height: 64px; border-radius: 50%; border: 0; background: var(--primary); color: var(--on-primary, #fff); display: grid; place-items: center; box-shadow: 0 4px 14px rgba(0,0,0,.28), inset 0 0 0 3px rgba(255,255,255,.18); position: relative; }
+.nav .homebtn svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.nav .homebtn .dbadge { position: absolute; top: -2px; right: -2px; }
+.hmwrap { padding-top: 6px; }
+.hmhi { font-size: 24px; font-weight: 800; margin: 4px 0 2px; }
+.hmgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 8px; margin-top: 18px; }
+@media (min-width: 520px) { .hmgrid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.apptile { background: none; border: 0; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--ink); font: inherit; cursor: pointer; position: relative; -webkit-tap-highlight-color: transparent; }
+.apptile .ic { width: 62px; height: 62px; border-radius: 16px; display: grid; place-items: center; color: #fff; box-shadow: 0 3px 8px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.25); position: relative; }
+.apptile .ic svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.apptile:active .ic { transform: scale(.94); }
+.apptile span.lb { font-size: 12.5px; font-weight: 600; line-height: 1.15; text-align: center; max-width: 76px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.apptile .dbadge { position: absolute; top: -6px; right: calc(50% - 38px); }
+.hmshift { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; margin-top: 14px; padding: 14px; border-radius: 16px; border: 0; background: var(--primary); color: var(--on-primary, #fff); font: inherit; }
+.hmshift b { display: block; font-size: 17px; }
 </style>
 
 <div class="app" id="app">
@@ -1279,7 +1298,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   fillBoatDays();
   if (S.shift && (!BOATS[S.shift.boat] || !/^\d{4}-\d{2}-\d{2}$/.test(S.shift.day || ''))) S.shift = null;
   if (S.shift) ensureDay(S.shift.day);
-  var view = 'turno', spoken = '', draft = null, docOpen = -1, viewDay = null;
+  var view = S.shift ? 'turno' : 'home', spoken = '', draft = null, docOpen = -1, viewDay = null;
   var GPS = { state: 'off', speed: null, last: null, id: null, dt: null };
 
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
@@ -2486,7 +2505,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var code = BF.sel || (S.shift && S.shift.boat) || myBoatCode() || boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO'; })[0];
     if (!BF.files[code] && tok() && !BF.loading) { BF.loading = true; setTimeout(function () { BF.loading = false; loadFiles(code); }, 0); }
     var files = BF.files[code], labels = DOCS.slice();
-    var h = '<div class="wrap"><h2>Barche</h2><button class="card" data-act="nav" data-v="tracking" style="text-align:left;display:flex;flex-direction:column;gap:2px"><b>📍 Tracking oggetti</b><span class="muted">Dove sono ceste, polybox, carrelli e tesserino · conferma tu dove li lasci</span></button><button class="card" data-act="nav" data-v="benzina" style="text-align:left;display:flex;flex-direction:column;gap:2px"><b>⛽ Benzina</b><span class="muted">Livello delle barche, carica lo scontrino, storico dei rifornimenti</span></button><h3>Documenti per i controlli</h3>' +
+    var h = '<div class="wrap"><h2>Barche</h2><h3>Documenti per i controlli</h3>' +
       '<div class="chips" role="group" aria-label="Barca">' + boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO'; }).map(function (k) { return '<button class="chip" data-act="bselc" data-c="' + k + '" aria-pressed="' + (k === code ? 'true' : 'false') + '">' + esc(BOATS[k].name) + '</button>'; }).join('') + '</div>';
     if (!tok()) h += '<p class="hint">Serve la connessione per vedere i documenti.</p>';
     else if (!files) h += '<p class="muted">Carico i documenti…</p>';
@@ -2674,7 +2693,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   function viewTracking() {
     if (!TR.d && !TR.loading && !TR.err) trLoad(); else if (!TR.loading && Date.now() - TR.t > 20000 && !TR.mv && !TR.ed) trLoad();
-    var back = isFullAcc() && !isAdmOnly() ? '<button class="aslink" data-act="nav" data-v="altro">‹ Altro</button>' : isCrewOnly() || (isMgr() && !isFullAcc() && !isAdmOnly()) ? '<button class="aslink" data-act="nav" data-v="barca">‹ Barche</button>' : '';
+    var back = '<button class="aslink" data-act="nav" data-v="home">‹ Home</button>';
     var h = '<div class="wrap">' + back + '<h2>📍 Tracking oggetti</h2>';
     if (!TR.d) return h + (TR.err ? '<div class="note" role="alert">' + esc(TR.err) + '</div><button class="btn" data-act="trreload">Riprova</button>' : '<div class="card"><p class="muted">Carico…</p></div>') + '</div>';
     setTimeout(drawTrack, 30);
@@ -2781,7 +2800,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   function viewBenzina() {
     if (!BZ.d && !BZ.loading && !BZ.err) bzLoad(); else if (!BZ.loading && Date.now() - BZ.t > 20000 && !BZ.f && !BZ.lv) bzLoad();
-    var back = isFullAcc() && !isAdmOnly() ? '<button class="aslink" data-act="nav" data-v="altro">‹ Altro</button>' : isCrewOnly() || (isMgr() && !isFullAcc()) ? '<button class="aslink" data-act="nav" data-v="barca">‹ Barche</button>' : '';
+    var back = '<button class="aslink" data-act="nav" data-v="home">‹ Home</button>';
     var h = '<div class="wrap">' + back + '<h2>⛽ Benzina</h2>';
     if (!BZ.d) return h + (BZ.err ? '<div class="note" role="alert">' + esc(BZ.err) + '</div><button class="btn" data-act="bzreload">Riprova</button>' : '<div class="card"><p class="muted">Carico…</p></div>') + '</div>';
     return h + bzGauges() + bzForm() + bzHistory() + '</div>';
@@ -4612,7 +4631,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (!PB.d && !PB.loading && !PB.err) pbLoad();
     else if (Date.now() - PB.t > 25000 && !PB.loading) pbLoad();
     var van = isVan(), mgr = pbIsMgr(), d = PB.d;
-    var h = '<div class="wrap">' + (van ? '' : '<button class="aslink" data-act="nav" data-v="altro">‹ Altro</button>') + '<h2>📦 Polybox di Murano</h2>' +
+    var h = '<div class="wrap">' + (van ? '' : '<button class="aslink" data-act="nav" data-v="home">‹ Home</button>') + '<h2>📦 Polybox di Murano</h2>' +
       '<p class="muted">Murano → patana → Tronchetto (Scalo fluviale) → furgone → Zelarino. Il numero viene dai colli consegnati a Murano; se è diverso si corregge con “Quantità effettiva”.</p>';
     if (PB.err && !d) return h + '<div class="note" role="alert">' + esc(PB.err) + '</div><button class="btn" data-act="pbreload">Riprova</button></div>';
     if (!d) return h + '<div class="card"><p class="muted">Carico…</p></div></div>';
@@ -4651,10 +4670,11 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     return d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }) + ' ' + hm;
   }
   function ntBadge() {
-    var b = document.querySelector('#dial .ditem[data-v="notifiche"]'); if (!b) return;
-    var e = b.querySelector('.dbadge'); if (e) e.remove();
-    if (NT.unread > 0) { var x = document.createElement('b'); x.className = 'dbadge'; x.textContent = NT.unread > 9 ? '9+' : NT.unread; b.appendChild(x); }
-    b.setAttribute('aria-label', 'Notifiche' + (NT.unread ? ', ' + NT.unread + ' nuove' : ''));
+    Array.prototype.forEach.call(document.querySelectorAll('#dial .ditem[data-v="notifiche"], .apptile[data-v="notifiche"]'), function (b) {
+      var e = b.querySelector('.dbadge'); if (e) e.remove();
+      if (NT.unread > 0) { var x = document.createElement('b'); x.className = 'dbadge'; x.textContent = NT.unread > 9 ? '9+' : NT.unread; b.appendChild(x); }
+      b.setAttribute('aria-label', (b.classList.contains('apptile') ? (b.textContent || 'Notifiche') : 'Notifiche') + (NT.unread ? ', ' + NT.unread + ' nuove' : ''));
+    });
   }
   function ntAlert(list) {
     var t = list.length === 1 ? list[0].title : list.length + ' nuove notifiche', body = list.length === 1 ? list[0].body : list.map(function (x) { return x.title; }).slice(0, 3).join(' · ');
@@ -4897,9 +4917,11 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function b64bytes(b) { var bin = atob(b), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
   function ddtPending() { return DD.items.filter(function (x) { return x.mine && x.status === 'pending'; }).length; }
   function ddtBadge() {
-    var b = document.querySelector('#dial .ditem[data-v="ddt"]'); if (!b) return;
-    var e = b.querySelector('.dbadge'); if (e) e.remove();
-    var n = ddtPending(); if (n > 0) { var x = document.createElement('b'); x.className = 'dbadge'; x.textContent = n > 9 ? '9+' : n; b.appendChild(x); }
+    var n = ddtPending();
+    Array.prototype.forEach.call(document.querySelectorAll('#dial .ditem[data-v="ddt"], .apptile[data-v="ddt"], .apptile[data-v="ddtgiro"]'), function (b) {
+      var e = b.querySelector('.dbadge'); if (e) e.remove();
+      if (n > 0) { var x = document.createElement('b'); x.className = 'dbadge'; x.textContent = n > 9 ? '9+' : n; b.appendChild(x); }
+    });
   }
   function loadDdt() {
     if (!tok() || DD.busy) return Promise.resolve();
@@ -6455,15 +6477,15 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (GHOST && !document.getElementById('ghostBar')) { var gb = document.createElement('div'); gb.id = 'ghostBar'; gb.setAttribute('role', 'status'); gb.textContent = '👻 MODALITÀ PROVA · nessuno ti vede · niente viene salvato'; gb.style.cssText = 'position:sticky;top:0;left:0;right:0;z-index:99999;background:#7c3aed;color:#fff;font:600 12px/1.2 system-ui,sans-serif;text-align:center;padding:calc(4px + env(safe-area-inset-top)) 10px 4px;pointer-events:none'; document.body.insertBefore(gb, document.body.firstChild); }
     if (S.shift && view === 'guida' && !document.hidden) wakeOn(); else wakeOff();
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
-    if (isOff() && ['ddt', 'contatti', 'impost', 'programma', 'cucina', 'notifiche'].indexOf(view) < 0) view = 'ddt';
-    if (isVan() && ['polybox', 'tracking', 'contatti', 'impost', 'programma'].indexOf(view) < 0) view = 'polybox';
+    if (isOff() && ['home', 'ddt', 'contatti', 'impost', 'programma', 'cucina', 'notifiche'].indexOf(view) < 0) view = 'home';
+    if (isVan() && ['home', 'polybox', 'tracking', 'contatti', 'impost', 'programma'].indexOf(view) < 0) view = 'home';
     if (view === 'tracking' && isOff()) view = 'ddt';
     if (view === 'polybox' && !isVan() && !isMgr() && !isFullAcc()) view = 'turno';
     if (view === 'benzina' && (isVan() || isOff())) view = isVan() ? 'polybox' : 'ddt';
     if (!isOff() && isAdm && ['turno', 'guida', 'richieste', 'ddt'].indexOf(view) >= 0) view = 'logistica';
     if (isAdm && ['turno', 'guida', 'richieste'].indexOf(view) >= 0) view = 'logistica';
     if (!isAdm && view === 'admin') view = isFull ? 'logistica' : 'turno';
-    if (view === 'altro' && !isFull) view = 'turno';
+    if (view === 'altro') view = 'home';
     if (view === 'nuovo') view = 'logistica';
     if (view === 'logistica' && !isMgr()) view = 'turno';
     if (view === 'ore' && !isAdm && !isFull) view = 'turno';
@@ -6486,14 +6508,48 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (isMgr() && cur === 'richieste') cur = 'barca';
     if (isCrewOnly() && ['richieste', 'contatti', 'ddt'].indexOf(cur) >= 0) cur = 'barca';
     var NV = isVan() ? NAV_VAN : isOff() ? NAV_OFF : isAdm ? NAV_ADMIN : isFull ? NAV_FULL : (isMgr() ? NAV_MGR : NAV);
-    drawDial(NV, cur);
+    drawHomeNav();
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurno, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat }[view] || viewTurno;
+    var fn = { admin: viewAdmin, turno: viewTurno, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     var m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); m.scrollTop = (view === 'guida') ? 0 : sc;
     if (view === 'ddt') ddApplySearch();
+  }
+
+  /* ---------- Home: ogni strumento è un'icona come un'app del telefono ---------- */
+  var APPS = {
+    logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
+    barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Tracking', '#059669'], polybox: ['Polybox', '#ca8a04'], notifiche: ['Notifiche', '#db2777'],
+    stat: ['Statistiche', '#4f46e5'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
+  };
+  function homeApps() {
+    var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
+    if (isVan()) return ['polybox', 'tracking', 'programma', 'contatti', 'impost'];
+    if (isOff()) return ['cucina', 'programma', 'ddt', 'notifiche', 'contatti', 'impost'];
+    if (isAdm) return ['logistica', 'notifiche', 'tracking', 'stat', 'barca', 'benzina', 'programma', 'contatti', 'impost'];
+    if (isFull) return ['logistica', 'turno', 'programma', 'ddtgiro', 'barca', 'benzina', 'tracking', 'polybox', 'notifiche', 'stat', 'cucina', 'contatti', 'impost'];
+    if (isMgr()) return ['logistica', 'turno', 'programma', 'notifiche', 'barca', 'benzina', 'tracking', 'polybox', 'contatti', 'impost'];
+    return ['turno', 'programma', 'ddtgiro', 'barca', 'notifiche', 'tracking', 'benzina', 'impost'];
+  }
+  function viewHome() {
+    var nm = SESSION && SESSION.name ? String(SESSION.name).split(' ')[0] : '', hr = new Date().getHours();
+    var h = '<div class="wrap hmwrap"><div class="hmhi">' + (hr < 13 ? 'Buongiorno' : hr < 18 ? 'Buon pomeriggio' : 'Buonasera') + (nm ? ', ' + esc(nm) : '') + '</div><div class="muted">' + esc(new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })) + '</div>';
+    if (S.shift && !isVan() && !isOff()) h += '<button class="hmshift" data-act="nav" data-v="turno"><span style="font-size:28px" aria-hidden="true">🚤</span><span><b>Turno in corso</b>' + esc(BOATS[S.shift.boat] ? BOATS[S.shift.boat].name : '') + ' · tocca per riprendere</span></button>';
+    h += '<div class="hmgrid" role="list">' + homeApps().map(function (k) {
+      var a = APPS[k] || [k, '#475569'], ic = ICONS[k === 'impost' ? 'gear' : k] || ICONS.altro;
+      if (k === 'notifiche' && (isCrewOnly() || isOff())) a = ['Chat', a[1]];
+      return '<button class="apptile" role="listitem" data-act="nav" data-v="' + k + '"><span class="ic" style="background:linear-gradient(160deg,' + a[1] + 'dd,' + a[1] + ')"><svg viewBox="0 0 24 24" aria-hidden="true">' + ic + '</svg></span><span class="lb">' + esc(a[0]) + '</span></button>';
+    }).join('') + '</div></div>';
+    setTimeout(function () { ntBadge(); ddtBadge(); }, 0);
+    return h;
+  }
+  function drawHomeNav() {
+    var nav = document.querySelector('.nav'); if (!nav) return;
+    nav.classList.add('hm'); nav.classList.toggle('off', view === 'home');
+    if (view === 'home') { $('nav').innerHTML = ''; return; }
+    $('nav').innerHTML = '<button class="homebtn" data-act="nav" data-v="home" aria-label="Torna alla Home"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg></button>';
   }
 
   /* ---------- rotella di navigazione (in basso a sinistra) ---------- */
@@ -6914,7 +6970,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var el = e.target.closest('[data-act]'); if (!el) return;
     var a = el.getAttribute('data-act'), sh = S.shift;
     if (a === 'veil') { if (e.target === el) closeSheet(); return; }
-    if (a === 'nav') { view = el.getAttribute('data-v'); if (view !== 'richieste') draft = null; if (view === 'admin') adminOpen = null; render(); if (view === 'contatti') loadContacts(); if (view === 'admin') loadAdmin(); if (view === 'logistica' || view === 'nuovo') loadMgr(true); if (view === 'programma') { loadMgr(false); if (isOff()) Promise.all([loadDdt(), loadXT()]).then(function () { if (view === 'programma') render(); }); } if (view === 'ore') loadHrs(); if (view === 'notifiche') { NT.hl = {}; loadNotif(); } if (view === 'ddt') loadDdt(); if (view === 'barca') { loadFiles(curBoatCode()); loadBoatInfo(); } return; }
+    if (a === 'nav') { view = el.getAttribute('data-v'); try { $('main').scrollTop = 0; window.scrollTo(0, 0); } catch (x) {} if (view !== 'richieste') draft = null; if (view === 'admin') adminOpen = null; render(); if (view === 'contatti') loadContacts(); if (view === 'admin') loadAdmin(); if (view === 'logistica' || view === 'nuovo') loadMgr(true); if (view === 'programma') { loadMgr(false); if (isOff()) Promise.all([loadDdt(), loadXT()]).then(function () { if (view === 'programma') render(); }); } if (view === 'ore') loadHrs(); if (view === 'notifiche') { NT.hl = {}; loadNotif(); } if (view === 'ddt') loadDdt(); if (view === 'barca') { loadFiles(curBoatCode()); loadBoatInfo(); } return; }
     if (a === 'bdati') { BF.dati = true; render(); window.scrollTo(0, 0); Array.prototype.forEach.call(document.querySelectorAll('main,.main,#app'), function (m) { m.scrollTop = 0; }); loadFiles(curBoatCode()); return; }
     if (a === 'bdatix') { BF.dati = false; BF.edit = null; render(); return; }
     if (a === 'bsel') { BF.sel = el.getAttribute('data-c'); BF.edit = null; render(); loadFiles(BF.sel); return; }
@@ -7581,7 +7637,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function enter(role, name, token, offline) {
     SESSION = { role: role, name: name, t: Date.now(), token: token || null, offline: !!offline };
     try { localStorage.setItem(SKEY, JSON.stringify(SESSION)); } catch (e) {}
-    loginStep = 'pin'; pinBuf = ''; loginErr = ''; loginNames = []; view = role === 'admin' ? 'logistica' : role === 'office' ? 'programma' : 'turno';
+    loginStep = 'pin'; pinBuf = ''; loginErr = ''; loginNames = []; view = S.shift ? 'turno' : 'home';
     drawLogin(); render(); gpsApply(); loadContacts(); loadAdmin(); loadMyTasks(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); Promise.all([loadProgram(), loadAsg()]).then(briefMaybe); sendPendingReqs(); pushInit(); loadDdt(); if (isOff()) loadXT().then(render); }); MG.opts = null; MG.list = null; MG.draft = null; MG.fleet = null;
   }
   function logout() {
@@ -7601,8 +7657,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   setInterval(function () { var c = $('clock'); if (c && S.shift) c.textContent = dur(Date.now() - S.shift.start); }, 1000);
   if (CUSTTOK) { custBoot(); return; }
   drawLogin();
-  if (SESSION && SESSION.role === 'admin') view = 'logistica';
-  if (SESSION && SESSION.role === 'office') view = 'programma';
+  if (SESSION && !S.shift) view = 'home';
+  if (SESSION && SESSION.role === 'office') view = 'home';
   if (SESSION) gpsApply();
   render();
   if (SESSION) { loadContacts(); loadAdmin(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); Promise.all([loadProgram(), loadAsg()]).then(briefMaybe); sendPendingReqs(); pushInit(); loadDdt(); if (isOff()) loadXT().then(render); }); }
