@@ -254,7 +254,7 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 .tbr.late .tbs,.tbr.late .tbc{color:#FF5A4F}.tbr.late .tbo{color:#FF5A4F}
 .tbr.gone{opacity:.42}.tbr.gone .tbs{color:#8FA3B0}.tbr.gone .tbk{background:#2E7D32;border-color:#2E7D32;color:#fff}
 @keyframes tbbl{50%{opacity:.35}}
-.clchip{display:block;width:100%;text-align:left;border:0;border-radius:10px;padding:7px 10px;margin-bottom:6px;background:#12384F;color:#BFE6FF;font:inherit;font-weight:700;font-size:14px}.clchip.no{background:#3D2E00;color:#FFD54F}
+.colli .clsec{margin-top:14px;padding:6px 0 2px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#5B6870;font-weight:700}.colli{max-height:78vh;overflow:auto}.clbtns{position:sticky;bottom:0;background:#fff;padding-top:8px}.clchip{display:block;width:100%;text-align:left;border:0;border-radius:10px;padding:7px 10px;margin-bottom:6px;background:#12384F;color:#BFE6FF;font:inherit;font-weight:700;font-size:14px}.clchip.no{background:#3D2E00;color:#FFD54F}
 .colli .clr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid #E3E8EC}.colli .clr b{display:block;font-size:17px;color:#11181C}.colli .clr small{color:#5B6870}
 .clst{display:flex;align-items:center;gap:6px}.clst button{width:44px;height:44px;border-radius:12px;border:1px solid #CDD6DC;background:#F1F4F6;font-size:24px;font-weight:700;color:#11181C}.clst input{width:64px;height:44px;text-align:center;font-size:22px;font-weight:800;border:1px solid #CDD6DC;border-radius:12px;color:#11181C;background:#fff}
 
@@ -4285,7 +4285,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-02zd';
+  var APP_V = '2026-11-02ze';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -5849,15 +5849,23 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     return out;
   }
   function colliGet(i) { var sh = S.shift; var v = sh && sh.colli && sh.colli[sh.day + ':' + i]; return v == null ? null : v; }
+  // tutte le consegne ancora da fare oggi (senza Seminario, Darsena, Scalo)
+  function colliTodo(from) {
+    var all = stops(), sh = S.shift, out = [];
+    for (var j = 0; j < all.length; j++) { var z = all[j]; if (sh.done[j] || z.cancelled || z.maint || isSem(z.name) || /^(darsena|scalo)\b/i.test(String(z.name).trim()) || (from != null && j < from)) continue; out.push(j); }
+    return out;
+  }
   function colliSheet(list, auto) {
     var all = stops(); if (!list.length) return;
-    openSheet('<div class="dfxs colli"><h2>📦 Quanti polybox?</h2><p class="muted">' + (auto ? 'Stai partendo dal Seminario: segna i colli di ogni consegna.' : 'Segna i colli di ogni consegna.') + '</p>' +
-      list.map(function (j) { var z = all[j], v = colliGet(j); return '<div class="clr"><div><b>' + esc(z.name) + '</b>' + (z.t ? '<small>' + esc(stopTime(z)) + '</small>' : '') + '</div><div class="clst"><button data-act="clm" data-j="' + j + '" aria-label="Meno">−</button><input type="number" inputmode="numeric" min="0" max="200" id="cl' + j + '" value="' + (v == null ? '' : v) + '" placeholder="0"><button data-act="clp" data-j="' + j + '" aria-label="Più">+</button></div></div>'; }).join('') +
-      '<div class="btns"><button class="btn primary" data-act="clsave" data-l="' + list.join(',') + '">Salva</button><button class="btn quiet" data-act="close">Dopo</button></div></div>');
+    var rest = colliTodo().filter(function (j) { return list.indexOf(j) < 0; });
+    function rowH(j) { var z = all[j], v = colliGet(j); return '<div class="clr"><div><b>' + esc(z.name) + '</b>' + (z.t ? '<small>' + esc(stopTime(z)) + '</small>' : '') + '</div><div class="clst"><button data-act="clm" data-j="' + j + '" aria-label="Meno">−</button><input type="number" inputmode="numeric" min="0" max="200" id="cl' + j + '" value="' + (v == null ? '' : v) + '" placeholder="0"><button data-act="clp" data-j="' + j + '" aria-label="Più">+</button></div></div>'; }
+    openSheet('<div class="dfxs colli"><h2>📦 Quanti polybox?</h2><p class="muted">' + (auto ? 'Stai partendo dal Seminario: segna i colli delle consegne che porti. Quelle che non porti lasciale vuote.' : 'Segna i colli delle consegne. Quelle che non sai ancora lasciale vuote.') + '</p>' +
+      list.map(rowH).join('') + (rest.length ? '<div class="clsec">Altre consegne di oggi</div>' + rest.map(rowH).join('') : '') +
+      '<div class="btns clbtns"><button class="btn primary" data-act="clsave" data-l="' + list.concat(rest).join(',') + '">Salva</button><button class="btn quiet" data-act="close">Dopo</button></div></div>');
   }
   function colliChip(i) {
     var s = stops()[i]; if (!s || s.maint || /^(darsena|scalo)\b/i.test(String(s.name).trim())) return '';
-    if (isSem(s.name)) { var l = legAfter(i); return l.length ? '<button class="clchip" data-act="clopen" data-l="' + l.join(',') + '">📦 Polybox per ' + esc(l.map(function (j) { return stops()[j].name; }).join(', ')) + '</button>' : ''; }
+    if (isSem(s.name)) { var l = legAfter(i), t = colliTodo(); if (!t.length) return ''; return '<button class="clchip" data-act="clopen" data-l="' + (l.length ? l : t.slice(0, 1)).join(',') + '">📦 Polybox delle consegne' + (l.length ? ' (' + esc(l.map(function (j) { return stops()[j].name; }).join(', ')) + '…)' : '') + '</button>'; }
     var v = colliGet(i); return '<button class="clchip' + (v == null ? ' no' : '') + '" data-act="clopen" data-l="' + i + '">📦 ' + (v == null ? 'Segna i polybox' : v + (v === 1 ? ' polybox' : ' polybox')) + '</button>';
   }
   document.addEventListener('click', function (e) {
@@ -5885,7 +5893,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       });
     }
     S.shift.step = 0; S.shift.trip = 0; save(); spoken = '';
-    if (status === 'ok' && sp && isSem(sp.name)) { var lg = legAfter(i).filter(function (j) { return colliGet(j) == null; }); if (lg.length) setTimeout(function () { colliSheet(lg, true); }, 600); }
+    if (status === 'ok' && sp && isSem(sp.name)) { var lg = legAfter(i); if (!lg.length) lg = colliTodo(i).slice(0, 1); if (lg.length) setTimeout(function () { colliSheet(lg, true); }, 600); }
     var n = curIdx();
     toast(status === 'ok' ? 'Tappa completata' : 'Problema segnalato');
     view = 'guida'; render();
