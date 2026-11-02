@@ -4882,8 +4882,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     }).catch(function () { if (force) toast('Email non inviata: controlla la connessione'); });
   }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="ddtmail"]') : null; if (!el) return; el.disabled = true; el.textContent = 'Invio…'; ddtMail(el.getAttribute('data-id'), true).then(function () { el.disabled = false; el.textContent = '📧 Reinvia al cliente'; }); });
-  function ddtSignedBuild(id) {
-    return Promise.all([cl('rpc_ddt_file', { p_id: id }), cl('rpc_ddt_signature', { p_id: id })]).then(function (r) {
+  function ddtSignedBuild(id, src) {
+    return (src || Promise.all([cl('rpc_ddt_file', { p_id: id }), cl('rpc_ddt_signature', { p_id: id })])).then(function (r) {
       var f = r[0], g = r[1]; if (!f || !f.data || !g || !g.sig) throw new Error('nodata');
       var base = ((g.number || 'DDT') + '-' + (g.customer || '')).replace(/[^\w\-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 60) || 'DDT';
       var when = new Date(g.at).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' });
@@ -5185,6 +5185,27 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     }).join('') + '</ul>';
     return h + '</div>';
   }
+  /* ---------- Documenti del cliente: DDT firmati da scaricare ---------- */
+  var CDOCS = { items: null, busy: null };
+  function custDocsLoad() {
+    return cloud('rpc_cust_ddt_list', { p_token: CUSTTOK }).then(function (r) { if (r && r.items) CDOCS.items = r.items; }).catch(function () {});
+  }
+  function custDocs() {
+    var it = CDOCS.items; if (!it) return '';
+    var h = '<div class="ccard cup"><h2>I tuoi documenti</h2>';
+    if (!it.length) return h + '<p class="cmut">Qui trovi i DDT firmati alla consegna. Per ora non ce ne sono.</p></div>';
+    return h + '<p class="cmut">DDT firmati alla consegna, ultimi 6 mesi.</p><ul class="culist">' + it.map(function (d) {
+      var dp = dateParts(String(d.date).slice(0, 10)), lab = DNALL[dp.dow] + ' ' + dp.n + ' ' + MONTHS[dp.m], busy = CDOCS.busy === d.id;
+      return '<li><div><b>' + esc(d.number ? 'DDT ' + d.number : 'DDT') + '</b><span>' + esc(lab) + (d.signer && d.signer !== 'Cliente' ? ' · firmato da ' + esc(d.signer) : '') + '</span></div><button class="cbtn" data-cdoc="' + esc(d.id) + '"' + (busy ? ' disabled' : '') + '>' + (busy ? 'Preparo…' : 'Scarica') + '</button></li>';
+    }).join('') + '</ul></div>';
+  }
+  function custDocGet(id) {
+    CDOCS.busy = id; custRender();
+    ddtSignedBuild(id, cloud('rpc_cust_ddt_get', { p_token: CUSTTOK, p_id: id }).then(function (r) { if (!r || r.error) throw new Error('nodata'); return [r.file, r.sig]; })).then(function (o) {
+      var u = URL.createObjectURL(o.blob), a = document.createElement('a'); a.href = u; a.download = o.name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(u); }, 60000);
+    }).catch(function () { alert('Non riesco a scaricare il documento. Riprova tra poco.'); }).then(function () { CDOCS.busy = null; custRender(); });
+  }
   function custContact() {
     var ph = (CUST.d && CUST.d.phone) || (CUST.up && CUST.up.phone) || '', pr = CUST.d && CUST.d.problem_at;
     return (pr ? '<div class="ccard cprob" role="alert"><b>C’è un problema con la consegna</b><span>Segnalato alle ' + esc(pr) + '. Chiama la logistica per i dettagli.</span></div>' : '') +
@@ -5230,17 +5251,17 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       $('custBoat').style.transform = 'translateX(' + custBoatX(d).toFixed(1) + 'px)';
     } else { el.querySelector('.cbody').innerHTML = body; }
     CUST.sig = sig;
-    var ex = el.querySelector('.cextra'); if (ex) ex.innerHTML = (d && !d.error ? custContact() : '') + custUpcoming();
+    var ex = el.querySelector('.cextra'); if (ex) ex.innerHTML = (d && !d.error ? custContact() : '') + custUpcoming() + custDocs();
     custPaint();
     el.querySelector('.cfoot').textContent = d && d.now ? 'Aggiornato alle ' + d.now + ' · si aggiorna da solo' : '';
   }
   function custLoad() {
-    cloud('rpc_track', { p_token: CUSTTOK }).then(function (r) { if (r && r.error === 'link_non_valido') { try { localStorage.removeItem('smb-cust'); } catch (x) {} location.reload(); return; } CUST.d = r; CUST.err = ''; return cloud('rpc_track_upcoming', { p_token: CUSTTOK }).then(function (u) { CUST.up = u; }).catch(function () {}); }).then(function () { if (!CUST.ask) custRender(); }).catch(function () { if (!CUST.d) CUST.err = 'Connessione assente'; custRender(); });
+    cloud('rpc_track', { p_token: CUSTTOK }).then(function (r) { if (r && r.error === 'link_non_valido') { try { localStorage.removeItem('smb-cust'); } catch (x) {} location.reload(); return; } CUST.d = r; CUST.err = ''; return cloud('rpc_track_upcoming', { p_token: CUSTTOK }).then(function (u) { CUST.up = u; }).catch(function () {}).then(custDocsLoad); }).then(function () { if (!CUST.ask) custRender(); }).catch(function () { if (!CUST.d) CUST.err = 'Connessione assente'; custRender(); });
   }
   function custBoot() {
     document.body.classList.add('custmode');
     var el = document.createElement('div'); el.id = 'cust'; el.innerHTML = '<div class="cwrap"><div class="chead0"></div><div class="cbody"></div><div class="cextra"></div><div class="cfoot" aria-live="polite"></div></div><div id="custAsk"></div>'; document.body.appendChild(el);
-    el.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-ce]'); if (b) { var ent = custEntries(), en = ent && ent[+b.getAttribute('data-ce')]; if (en) { CUST.ask = { e: en, undo: en.cx }; CUST.msg = ''; custPaint(); } return; } if (e.target.id === 'cNo') { CUST.ask = null; CUST.msg = ''; custPaint(); } if (e.target.id === 'cOk') custSend(); if (e.target.id === 'cOut') { cloud('rpc_cust_logout', { p_token: CUSTTOK }).catch(function () {}).then(function () { try { localStorage.removeItem('smb-cust'); } catch (x) {} location.reload(); }); } });
+    el.addEventListener('click', function (e) { var dc = e.target.closest && e.target.closest('[data-cdoc]'); if (dc) { if (!CDOCS.busy) custDocGet(dc.getAttribute('data-cdoc')); return; } var b = e.target.closest && e.target.closest('[data-ce]'); if (b) { var ent = custEntries(), en = ent && ent[+b.getAttribute('data-ce')]; if (en) { CUST.ask = { e: en, undo: en.cx }; CUST.msg = ''; custPaint(); } return; } if (e.target.id === 'cNo') { CUST.ask = null; CUST.msg = ''; custPaint(); } if (e.target.id === 'cOk') custSend(); if (e.target.id === 'cOut') { cloud('rpc_cust_logout', { p_token: CUSTTOK }).catch(function () {}).then(function () { try { localStorage.removeItem('smb-cust'); } catch (x) {} location.reload(); }); } });
     el.querySelector('.chead0').outerHTML = '';
     var hd = document.createElement('div'); el.querySelector('.cwrap').insertBefore(hd, el.querySelector('.cbody'));
     hd.outerHTML = '<header class="chead"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5 14 q7 5 14 0 M12 5 v8 M12 6 l5 5 H12" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><div><b>San Marco</b><span>Logistica ristorazione · consegne</span></div><button class="cbtn" id="cOut" style="margin-left:auto;min-height:38px;padding:6px 14px">Esci</button></header>';
