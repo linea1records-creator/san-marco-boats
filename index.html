@@ -24,6 +24,7 @@ details[open] .secc{transform:rotate(90deg)}
 .pnv{font-family:ui-monospace,Menlo,monospace;font-size:22px;letter-spacing:.12em}
 .pnno{font-size:13px;opacity:.6;font-style:italic}
 .ldtop{align-items:center}.ddtb{font-weight:800;letter-spacing:.06em;min-width:64px}
+.pbsteps{list-style:none;margin:10px 0 4px;padding:0;display:flex;flex-direction:column;gap:0}.pbsteps li{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;padding:5px 0;position:relative;opacity:.55}.pbsteps li.on,.pbsteps li.cur{opacity:1}.pbsteps li i{width:16px;height:16px;border-radius:50%;margin-top:3px;box-shadow:0 0 0 2px var(--line,#d0d5dd) inset}.pbsteps li.on i{background:#16a34a;box-shadow:none}.pbsteps li.cur i{background:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,.18)}.pbsteps li span{display:flex;flex-direction:column}.pbsteps li small{color:var(--muted,#667);font-size:12.5px}.pbn{font-size:44px;font-weight:800;line-height:1}.pbhead{display:flex;align-items:center;gap:14px}.pbmsg{border-left:4px solid #2563eb;padding:8px 10px;border-radius:8px;background:rgba(37,99,235,.06)}.pbmsg.seen{border-left-color:var(--line,#d0d5dd);background:transparent}.pbbig{font-size:20px;font-weight:700}
 .seg2{display:inline-flex;border-radius:10px;box-shadow:0 0 0 1px var(--line,#d0d5dd);overflow:hidden}
 .seg2 button{border:0;background:none;padding:7px 12px;font:inherit;font-weight:600;color:inherit;cursor:pointer}
 .seg2 button[aria-pressed=true]{background:#1655C8;color:#fff}
@@ -1305,6 +1306,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<path d="M17 55c3-2.5 6-2.5 8 0s5 2.5 8 0 5-2.5 8 0 4 2.5 6 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
   }
   var ICONS = {
+    polybox: '<path d="M3 8l9-4 9 4v9l-9 4-9-4z"/><path d="M3 8l9 4 9-4M12 12v9"/>',
     nuovo: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/>',
     turno: '<path d="M3 15l2 4h14l2-4zM12 3v8M8 7h8"/>',
     ddt: '<path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"/>', ddtgiro: '<path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"/>', stat: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>', cucina: '<path d="M6 3v8a3 3 0 0 0 6 0V3M9 3v18M17 3c-2 2-2 6 0 8v10"/>', murano: '<path d="M4 7h11M4 7v12h11V7M7 7V4h11v12h-3M7 11h5M7 15h5"/><path d="M16 20l2-2 3 3"/>',
@@ -1928,7 +1930,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   // appena apri l'app (o arriva un programma nuovo) te lo spiega una volta; se cambia, te lo rispiega
   function briefMaybe() {
-    if (!SESSION || S.shift || isOff() || CUSTTOK) return;
+    if (!SESSION || S.shift || isOff() || isVan() || CUSTTOK) return;
     var k = briefKey(), code = myBoatCode(); if (!k || !code || !PROGRAM[k]) return;
     if (document.querySelector('#layer .sheet')) return;
     var seen = ''; try { seen = localStorage.getItem('smb-brief') || ''; } catch (e) {}
@@ -2472,7 +2474,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     ddtAttach(rk, rb, ri, f);
   });
   /* ---------- Trasportatori (Elia, Daffa): Barche = documenti per i controlli + richieste ---------- */
-  function isCrewOnly() { return !!SESSION && !isMgr() && !isOff() && !isFullAcc(); }
+  function isVan() { return !!(SESSION && SESSION.role === 'van'); }
+  function isCrewOnly() { return !!SESSION && !isMgr() && !isOff() && !isFullAcc() && !isVan(); }
   function viewBarcaCrew() {
     if (draft) return viewRichieste();
     var code = BF.sel || (S.shift && S.shift.boat) || myBoatCode() || boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO'; })[0];
@@ -4226,8 +4229,108 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   function setBg(hex) { S.bg = hex; save(); applyBg(hex); }
   applyBg(S.bg);
+  /* ---------- Polybox di Murano: Murano → patana → Tronchetto (Scalo fluviale, ore 13) → furgone di Sergio → Zelarino ---------- */
+  var PB = { d: null, msgs: null, drivers: [], busy: false, loading: false, err: '', qty: null, stage: null, comp: null, t: 0 };
+  var PB_ST = [['Dai clienti a Murano', 'Consegnati pieni: si svuotano e aspettano il giro dopo'], ['Sulla patana', 'Ritirati vuoti a Murano'], ['A Tronchetto · Scalo fluviale', 'Lasciati per il furgone'], ['Sul furgone di Sergio', 'Ritirati a Tronchetto'], ['Arrivati a Zelarino', 'Giro completato']];
+  function pbIsMgr() { return isMgr() || isFullAcc(); }
+  function pbLoad() {
+    if (PB.loading || !tok()) return Promise.resolve();
+    PB.loading = true; PB.t = Date.now();
+    return Promise.all([cl('rpc_polybox_status', {}), cl('rpc_van_msg_list', {})]).then(function (r) {
+      PB.loading = false;
+      if (!r[0] || r[0].error) { PB.err = 'Non riesco a leggere i polybox. Controlla la connessione.'; }
+      else { PB.d = r[0]; PB.err = ''; }
+      if (r[1] && r[1].items) { PB.msgs = r[1].items; PB.drivers = r[1].drivers || []; }
+      if (view === 'polybox' && !PB.qty && !PB.comp) render();
+    }).catch(function () { PB.loading = false; });
+  }
+  setInterval(function () { if (view === 'polybox' && !document.hidden && !PB.qty && !PB.comp && Date.now() - PB.t > 25000) pbLoad(); }, 5000);
+  function pbHm(ts) { return ts ? new Date(ts).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : ''; }
+  function pbDayLab(k) { k = String(k).slice(0, 10); var dp = dateParts(k), t = todayKey(); return (k === t ? 'oggi ' : k === ldShift(t, -1) ? 'ieri ' : '') + DNALL[dp.dow].toLowerCase() + ' ' + dp.n + ' ' + MONTHS[dp.m]; }
+  function pbWhen(ts) { if (!ts) return ''; var k = new Date(ts).toLocaleDateString('sv-SE'); return (k === todayKey() ? 'oggi' : pbDayLab(k)) + ' alle ' + pbHm(ts); }
+  function pbTrackText(b) {
+    var pt = (PB.d && PB.d.pickup_t) || '13:00';
+    if (b.stage >= 3) return 'Polybox di Murano del ' + pbDayLab(b.day) + ': ' + b.n + ' — ' + PB_ST[b.stage][0].toLowerCase() + '.';
+    if (b.stage === 2) return 'A Tronchetto (Scalo fluviale) ci sono ' + b.n + ' polybox vuoti di Murano, da ritirare alle ' + pt + '.';
+    if (b.stage === 1) return 'La patana ha ritirato ' + b.n + ' polybox vuoti a Murano: li lascia a Tronchetto per le ' + pt + '.';
+    return 'Previsione: ' + b.n + ' polybox di Murano (consegnati ' + pbDayLab(b.day) + ') da ritirare a Tronchetto alle ' + pt + ' del prossimo giro.';
+  }
+  function pbCard(b) {
+    var mgr = pbIsMgr(), van = isVan(), st = b.stage, d = PB.d || {}, times = [null, b.pick_at, b.tronchetto_at, b.van_pick_at, b.van_drop_at];
+    var h = '<section class="card" style="display:flex;flex-direction:column;gap:8px"><div class="pbhead"><div class="pbn">' + b.n + '</div><div><b>polybox · consegnati a Murano ' + esc(pbDayLab(b.day)) + '</b><div class="muted" style="font-size:13.5px">' +
+      (b.actual != null ? 'Contati a mano' + (b.actual_by ? ' da ' + esc(b.actual_by) : '') + ' · in automatico erano ' + b.expected : 'Contati in automatico dai colli consegnati') + '</div></div></div>';
+    h += '<ul class="pbsteps">' + PB_ST.map(function (x, i) {
+      var cls = i < st ? 'on' : i === st ? 'cur' : '', sub = times[i] ? pbWhen(times[i]) : x[1];
+      return '<li class="' + cls + '"><i aria-hidden="true"></i><span><b>' + esc(x[0]) + (i === st ? ' ← ora' : '') + '</b><small>' + esc(sub) + '</small></span></li>';
+    }).join('') + '</ul>';
+    if (st === 1 && d.boat && d.boat.dist_m != null) h += '<p class="muted">🚤 La patana è a <b>' + fmtDist(d.boat.dist_m) + '</b> da Tronchetto (posizione delle ' + esc(pbHm(d.boat.ts)) + ').</p>';
+    if (st === 2) h += '<p><b>Da ritirare a Tronchetto alle ' + esc(d.pickup_t || '13:00') + '.</b></p>';
+    if (b.override) h += '<p class="muted">Fase impostata a mano da Pietro.</p>';
+    var btns = '';
+    if ((van || mgr) && st < 3 && st >= 1) btns += '<button class="btn primary" data-act="pbvan" data-day="' + esc(b.day) + '" data-x="pick">🚐 Ho ritirato i polybox</button>';
+    if ((van || mgr) && st === 3) btns += '<button class="btn primary" data-act="pbvan" data-day="' + esc(b.day) + '" data-x="drop">🏁 Arrivati a Zelarino</button>';
+    if ((van || mgr) && st >= 3 && !b.override) btns += '<button class="btn sm" data-act="pbvan" data-day="' + esc(b.day) + '" data-x="undo">Annulla l’ultimo passo</button>';
+    if (PB.qty === b.day) {
+      btns += '<div class="card" style="gap:8px;display:flex;flex-direction:column"><label for="pbQty"><b>Quanti polybox ci sono davvero?</b></label><input class="field" id="pbQty" type="number" inputmode="numeric" min="0" max="999" value="' + b.n + '">' +
+        '<button class="btn primary" data-act="pbqtysave" data-day="' + esc(b.day) + '">Salva quantità</button>' + (b.actual != null ? '<button class="btn" data-act="pbqtyauto" data-day="' + esc(b.day) + '">Torna al conteggio automatico (' + b.expected + ')</button>' : '') + '<button class="btn" data-act="pbqtyno">Annulla</button></div>';
+    } else btns += '<button class="btn sm" data-act="pbqty" data-day="' + esc(b.day) + '">✏️ Quantità effettiva</button>';
+    if (mgr) {
+      btns += '<label class="muted" for="pbSt' + esc(b.day) + '" style="margin-top:4px">Correggi la fase</label><select class="field" id="pbSt' + esc(b.day) + '" data-pbst="' + esc(b.day) + '"><option value="auto"' + (b.override ? '' : ' selected') + '>Automatica (GPS + Sergio)</option>' +
+        PB_ST.map(function (x, i) { return '<option value="' + i + '"' + (b.override && st === i ? ' selected' : '') + '>' + esc(x[0]) + '</option>'; }).join('') + '</select>';
+      btns += '<button class="btn" data-act="pbsend" data-day="' + esc(b.day) + '">📨 Manda il tracking a Sergio</button>';
+    }
+    return h + '<div style="display:flex;flex-direction:column;gap:8px">' + btns + '</div></section>';
+  }
+  function pbCompose() {
+    var c = PB.comp; if (!c) return '';
+    var kinds = [['tracking', 'Tracking'], ['previsione', 'Previsione'], ['messaggio', 'Messaggio']];
+    return '<section class="card" style="display:flex;flex-direction:column;gap:8px"><h3>📨 Messaggio a ' + esc(PB.drivers.length ? PB.drivers.map(function (x) { return x.name; }).join(', ') : 'Sergio') + '</h3>' +
+      '<div class="seg2" role="group" aria-label="Tipo">' + kinds.map(function (k) { return '<button data-act="pbkind" data-k="' + k[0] + '"' + (c.kind === k[0] ? ' aria-pressed="true"' : '') + '>' + k[1] + '</button>'; }).join('') + '</div>' +
+      (c.kind === 'previsione' ? '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"><label class="muted">Giorno<input class="field" id="pbcDay" type="date" value="' + esc(c.day || '') + '"></label><label class="muted">Ora<input class="field" id="pbcT" type="time" value="' + esc(c.t || '') + '"></label><label class="muted">Quanti<input class="field" id="pbcN" type="number" min="0" inputmode="numeric" value="' + esc(c.n == null ? '' : c.n) + '"></label></div>' : '') +
+      '<textarea class="field txt" id="pbcBody" rows="3" style="min-height:84px" placeholder="' + (c.kind === 'previsione' ? 'Es. Domani 18 polybox da ritirare a Tronchetto, la patana arriva verso le 12:40' : 'Scrivi il messaggio per Sergio') + '">' + esc(c.body || '') + '</textarea>' +
+      (PB.err ? '<div class="note" role="alert">' + esc(PB.err) + '</div>' : '') +
+      '<button class="btn primary" data-act="pbcgo"' + (PB.busy ? ' disabled' : '') + '>' + (PB.busy ? 'Invio…' : 'Invia a Sergio') + '</button><button class="btn" data-act="pbcno">Annulla</button></section>';
+  }
+  function pbMsgs() {
+    var it = PB.msgs; if (!it) return '';
+    var van = isVan(), kl = { tracking: '📦 Tracking', previsione: '🗓️ Previsione', messaggio: '💬 Messaggio' };
+    var h = '<h3 style="margin-top:8px">' + (van ? 'Messaggi da Pietro' : 'Messaggi mandati a Sergio') + '</h3>';
+    if (!it.length) return h + '<div class="card"><p class="muted">' + (van ? 'Nessun messaggio per ora.' : 'Non hai ancora mandato messaggi.') + '</p></div>';
+    return h + it.slice(0, 15).map(function (m) {
+      var extra = [m.day ? pbDayLab(m.day) : '', m.t ? 'ore ' + m.t : '', m.n != null ? m.n + ' polybox' : ''].filter(Boolean).join(' · ');
+      return '<div class="card pbmsg' + (m.seen ? ' seen' : '') + '" style="display:flex;flex-direction:column;gap:4px"><div class="muted" style="font-size:13px">' + (kl[m.kind] || '') + ' · ' + esc(pbWhen(m.at)) + (van ? ' · da ' + esc(m.from || '') : '') + '</div>' +
+        (extra ? '<b>' + esc(extra) + '</b>' : '') + '<div style="white-space:pre-wrap">' + esc(m.body) + '</div>' +
+        (van ? (m.seen ? '<div class="muted" style="font-size:13px">✓ Letto</div>' : '<button class="btn sm" data-act="pbseen" data-id="' + esc(m.id) + '">Ho letto</button>') : '<div class="muted" style="font-size:13px">' + (m.seen ? '✓ Letto da ' + esc(m.to || '') + ' ' + esc(pbWhen(m.seen)) : 'Non ancora letto') + '</div>') + '</div>';
+    }).join('');
+  }
+  function viewPolybox() {
+    if (!PB.d && !PB.loading && !PB.err) pbLoad();
+    else if (Date.now() - PB.t > 25000 && !PB.loading) pbLoad();
+    var van = isVan(), mgr = pbIsMgr(), d = PB.d;
+    var h = '<div class="wrap">' + (van ? '' : '<button class="aslink" data-act="nav" data-v="altro">‹ Altro</button>') + '<h2>📦 Polybox di Murano</h2>' +
+      '<p class="muted">Murano → patana → Tronchetto (Scalo fluviale) → furgone → Zelarino. Il numero viene dai colli consegnati a Murano; se è diverso si corregge con “Quantità effettiva”.</p>';
+    if (PB.err && !d) return h + '<div class="note" role="alert">' + esc(PB.err) + '</div><button class="btn" data-act="pbreload">Riprova</button></div>';
+    if (!d) return h + '<div class="card"><p class="muted">Carico…</p></div></div>';
+    var bs = d.batches || [], wait = bs.filter(function (b) { return String(b.day).slice(0, 10) < todayKey() && b.stage < 3; }), tot = wait.reduce(function (a, b) { return a + b.n; }, 0);
+    var unread = van && PB.msgs ? PB.msgs.filter(function (m) { return !m.seen; }).length : 0;
+    h += '<section class="card" style="display:flex;flex-direction:column;gap:4px"><span class="muted">Oggi alle ' + esc(d.pickup_t || '13:00') + ' a Tronchetto</span><span class="pbbig">' + (tot ? tot + ' polybox da ritirare' : 'Niente da ritirare') + '</span>' +
+      (unread ? '<span class="pill" style="align-self:flex-start">💬 ' + unread + (unread === 1 ? ' messaggio nuovo' : ' messaggi nuovi') + ' da Pietro</span>' : '') + '</section>';
+    if (mgr) h += PB.comp ? pbCompose() : '<button class="btn" data-act="pbnew">📨 Scrivi a Sergio (previsione o messaggio)</button>';
+    if (van && unread) h += pbMsgs();
+    h += bs.length ? bs.map(pbCard).join('') : '<div class="card"><p class="muted">Nessun polybox in giro negli ultimi giorni.</p></div>';
+    if (!(van && unread)) h += pbMsgs();
+    return h + '<button class="btn sm" data-act="pbreload" style="margin-top:8px">Aggiorna</button></div>';
+  }
+  function pbKeep() { var c = PB.comp; if (!c) return; var b = $('pbcBody'), dd = $('pbcDay'), tt = $('pbcT'), nn = $('pbcN'); if (b) c.body = b.value; if (dd) c.day = dd.value; if (tt) c.t = tt.value; if (nn) c.n = nn.value === '' ? null : nn.value; }
+  document.addEventListener('change', function (e) {
+    var t = e.target, dy = t && t.getAttribute && t.getAttribute('data-pbst'); if (!dy) return;
+    var args = t.value === 'auto' ? { p_day: dy, p_clear_stage: true } : { p_day: dy, p_stage: +t.value };
+    cl('rpc_polybox_set', args).then(function (r) { pbAfter(r, t.value === 'auto' ? 'Fase di nuovo automatica' : 'Fase aggiornata'); });
+  });
+  function pbAfter(r, okMsg) { PB.busy = false; if (r && r.ok) { if (okMsg) toast(okMsg); pbLoad(); } else { toast('Non salvato: controlla la connessione'); render(); } }
+
   function viewAltro() {
-    var items = [['ddtgiro', '📄 DDT del giro', 'Le tue consegne del giorno: carica, vedi e fai firmare i DDT'], ['stat', '📊 Statistiche', 'Ore lavorate, consegne, puntualità, barche e DDT firmati'], ['cucina', '👨‍🍳 Uscite dalla cucina', 'Orari in cui i carichi devono essere pronti'], ['impost', '⚙️ Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
+    var items = [['ddtgiro', '📄 DDT del giro', 'Le tue consegne del giorno: carica, vedi e fai firmare i DDT'], ['stat', '📊 Statistiche', 'Ore lavorate, consegne, puntualità, barche e DDT firmati'], ['cucina', '👨‍🍳 Uscite dalla cucina', 'Orari in cui i carichi devono essere pronti'], ['polybox', '📦 Polybox Murano', 'Dove sono i polybox vuoti, quanti sono, e messaggi a Sergio (furgone)'], ['impost', '⚙️ Impostazioni', isFullAcc() ? 'Sicurezza e PIN di tutti, voce, colore dello sfondo' : 'Voce e colore dello sfondo']];
     return '<div class="wrap"><h2>Altro</h2>' + items.map(function (x) {
       return '<button class="card" data-act="nav" data-v="' + x[0] + '" style="text-align:left;display:flex;flex-direction:column;gap:2px"><b>' + x[1] + '</b><span class="muted">' + x[2] + '</span></button>';
     }).join('') + '</div>';
@@ -6041,12 +6144,15 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var NAV_FULL = [['logistica', 'Logistica'], ['barca', 'Barche'], ['turno', 'Turno'], ['notifiche', 'Notifiche'], ['altro', 'Altro']];
   var NAV_MGR = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['turno', 'Turno'], ['barca', 'Barca'], ['contatti', 'Contatti']];
   var NAV = [['turno', 'Turno'], ['programma', 'Programma'], ['ddtgiro', 'DDT'], ['barca', 'Barche'], ['notifiche', 'Chat']];
+  var NAV_VAN = [['polybox', 'Polybox'], ['programma', 'Programma'], ['contatti', 'Contatti']];
   var NAV_OFF = [['cucina', 'Cucina'], ['programma', 'Programma'], ['ddt', 'DDT'], ['notifiche', 'Chat'], ['contatti', 'Contatti']];
   function render() {
     if (GHOST && !document.getElementById('ghostBar')) { var gb = document.createElement('div'); gb.id = 'ghostBar'; gb.setAttribute('role', 'status'); gb.textContent = '👻 MODALITÀ PROVA · nessuno ti vede · niente viene salvato'; gb.style.cssText = 'position:sticky;top:0;left:0;right:0;z-index:99999;background:#7c3aed;color:#fff;font:600 12px/1.2 system-ui,sans-serif;text-align:center;padding:calc(4px + env(safe-area-inset-top)) 10px 4px;pointer-events:none'; document.body.insertBefore(gb, document.body.firstChild); }
     if (S.shift && view === 'guida' && !document.hidden) wakeOn(); else wakeOff();
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isOff() && ['ddt', 'contatti', 'impost', 'programma', 'cucina', 'notifiche'].indexOf(view) < 0) view = 'ddt';
+    if (isVan() && ['polybox', 'contatti', 'impost', 'programma'].indexOf(view) < 0) view = 'polybox';
+    if (view === 'polybox' && !isVan() && !isMgr() && !isFullAcc()) view = 'turno';
     if (!isOff() && isAdm && ['turno', 'guida', 'richieste', 'ddt'].indexOf(view) >= 0) view = 'logistica';
     if (isAdm && ['turno', 'guida', 'richieste'].indexOf(view) >= 0) view = 'logistica';
     if (!isAdm && view === 'admin') view = isFull ? 'logistica' : 'turno';
@@ -6062,19 +6168,20 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var g = $('gear'); g.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS.gear + '</svg>'; if (view === 'impost') g.setAttribute('aria-current', 'page'); else g.removeAttribute('aria-current');
     var cur = view === 'guida' ? 'turno' : view;
     if (view === 'pin' && !isFullAcc()) { view = 'impost'; cur = 'impost'; }
-    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat'].indexOf(cur) >= 0) cur = 'altro';
+    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'polybox'].indexOf(cur) >= 0) cur = 'altro';
+    if (isAdm && cur === 'polybox') cur = 'logistica';
     if (isAdm && cur === 'ore') cur = 'stat';
     if (view === 'stat' && !isMgr()) view = 'turno';
     if (isMgr() && cur === 'contatti') cur = 'notifiche';
     if (isMgr() && !isOff() && ['programma', 'ddt', 'murano'].indexOf(cur) >= 0) cur = 'logistica';
     if (isMgr() && cur === 'richieste') cur = 'barca';
     if (isCrewOnly() && ['richieste', 'contatti', 'ddt'].indexOf(cur) >= 0) cur = 'barca';
-    var NV = isOff() ? NAV_OFF : isAdm ? NAV_ADMIN : isFull ? NAV_FULL : (isMgr() ? NAV_MGR : NAV);
+    var NV = isVan() ? NAV_VAN : isOff() ? NAV_OFF : isAdm ? NAV_ADMIN : isFull ? NAV_FULL : (isMgr() ? NAV_MGR : NAV);
     drawDial(NV, cur);
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurno, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, murano: viewMurano, cucina: viewCucina, stat: viewStat }[view] || viewTurno;
+    var fn = { admin: viewAdmin, turno: viewTurno, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, murano: viewMurano, polybox: viewPolybox, cucina: viewCucina, stat: viewStat }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     var m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); m.scrollTop = (view === 'guida') ? 0 : sc;
     if (view === 'ddt') ddApplySearch();
@@ -6569,6 +6676,26 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       return; }
     if (a === 'mgcancel') { if (confirm('Annullare le tappe non ancora fatte di questa consegna?')) cl('rpc_task_cancel', { p_run: el.getAttribute('data-id') }).then(function () { loadMgr(false); toast('Tappe annullate'); }); return; }
     if (a === 'gear') { view = 'impost'; render(); return; }
+    if (a === 'pbreload') { PB.err = ''; pbLoad().then(render); return; }
+    if (a === 'pbvan') { var pdy = el.getAttribute('data-day'), px = el.getAttribute('data-x'); el.disabled = true; cl('rpc_polybox_van', { p_day: pdy, p_action: px }).then(function (r) { pbAfter(r, px === 'pick' ? 'Polybox sul furgone' : px === 'drop' ? 'Polybox arrivati a Zelarino' : 'Passo annullato'); }); return; }
+    if (a === 'pbqty') { PB.qty = el.getAttribute('data-day'); render(); var qi = $('pbQty'); if (qi) { qi.focus(); qi.select(); } return; }
+    if (a === 'pbqtyno') { PB.qty = null; render(); return; }
+    if (a === 'pbqtysave') { var qv = parseInt(($('pbQty') || {}).value, 10); if (isNaN(qv) || qv < 0 || qv > 999) { toast('Scrivi un numero da 0 a 999'); return; } var qd = el.getAttribute('data-day'); PB.qty = null; cl('rpc_polybox_set', { p_day: qd, p_actual: qv }).then(function (r) { pbAfter(r, 'Quantità salvata: ' + qv); }); return; }
+    if (a === 'pbqtyauto') { var qd2 = el.getAttribute('data-day'); PB.qty = null; cl('rpc_polybox_set', { p_day: qd2, p_clear_actual: true }).then(function (r) { pbAfter(r, 'Torno al conteggio automatico'); }); return; }
+    if (a === 'pbsend') { var bb = ((PB.d && PB.d.batches) || []).filter(function (x) { return String(x.day) === el.getAttribute('data-day'); })[0]; if (!bb) return; PB.comp = { kind: 'tracking', body: pbTrackText(bb), day: todayKey(), t: (PB.d && PB.d.pickup_t) || '13:00', n: bb.n }; PB.err = ''; render(); window.scrollTo && $('main') && ($('main').scrollTop = 0); return; }
+    if (a === 'pbnew') { PB.comp = { kind: 'previsione', body: '', day: ldShift(todayKey(), 1), t: (PB.d && PB.d.pickup_t) || '13:00', n: null }; PB.err = ''; render(); return; }
+    if (a === 'pbkind') { pbKeep(); PB.comp.kind = el.getAttribute('data-k'); render(); return; }
+    if (a === 'pbcno') { PB.comp = null; PB.err = ''; render(); return; }
+    if (a === 'pbcgo') {
+      pbKeep(); var c = PB.comp; if (!c || !String(c.body || '').trim()) { PB.err = 'Scrivi il messaggio.'; render(); return; }
+      PB.busy = true; PB.err = ''; render();
+      cl('rpc_van_msg_send', { p_kind: c.kind, p_body: c.body.trim(), p_day: c.kind === 'messaggio' ? null : (c.day || null), p_t: c.kind === 'messaggio' ? null : (c.t || null), p_n: c.kind === 'messaggio' || c.n === '' || c.n == null || isNaN(+c.n) ? null : +c.n }).then(function (r) {
+        PB.busy = false;
+        if (r && r.ok) { PB.comp = null; toast('Mandato a Sergio'); pbLoad(); }
+        else { PB.err = r && r.error === 'nessun_autista' ? 'Non c’è nessun profilo furgone attivo.' : 'Non inviato: controlla la connessione.'; render(); }
+      }); return;
+    }
+    if (a === 'pbseen') { el.disabled = true; cl('rpc_van_msg_seen', { p_id: el.getAttribute('data-id') }).then(function () { pbLoad(); }); return; }
     if (a === 'logout') { logout(); return; }
     if (a === 'shopen') { adminOpen = el.getAttribute('data-id'); loadDetail(adminOpen); render(); return; }
     if (a === 'shback') { adminOpen = null; render(); return; }
