@@ -3786,6 +3786,32 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     else if ((a === 'cupin' || a === 'cuadd' || a === 'curm' || a === 'cupdf') && view === 'pin') setTimeout(function () { loadPins(); }, 1500);
     else if (a === 'nav' && el.getAttribute('data-v') === 'pin') loadPins();
   });
+  function offCodeCard() {
+    var oc = offCode();
+    return '<div class="card"><h3>🔓 Codice di sblocco offline</h3><p class="muted">Un codice che apre l’app <b>sempre</b>, anche senza internet e anche se il server non risponde. Resta solo su <b>questo telefono</b>: sugli altri telefoni va impostato di nuovo. Con il codice l’app è in modalità offline: vedi il programma salvato e puoi usare il turno d’emergenza, ma niente va nel database finché non entri con il tuo PIN.</p>' +
+      (oc ? '<p class="hint">Codice attivo su questo telefono dal ' + esc(new Date(oc.at).toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })) + '.</p>' : '') +
+      '<label class="muted" for="ocNew">' + (oc ? 'Nuovo codice' : 'Codice') + ' (da 4 a 8 cifre, diverso dal PIN)</label><input class="field" id="ocNew" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off">' +
+      '<label class="muted" for="ocNew2">Ripeti il codice</label><input class="field" id="ocNew2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off">' +
+      '<p class="muted" id="ocMsg" role="status"></p><div class="btns"><button class="btn primary" data-act="ocsave">' + (oc ? 'Cambia codice' : 'Salva codice') + '</button>' + (oc ? '<button class="btn danger" data-act="ocdel">Togli il codice</button>' : '') + '</div></div>';
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act="ocsave"],[data-act="ocdel"]') : null; if (!el) return;
+    var m = $('ocMsg'); function say(t, ok) { if (m) { m.textContent = t; m.style.color = ok ? '#1E8E4E' : '#C0392B'; } }
+    if (el.getAttribute('data-act') === 'ocdel') {
+      if (el.getAttribute('data-sure') !== '1') { el.setAttribute('data-sure', '1'); el.textContent = 'Sicuro? Tocca di nuovo'; return; }
+      try { localStorage.removeItem(OCK); } catch (x) {} toast('Codice offline tolto da questo telefono'); render(); return;
+    }
+    var a = ($('ocNew') || {}).value || '', b = ($('ocNew2') || {}).value || '';
+    if (!/^[0-9]{4,8}$/.test(a)) return say('Il codice deve avere da 4 a 8 cifre, solo numeri.');
+    if (a !== b) return say('I due codici non sono uguali.');
+    if (/^(\d)\1+$/.test(a) || '01234567890'.indexOf(a) >= 0 || '98765432109'.indexOf(a) >= 0) return say('Codice troppo facile da indovinare: scegline un altro.');
+    var salt = Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(12)), function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
+    sha(salt + ':' + a).then(function (hx) {
+      var o = { s: salt, h: hx, at: Date.now(), name: SESSION.name, role: SESSION.role, full: !!SESSION.full, works: !!SESSION.works, locator: !!SESSION.locator };
+      try { localStorage.setItem(OCK, JSON.stringify(o)); } catch (x) { return say('Non riesco a salvarlo su questo telefono.'); }
+      toast('Codice offline salvato su questo telefono'); render();
+    }).catch(function () { say('Serve la pagina sicura (https) per salvare il codice.'); });
+  });
   function viewImpost() {
     var h = viewImpost0(), i = h.indexOf('<!--sec-->'), j = h.indexOf('<!--/sec-->');
     if (i < 0 || j < 0) return h;
@@ -3796,6 +3822,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     return '<div class="wrap"><h2>⚙️ Impostazioni</h2>' +
       '<div class="card"><h3>Accesso</h3><p class="muted">Sei entrato come <b>' + esc(SESSION ? SESSION.name : '') + '</b>' + (SESSION && SESSION.role === 'admin' ? ' (admin)' : '') + '.</p><button class="btn" data-act="logout">Esci</button></div>' +
       '<div class="card"><h3>Colore dello sfondo</h3><p class="muted">Scegli il colore che ti piace di più. Il testo si adatta da solo per restare leggibile. La schermata GPS resta sempre nera.</p><div class="swatches">' + BGS.map(function (c) { return '<button class="sw" data-act="bg" data-c="' + c[0] + '" aria-pressed="' + ((S.bg || '#FFFFFF').toUpperCase() === c[0] ? 'true' : 'false') + '"><i style="background:' + c[0] + '"></i>' + c[1] + '</button>'; }).join('') + '</div><label class="hint" for="bgIn">Oppure scegli un colore a piacere</label><input id="bgIn" type="color" value="' + esc((S.bg || '#FFFFFF').toLowerCase()) + '" style="width:100%;height:48px;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:4px"></div>' +
+      (isFullAcc() && !(SESSION && SESSION.offline) ? offCodeCard() : '') +
       (isFullAcc() ? secCard('<p class="muted">Scegli un PIN tuo, da 4 a 8 cifre. Non dirlo a nessuno.</p>' +
       '<label class="muted" for="pnOld">PIN attuale</label><input class="field" id="pnOld" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="current-password">' +
       '<label class="muted" for="pnNew">Nuovo PIN</label><input class="field" id="pnNew" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="new-password">' +
@@ -7747,7 +7774,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var nm = SESSION && SESSION.name ? String(SESSION.name).split(' ')[0] : '', hr = new Date().getHours();
     var h = '<div class="wrap hmwrap"><div class="hmhi">' + (hr < 13 ? 'Buongiorno' : hr < 18 ? 'Buon pomeriggio' : 'Buonasera') + (nm ? ', ' + esc(nm) : '') + '</div><div class="muted">' + esc(new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })) + '</div>';
     if (S.shift && !isVan() && !isOff()) h += '<button class="hmshift" data-act="nav" data-v="turno"><span style="font-size:28px" aria-hidden="true">🚤</span><span><b>Turno in corso</b>' + esc(BOATS[S.shift.boat] ? BOATS[S.shift.boat].name : '') + ' · tocca per riprendere</span></button>';
-    if (navigator.onLine === false && !isVan() && !isOff()) h += '<button class="hmshift" data-act="emopen" style="background:#7f1d1d;color:#fff"><span style="font-size:28px" aria-hidden="true">🆘</span><span><b>Sei offline</b>Apri il turno d’emergenza: le tappe si segnano dal programma</span></button>';
+    if ((navigator.onLine === false || (SESSION && SESSION.offline)) && !isVan() && !isOff()) h += '<button class="hmshift" data-act="emopen" style="background:#7f1d1d;color:#fff"><span style="font-size:28px" aria-hidden="true">🆘</span><span><b>' + (SESSION && SESSION.offline ? 'Modalità offline · niente va nel database' : 'Sei offline') + '</b>Apri il turno d’emergenza: le tappe si segnano dal programma</span></button>';
     h += turniHomeBanner() + shipHomeBanner();
     h += '<div class="hmgrid" role="list">' + homeApps().map(function (k) {
       var a = APPS[k] || [k, '#475569'], ic = ICONS[k === 'impost' ? 'gear' : k] || ICONS.altro;
@@ -8953,9 +8980,26 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (r && r.names) { loginNames = r.names; loginStep = 'name'; loginErr = ''; drawLogin(); return; }
     loginPin = ''; loginErr = (r && r.error === 'bloccato') ? 'Troppi tentativi. Riprova tra qualche minuto.' : 'PIN non corretto.'; drawLogin();
   }
+  /* Codice di sblocco offline: scelto da chi ha accesso completo nelle Impostazioni, salvato solo su questo telefono
+     (mai sul sito né su Supabase). Apre l'app senza internet né server, in modalità offline: niente va nel database. */
+  var OCK = 'smb-offcode';
+  function offCode() { try { var o = JSON.parse(localStorage.getItem(OCK) || 'null'); return o && o.h && o.s ? o : null; } catch (e) { return null; } }
+  function offEnter(oc) {
+    try { localStorage.removeItem(LKEY); } catch (e) {}
+    SESSION = { role: oc.role || 'admin', name: oc.name, t: Date.now(), token: null, offline: true, full: !!oc.full, works: !!oc.works, locator: !!oc.locator };
+    try { localStorage.setItem(SKEY, JSON.stringify(SESSION)); } catch (e) {}
+    loginStep = 'pin'; pinBuf = ''; loginErr = ''; loginNames = []; view = 'home';
+    drawLogin(); render(); toast('Sbloccata con il codice offline');
+  }
   function submitPin() {
     var w = lockLeft(); if (w > 0) { loginErr = 'Troppi tentativi. Riprova tra ' + w + ' secondi.'; $('lgErr').textContent = loginErr; return; }
     if (pinBuf.length < 4) { loginErr = 'Il PIN ha almeno 4 cifre.'; $('lgErr').textContent = loginErr; return; }
+    var oc = offCode();
+    if (oc && !submitPin.skipOc) {
+      var pc = pinBuf;
+      sha(oc.s + ':' + pc).then(function (hx) { if (hx === oc.h) offEnter(oc); else { submitPin.skipOc = true; pinBuf = pc; submitPin(); submitPin.skipOc = false; } }).catch(function () { submitPin.skipOc = true; pinBuf = pc; submitPin(); submitPin.skipOc = false; });
+      return;
+    }
     var pin = pinBuf; loginPin = pin; loginOffline = false;
     $('lgErr').textContent = 'Controllo il PIN…';
     cloud('rpc_login', { p_pin: pin, p_name: null, p_device: DEV }).then(handleLogin).catch(function (e) {
