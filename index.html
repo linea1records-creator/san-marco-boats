@@ -7480,7 +7480,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (['emopen', 'emclose', 'emboat', 'emstart', 'emend', 'emsheet', 'emprob', 'emskip', 'emclear', 'emback'].indexOf(a) < 0) return;
     e.preventDefault(); e.stopPropagation();
     var o = emGet();
-    if (a === 'emopen') { if (SESSION && SESSION.token) { emOpen(); return; } offEnter({ name: EM_WHO, role: 'admin', full: true, works: true, msg: 'Turno offline: tutto resta sul telefono' }); view = 'turno'; render(); loadDdt(); return; }
+    if (a === 'emopen') { if (S.shift && !isOffSess()) { toast('Hai un turno in corso: chiudilo prima di passare al turno offline'); return; } offEnter({ name: EM_WHO, role: 'admin', full: true, works: true, msg: 'Turno offline: tutto resta sul telefono' }); view = 'turno'; render(); loadDdt(); return; }
     else if (a === 'emclose') emClose();
     else if (a === 'emboat') { EM.boat = el.getAttribute('data-b'); emRender(); }
     else if (a === 'emstart') { var day = emDay(), boat = EM.boat || emBoatDefault(day), st = emStops(day, boat); if (!st.length) return; o.cur = { id: 'em-' + day + '-' + boat + '-' + Date.now().toString(36), day: day, boat: boat, who: EM_WHO, started: Date.now(), stops: st, probs: {} }; emPut(o); EM.scrolled = false; emRender(); }
@@ -7703,6 +7703,13 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       cl('rpc_velox_link_del', { p_id: did }).then(function (r) { toast(r && r.ok ? 'Collegamento eliminato' : 'Non eliminato: controlla la connessione'); });
     }
   });
+  // in modalità offline: scorciatoia per la simulazione con la consegna di prova di oggi
+  function viewTurnoOff() {
+    var t = TULLIO_TEST[todayKey()], card = '';
+    if (isOffSess() && !S.shift && t && t.length) card = '<div class="wrap" style="padding-bottom:0"><div class="card" style="border:2px solid #7c3aed;gap:8px"><b style="font-size:17px">🧪 Simulazione turno offline</b><span class="muted">Barca di prova <b>Tullio di Trops</b> · ' + t.map(function (z) { return esc(z.name) + ' alle ' + esc(z.t); }).join(', ') + '. Non entra nelle statistiche.</span><button class="btn primary" data-act="simstart">Inizia la simulazione</button></div></div>';
+    return card + viewTurno();
+  }
+  document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="simstart"]') : null; if (!el || S.shift) return; if (BOATS.TULLIO) BOATS.TULLIO.gone = false; startShift('TULLIO'); });
   function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
   /* ---------- render ---------- */
@@ -7714,6 +7721,9 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var NAV_OFF = [['cucina', 'Cucina'], ['programma', 'Programma'], ['ddt', 'DDT'], ['notifiche', 'Chat'], ['contatti', 'Contatti']];
   function render() {
     if (view !== 'tracking' && typeof TR !== 'undefined' && TR && TR.fs) { TR.fs = false; document.body.classList.remove('trfsopen'); }
+    var ob = document.getElementById('offBar');
+    if (isOffSess() && !ob) { ob = document.createElement('div'); ob.id = 'offBar'; ob.setAttribute('role', 'status'); ob.textContent = '📴 TURNO OFFLINE · tutto resta sul telefono · si carica quando entri con il PIN'; ob.style.cssText = 'position:sticky;top:0;left:0;right:0;z-index:99999;background:#b91c1c;color:#fff;font:600 12px/1.25 system-ui,sans-serif;text-align:center;padding:calc(5px + env(safe-area-inset-top)) 10px 5px;pointer-events:none'; document.body.insertBefore(ob, document.body.firstChild); }
+    else if (!isOffSess() && ob) ob.remove();
     if (GHOST && !document.getElementById('ghostBar')) { var gb = document.createElement('div'); gb.id = 'ghostBar'; gb.setAttribute('role', 'status'); gb.textContent = '👻 MODALITÀ PROVA · nessuno ti vede · niente viene salvato'; gb.style.cssText = 'position:sticky;top:0;left:0;right:0;z-index:99999;background:#7c3aed;color:#fff;font:600 12px/1.2 system-ui,sans-serif;text-align:center;padding:calc(4px + env(safe-area-inset-top)) 10px 4px;pointer-events:none'; document.body.insertBefore(gb, document.body.firstChild); }
     if (S.shift && view === 'guida' && !document.hidden) wakeOn(); else wakeOff();
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
@@ -7756,7 +7766,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurno, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox }[view] || viewTurno;
+    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     var m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); m.scrollTop = (view === 'guida') ? 0 : sc;
     if (view === 'ddt') ddApplySearch();
