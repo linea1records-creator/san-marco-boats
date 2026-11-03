@@ -2604,9 +2604,16 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var SH_PRE = [['🧺', 'Ceste del pane'], ['🥖', 'Pane'], ['📦', 'Polybox'], ['🍽️', 'Pasti'], ['📄', 'Documenti']];
   function shLoad() {
     if (SH.loading || !tok()) return Promise.resolve(); SH.loading = true; SH.t = Date.now();
-    return cl('rpc_ship_list', {}).then(function (r) { SH.loading = false; if (r && r.items) { SH.d = r; SH.err = ''; } if ((view === 'spedizioni' && !SH.f) || view === 'home') render(); }).catch(function () { SH.loading = false; });
+    return cl('rpc_ship_list', {}).then(function (r) {
+      SH.loading = false;
+      if (!r || !r.items) { SH.failT = Date.now(); if (!SH.d) SH.d = { items: [], mgr: false, failed: true }; if (view === 'spedizioni' && !SH.f) render(); return; } // niente ricarica continua se il server non risponde
+      var sig = JSON.stringify(r.items.map(function (x) { return [x.id, x.status, x.planned_t, x.state && x.state.stage, x.state && x.state.eta, x.opened_at]; }));
+      var changed = sig !== SH.sig; SH.sig = sig; SH.d = r; SH.err = ''; SH.failT = 0;
+      if ((view === 'spedizioni' && !SH.f) || (view === 'home' && changed)) render();
+    }).catch(function () { SH.loading = false; SH.failT = Date.now(); });
   }
-  setInterval(function () { if ((view === 'spedizioni' && !SH.f || view === 'home') && !document.hidden && tok() && !isOff() && Date.now() - SH.t > 30000) shLoad(); }, 5000);
+  // ogni 30 secondi ricontrolla tracking e orari del programma (se Pietro cambia un orario, si aggiorna da solo)
+  setInterval(function () { if ((view === 'spedizioni' && !SH.f || view === 'home') && !document.hidden && tok() && !isOff() && Date.now() - SH.t > 30000 && (!SH.failT || Date.now() - SH.failT > 60000)) shLoad(); }, 5000);
   function shLink(x) { return location.origin + location.pathname + '?t=' + x.token; }
   function shHm(ts) { return ts ? new Date(ts).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : ''; }
   function shStatus(x) {
@@ -2661,7 +2668,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   function shipHomeBanner() {
     if (!tok() || isOff()) return '';
-    if (!SH.d && !SH.loading) setTimeout(shLoad, 0);
+    if (!SH.d && !SH.loading && !SH.failT) setTimeout(shLoad, 0);
     var me = SESSION && SESSION.name, it = ((SH.d && SH.d.items) || []).filter(function (x) { return x.status === 'attivo' && (!SH.d.mgr || x.to_employee === me); });
     return it.map(function (x) { return '<a class="hmshift" style="background:#0d9488;text-decoration:none" href="' + esc(shLink(x)) + '"><span style="font-size:28px" aria-hidden="true">' + esc(x.emoji || '📦') + '</span><span><b>' + esc(x.title + ' → ' + x.to) + '</b>' + esc(shStatus(x)) + '</span></a>'; }).join('');
   }
