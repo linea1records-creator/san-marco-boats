@@ -2689,7 +2689,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var st = x.state || {}, sg = st.stage || 'viaggio';
     if (sg === 'arrivato') return 'Arrivato' + (st.arrived_at ? ' alle ' + shHm(st.arrived_at) : '');
     if (sg === 'annullato') return 'Annullato';
-    return SH_ST[sg] + (st.eta ? ' · arrivo ~' + shHm(st.eta) : x.planned_t ? ' · previsto ' + x.planned_t : '');
+    return SH_ST[sg] + (st.eta_min && st.eta_max ? ' · arrivo ' + shHm(st.eta_min) + '–' + shHm(st.eta_max) : st.eta ? ' · arrivo ~' + shHm(st.eta) : x.planned_t ? ' · previsto ' + x.planned_t : '');
   }
   function shText(x) { return (x.emoji || '📦') + ' ' + x.title + (x.qty ? ' (' + x.qty + ')' : '') + ' in arrivo a ' + x.to + (x.planned_t ? ', previsto alle ' + x.planned_t : '') + '. Segui la barca in tempo reale: ' + shLink(x); }
   function shShareBtns(x) {
@@ -2787,7 +2787,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var order = steps.map(function (x) { return x[0]; }), cur = sg === 'quasi' ? order.indexOf('viaggio') : order.indexOf(sg); if (cur < 0) cur = 0;
     var big = sg === 'arrivato' ? '<div class="cdone" aria-hidden="true">✓</div><h1>Arrivato</h1><div class="csub">' + (st.arrived_at ? 'alle ' + esc(shHm(st.arrived_at)) : '') + '</div>'
       : sg === 'annullato' ? '<h1>Consegna annullata</h1><p class="cmut">Per informazioni chiama la logistica.</p>'
-      : '<div class="ceta"><span>' + (sg === 'quasi' ? 'Sta arrivando' : 'Arrivo stimato') + '</span><b>' + esc(st.eta ? shHm(st.eta) : (d.planned_t || '—')) + '</b></div>' + (d.planned_t && st.eta ? '<div class="cmut">Previsto da programma: ' + esc(d.planned_t) + '</div>' : '') + '<div class="cchip ok">' + esc(SH_ST[sg] || '') + '</div>';
+      : '<div class="ceta"><span>' + (sg === 'quasi' ? 'Sta arrivando' : 'Arrivo stimato') + '</span><b>' + esc(st.eta ? shHm(st.eta) : (d.planned_t || '—')) + '</b></div>' + (st.eta_min && st.eta_max ? '<div class="csub">tra le ' + esc(shHm(st.eta_min)) + ' e le ' + esc(shHm(st.eta_max)) + '</div>' : '') + (d.planned_t && st.eta ? '<div class="cmut">Previsto da programma: ' + esc(d.planned_t) + '</div>' : '') + '<div class="cchip ok">' + esc(SH_ST[sg] || '') + '</div>';
     b.innerHTML = '<div class="ccard"><div class="cname">' + esc(d.recipient ? 'Per ' + d.recipient : 'In arrivo') + '</div><div style="font-size:22px;font-weight:800">' + esc((d.emoji || '📦') + ' ' + d.title + (d.qty ? ' · ' + d.qty : '')) + '</div><div class="cmut">' + esc((d.from ? d.from + ' → ' : '') + d.to + ' · barca ' + (d.boat_name || d.boat)) + '</div>' + big + '</div>' +
       (sg !== 'annullato' ? '<div class="fleetbox" id="shpMap" style="height:260px;border-radius:18px"><div class="mtiles" id="shpTiles"></div><svg class="msvg" id="shpSvg" aria-hidden="true"></svg><div class="mattr">© OpenStreetMap · OpenSeaMap</div></div>' : '') +
       '<div class="ccard" style="text-align:left;align-items:stretch"><ul class="pbsteps" style="margin:0">' + steps.map(function (x, i) { var cls = sg === 'arrivato' || i < cur ? 'on' : i === cur ? 'cur' : ''; return '<li class="' + cls + '"><i aria-hidden="true"></i><span><b>' + esc(x[1]) + '</b>' + (x[0] === 'carico' && st.picked_at ? '<small>alle ' + esc(shHm(st.picked_at)) + '</small>' : '') + '</span></li>'; }).join('') + '</ul>' +
