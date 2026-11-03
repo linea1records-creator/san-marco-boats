@@ -1336,6 +1336,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<path d="M17 55c3-2.5 6-2.5 8 0s5 2.5 8 0 5-2.5 8 0 4 2.5 6 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
   }
   var ICONS = {
+    presenze: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 10h7M8.5 13.5h7M8.5 17h4"/>',
     turni: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6M12 2v3"/>',
     spedizioni: '<circle cx="6" cy="18" r="2.2"/><path d="M8.2 18H14a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/><path d="M18 9.5s-3-2.8-3-5a3 3 0 0 1 6 0c0 2.2-3 5-3 5z"/>',
     tracking: '<path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z"/><circle cx="12" cy="10" r="2.3"/>',
@@ -2608,6 +2609,63 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     else if (a === 'pglshow') { g = pglGet(); delete g.hidden[el.getAttribute('data-c')]; save(); render(); }
     else if (a === 'ldpick' && view === 'programma') { viewDay = el.getAttribute('data-k'); if (!PROGRAM[viewDay]) viewDay = null; render(); }
   });
+  /* ---------- Presenze: moduli delle ore dei lavoratori (per la segreteria) ---------- */
+  var PZ = { d: null, loading: false, open: {}, f: null, busy: false, err: '', t: 0 };
+  var MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+  function pzLoad() { if (PZ.loading || !tok()) return Promise.resolve(); PZ.loading = true; PZ.t = Date.now(); return cl('rpc_att_list', {}).then(function (r) { PZ.loading = false; if (r && r.items) PZ.d = r.items; else PZ.fail = true; if (view === 'presenze') render(); }); }
+  function pzMonthLab(m) { var d = String(m).slice(0, 7).split('-'); return MESI[+d[1] - 1] + ' ' + d[0]; }
+  function viewPresenze() {
+    if (!PZ.d && !PZ.loading && !PZ.fail) pzLoad();
+    var h = '<div class="wrap"><button class="aslink" data-act="nav" data-v="home">‹ Home</button><h2>🗂️ Presenze</h2><p class="muted">Orari presenze dei lavoratori, sul modulo della segreteria. Tocca un mese per aprirlo.</p>';
+    if (!PZ.d) return h + (PZ.fail ? '<div class="note" role="alert">Non riesco a leggere le presenze. Controlla la connessione.</div><button class="btn" data-act="pzreload">Riprova</button>' : '<div class="card"><p class="muted">Carico…</p></div>') + '</div>';
+    h += PZ.f ? pzForm() : '<button class="btn" data-act="pznew">+ Carica un modulo presenze</button>';
+    var months = [], by = {};
+    PZ.d.forEach(function (x) { var k = String(x.month).slice(0, 7); if (!by[k]) { by[k] = []; months.push(k); } by[k].push(x); });
+    if (!months.length) return h + '<div class="card"><p class="muted">Ancora nessun modulo caricato.</p></div></div>';
+    months.forEach(function (k, mi) {
+      var op = PZ.open[k] != null ? PZ.open[k] : mi === 0, it = by[k];
+      h += '<section class="card dgf' + (op ? ' op' : '') + '"><button class="dgfh" data-act="pzfold" data-k="' + k + '" aria-expanded="' + op + '"><span aria-hidden="true">📁</span><b>' + esc(pzMonthLab(k)) + '</b><span class="pill">' + it.length + (it.length === 1 ? ' lavoratore' : ' lavoratori') + '</span><span class="dgfc" aria-hidden="true">›</span></button>' +
+        (op ? '<div class="dgfb">' + it.map(function (x) {
+          return '<div class="ddr"><span class="ddrt"><b>' + esc(x.worker) + (x.total ? ' · ' + esc(x.total) + ' ore' : '') + '</b><small>' + esc(x.note || x.name) + '</small></span><span class="ddrb"><button class="btn sm primary" data-act="pzopen" data-id="' + esc(x.id) + '">Apri</button><button class="btn sm" data-act="pzdl" data-id="' + esc(x.id) + '" aria-label="Scarica il modulo di ' + esc(x.worker) + '">⬇︎</button><button class="btn sm" data-act="pzdel" data-id="' + esc(x.id) + '" aria-label="Elimina il modulo di ' + esc(x.worker) + '">🗑</button></span></div>';
+        }).join('') + '</div>' : '') + '</section>';
+    });
+    return h + '</div>';
+  }
+  function pzForm() {
+    var f = PZ.f;
+    return '<section class="card shf" style="display:flex;flex-direction:column;gap:8px"><h3>Carica un modulo presenze</h3>' +
+      '<label class="clsec" for="pzW">Di chi è</label><input class="field" id="pzW" maxlength="60" value="' + esc(f.worker) + '" placeholder="es. Felix">' +
+      '<label class="clsec" for="pzM">Mese</label><input class="field" id="pzM" type="month" value="' + esc(f.month) + '">' +
+      '<label class="clsec" for="pzT">Totale ore (facoltativo)</label><input class="field" id="pzT" maxlength="20" value="' + esc(f.total) + '" placeholder="es. 212:30">' +
+      '<label class="clsec" for="pzN">Nota (facoltativa)</label><input class="field" id="pzN" maxlength="200" value="' + esc(f.note) + '">' +
+      '<div class="clsec">File</div><button class="btn" data-act="pzfile">' + (f.file ? '📎 ' + esc(f.file.name) : '📎 Scegli il PDF o la foto') + '</button>' +
+      (PZ.err ? '<div class="note" role="alert">' + esc(PZ.err) + '</div>' : '') +
+      '<button class="btn primary" data-act="pzsave"' + (PZ.busy ? ' disabled' : '') + '>' + (PZ.busy ? 'Carico…' : 'Carica') + '</button><button class="btn" data-act="pzcancel">Annulla</button></section>';
+  }
+  function pzKeep() { var f = PZ.f; if (!f) return; var g = function (i) { var e = $(i); return e ? e.value : undefined; }, v; if ((v = g('pzW')) !== undefined) f.worker = v; if ((v = g('pzM')) !== undefined) f.month = v; if ((v = g('pzT')) !== undefined) f.total = v; if ((v = g('pzN')) !== undefined) f.note = v; }
+  function pzGet(id) { toast('Apro il modulo…'); return cl('rpc_att_get', { p_id: id }).then(function (r) { if (!r || !r.data) { toast('Modulo non disponibile'); throw new Error('nodata'); } return { blob: new Blob([b64bytes(r.data)], { type: r.mime }), name: r.name }; }); }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act'); if (a.indexOf('pz') !== 0) return; var id = el.getAttribute('data-id');
+    if (a === 'pzreload') { PZ.fail = false; pzLoad(); }
+    else if (a === 'pzfold') { var k = el.getAttribute('data-k'), cur = PZ.open[k] != null ? PZ.open[k] : (PZ.d && PZ.d.length && String(PZ.d[0].month).slice(0, 7) === k); PZ.open[k] = !cur; render(); }
+    else if (a === 'pzopen') pzGet(id).then(function (o) { ddtViewer(o.blob, o.name, '<button class="btn primary" data-act="pzdl" data-id="' + esc(id) + '">Scarica</button>'); }).catch(function () {});
+    else if (a === 'pzdl') pzGet(id).then(function (o) { var u = URL.createObjectURL(o.blob), l = document.createElement('a'); l.href = u; l.download = o.name; document.body.appendChild(l); l.click(); l.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 60000); }).catch(function () {});
+    else if (a === 'pzdel') { var x = (PZ.d || []).filter(function (y) { return y.id === id; })[0]; if (!x || !confirm('Eliminare il modulo presenze di ' + x.worker + ' (' + pzMonthLab(x.month) + ')?')) return; cl('rpc_att_remove', { p_id: id }).then(function (r) { if (r && r.ok) { toast('Modulo eliminato'); pzLoad(); } else toast('Non eliminato'); }); }
+    else if (a === 'pznew') { var d = new Date(); d.setMonth(d.getMonth() - 1); PZ.f = { worker: '', month: d.getFullYear() + '-' + pad(d.getMonth() + 1), total: '', note: '', file: null }; PZ.err = ''; render(); }
+    else if (a === 'pzcancel') { PZ.f = null; PZ.err = ''; render(); }
+    else if (a === 'pzfile') { pzKeep(); var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'application/pdf,image/jpeg,image/png'; inp.style.display = 'none'; inp.onchange = function () { var fl = inp.files && inp.files[0]; inp.remove(); if (!fl) return; if (fl.size > 5e6) { PZ.err = 'File troppo grande (massimo 5 MB).'; render(); return; } PZ.f.file = fl; PZ.err = ''; render(); }; document.body.appendChild(inp); inp.click(); }
+    else if (a === 'pzsave') {
+      pzKeep(); var f = PZ.f;
+      if (!String(f.worker || '').trim()) { PZ.err = 'Scrivi di chi è il modulo.'; render(); return; }
+      if (!/^\d{4}-\d{2}$/.test(f.month || '')) { PZ.err = 'Scegli il mese.'; render(); return; }
+      if (!f.file) { PZ.err = 'Scegli il file.'; render(); return; }
+      PZ.busy = true; PZ.err = ''; render();
+      blobB64(f.file).then(function (b64) { return cl('rpc_att_add', { p_month: f.month + '-01', p_worker: f.worker.trim(), p_total: f.total || null, p_note: f.note || null, p_name: f.file.name, p_mime: f.file.type || 'application/pdf', p_data: b64 }); }).then(function (r) {
+        PZ.busy = false; if (r && r.ok) { PZ.f = null; toast('Modulo caricato'); pzLoad(); } else { PZ.err = r && r.error === 'tipo' ? 'Serve un PDF o una foto (JPG/PNG).' : 'Non caricato: controlla la connessione.'; render(); }
+      });
+    }
+  });
+
   /* ---------- Turni: Pietro corregge inizio e fine (anche quelli non chiusi), le ore lavorate si aggiornano ---------- */
   var TU = { d: null, t: 0, loading: false, open: {}, busy: false, err: {}, days: 14 };
   function tuLoad() {
@@ -7124,7 +7182,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (GHOST && !document.getElementById('ghostBar')) { var gb = document.createElement('div'); gb.id = 'ghostBar'; gb.setAttribute('role', 'status'); gb.textContent = '👻 MODALITÀ PROVA · nessuno ti vede · niente viene salvato'; gb.style.cssText = 'position:sticky;top:0;left:0;right:0;z-index:99999;background:#7c3aed;color:#fff;font:600 12px/1.2 system-ui,sans-serif;text-align:center;padding:calc(4px + env(safe-area-inset-top)) 10px 4px;pointer-events:none'; document.body.insertBefore(gb, document.body.firstChild); }
     if (S.shift && view === 'guida' && !document.hidden) wakeOn(); else wakeOff();
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
-    if (isOff() && ['home', 'ddt', 'contatti', 'impost', 'programma', 'cucina', 'notifiche'].indexOf(view) < 0) view = 'home';
+    if (isOff() && ['home', 'presenze', 'ddt', 'contatti', 'impost', 'programma', 'cucina', 'notifiche'].indexOf(view) < 0) view = 'home';
+    if (view === 'presenze' && !isOff() && !isMgr() && !isFullAcc()) view = 'home';
     if (isVan() && ['home', 'polybox', 'tracking', 'contatti', 'impost', 'programma'].indexOf(view) < 0) view = 'home';
     if (view === 'tracking' && isOff()) view = 'ddt';
     if (view === 'spedizioni' && (isOff() || isVan())) view = 'home';
@@ -7161,7 +7220,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurno, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat }[view] || viewTurno;
+    var fn = { admin: viewAdmin, turno: viewTurno, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     var m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); m.scrollTop = (view === 'guida') ? 0 : sc;
     if (view === 'ddt') ddApplySearch();
@@ -7170,15 +7229,15 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   /* ---------- Home: ogni strumento è un'icona come un'app del telefono ---------- */
   var APPS = {
     logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
-    barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], polybox: ['Polybox', '#ca8a04'], notifiche: ['Notifiche', '#db2777'],
+    barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], notifiche: ['Notifiche', '#db2777'],
     stat: ['Statistiche', '#4f46e5'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
   };
   function homeApps() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isVan()) return ['polybox', 'tracking', 'programma', 'contatti', 'impost'];
-    if (isOff()) return ['cucina', 'programma', 'ddt', 'notifiche', 'contatti', 'impost'];
-    if (isAdm) return ['logistica', 'notifiche', 'turni', 'spedizioni', 'tracking', 'stat', 'barca', 'benzina', 'programma', 'contatti', 'impost'];
-    if (isFull) return ['logistica', 'turno', 'turni', 'programma', 'ddtgiro', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'cucina', 'contatti', 'impost'];
+    if (isOff()) return ['presenze', 'ddt', 'cucina', 'programma', 'notifiche', 'contatti', 'impost'];
+    if (isAdm) return ['logistica', 'notifiche', 'turni', 'presenze', 'spedizioni', 'tracking', 'stat', 'barca', 'benzina', 'programma', 'contatti', 'impost'];
+    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'cucina', 'contatti', 'impost'];
     if (isMgr()) return ['logistica', 'turno', 'turni', 'programma', 'notifiche', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'contatti', 'impost'];
     return ['turno', 'programma', 'ddtgiro', 'barca', 'notifiche', 'tracking', 'benzina', 'impost'];
   }
