@@ -5101,6 +5101,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       if ('giro' in BI[c]) BOATS[c].giro = BI[c].giro;
     });
     if (any) Object.keys(BOATS).forEach(function (c) { if (!BI[c] && !(S.shift && S.shift.boat === c)) BOATS[c].gone = true; });
+    // barca di prova visibile nei giorni con una consegna di prova (simulazione del turno offline)
+    if (BOATS.TULLIO && TULLIO_TEST[todayKey()]) BOATS.TULLIO.gone = false;
     fillBoatDays();
   }
   applyBoatInfo();
