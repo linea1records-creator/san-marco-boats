@@ -28,6 +28,7 @@ details[open] .secc{transform:rotate(90deg)}
 .ddsum{display:flex;gap:8px;margin:8px 0 10px}.ddsum span{flex:1;border:1px solid var(--line,#e4e7ec);border-radius:12px;padding:6px 10px;font-size:12.5px;color:var(--muted,#667);display:flex;flex-direction:column}.ddsum b{font-size:20px;color:var(--ink,#111)}.card.dgf{padding:0;overflow:hidden}.dgfh{width:100%;display:flex;align-items:center;gap:10px;padding:12px 14px;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}.dgfh b{flex:1;font-size:15.5px}.dgfc{font-size:20px;color:var(--muted,#667);transition:transform .15s}.dgf.op .dgfc{transform:rotate(90deg)}.dgfb{border-top:1px solid var(--line,#e4e7ec)}.ddr{display:flex;align-items:center;gap:8px;padding:5px 8px 5px 14px;min-height:46px;border-bottom:1px solid var(--line,#eef0f3)}.ddr:last-child{border-bottom:0}.ddrt{flex:1;min-width:0;display:flex;flex-direction:column}.ddrt b{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ddrt small{font-size:12.5px;color:var(--muted,#667);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ddrb{display:flex;gap:4px;flex:0 0 auto}.ddrb .btn.sm{min-height:36px;padding:4px 10px;font-size:14px}
 .pbdet{padding-left:12px!important}.pbdet .card{margin:0}.pbdet .pdt{min-width:0}
 .stdept{display:flex;width:100%;margin:8px 0 10px}.stdept button{flex:1;padding:10px 4px;font-size:14px}
+.gmchip{margin-top:8px;border:0;border-radius:999px;padding:6px 12px;font:600 13px system-ui,sans-serif;background:rgba(34,197,94,.18);color:inherit;cursor:pointer}.gmchip.off{background:rgba(251,146,60,.25)}.gmb{flex-direction:column;align-items:flex-start;text-align:left;gap:2px;min-height:64px}.gmb span{font-weight:400;font-size:13.5px;opacity:.85}
 .pbret{display:flex;flex-direction:column;gap:4px;padding:10px 12px;margin:6px 0;border-radius:14px;background:#fff7ed;border:2px solid #fb923c;color:#111}.pbret.ok{background:#f0fdf4;border-color:#22c55e;flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px 10px}.pbret.ok span{flex:1;font-size:13px;color:#444}.pbret span{font-size:14px}.pbrst{display:flex;align-items:center;gap:8px;margin-top:4px}.pbrst b{font-size:26px;min-width:34px;text-align:center}.pbrst .btn.sm{min-height:44px;min-width:44px;font-size:20px}.pbrst .btn.primary{flex:1;font-size:15px}
 .shwa{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:0 0 auto;min-width:44px;min-height:40px;margin-right:10px;padding:6px 10px;border-radius:12px;background:#25D366;color:#fff;font-weight:700;font-size:14px;text-decoration:none}.shwa.big{margin:0;min-height:38px}.hmtr{margin-top:14px}
 .shf .field,.shf select,.shf input::placeholder{text-transform:none}.shvg{display:flex;flex-direction:column;gap:2px}
@@ -1540,7 +1541,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       save(); closeSheet(); view = 'guida'; spoken = '';
       wakeOn();
       toast('Turno iniziato su ' + BOATS[code].name);
-      gpsApply(); render(); setTimeout(loadMyTasks, 600); setTimeout(function () { noticeCheck(true); }, 1500);
+      gpsApply(); render(); setTimeout(loadMyTasks, 600); setTimeout(function () { gpsModeAsk(true); }, 400);
     };
     if (tok()) { cl('rpc_start_shift', { p_boat: code }).then(function (r) { if (r && r.error) { scanMsg(startErr(r.error), true); return; } go(); if (r && r.shift_id && S.shift) { S.shift.sid = r.shift_id; save(); } cl('rpc_set_plan', { p_plan: stops().map(function (z) { return { name: z.name, t: z.ind ? '' : (z.t || '') }; }) }); }); } else go();
   }
@@ -3903,7 +3904,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       body = '<div class="row"><h3>' + (arrT ? 'Arrivato' : 'Rotta') + '</h3><div class="pills">' + (s.t ? '<span class="pill go">' + (s.ind ? 'Indicativo: circa ' : 'Previsto alle ') + esc(s.t) + '</span>' : '<span class="pill go">Orario da definire</span>') + (arrT ? arrPill(s.t, arrT, s.ind) : s.ind ? '' : delayPill(s.t)) + '</div></div>' +
         '<p class="huge">' + (arrT ? 'Sei a ' : 'Vai a ') + esc(s.name) + '</p>' + (arrT && isPane(s.name) ? '<div class="note"><b>Carica il DDT del pane:</b> appena è caricato si passa da solo alla consegna successiva.</div>' : '') +
         (s.note ? '<div class="note"><b>Alla tappa:</b> ' + esc(s.note) + '</div>' : '') +
-        '<div class="muted">' + (next ? 'Dopo: ' + esc(next.name) + (next.t ? ' alle ' + esc(next.t) : '') : 'Ultima tappa del giro') + '</div>';
+        '<div class="muted">' + (next ? 'Dopo: ' + esc(next.name) + (next.t ? ' alle ' + esc(next.t) : '') : 'Ultima tappa del giro') + '</div>' + gpsModeChip();
       primary = (isSem(s.name) || isBenz(s.name) || /^(darsena|scalo)\b/i.test(String(s.name).trim())) ? 'Tappa fatta' : arrT && isPane(s.name) ? '📷 Carica il DDT del pane' : arrT ? 'Apri la consegna' : 'Sono arrivato';
       speech = 'Tappa ' + (i + 1) + ' di ' + all.length + '. Vai a ' + s.name + '. ' + (s.t ? 'Arrivo previsto alle ' + s.t + '.' : 'Orario da definire.') + (s.note ? ' ' + s.note + '.' : '');
     } else {
@@ -7371,7 +7372,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   // checkpoint GPS: entro 100 metri dalla tappa sei arrivato (l'ora di arrivo è quella dell'ingresso nel cerchio)
   var ARR_R = 100;
   function arrCheck() {
-    var sh = S.shift; if (!sh || !GPS.last || holdIdx() != null) return; var i = curIdx(); if (i < 0) return;
+    var sh = S.shift; if (!sh || sh.noGps || !GPS.last || holdIdx() != null) return; var i = curIdx(); if (i < 0) return;
     var s = stops()[i]; if (!s || s.cancelled || (s.maint && sh.step)) return; var tg = COORDS[s.name]; if (!tg) return;
     sh.arr = sh.arr || {}; var k = arrKey(i);
     var lk0 = $('nextLock'); if (lk0) lk0.textContent = lockTxt(i);
@@ -7393,8 +7394,28 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   // chi oggi lavora senza GPS: le sue conferme valgono sempre (nome → giorno)
   var GPS_FREE = {};
   function gpsFreeToday() { var n = ddtNorm(SESSION && SESSION.name || '').split(' ')[0]; return GPS_FREE[n] === todayKey(); }
+  // modalità di lavoro: con GPS (arrivo automatico al checkpoint) o senza GPS (arrivo quando si preme Sono arrivato)
+  function gpsModeAsk(first) {
+    if (!S.shift) return;
+    openSheet('<div class="dfxs"><h2>Come lavori oggi?</h2><p class="muted">Puoi cambiarlo quando vuoi durante il turno.</p><div class="btns">' +
+      '<button class="btn ' + (!S.shift.noGps ? 'primary' : '') + ' gmb" data-act="gpsset" data-v="gps"><b>📍 Con GPS</b><span>L’arrivo si segna da solo quando la barca raggiunge la tappa</span></button>' +
+      '<button class="btn ' + (S.shift.noGps ? 'primary' : '') + ' gmb" data-act="gpsset" data-v="manual"><b>✋ Senza GPS</b><span>L’arrivo si segna quando premi “Sono arrivato”</span></button></div></div>');
+    GMODE.first = !!first;
+  }
+  var GMODE = { first: false };
+  function gpsModeChip() { var ng = S.shift && S.shift.noGps; return '<button class="gmchip' + (ng ? ' off' : '') + '" data-act="gpsmode">' + (ng ? '✋ Senza GPS' : '📍 GPS automatico') + ' · cambia</button>'; }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el || !S.shift) return; var a = el.getAttribute('data-act');
+    if (a === 'gpsmode') gpsModeAsk(false);
+    else if (a === 'gpsset') {
+      var ng = el.getAttribute('data-v') === 'manual', was = !!S.shift.noGps; S.shift.noGps = ng; save(); closeSheet();
+      if (was !== ng || GMODE.first) toast(ng ? '✋ Senza GPS: premi “Sono arrivato” quando arrivi' : '📍 Con GPS: l’arrivo si segna da solo');
+      if (!ng) setTimeout(arrCheck, 300);
+      render(); if (GMODE.first) { GMODE.first = false; setTimeout(function () { noticeCheck(true); }, 600); }
+    }
+  });
   function canArrive(i) {
-    if (gpsFreeToday()) return true;
+    if (gpsFreeToday() || (S.shift && S.shift.noGps)) return true;
     var s = stops()[i]; if (!s || s.maint) return true; var tg = COORDS[s.name]; if (!tg || !gpsFresh()) return true;
     return hav(GPS.last.la, GPS.last.lo, tg[0], tg[1]) <= ARR_R;
   }
@@ -7964,6 +7985,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var i = curIdx();
     if (i < 0) return;
     if (a === 'drvexit') { view = 'turno'; render(); return; }
+    if (a === 'next' && S.shift.noGps && revIdx() == null && holdIdx() == null) { var sz = stops()[i]; S.shift.arr = S.shift.arr || {}; if (sz && isDel(sz) && !S.shift.arr[arrKey(i)]) { S.shift.arr[arrKey(i)] = Date.now(); save(); toast('✋ Arrivato a ' + sz.name + ' alle ' + hm(Date.now())); render(); } }
     if (a === 'next' && !canArrive(i)) { toast('Si sblocca quando la barca arriva alla tappa (100 m). Se il GPS non funziona usa Salta questa tappa.'); return; }
     if (a === 'next' && isDel(stops()[i])) { cnsSheet(i, false); return; }
     if (a === 'next') { if (el.classList && el.classList.contains('done')) return; if (el.classList) el.classList.add('done'); setTimeout(advance, 420); return; }
