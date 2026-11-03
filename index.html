@@ -237,6 +237,12 @@ li.on .ddwk{background:#4FC3F7;border-color:#4FC3F7;color:#0B1317}.ddwk.ok{borde
 .stk{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .stk>div{display:flex;flex-direction:column;gap:2px;padding:14px;border-radius:14px;background:var(--card,#fff);box-shadow:0 0 0 1px var(--line,#e2e5ea)}
 .stk b{font-size:26px;font-variant-numeric:tabular-nums;line-height:1.1}.stk span{font-size:13px;color:var(--muted,#667)}.stk small{font-size:12px;color:var(--muted,#667)}.stk small.bad{color:#D93025;font-weight:700}
+.card.stsec{padding:0;display:block;gap:0;margin-bottom:8px}.stsec>summary{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;list-style:none;min-height:52px}.stsec>summary::-webkit-details-marker{display:none}.stsec>summary:focus-visible{outline:2px solid #1655C8;outline-offset:-2px;border-radius:14px}
+.stst{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.stst b{font-size:16px}.stst small{font-size:13px;color:var(--muted,#667);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stst small.ok{color:#2E7D32;font-weight:700}.stst small.late{color:#E65100;font-weight:700}.stst small.bad{color:#D93025;font-weight:700}
+.stsec[open]>summary .secc{transform:rotate(90deg)}.stsb{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}.stsb.flush{padding:0 0 6px;gap:0}.stsb .stk{margin-bottom:0}
+.rpg{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center}.rpg .rpp{font-size:34px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}.rpg .rpp.ok{color:#2E7D32}.rpg .rpp.late{color:#E65100}.rpg .rpp.bad{color:#D93025}
+.rpb{height:10px;border-radius:5px;background:rgba(217,48,37,.25);overflow:hidden}.rpb i{display:block;height:100%;background:#2E7D32;border-radius:5px}
+.rpl{display:flex;justify-content:space-between;gap:8px;font-size:14px;padding:6px 0;border-top:1px solid var(--line,#eef0f3)}.rpl small{color:var(--muted,#667);font-size:12.5px;white-space:nowrap}
 .stk .ok b,.str .ok{color:#2E7D32}.stk .late b,.str .late{color:#E65100}.stk .early b,.str .early{color:#1655C8}
 .dlbar{position:relative;height:30px;margin:8px 0 2px}.dlbar .z{position:absolute;left:0;right:0;top:8px;height:8px;border-radius:4px;background:linear-gradient(90deg,#1655C8 0%,#9EC1F5 35%,#2E7D32 45%,#2E7D32 55%,#FFB74D 65%,#E65100 100%);opacity:.75}
 .dlbar b{position:absolute;top:2px;width:6px;height:20px;margin-left:-3px;border-radius:3px;background:#111;box-shadow:0 0 0 2px #fff}
@@ -1772,21 +1778,41 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var ST2 = { y: null, m: null, d: null, busy: false, key: '', cli: null, mon: null };
   // ore lavorate per reparto: moduli presenze della segreteria + turni dell'app
   var HO = { d: null, k: null, busy: false, open: {} };
+  // sezioni delle statistiche: chiuse di default, si aprono con un tocco (lo stato resta finché l'app è aperta)
+  ST2.open = {};
+  function stSec(id, title, sub, body, subCls, flush) {
+    return '<details class="card stsec" data-st="' + id + '"' + (ST2.open[id] ? ' open' : '') + '><summary><span class="stst"><b>' + title + '</b>' + (sub ? '<small' + (subCls ? ' class="' + subCls + '"' : '') + '>' + sub + '</small>' : '') + '</span><span class="secc" aria-hidden="true">›</span></summary><div class="stsb' + (flush ? ' flush' : '') + '">' + body + '</div></details>';
+  }
+  document.addEventListener('toggle', function (e) { var t = e.target; if (t && t.classList && t.classList.contains('stsec')) ST2.open[t.getAttribute('data-st')] = t.open; }, true);
+  // puntualità dei punti di ritiro: cucina del Seminario e fornitore del pane (Fabio Pane).
+  // Contano solo le lamentele "merce o polybox non pronti" segnate proprio lì: le altre consegne non influiscono.
+  var RP = { d: null, k: null, busy: false };
+  function rpLoad(key) { if (RP.busy) return; RP.busy = true; cl('rpc_ready_punct', { p_year: ST2.y, p_month: ST2.m || 0 }).then(function (r) { RP.busy = false; if (r && r.cucina) { RP.d = r; RP.k = key; if (view === 'stat') render(); } }).catch(function () { RP.busy = false; }); }
+  function rpSec(id, title, who, x) {
+    if (!x) return stSec(id, title, 'Carico…', '<p class="muted">Carico…</p>');
+    var p = x.pct, cls = p == null ? '' : p >= 95 ? 'ok' : p >= 80 ? 'late' : 'bad';
+    var sub = p == null ? 'Nessun passaggio in questo periodo' : p + '% puntuale · ' + x.bad + (x.bad === 1 ? ' lamentela' : ' lamentele');
+    var body = p == null ? '<p class="muted">Ancora nessun passaggio registrato da ' + esc(who) + ' in questo periodo.</p>' :
+      '<div class="rpg"><span class="rpp ' + cls + '">' + p + '%</span><div><div class="rpb"><i style="width:' + p + '%"></i></div><p class="hint" style="margin:6px 0 0">' + (x.n - x.bad) + ' di ' + x.n + ' passaggi con merce e polybox pronti</p></div></div>' +
+      (x.list.length ? '<div>' + x.list.map(function (l) { var dt = new Date(l.at); return '<div class="rpl"><span>⚠ ' + esc(l.reason) + '<small style="display:block">segnalato da ' + esc(String(l.who || '').split(' ')[0]) + '</small></span><small class="mono">' + dt.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' }) + ' ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes()) + '</small></div>'; }).join('') + '</div>' : '<p class="muted">Nessuna lamentela dai trasportatori.</p>') +
+      '<p class="hint">Conta solo quando il trasportatore, arrivato a ' + esc(who) + ', segna il problema “Merce o polibox non pronti”. I problemi segnati alle altre consegne non contano.</p>';
+    return stSec(id, title, sub, body, cls);
+  }
   function hoLoad(key) { if (HO.busy && HO.req === key) return; HO.busy = true; HO.req = key; cl('rpc_hours_overview', { p_year: ST2.y, p_month: ST2.m || null }).then(function (r) { HO.busy = false; if (r && r.items) { HO.d = r; HO.k = key; if (view === 'stat') render(); } }).catch(function () { HO.busy = false; }); }
   function hoursCard(key) {
     if (HO.k !== key) hoLoad(key);
     var dep = ST2.dept || 'barche', it = HO.k === key && HO.d ? HO.d.items.filter(function (x) { return x.dept === dep; }) : null;
-    var h = '<section class="card trcat"><div class="trch"><h3>Ore lavorate · ' + ({ barche: 'Barche', cucina: 'Cucina', altro: 'Altro' })[dep] + '</h3>' + (it ? '<b>' + hmin(it.reduce(function (a, x) { return a + (+x.minutes || 0); }, 0)) + '</b>' : '') + '</div>';
-    if (!it) return h + '<p class="muted" style="margin:6px 12px 10px">Carico…</p></section>';
-    if (!it.length) return h + '<p class="muted" style="margin:6px 12px 10px">Nessuna ora registrata in questo periodo.</p></section>';
-    return h + it.sort(function (a, b) { return (+b.minutes || 0) - (+a.minutes || 0); }).map(function (x) {
+    var ttl = 'Ore lavorate · ' + ({ barche: 'Barche', cucina: 'Cucina', altro: 'Altro' })[dep], sid = 'ore-' + dep;
+    if (!it) return stSec(sid, ttl, 'Carico…', '<p class="muted" style="margin:6px 14px 10px">Carico…</p>', '', true);
+    if (!it.length) return stSec(sid, ttl, 'Nessuna ora registrata', '<p class="muted" style="margin:6px 14px 10px">Nessuna ora registrata in questo periodo.</p>', '', true);
+    return stSec(sid, ttl, hmin(it.reduce(function (a, x) { return a + (+x.minutes || 0); }, 0)) + ' · ' + it.length + (it.length === 1 ? ' persona' : ' persone'), it.sort(function (a, b) { return (+b.minutes || 0) - (+a.minutes || 0); }).map(function (x) {
       var id = dep + ':' + x.name, op = !!HO.open[id];
       var det = '<table class="pdt"><thead><tr><th>Giorno</th><th>Orario</th><th style="text-align:right">Ore</th></tr></thead><tbody>' + (x.rows || []).map(function (r) {
         var dp = dateParts(String(r.day).slice(0, 10));
         return '<tr><td style="white-space:nowrap">' + esc(DNALL[dp.dow].slice(0, 3) + ' ' + dp.n) + '</td><td>' + esc(r.sched || '') + (r.note ? '<small class="muted" style="display:block">' + esc(r.note) + '</small>' : '') + '</td><td class="mono" style="text-align:right">' + (r.min ? hmin(r.min) : '—') + '</td></tr>';
       }).join('') + '</tbody></table>' + (HO.d.mgr ? '<div class="shsh"><span class="muted" style="font-size:13px;align-self:center">Reparto:</span>' + ['barche', 'cucina', 'altro'].map(function (k2) { return '<button class="chip" data-act="stmove" data-n="' + esc(x.name) + '" data-k="' + k2 + '" aria-pressed="' + (k2 === dep) + '">' + ({ barche: 'Barche', cucina: 'Cucina', altro: 'Altro' })[k2] + '</button>'; }).join('') + '</div>' : '');
       return '<div class="tri' + (op ? ' op' : '') + '"><button class="trrow" data-act="sthours" data-id="' + esc(id) + '" aria-expanded="' + op + '"><span class="tric" aria-hidden="true">' + (x.source === 'modulo' ? '📄' : '📱') + '</span><span class="trtx"><b>' + esc(x.name) + '</b><small>' + x.days + (x.days === 1 ? ' giorno' : ' giorni') + ' · ' + (x.source === 'modulo' ? 'dal modulo presenze' : 'dai turni dell’app' + (x.open ? ' · turno aperto' : '')) + '</small></span><b class="mono" style="flex:0 0 auto">' + hmin(+x.minutes || 0) + '</b><span class="trchev" aria-hidden="true">›</span></button>' + (op ? '<div class="trdet">' + det + '</div>' : '') + '</div>';
-    }).join('') + '</section>';
+    }).join(''), '', true);
   }
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
@@ -1811,21 +1837,28 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var h = '<div class="wrap stw"><h2>📊 Statistiche</h2><div class="ldnav"><button class="btn sm" data-act="stmv" data-n="-1" aria-label="Prima">‹</button><b>' + esc(lbl) + '</b><button class="btn sm" data-act="stmv" data-n="1" aria-label="Dopo">›</button></div>' +
       '<div class="seg2 stseg"><button data-act="stper" data-p="m"' + (ST2.m ? ' aria-pressed="true"' : '') + '>Mese</button><button data-act="stper" data-p="y"' + (!ST2.m ? ' aria-pressed="true"' : '') + '>Anno</button></div>';
     h += '<div class="seg2 stdept" role="tablist" aria-label="Reparto">' + [['barche', '🚤 Barche'], ['cucina', '👨‍🍳 Cucina'], ['altro', '🧑‍🍽️ Altro']].map(function (t) { return '<button role="tab" data-act="stdept" data-k="' + t[0] + '"' + ((ST2.dept || 'barche') === t[0] ? ' aria-pressed="true" aria-selected="true"' : '') + '>' + t[1] + '</button>'; }).join('') + '</div>';
+    h += '<p class="hint" style="margin:0 0 8px">Tocca una sezione per aprirla.</p>';
+    if ((ST2.dept || 'barche') === 'cucina') {
+      if (RP.k !== key) rpLoad(key);
+      var rp = RP.k === key ? RP.d : null;
+      h += rpSec('rp-cucina', '👨‍🍳 Puntualità cucina Seminario', 'Seminario', rp && rp.cucina);
+      h += rpSec('rp-pane', '🥖 Puntualità fornitore pane · Fabio Pane', 'Pane', rp && rp.pane);
+    }
     h += hoursCard(key);
     if ((ST2.dept || 'barche') !== 'barche') return h + '</div>';
     if (!d) return h + '<p class="muted">Carico…</p></div>';
     var totMin = d.hours.reduce(function (s, x) { return s + x.min; }, 0), dl = d.delay || {}, pct = dl.n ? Math.round(dl.ontime / dl.n * 100) : null;
-    h += '<div class="stk"><div><b>' + d.deliveries.ok + '</b><span>consegne fatte</span>' + (d.deliveries.extra ? '<small>di cui ' + d.deliveries.extra + ' straordinarie</small>' : '') + '</div>' +
+    h += stSec('riep', 'Riepilogo', d.deliveries.ok + ' consegne · ' + hmin(totMin) + (pct == null ? '' : ' · ' + pct + '% in orario'), '<div class="stk"><div><b>' + d.deliveries.ok + '</b><span>consegne fatte</span>' + (d.deliveries.extra ? '<small>di cui ' + d.deliveries.extra + ' straordinarie</small>' : '') + '</div>' +
       '<div><b>' + hmin(totMin) + '</b><span>ore lavorate</span></div>' +
       '<div class="' + dlCls(dl.avg) + '"><b>' + dlTxt(dl.avg) + '</b><span>media sulle consegne</span></div>' +
-      '<div><b>' + (pct == null ? '—' : pct + '%') + '</b><span>in orario</span>' + (d.deliveries.problems ? '<small class="bad">' + d.deliveries.problems + ' problemi</small>' : '') + '</div></div>';
-    h += '<section class="card"><h3>Anticipo / ritardo medio</h3>' + (dl.n ? dlBar(dl.avg) + '<p class="hint">' + dl.n + ' consegne con orario · ' + dl.ontime + ' in orario (±5 min) · ' + dl.late + ' in ritardo · ' + dl.early + ' in anticipo</p>' : '<p class="muted">Ancora nessuna consegna con orario in questo periodo.</p>') + '</section>';
-    h += '<section class="card"><h3>Puntualità di ogni trasportatore</h3>' + (d.delay_by.length ? d.delay_by.map(function (x) {
+      '<div><b>' + (pct == null ? '—' : pct + '%') + '</b><span>in orario</span>' + (d.deliveries.problems ? '<small class="bad">' + d.deliveries.problems + ' problemi</small>' : '') + '</div></div>');
+    h += stSec('ritardo', 'Anticipo / ritardo medio', dl.n ? dlTxt(dl.avg) + ' · ' + dl.n + ' consegne' : 'Nessun dato', (dl.n ? dlBar(dl.avg) + '<p class="hint">' + dl.n + ' consegne con orario · ' + dl.ontime + ' in orario (±5 min) · ' + dl.late + ' in ritardo · ' + dl.early + ' in anticipo</p>' : '<p class="muted">Ancora nessuna consegna con orario in questo periodo.</p>'), dl.n ? dlCls(dl.avg) : '');
+    h += stSec('trasp', 'Puntualità di ogni trasportatore', d.delay_by.length + (d.delay_by.length === 1 ? ' trasportatore' : ' trasportatori'), (d.delay_by.length ? d.delay_by.map(function (x) {
       return '<div class="str"><div class="strh"><b>' + esc(x.who) + '</b><span class="' + dlCls(x.avg) + '">' + dlTxt(x.avg) + '</span></div>' + dlBar(x.avg) + '<small>' + x.n + ' consegne · ' + Math.round(x.ontime / x.n * 100) + '% in orario · ' + x.late + ' in ritardo</small></div>';
-    }).join('') : '<p class="muted">Nessun dato.</p>') + '</section>';
+    }).join('') : '<p class="muted">Nessun dato.</p>'));
     // ultime 10 consegne con l'esito
     var L10 = d.last || [];
-    h += '<section class="card"><h3>Ultime 10 consegne</h3>' + (L10.length ? '<div class="l10">' + L10.map(function (x) {
+    h += stSec('ult10', 'Ultime 10 consegne', L10.length ? 'L’ultima: ' + esc(L10[0].stop) : 'Nessuna consegna', (L10.length ? '<div class="l10">' + L10.map(function (x) {
       var dt = new Date(x.at), when = dt.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' }) + ' ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes()), dl = x.delay, es, cl2;
       if (x.status !== 'ok') { es = 'Problema' + (x.reason ? ': ' + x.reason : ''); cl2 = 'bad'; }
       else if (dl == null) { es = 'Completata · senza orario'; cl2 = ''; }
@@ -1833,31 +1866,32 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       else if (dl > 0) { es = 'Completata in ritardo di ' + dl + ' min'; cl2 = 'late'; }
       else { es = 'Completata in anticipo di ' + (-dl) + ' min'; cl2 = 'early'; }
       return '<div class="l10r"><div class="l10h"><b>' + esc(x.stop) + '</b><span class="mono">' + esc(when) + '</span></div><div class="muted">' + (BOATS[x.boat] ? esc(BOATS[x.boat].name) : esc(x.boat || '')) + ' · ' + esc(String(x.who || '').split(' ')[0]) + (x.planned ? ' · previsto ' + esc(x.planned) : '') + '</div><span class="l10p ' + cl2 + '">' + esc(es) + '</span></div>';
-    }).join('') + '</div>' : '<p class="muted">Ancora nessuna consegna.</p>') + '</section>';
+    }).join('') + '</div>' : '<p class="muted">Ancora nessuna consegna.</p>'));
     var maxH = Math.max.apply(null, d.hours.map(function (x) { return x.min; }).concat([1]));
-    h += '<section class="card"><div class="row"><h3>Ore lavorate</h3><button class="aslink" data-act="nav" data-v="ore">Tabella dettagliata ›</button></div>' + (d.hours.length ? d.hours.map(function (x) {
+    h += stSec('oreturni', 'Ore lavorate nei turni', hmin(totMin) + ' · ' + d.hours.length + (d.hours.length === 1 ? ' persona' : ' persone'), '<button class="aslink" style="align-self:flex-start" data-act="nav" data-v="ore">Tabella dettagliata ›</button>' + (d.hours.length ? d.hours.map(function (x) {
       return '<div class="stb"><span class="stbn">' + esc(x.who) + '</span><span class="stbb"><i style="width:' + (x.min / maxH * 100).toFixed(1) + '%"></i></span><span class="stbv">' + hmin(x.min) + '<small>' + x.shifts + ' turni · ' + x.km + ' km</small></span></div>';
-    }).join('') : '<p class="muted">Nessun turno in questo periodo.</p>') + '</section>';
+    }).join('') : '<p class="muted">Nessun turno in questo periodo.</p>'));
     var maxB = Math.max.apply(null, d.boats.map(function (x) { return x.min; }).concat([1]));
-    h += '<section class="card"><h3>Ore di utilizzo delle barche</h3>' + (d.boats.length ? d.boats.map(function (x) {
+    h += stSec('barche', 'Ore di utilizzo delle barche', d.boats.length ? hmin(d.boats.reduce(function (s, x) { return s + x.min; }, 0)) + ' · ' + d.boats.length + (d.boats.length === 1 ? ' barca' : ' barche') : 'Nessun turno', (d.boats.length ? d.boats.map(function (x) {
       return '<div class="stb"><span class="stbn"><b style="color:' + bcol(x.boat) + '">●</b> ' + esc(BOATS[x.boat] ? BOATS[x.boat].name : x.boat) + '</span><span class="stbb"><i style="width:' + (x.min / maxB * 100).toFixed(1) + '%;background:' + bcol(x.boat) + '"></i></span><span class="stbv">' + hmin(x.min) + '<small>' + x.shifts + ' turni · ' + x.km + ' km</small></span></div>';
-    }).join('') : '<p class="muted">Nessun turno in questo periodo.</p>') + '</section>';
+    }).join('') : '<p class="muted">Nessun turno in questo periodo.</p>'));
     // DDT firmati: cartella per cliente, dentro una cartella per mese
     var by = {}, cl2 = [];
     d.ddt.forEach(function (x) { var k = ddtNorm(x.customer) || '—'; if (!by[k]) { by[k] = { k: k, name: x.customer, items: [] }; cl2.push(by[k]); } by[k].items.push(x); });
-    h += '<section class="card"><h3>DDT firmati</h3>';
+    var dd = '';
     if (ST2.cli && by[ST2.cli]) {
       var c = by[ST2.cli], mm = {}, ml = [];
       c.items.forEach(function (x) { var dt = new Date(x.at), mk = dt.getFullYear() + '-' + pad(dt.getMonth() + 1); if (!mm[mk]) { mm[mk] = { k: mk, lbl: MN[dt.getMonth()] + ' ' + dt.getFullYear(), items: [] }; ml.push(mm[mk]); } mm[mk].items.push(x); });
-      h += '<button class="aslink" data-act="stcli" data-k="">‹ Tutti i clienti</button><h3 style="margin:4px 0 8px">📂 ' + esc(c.name) + '</h3>';
+      dd += '<button class="aslink" data-act="stcli" data-k="">‹ Tutti i clienti</button><h3 style="margin:4px 0 8px">📂 ' + esc(c.name) + '</h3>';
       if (ST2.mon && mm[ST2.mon]) {
         var mo = mm[ST2.mon];
-        h += '<button class="aslink" data-act="stmon" data-k="">‹ Tutti i mesi</button><div class="stdl">' + mo.items.map(function (x) {
+        dd += '<button class="aslink" data-act="stmon" data-k="">‹ Tutti i mesi</button><div class="stdl">' + mo.items.map(function (x) {
           return '<div class="mudr"><span>📄 ' + (x.number ? 'N. ' + esc(x.number) + ' · ' : '') + esc(new Date(x.at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })) + (x.by && x.by !== 'Cliente' ? ' · ' + esc(x.by) : '') + '</span><span class="mudb"><button class="btn sm primary" data-act="ddtget" data-id="' + x.id + '">Copia firmata</button></span></div>';
         }).join('') + '</div>';
-      } else h += '<div class="ddfg">' + ml.map(function (m) { return '<button class="ddfc" data-act="stmon" data-k="' + m.k + '"><span class="ddfi">📁</span><b>' + esc(m.lbl.replace(/^./, function (z) { return z.toUpperCase(); })) + '</b><span class="ddfn">' + m.items.length + ' DDT</span></button>'; }).join('') + '</div>';
-    } else h += cl2.length ? '<div class="ddfg">' + cl2.map(function (c) { return '<button class="ddfc" data-act="stcli" data-k="' + esc(c.k) + '"><span class="ddfi">📁</span><b>' + esc(c.name) + '</b><span class="ddfn">' + c.items.length + ' DDT firmati</span></button>'; }).join('') + '</div>' : '<p class="muted">Ancora nessun DDT firmato.</p>';
-    return h + '</section><p class="hint">Contano solo i turni ufficiali (dal 2 novembre 2026). Una consegna è in orario se arriva entro 5 minuti dall’orario del programma; le tappe con orario indicativo non contano.</p></div>';
+      } else dd += '<div class="ddfg">' + ml.map(function (m) { return '<button class="ddfc" data-act="stmon" data-k="' + m.k + '"><span class="ddfi">📁</span><b>' + esc(m.lbl.replace(/^./, function (z) { return z.toUpperCase(); })) + '</b><span class="ddfn">' + m.items.length + ' DDT</span></button>'; }).join('') + '</div>';
+    } else dd += cl2.length ? '<div class="ddfg">' + cl2.map(function (c) { return '<button class="ddfc" data-act="stcli" data-k="' + esc(c.k) + '"><span class="ddfi">📁</span><b>' + esc(c.name) + '</b><span class="ddfn">' + c.items.length + ' DDT firmati</span></button>'; }).join('') + '</div>' : '<p class="muted">Ancora nessun DDT firmato.</p>';
+    h += stSec('ddt', 'DDT firmati', d.ddt.length + ' DDT · ' + cl2.length + (cl2.length === 1 ? ' cliente' : ' clienti'), dd);
+    return h + '<p class="hint">Contano solo i turni ufficiali (dal 2 novembre 2026). Una consegna è in orario se arriva entro 5 minuti dall’orario del programma; le tappe con orario indicativo non contano.</p></div>';
   }
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
