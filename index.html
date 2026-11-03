@@ -1277,7 +1277,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
      Turno, GPS, consegne, foto e firme restano solo su questo telefono: niente viene mandato al server,
      quindi nessuno lo vede (né clienti, né Lisa, né la dashboard) e statistiche e ore non cambiano. */
   var GHOST = false; try { GHOST = localStorage.getItem('smb-ghost') === '1'; } catch (e) {}
-  var GHOST_BLOCK = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_log_gps', 'rpc_stop_event2', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_colli_set', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_refuel_add2', 'rpc_refuel_void', 'rpc_fuel_set', 'rpc_track_move', 'rpc_ddt_edit_file', 'rpc_ddt_place_sig', 'rpc_task_update', 'rpc_pos_share', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_shift_void'];
+  var GHOST_BLOCK = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_log_gps', 'rpc_stop_event2', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_colli_set', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_refuel_add2', 'rpc_refuel_void', 'rpc_fuel_set', 'rpc_track_move', 'rpc_ddt_edit_file', 'rpc_ddt_place_sig', 'rpc_shift_edit', 'rpc_task_update', 'rpc_pos_share', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_shift_void'];
   function ghostAllowed() { return !!(SESSION && SESSION.name && /avicolli/i.test(SESSION.name)); }
   function ghostSet(on) {
     try {
@@ -1334,6 +1334,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<path d="M17 55c3-2.5 6-2.5 8 0s5 2.5 8 0 5-2.5 8 0 4 2.5 6 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
   }
   var ICONS = {
+    turni: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6M12 2v3"/>',
     spedizioni: '<circle cx="6" cy="18" r="2.2"/><path d="M8.2 18H14a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/><path d="M18 9.5s-3-2.8-3-5a3 3 0 0 1 6 0c0 2.2-3 5-3 5z"/>',
     tracking: '<path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z"/><circle cx="12" cy="10" r="2.3"/>',
     benzina: '<path d="M4 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16M3 21h13M7 8h5M15 9l3 2v7a1.5 1.5 0 0 0 3 0V9l-3-3"/>',
@@ -1528,7 +1529,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       toast('Turno iniziato su ' + BOATS[code].name);
       gpsApply(); render(); setTimeout(loadMyTasks, 600); setTimeout(function () { noticeCheck(true); }, 1500);
     };
-    if (tok()) { cl('rpc_start_shift', { p_boat: code }).then(function (r) { if (r && r.error) { scanMsg(startErr(r.error), true); return; } go(); cl('rpc_set_plan', { p_plan: stops().map(function (z) { return { name: z.name, t: z.ind ? '' : (z.t || '') }; }) }); }); } else go();
+    if (tok()) { cl('rpc_start_shift', { p_boat: code }).then(function (r) { if (r && r.error) { scanMsg(startErr(r.error), true); return; } go(); if (r && r.shift_id && S.shift) { S.shift.sid = r.shift_id; save(); } cl('rpc_set_plan', { p_plan: stops().map(function (z) { return { name: z.name, t: z.ind ? '' : (z.t || '') }; }) }); }); } else go();
   }
   function makeThumb(url) {
     return new Promise(function (res) {
@@ -2598,6 +2599,74 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     else if (a === 'pglshow') { g = pglGet(); delete g.hidden[el.getAttribute('data-c')]; save(); render(); }
     else if (a === 'ldpick' && view === 'programma') { viewDay = el.getAttribute('data-k'); if (!PROGRAM[viewDay]) viewDay = null; render(); }
   });
+  /* ---------- Turni: Pietro corregge inizio e fine (anche quelli non chiusi), le ore lavorate si aggiornano ---------- */
+  var TU = { d: null, t: 0, loading: false, open: {}, busy: false, err: {}, days: 14 };
+  function tuLoad() {
+    if (TU.loading || !tok()) return Promise.resolve(); TU.loading = true; TU.t = Date.now();
+    return cl('rpc_shift_list', { p_days: TU.days }).then(function (r) { TU.loading = false; if (r && r.items) TU.d = r; else TU.fail = Date.now(); if (view === 'turni' || view === 'home') render(); }).catch(function () { TU.loading = false; TU.fail = Date.now(); });
+  }
+  function tuLocal(ts) { var d = new Date(ts); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); }
+  function tuDur(m) { m = Math.max(0, Math.round(m)); return Math.floor(m / 60) + ' h ' + (m % 60 < 10 ? '0' : '') + (m % 60) + ' min'; }
+  function tuWhen(ts) { var d = new Date(ts), k = isoOf(d.getTime()); return (k === todayKey() ? 'oggi' : k === ldShift(todayKey(), -1) ? 'ieri' : d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' })) + ' ' + hm(ts); }
+  function tuLong(x) { return x.open && x.minutes > 12 * 60; }
+  function turniHomeBanner() {
+    if (!tok() || !(isMgr() || isFullAcc())) return '';
+    if (!TU.d && !TU.loading && (!TU.fail || Date.now() - TU.fail > 60000) && Date.now() - TU.t > 60000) setTimeout(tuLoad, 0);
+    var bad = ((TU.d && TU.d.items) || []).filter(tuLong);
+    return bad.map(function (x) { return '<button class="hmshift" style="background:#b42318" data-act="nav" data-v="turni"><span style="font-size:28px" aria-hidden="true">⏰</span><span><b>Turno di ' + esc(String(x.who).split(' ')[0]) + ' ancora aperto</b>da ' + esc(tuWhen(x.started)) + ' · ' + esc(tuDur(x.minutes)) + ' · tocca per sistemarlo</span></button>'; }).join('');
+  }
+  function tuRow(x) {
+    var op = !!TU.open[x.id] || (tuLong(x) && TU.open[x.id] !== false), bad = tuLong(x);
+    var sub = (x.open ? (bad ? '⚠️ non chiuso · ' : '🟢 in corso · ') : '') + tuWhen(x.started) + (x.ended ? ' → ' + hm(x.ended) : '') + ' · ' + tuDur(x.minutes) + (x.edited ? ' · ✏️ corretto' : '');
+    var det = '';
+    if (op) {
+      var la = x.last_act ? '<button class="btn sm" data-act="tulast" data-id="' + esc(x.id) + '">Fine = ultima attività (' + esc(tuWhen(x.last_act)) + ')</button>' : '';
+      det = '<div class="trsrc">' + esc((BOATS[x.boat] ? BOATS[x.boat].name : x.boat) + ' · ' + x.stops_ok + ' consegne fatte' + (x.last_act ? ' · ultima attività ' + tuWhen(x.last_act) : '') + (x.edited_by ? ' · corretto da ' + String(x.edited_by).split(' ')[0] : '')) + '</div>' +
+        '<div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;min-width:0"><label class="muted" style="font-size:13px;display:flex;flex-direction:column;gap:2px">Inizio<input class="field" style="width:100%;min-width:0" type="datetime-local" id="tuS' + esc(x.id) + '" value="' + esc(tuLocal(x.started)) + '" max="' + esc(tuLocal(Date.now())) + '"></label><label class="muted" style="font-size:13px;display:flex;flex-direction:column;gap:2px">Fine<input class="field" style="width:100%;min-width:0" type="datetime-local" id="tuE' + esc(x.id) + '" value="' + esc(x.ended ? tuLocal(x.ended) : '') + '" max="' + esc(tuLocal(Date.now())) + '"></label></div>' +
+        (TU.err[x.id] ? '<div class="note" role="alert">' + esc(TU.err[x.id]) + '</div>' : '') +
+        '<div class="shsh">' + la + (x.open ? '<button class="btn sm" data-act="tunow" data-id="' + esc(x.id) + '">Fine = adesso</button>' : '') + '<button class="btn sm primary" data-act="tusave" data-id="' + esc(x.id) + '"' + (TU.busy ? ' disabled' : '') + '>' + (x.open ? 'Salva e chiudi il turno' : 'Salva') + '</button></div>' +
+        (x.open ? '<p class="trsrc">Se lasci vuota la fine, il turno resta aperto e cambia solo l’inizio.</p>' : '');
+    }
+    return '<div class="tri' + (op ? ' op' : '') + '"><button class="trrow" data-act="tutog" data-id="' + esc(x.id) + '" aria-expanded="' + op + '"><span class="tric" aria-hidden="true" style="color:' + bcol(x.boat) + '">●</span><span class="trtx"><b>' + esc(String(x.who).split(' ')[0]) + '</b><small' + (bad ? ' style="color:#b42318;font-weight:700"' : '') + '>' + esc(sub) + '</small></span><span class="trchev" aria-hidden="true">›</span></button>' + (op ? '<div class="trdet">' + det + '</div>' : '') + '</div>';
+  }
+  function viewTurni() {
+    if ((!TU.d || Date.now() - TU.t > 30000) && !TU.loading) tuLoad();
+    var h = '<div class="wrap"><button class="aslink" data-act="nav" data-v="home">‹ Home</button><h2>🕒 Turni</h2><p class="muted">Correggi inizio e fine dei turni, anche quelli che un trasportatore ha dimenticato di chiudere. Le ore lavorate e le statistiche si aggiornano da sole.</p>';
+    if (!TU.d) return h + '<div class="card"><p class="muted">Carico…</p></div></div>';
+    var it = TU.d.items || [], open = it.filter(function (x) { return x.open; }), byDay = {}, days = [];
+    it.filter(function (x) { return !x.open; }).forEach(function (x) { var k = isoOf(Date.parse(x.started)); if (!byDay[k]) { byDay[k] = []; days.push(k); } byDay[k].push(x); });
+    h += '<section class="card trcat"><div class="trch"><h3>Aperti · ' + open.length + '</h3><button class="btn sm" data-act="tureload">Aggiorna</button></div>' + (open.length ? open.map(tuRow).join('') : '<p class="muted" style="margin:6px 12px 10px">Nessun turno aperto.</p>') + '</section>';
+    days.forEach(function (k) {
+      var tot = byDay[k].reduce(function (a, x) { return a + x.minutes; }, 0);
+      h += '<section class="card trcat"><div class="trch"><h3>' + esc(pbDayLab(k)) + '</h3><span class="muted" style="font-size:13px">' + esc(tuDur(tot)) + ' in tutto</span></div>' + byDay[k].map(tuRow).join('') + '</section>';
+    });
+    return h + (TU.days < 62 ? '<button class="btn sm" data-act="tumore">Mostra turni più vecchi</button>' : '') + '</div>';
+  }
+  function tuFind(id) { return ((TU.d && TU.d.items) || []).filter(function (x) { return x.id === id; })[0]; }
+  function tuSave(id, endOverride) {
+    var x = tuFind(id); if (!x) return;
+    var sv = ($('tuS' + id) || {}).value, ev = endOverride !== undefined ? endOverride : ($('tuE' + id) || {}).value;
+    var st = sv ? new Date(sv) : null, en = ev ? new Date(ev) : null;
+    if (!st || isNaN(st)) { TU.err[id] = 'Scrivi l’ora di inizio.'; render(); return; }
+    if (en && en <= st) { TU.err[id] = 'La fine deve essere dopo l’inizio.'; render(); return; }
+    if (!x.open && !en) { TU.err[id] = 'Scrivi l’ora di fine.'; render(); return; }
+    TU.busy = true; TU.err[id] = ''; render();
+    cl('rpc_shift_edit', { p_id: id, p_start: st.toISOString(), p_end: en ? en.toISOString() : null }).then(function (r) {
+      TU.busy = false;
+      if (r && r.ok) { TU.open[id] = false; toast(en && x.open ? 'Turno chiuso: ' + tuDur((en - st) / 60000) : 'Turno corretto'); tuLoad(); return; }
+      TU.err[id] = { futuro: 'L’orario non può essere nel futuro.', ordine: 'La fine deve essere dopo l’inizio.', troppo_lungo: 'Un turno non può durare più di 16 ore: controlla le date.', sovrapposto: 'Si sovrappone a un altro turno della stessa persona.' }[r && r.error] || 'Non salvato: controlla la connessione.'; render();
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act'); if (a.indexOf('tu') !== 0) return; var id = el.getAttribute('data-id');
+    if (a === 'tutog') { var x = tuFind(id), cur = !!TU.open[id] || (x && tuLong(x) && TU.open[id] !== false); TU.open[id] = !cur; render(); }
+    else if (a === 'tureload') tuLoad();
+    else if (a === 'tumore') { TU.days = 62; tuLoad(); }
+    else if (a === 'tulast') { var y = tuFind(id); if (y && y.last_act) { var inp = $('tuE' + id); if (inp) inp.value = tuLocal(y.last_act); } }
+    else if (a === 'tunow') { var inp2 = $('tuE' + id); if (inp2) inp2.value = tuLocal(Date.now()); }
+    else if (a === 'tusave') tuSave(id);
+  });
+
   /* ---------- Tracking (spedizioni): Pietro crea il tracking di qualcosa in arrivo e lo manda a chi lo aspetta ---------- */
   var SH = { d: null, t: 0, loading: false, f: null, busy: false, err: '', open: {}, made: null };
   var SH_ST = { partenza: 'In partenza', carico: 'In carico', viaggio: 'In viaggio', quasi: 'Sta arrivando', arrivato: 'Arrivato', annullato: 'Annullato' };
@@ -4727,6 +4796,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       var w = !!r.works; if (!!SESSION.works !== w) { SESSION.works = w; ch = true; }
       var fu = !!r.full; if (!!SESSION.full !== fu) { SESSION.full = fu; ch = true; }
       if (!!SESSION.locator !== !!r.locator) { SESSION.locator = !!r.locator; ch = true; }
+      // turno chiuso da Pietro sul server: il telefono smette di registrare (non in modalità prova)
+      if (r.shift_open === false && S.shift && S.shift.sid && !GHOST && Date.now() - (S.shift.start || 0) > 180000) { S.shift = null; try { gpsApply(); } catch (x) {} save(); if (view === 'turno' || view === 'guida') view = 'home'; ch = true; setTimeout(function () { toast('Il tuo turno è stato chiuso dalla logistica'); render(); }, 50); }
       if (SESSION.locator) { locApply(); loadPeople(); }
       if (ch) { try { localStorage.setItem(SKEY, JSON.stringify(SESSION)); } catch (e) {} }
       return ch;
@@ -6948,6 +7019,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (isVan() && ['home', 'polybox', 'tracking', 'contatti', 'impost', 'programma'].indexOf(view) < 0) view = 'home';
     if (view === 'tracking' && isOff()) view = 'ddt';
     if (view === 'spedizioni' && (isOff() || isVan())) view = 'home';
+    if (view === 'turni' && !isMgr() && !isFullAcc()) view = 'home';
     if (view === 'polybox' && !isVan() && !isMgr() && !isFullAcc()) view = 'turno';
     if (view === 'benzina' && (isVan() || isOff())) view = isVan() ? 'polybox' : 'ddt';
     if (!isOff() && isAdm && ['turno', 'guida', 'richieste', 'ddt'].indexOf(view) >= 0) view = 'logistica';
@@ -6980,7 +7052,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurno, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, spedizioni: viewShip, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat }[view] || viewTurno;
+    var fn = { admin: viewAdmin, turno: viewTurno, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     var m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); m.scrollTop = (view === 'guida') ? 0 : sc;
     if (view === 'ddt') ddApplySearch();
@@ -6989,23 +7061,23 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   /* ---------- Home: ogni strumento è un'icona come un'app del telefono ---------- */
   var APPS = {
     logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
-    barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], polybox: ['Polybox', '#ca8a04'], notifiche: ['Notifiche', '#db2777'],
+    barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], polybox: ['Polybox', '#ca8a04'], notifiche: ['Notifiche', '#db2777'],
     stat: ['Statistiche', '#4f46e5'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
   };
   function homeApps() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isVan()) return ['polybox', 'tracking', 'programma', 'contatti', 'impost'];
     if (isOff()) return ['cucina', 'programma', 'ddt', 'notifiche', 'contatti', 'impost'];
-    if (isAdm) return ['logistica', 'notifiche', 'spedizioni', 'tracking', 'stat', 'barca', 'benzina', 'programma', 'contatti', 'impost'];
-    if (isFull) return ['logistica', 'turno', 'programma', 'ddtgiro', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'cucina', 'contatti', 'impost'];
-    if (isMgr()) return ['logistica', 'turno', 'programma', 'notifiche', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'contatti', 'impost'];
+    if (isAdm) return ['logistica', 'notifiche', 'turni', 'spedizioni', 'tracking', 'stat', 'barca', 'benzina', 'programma', 'contatti', 'impost'];
+    if (isFull) return ['logistica', 'turno', 'turni', 'programma', 'ddtgiro', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'cucina', 'contatti', 'impost'];
+    if (isMgr()) return ['logistica', 'turno', 'turni', 'programma', 'notifiche', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'contatti', 'impost'];
     return ['turno', 'programma', 'ddtgiro', 'barca', 'notifiche', 'tracking', 'benzina', 'impost'];
   }
   function viewHome() {
     var nm = SESSION && SESSION.name ? String(SESSION.name).split(' ')[0] : '', hr = new Date().getHours();
     var h = '<div class="wrap hmwrap"><div class="hmhi">' + (hr < 13 ? 'Buongiorno' : hr < 18 ? 'Buon pomeriggio' : 'Buonasera') + (nm ? ', ' + esc(nm) : '') + '</div><div class="muted">' + esc(new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })) + '</div>';
     if (S.shift && !isVan() && !isOff()) h += '<button class="hmshift" data-act="nav" data-v="turno"><span style="font-size:28px" aria-hidden="true">🚤</span><span><b>Turno in corso</b>' + esc(BOATS[S.shift.boat] ? BOATS[S.shift.boat].name : '') + ' · tocca per riprendere</span></button>';
-    h += shipHomeBanner();
+    h += turniHomeBanner() + shipHomeBanner();
     h += '<div class="hmgrid" role="list">' + homeApps().map(function (k) {
       var a = APPS[k] || [k, '#475569'], ic = ICONS[k === 'impost' ? 'gear' : k] || ICONS.altro;
       if (k === 'notifiche' && (isCrewOnly() || isOff())) a = ['Chat', a[1]];
