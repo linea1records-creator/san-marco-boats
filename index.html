@@ -26,6 +26,7 @@ details[open] .secc{transform:rotate(90deg)}
 .ldtop{align-items:center}.ddtb{font-weight:800;letter-spacing:.06em;min-width:64px}
 .trbox{height:330px;touch-action:pan-y}.trbox.trfs{position:fixed;inset:0;height:auto;border-radius:0;z-index:9500;touch-action:none}body.trfsopen{overflow:hidden}#dfe{position:fixed;inset:0;z-index:9800;background:#111;color:#fff;display:flex;flex-direction:column}.dfetop{display:flex;align-items:center;gap:10px;padding:calc(8px + env(safe-area-inset-top)) 10px 8px}.dfetop b{flex:1;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dfex{width:40px;height:40px;border-radius:10px;border:0;background:#2a2a2a;color:#fff;font-size:18px}.dfeseg button{color:#fff;background:#2a2a2a;border:0;padding:8px 10px;font:600 14px system-ui,sans-serif}.dfeseg button[aria-pressed=true]{background:#2563eb}.dfestage{flex:1;min-height:0;display:grid;place-items:center;overflow:hidden;touch-action:none}.dfepg{position:relative;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,.5)}.dfepg canvas{display:block}.dfecrop{position:absolute;border:2px solid #22c55e;box-shadow:0 0 0 9999px rgba(0,0,0,.55);touch-action:none;cursor:move}.dfecrop i,.dfesig i{position:absolute;width:28px;height:28px;border-radius:50%;background:#22c55e;border:3px solid #fff;touch-action:none}.dfecrop i[data-h=nw]{left:-15px;top:-15px}.dfecrop i[data-h=ne]{right:-15px;top:-15px}.dfecrop i[data-h=sw]{left:-15px;bottom:-15px}.dfecrop i[data-h=se]{right:-15px;bottom:-15px}.dfesig{position:absolute;outline:2px dashed #2563eb;background:rgba(37,99,235,.08);touch-action:none;cursor:move}.dfesig canvas{width:100%;height:100%;display:block;pointer-events:none}.dfesig i{right:-15px;bottom:-15px;background:#2563eb}.dfebot{padding:8px 12px calc(10px + env(safe-area-inset-bottom));background:#181818}.dfebot p{margin:0 0 8px;font-size:13.5px;color:#ccc}.dfebtns{display:flex;gap:8px}#dfe .btn:not(.primary){color:#111;background:#fff}.dfebtns .btn{flex:1}
 .ddsum{display:flex;gap:8px;margin:8px 0 10px}.ddsum span{flex:1;border:1px solid var(--line,#e4e7ec);border-radius:12px;padding:6px 10px;font-size:12.5px;color:var(--muted,#667);display:flex;flex-direction:column}.ddsum b{font-size:20px;color:var(--ink,#111)}.card.dgf{padding:0;overflow:hidden}.dgfh{width:100%;display:flex;align-items:center;gap:10px;padding:12px 14px;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}.dgfh b{flex:1;font-size:15.5px}.dgfc{font-size:20px;color:var(--muted,#667);transition:transform .15s}.dgf.op .dgfc{transform:rotate(90deg)}.dgfb{border-top:1px solid var(--line,#e4e7ec)}.ddr{display:flex;align-items:center;gap:8px;padding:5px 8px 5px 14px;min-height:46px;border-bottom:1px solid var(--line,#eef0f3)}.ddr:last-child{border-bottom:0}.ddrt{flex:1;min-width:0;display:flex;flex-direction:column}.ddrt b{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ddrt small{font-size:12.5px;color:var(--muted,#667);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ddrb{display:flex;gap:4px;flex:0 0 auto}.ddrb .btn.sm{min-height:36px;padding:4px 10px;font-size:14px}
+.pbdet{padding-left:12px!important}.pbdet .card{margin:0}.pbdet .pdt{min-width:0}
 .shwa{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:0 0 auto;min-width:44px;min-height:40px;margin-right:10px;padding:6px 10px;border-radius:12px;background:#25D366;color:#fff;font-weight:700;font-size:14px;text-decoration:none}.shwa.big{margin:0;min-height:38px}.hmtr{margin-top:14px}
 .shf .field,.shf select,.shf input::placeholder{text-transform:none}.shvg{display:flex;flex-direction:column;gap:2px}
 .shsh{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.shsh .btn.sm{min-height:38px;padding:6px 12px;font-size:14px;text-decoration:none}
@@ -5112,7 +5113,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   function pbFold(key, icon, title, sub, badge, body) {
     var op = !!PB.open[key];
-    return '<section class="card pbf' + (op ? ' op' : '') + '"><button class="pbfh" data-act="pbfold" data-k="' + esc(key) + '" aria-expanded="' + op + '"><span class="pbfi" aria-hidden="true">' + icon + '</span><span class="pbft"><b>' + esc(title) + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</span>' + (badge ? '<span class="pill">' + badge + '</span>' : '') + '<span class="pbfc" aria-hidden="true">›</span></button>' + (op ? '<div class="pbfb">' + body + '</div>' : '') + '</section>';
+    return '<div class="tri' + (op ? ' op' : '') + '"><button class="trrow" data-act="pbfold" data-k="' + esc(key) + '" aria-expanded="' + op + '"><span class="tric" aria-hidden="true">' + icon + '</span><span class="trtx"><b>' + esc(title) + '</b><small>' + sub + '</small></span>' + (badge ? '<span class="pill" style="font-size:12px;padding:2px 8px;flex:0 0 auto">' + badge + '</span>' : '') + '<span class="trchev" aria-hidden="true">›</span></button>' + (op ? '<div class="trdet pbdet">' + body + '</div>' : '') + '</div>';
   }
   function pbMuranoBody() {
     var d = PB.d, bs = d.batches || [], wait = bs.filter(function (b) { return String(b.day).slice(0, 10) < todayKey() && b.stage < 3; }), tot = wait.reduce(function (a, b) { return a + b.n; }, 0);
@@ -5135,27 +5136,28 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     else if (Date.now() - PB.t > 25000 && !PB.loading) pbLoad();
     var van = isVan(), mgr = pbIsMgr(), d = PB.d;
     if (!PB.open) { PB.open = {}; if (van) PB.open.murano = true; }
-    var h = '<div class="wrap"><button class="aslink" data-act="nav" data-v="home">‹ Home</button><h2>📦 Polybox</h2><p class="muted">Una cartella per ogni cliente: tocca per aprirla o chiuderla.</p>';
+    var h = '<div class="wrap"><button class="aslink" data-act="nav" data-v="home">‹ Home</button><h2>📦 Polybox</h2><p class="muted">Tocca un cliente per vedere i dettagli.</p>';
     if (PB.err && !d) return h + '<div class="note" role="alert">' + esc(PB.err) + '</div><button class="btn" data-act="pbreload">Riprova</button></div>';
     if (!d) return h + '<div class="card"><p class="muted">Carico…</p></div></div>';
     var unread = van && PB.msgs ? PB.msgs.filter(function (m) { return !m.seen; }).length : 0;
     if (PB.comp) PB.open.msg = true;
     var cl2 = (PB.cli && PB.cli.clients) || [], todayAll = cl2.reduce(function (a, c) { return a + (+c.today_n || 0); }, 0) + ((PB.cli && PB.cli.murano) || []).filter(function (x) { return String(x.day).slice(0, 10) === todayKey(); }).reduce(function (a, x) { return a + (+x.n || 0); }, 0);
-    h += '<div class="pbtop"><div><span class="muted">Consegnati oggi</span><b>' + todayAll + '</b></div><div><span class="muted">Clienti</span><b>' + (cl2.length + 1) + '</b></div></div>';
+    h += '<div class="ddsum"><span><b>' + todayAll + '</b> consegnati oggi</span><span><b>' + ((d.batches || []).filter(function (b) { return String(b.day).slice(0, 10) < todayKey() && b.stage < 3; }).reduce(function (a, b) { return a + b.n; }, 0)) + '</b> da ritirare a Murano</span></div>';
     // messaggi
     var msgBody = (mgr ? (PB.comp ? pbCompose() : '<button class="btn" data-act="pbnew">📨 Scrivi a Sergio (previsione o messaggio)</button>') : '') + pbMsgs().replace(/<h3[^>]*>[^<]*<\/h3>/, '');
-    h += pbFold('msg', '💬', van ? 'Messaggi da Pietro' : 'Messaggi a Sergio', PB.msgs ? PB.msgs.length + ' messaggi' : '', unread ? unread + ' nuovi' : '', msgBody);
+    var R = '';
+    R += pbFold('msg', '💬', van ? 'Messaggi da Pietro' : 'Messaggi a Sergio', PB.msgs ? PB.msgs.length + ' messaggi' : '', unread ? unread + ' nuovi' : '', msgBody);
     // Murano
     var bs = d.batches || [], wait = bs.filter(function (b) { return String(b.day).slice(0, 10) < todayKey() && b.stage < 3; }).reduce(function (a, b) { return a + b.n; }, 0);
-    h += pbFold('murano', '🏝️', 'Murano', '6 clienti · ritiro a Tronchetto alle ' + esc(d.pickup_t || '13:00'), wait ? wait + ' da ritirare' : bs.length ? bs.length + ' in giro' : '', pbMuranoBody());
+    R += pbFold('murano', '🏝️', 'Murano', 'ritiro a Tronchetto ' + esc(d.pickup_t || '13:00'), wait ? wait + ' da ritirare' : bs.length ? bs.length + ' in giro' : '', pbMuranoBody());
     // altri clienti
-    if (!PB.cli) h += '<div class="card"><p class="muted">Carico gli altri clienti…</p></div>';
+    if (!PB.cli) R += '<p class="muted" style="margin:6px 12px">Carico gli altri clienti…</p>';
     else cl2.forEach(function (c) {
-      var sub = 'Ultima consegna: ' + (c.last_n || 0) + ' · ' + pbDayLab(c.last_day);
-      h += pbFold('c:' + c.stop, trIconHtml('polybox', '📦', 30), c.name || c.stop, esc(sub), c.today_n ? c.today_n + ' oggi' : '', pbClientBody(c));
+      var sub = c.today_n ? '' : 'ultima: ' + (c.last_n || 0) + ' · ' + pbDayLab(c.last_day);
+      R += pbFold('c:' + c.stop, trIconHtml('polybox', '📦', 20), c.name || c.stop, esc(sub), c.today_n ? c.today_n + ' oggi' : '', pbClientBody(c));
     });
-    if (PB.cli && !cl2.length) h += '<div class="card"><p class="muted">Per gli altri clienti non ci sono polybox segnati negli ultimi 14 giorni.</p></div>';
-    return h + '<button class="btn sm" data-act="pbreload" style="margin-top:8px">Aggiorna</button></div>';
+    if (PB.cli && !cl2.length) R += '<p class="muted" style="margin:6px 12px">Nessun altro cliente con polybox negli ultimi 14 giorni.</p>';
+    return h + '<section class="card trcat"><div class="trch"><h3>Clienti · ' + (cl2.length + 1) + '</h3><button class="btn sm" data-act="pbreload">Aggiorna</button></div>' + R + '</section></div>';
   }
   function pbKeep() { var c = PB.comp; if (!c) return; var b = $('pbcBody'), dd = $('pbcDay'), tt = $('pbcT'), nn = $('pbcN'); if (b) c.body = b.value; if (dd) c.day = dd.value; if (tt) c.t = tt.value; if (nn) c.n = nn.value === '' ? null : nn.value; }
   document.addEventListener('change', function (e) {
