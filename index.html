@@ -1414,6 +1414,13 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(function () { toast(ok || 'Copiato'); }, fail); else fail();
     } catch (e) { fail(); }
   }
+  // dopo l'arrivo (GPS) il ritardo si calcola sull'ora di arrivo, non più sull'ora attuale
+  function arrPill(t, at, ind) {
+    var d = new Date(at), hmA = hm(at); if (!t || ind) return '<span class="pill ok">✓ Arrivato alle ' + hmA + '</span>';
+    var n = d.getHours() * 60 + d.getMinutes() - mins(t);
+    if (n <= 2) return '<span class="pill ok">✓ Arrivato ' + (n < -2 ? 'in anticipo' : 'puntuale') + ' alle ' + hmA + '</span>';
+    return '<span class="pill bad">Arrivato alle ' + hmA + ' · ' + n + ' min di ritardo</span>';
+  }
   function delayPill(t) {
     if (!t || !S.shift || S.shift.day !== todayKey()) return '';
     var d = new Date(), n = d.getHours() * 60 + d.getMinutes() - mins(t);
@@ -3801,11 +3808,12 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
         '<button class="btn" data-act="maintreq">Segnala un problema alla barca</button>';
       primary = 'Verifica completata'; speech = 'Dalle ' + s.t + ' alle ' + s.end + ': ' + s.note + '.';
     } else if (step === 0) {
-      body = '<div class="row"><h3>Rotta</h3><div class="pills">' + (s.t ? '<span class="pill go">' + (s.ind ? 'Indicativo: circa ' : 'Previsto alle ') + esc(s.t) + '</span>' : '<span class="pill go">Orario da definire</span>') + (s.ind ? '' : delayPill(s.t)) + '</div></div>' +
-        '<p class="huge">Vai a ' + esc(s.name) + '</p>' +
+      var arrT = S.shift.arr && S.shift.arr[arrKey(i)];
+      body = '<div class="row"><h3>' + (arrT ? 'Arrivato' : 'Rotta') + '</h3><div class="pills">' + (s.t ? '<span class="pill go">' + (s.ind ? 'Indicativo: circa ' : 'Previsto alle ') + esc(s.t) + '</span>' : '<span class="pill go">Orario da definire</span>') + (arrT ? arrPill(s.t, arrT, s.ind) : s.ind ? '' : delayPill(s.t)) + '</div></div>' +
+        '<p class="huge">' + (arrT ? 'Sei a ' : 'Vai a ') + esc(s.name) + '</p>' + (arrT && isPane(s.name) ? '<div class="note"><b>Carica il DDT del pane:</b> appena è caricato si passa da solo alla consegna successiva.</div>' : '') +
         (s.note ? '<div class="note"><b>Alla tappa:</b> ' + esc(s.note) + '</div>' : '') +
         '<div class="muted">' + (next ? 'Dopo: ' + esc(next.name) + (next.t ? ' alle ' + esc(next.t) : '') : 'Ultima tappa del giro') + '</div>';
-      primary = (isSem(s.name) || isBenz(s.name) || /^(darsena|scalo)\b/i.test(String(s.name).trim())) ? 'Tappa fatta' : 'Sono arrivato';
+      primary = (isSem(s.name) || isBenz(s.name) || /^(darsena|scalo)\b/i.test(String(s.name).trim())) ? 'Tappa fatta' : arrT && isPane(s.name) ? '📷 Carica il DDT del pane' : arrT ? 'Apri la consegna' : 'Sono arrivato';
       speech = 'Tappa ' + (i + 1) + ' di ' + all.length + '. Vai a ' + s.name + '. ' + (s.t ? 'Arrivo previsto alle ' + s.t + '.' : 'Orario da definire.') + (s.note ? ' ' + s.note + '.' : '');
     } else {
       body = '<h3>Operazioni a ' + esc(s.name) + '</h3>' + (s.note ? '<p class="note big">' + esc(s.note) + '</p>' : '<p class="big">Ormeggia in sicurezza e svolgi le operazioni previste per questa tappa.</p>') +
@@ -5366,7 +5374,19 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       if (n > 0) { var x = document.createElement('b'); x.className = 'dbadge'; x.textContent = n > 9 ? '9+' : n; b.appendChild(x); }
     });
   }
-  function loadDdt() {
+  function paneAutoDone() {
+    var sh = S.shift; if (!sh || holdIdx() != null || revIdx() != null) return; var i = curIdx(); if (i < 0) return;
+    var z = stops()[i]; if (!z || !isPane(z.name) || sh.done[i]) return;
+    var t0 = sh.arr && sh.arr[arrKey(i)]; if (!t0) return;
+    var up = cnsDdts(z).filter(function (x) { return x.at && Date.parse(x.at) >= t0 - 120000; });
+    if (!up.length) return;
+    if ($('cnsS')) closeSheet();
+    finish(i, 'ok', ''); CNS.i = null; toast('🥖 DDT del pane caricato: tappa Pane fatta');
+    var n = curIdx(); if (n >= 0) say('DDT del pane caricato. Prossima tappa: ' + stops()[n].name + '.');
+    if (view === 'guida') render();
+  }
+  function loadDdt() { return loadDdt0.apply(this, arguments).then(function (r) { try { paneAutoDone(); } catch (e) {} return r; }); }
+  function loadDdt0() {
     if (!tok() || DD.busy) return Promise.resolve();
     DD.busy = true;
     var jobs = [cl('rpc_ddt_list', {})];
@@ -7487,7 +7507,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     openSheet('<div class="dfxs colli cnss" id="cnsS"><h2>📦 ' + esc(z.name) + '</h2>' +
       '<div class="cnsh">' + (t0 ? 'Arrivato alle <b>' + hm(t0) + '</b>' : 'Ora <b>' + hm(Date.now()) + '</b>') + (z.t ? ' · prevista alle <b>' + esc(stopTime(z)) + '</b>' : '') + '</div>' +
       (z.note ? '<div class="cnsnote">' + esc(z.note) + '</div>' : '') + (v != null ? '<span class="cnspb">📦 ' + v + ' polybox da consegnare</span>' : '') +
-      '<div class="clsec">DDT</div>' + dl +
+      '<div class="clsec">DDT</div>' + dl + (isPane(z.name) ? '<button class="btn primary" data-act="dgup" data-m="cam" data-c="Pane" data-s="' + esc(z.name) + '" data-no="' + esc(z.note || '') + '">📷 Fotografa il DDT del pane</button><p class="muted" style="margin:4px 0 0;font-size:13px">Appena è caricato, la tappa Pane si chiude da sola e si passa alla consegna successiva.</p>' : '') +
       '<div class="clsec">Prova di consegna (facoltativa)</div>' +
       '<div class="cnsph" id="cnsPh">' + ph.map(function (u) { return '<img src="' + u + '" alt="Foto della consegna">'; }).join('') + '</div>' +
       (np ? '<p class="muted" style="margin:0 0 6px">' + np + (np === 1 ? ' foto salvata' : ' foto salvate') + '</p>' : '') +
