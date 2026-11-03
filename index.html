@@ -1250,6 +1250,9 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   DAYKEYS.forEach(function (k) { PROGRAM[k].boats.TULLIO = { test: true, stops: [
     { t: '', name: 'Pane', note: 'Prova: parti dal punto in cui hai avviato il turno' },
     { t: '', name: 'Santa Marta', note: 'Prova: da Pane a Santa Marta' }] }; });
+  // simulazione del turno offline: consegna di prova sulla barca di prova (non entra nelle statistiche)
+  var TULLIO_TEST = { '2026-11-03': [{ t: '23:30', name: 'Santa Marta', note: 'Consegna di prova del turno offline' }] };
+  Object.keys(TULLIO_TEST).forEach(function (k) { if (PROGRAM[k]) PROGRAM[k].boats.TULLIO = { test: true, stops: JSON.parse(JSON.stringify(TULLIO_TEST[k])) }; });
   var BASE_PROGRAM = JSON.parse(JSON.stringify(PROGRAM)), BASE_KEYS = DAYKEYS.slice();
   var CANC = [];
   function markCancels() {
@@ -1299,6 +1302,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     });
     if (S && S.shift && !P[S.shift.day] && PROGRAM[S.shift.day]) { P[S.shift.day] = PROGRAM[S.shift.day]; K.push(S.shift.day); }
     K.sort();
+    K.forEach(function (k) { if (TULLIO_TEST[k]) P[k].boats.TULLIO = { test: true, stops: JSON.parse(JSON.stringify(TULLIO_TEST[k])) }; });
     K.forEach(function (k) { if (!P[k].boats.TULLIO) P[k].boats.TULLIO = { test: true, stops: [{ t: '', name: 'Pane', note: 'Prova: parti dal punto in cui hai avviato il turno' }, { t: '', name: 'Santa Marta', note: 'Prova: da Pane a Santa Marta' }] }; });
     PROGRAM = P; DAYKEYS = K; markCancels(); fillBoatDays();
   }
@@ -1596,7 +1600,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       toast('Turno iniziato su ' + BOATS[code].name);
       gpsApply(); render(); setTimeout(loadMyTasks, 600); setTimeout(function () { gpsModeAsk(true); }, 400);
     };
-    if (tok()) { cl('rpc_start_shift', { p_boat: code }).then(function (r) { if (r && r.error) { scanMsg(startErr(r.error), true); return; } go(); if (r && r.shift_id && S.shift) { S.shift.sid = r.shift_id; save(); } cl('rpc_set_plan', { p_plan: stops().map(function (z) { return { name: z.name, t: z.ind ? '' : (z.t || '') }; }) }); }); } else go();
+    if (tok() || isOffSess()) { cl('rpc_start_shift', { p_boat: code }).then(function (r) { if (r && r.error) { scanMsg(startErr(r.error), true); return; } go(); if (r && r.shift_id && S.shift) { S.shift.sid = r.shift_id; save(); } cl('rpc_set_plan', { p_plan: stops().map(function (z) { return { name: z.name, t: z.ind ? '' : (z.t || '') }; }) }); }); } else go();
   }
   function makeThumb(url) {
     return new Promise(function (res) {
@@ -1691,7 +1695,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   function endPhotoFlush() {
     var q; try { q = JSON.parse(localStorage.getItem('smb-endph') || '[]'); } catch (x) { q = []; }
-    if (!q.length || !tok() || endPhotoFlush.busy) return; endPhotoFlush.busy = true; var it = q[0];
+    if (!q.length || !(tok() || isOffSess()) || endPhotoFlush.busy) return; endPhotoFlush.busy = true; var it = q[0];
     cl('rpc_end_photo', { p_boat: it.b, p_photo: it.p, p_cart: it.c }).then(function (r) {
       endPhotoFlush.busy = false;
       if (r && (r.ok || r.error)) { var q2; try { q2 = JSON.parse(localStorage.getItem('smb-endph') || '[]'); } catch (x) { q2 = []; } q2.shift(); try { localStorage.setItem('smb-endph', JSON.stringify(q2)); } catch (x) {} if (q2.length) setTimeout(endPhotoFlush, 500); }
@@ -1700,7 +1704,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   setInterval(endPhotoFlush, 60000); window.addEventListener('online', endPhotoFlush); setTimeout(endPhotoFlush, 4000);
   // per i responsabili: ultima foto di fine turno di ogni barca
   var EP = { d: null, t: 0 };
-  function loadEndPh() { if (!tok()) return; EP.t = Date.now(); cl('rpc_end_photo_status', {}).then(function (r) { if (Array.isArray(r)) { EP.d = r; var el = $('epBox'); if (el) el.innerHTML = endPhInner(); } }); }
+  function loadEndPh() { if (!(tok() || isOffSess())) return; EP.t = Date.now(); cl('rpc_end_photo_status', {}).then(function (r) { if (Array.isArray(r)) { EP.d = r; var el = $('epBox'); if (el) el.innerHTML = endPhInner(); } }); }
   function endPhInner() {
     if (!EP.d) return '<p class="muted">Carico…</p>';
     return '<div class="epg">' + EP.d.filter(function (x) { return BOATS[x.boat] && x.boat !== 'TULLIO' && !BOATS[x.boat].test; }).map(function (x) {
@@ -1730,7 +1734,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   });
   // per i responsabili, nella sezione Barche
   var FU = { d: null, t: 0 };
-  function loadFuel() { if (!tok()) return; FU.t = Date.now(); cl('rpc_fuel_status', {}).then(function (r) { if (Array.isArray(r)) { FU.d = r; var el = $('fuelBox'); if (el) el.innerHTML = fuelInner(); } }); }
+  function loadFuel() { if (!(tok() || isOffSess())) return; FU.t = Date.now(); cl('rpc_fuel_status', {}).then(function (r) { if (Array.isArray(r)) { FU.d = r; var el = $('fuelBox'); if (el) el.innerHTML = fuelInner(); } }); }
   function fuelInner() {
     if (!FU.d) return '<p class="muted">Carico…</p>';
     return FU.d.filter(function (x) { return BOATS[x.boat] && x.boat !== 'TULLIO'; }).map(function (x) {
@@ -4289,7 +4293,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     return null;
   }
   function loadMyTasks() {
-    if (!tok()) return;
+    if (!(tok() || isOffSess())) return;
     cl('rpc_my_tasks', {}).then(function (r) {
       if (!r || !r.open) return;
       X.my = r.open;
@@ -5101,7 +5105,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   applyBoatInfo();
   function loadBoatInfo() {
-    if (!tok()) return;
+    if (!(tok() || isOffSess())) return;
     cl('rpc_boat_info', {}).then(function (r) {
       if (!r || typeof r !== 'object') return;
       BI = r; try { localStorage.setItem('smb-binfo', JSON.stringify(BI)); } catch (e) {}
@@ -5243,7 +5247,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var PB_ST = [['Dai clienti a Murano', 'Consegnati pieni: si svuotano e aspettano il giro dopo'], ['Sulla patana', 'Ritirati vuoti a Murano'], ['A Tronchetto · Scalo fluviale', 'Lasciati per il furgone'], ['Sul furgone di Sergio', 'Ritirati a Tronchetto'], ['Arrivati a Zelarino', 'Giro completato']];
   function pbIsMgr() { return isMgr() || isFullAcc(); }
   function pbLoad() {
-    if (PB.loading || !tok()) return Promise.resolve();
+    if (PB.loading || !(tok() || isOffSess())) return Promise.resolve();
     PB.loading = true; PB.t = Date.now();
     return Promise.all([cl('rpc_polybox_status', {}), cl('rpc_van_msg_list', {}), cl('rpc_polybox_clients', {}), cl('rpc_murano_colli_last', {})]).then(function (r) {
       if (r[2] && r[2].clients) PB.cli = r[2];
@@ -5680,15 +5684,16 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   function loadDdt() { return loadDdt0.apply(this, arguments).then(function (r) { try { paneAutoDone(); } catch (e) {} return r; }); }
   function loadDdt0() {
-    if (!tok() || DD.busy) return Promise.resolve();
+    if ((!tok() && !isOffSess()) || DD.busy) return Promise.resolve();
     DD.busy = true;
     var jobs = [cl('rpc_ddt_list', {})];
     return jobs[0].then(function (r) {
       DD.busy = false;
       if (!r || !r.items) { DD.err = true; if (view === 'ddt') render(); return; }
       DD.err = false; DD.loaded = true; DD.items = r.items; DD.office = !!r.office;
+      if (isOffSess()) { var _os = offSigned(); DD.items.forEach(function (x) { if (_os[x.id]) { x.status = 'signed'; x.offline = true; } }); }
       var need = DD.office && !DD.carriers ? cl('rpc_ddt_carriers', {}).then(function (c) { if (c && c.length) DD.carriers = c; }) : Promise.resolve();
-      return need.then(function () { ddtBadge(); ddwRefresh(); if ((view === 'ddt' || view === 'ddtgiro') && !document.getElementById('sigScreen') && !document.querySelector('#layer .sheet')) render(); });
+      return need.then(function () { try { ddtPrefetch(); } catch (x) {} ddtBadge(); ddwRefresh(); if ((view === 'ddt' || view === 'ddtgiro') && !document.getElementById('sigScreen') && !document.querySelector('#layer .sheet')) render(); });
     }).catch(function () { DD.busy = false; });
   }
   setInterval(function () { if (!document.hidden && tok()) loadDdt(); }, 60000);
@@ -6202,7 +6207,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function sigConfirm() {
     var nm = '';
     if (SIG.pts < 40) { sigMsg('La firma è vuota o troppo corta: fai firmare di nuovo.'); return; }
-    if (!tok()) { sigMsg('Serve la connessione per salvare la firma.'); return; }
+    if (!(tok() || isOffSess())) { sigMsg('Serve la connessione per salvare la firma.'); return; }
     if (GHOST) { sigClose(); SIGQ.length = 0; SIGQ.total = 0; toast('Modalità prova: firma provata, il DDT non è stato firmato davvero'); return; }
     sigMsg('Salvo la firma…'); var id = SIG.id, img = sigExport();
     sigLoc().then(function (loc) {
@@ -7473,7 +7478,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (['emopen', 'emclose', 'emboat', 'emstart', 'emend', 'emsheet', 'emprob', 'emskip', 'emclear', 'emback'].indexOf(a) < 0) return;
     e.preventDefault(); e.stopPropagation();
     var o = emGet();
-    if (a === 'emopen') emOpen();
+    if (a === 'emopen') { if (SESSION && SESSION.token) { emOpen(); return; } offEnter({ name: EM_WHO, role: 'admin', full: true, works: true, msg: 'Turno offline: tutto resta sul telefono' }); view = 'turno'; render(); loadDdt(); return; }
     else if (a === 'emclose') emClose();
     else if (a === 'emboat') { EM.boat = el.getAttribute('data-b'); emRender(); }
     else if (a === 'emstart') { var day = emDay(), boat = EM.boat || emBoatDefault(day), st = emStops(day, boat); if (!st.length) return; o.cur = { id: 'em-' + day + '-' + boat + '-' + Date.now().toString(36), day: day, boat: boat, who: EM_WHO, started: Date.now(), stops: st, probs: {} }; emPut(o); EM.scrolled = false; emRender(); }
@@ -7775,6 +7780,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var h = '<div class="wrap hmwrap"><div class="hmhi">' + (hr < 13 ? 'Buongiorno' : hr < 18 ? 'Buon pomeriggio' : 'Buonasera') + (nm ? ', ' + esc(nm) : '') + '</div><div class="muted">' + esc(new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })) + '</div>';
     if (S.shift && !isVan() && !isOff()) h += '<button class="hmshift" data-act="nav" data-v="turno"><span style="font-size:28px" aria-hidden="true">🚤</span><span><b>Turno in corso</b>' + esc(BOATS[S.shift.boat] ? BOATS[S.shift.boat].name : '') + ' · tocca per riprendere</span></button>';
     if ((navigator.onLine === false || (SESSION && SESSION.offline)) && !isVan() && !isOff()) h += '<button class="hmshift" data-act="emopen" style="background:#7f1d1d;color:#fff"><span style="font-size:28px" aria-hidden="true">🆘</span><span><b>' + (SESSION && SESSION.offline ? 'Modalità offline · niente va nel database' : 'Sei offline') + '</b>Apri il turno d’emergenza: le tappe si segnano dal programma</span></button>';
+    if (OUT.n) h += '<div class="card" role="status" style="border-color:#E65100"><b>📤 ' + OUT.n + (OUT.n === 1 ? ' dato del turno offline' : ' dati del turno offline') + ' sul telefono</b><span class="muted">' + (isOffSess() ? 'Si inviano da soli quando entri con il tuo PIN e c’è internet.' : OUT.err ? 'Non inviati: chiudi prima il turno aperto sul server, poi riapri l’app.' : 'Li sto inviando al database…') + '</span></div>';
     h += turniHomeBanner() + shipHomeBanner();
     h += '<div class="hmgrid" role="list">' + homeApps().map(function (k) {
       var a = APPS[k] || [k, '#475569'], ic = ICONS[k === 'impost' ? 'gear' : k] || ICONS.altro;
@@ -8610,15 +8616,113 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var SB_URL = 'https://bicwewjvktuaggrxtdmy.supabase.co', SB_KEY = 'sb_publishable_KCkH6GPiqOuyHq5nQqO8KQ_nUEtvUHq';
   var DEV = ''; try { DEV = localStorage.getItem('smb-dev') || ''; if (!DEV) { DEV = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now(); localStorage.setItem('smb-dev', DEV); } } catch (e) { DEV = 'dev' + Date.now(); }
   var loginNames = [], loginPin = '', loginOffline = false, CLOUDADM = null, lastGpsSent = 0;
+  /* ---------- Turno offline completo: le stesse schermate del turno vero, senza internet ----------
+     In modalità offline (codice di sblocco o tasto 🆘) ogni dato del turno (tappe, problemi, colli/polybox, casse del pane,
+     foto, DDT firmati, benzina, foto finale) si salva sul telefono in ordine. Quando la stessa persona entra con il PIN
+     e c'è internet, l'app li rimanda al server uno per uno; a fine turno gli orari si sistemano come da programma. */
+  var OUT_FNS = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_stop_event2', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_delivery_proof_photo', 'rpc_colli_set', 'rpc_murano_colli_set', 'rpc_shift_gps_mode', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_refuel_add2', 'rpc_refuel_photo', 'rpc_refuel_photo2', 'rpc_refuel_void', 'rpc_fuel_set', 'rpc_track_move', 'rpc_ddt_edit_file', 'rpc_ddt_place_sig', 'rpc_bread_crates_set', 'rpc_pb_return_set', 'rpc_task_update', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_polybox_set'];
+  // letture che servono durante il turno: l'ultima risposta resta sul telefono per quando non c'è rete
+  var OUT_READ = ['rpc_ddt_list', 'rpc_ddt_file', 'rpc_ddt_signature', 'rpc_my_tasks', 'rpc_boat_info', 'rpc_contacts2', 'rpc_program_active', 'rpc_cancels_active', 'rpc_pb_expected', 'rpc_murano_colli_last', 'rpc_polybox_status', 'rpc_fuel_status', 'rpc_assign_list', 'rpc_end_photo_status', 'rpc_delivery_proof_list', 'rpc_task_day'];
+  var OUT_SKIP = ['rpc_log_gps', 'rpc_pos_share']; // GPS: in offline non serve
+  function offSigned() { try { return JSON.parse(localStorage.getItem('smb-off-signed') || '{}') || {}; } catch (e) { return {}; } }
+  function isOffSess() { return !!(SESSION && SESSION.offline && !SESSION.token); }
+  var IDB = null;
+  function idb() {
+    if (IDB) return IDB;
+    IDB = new Promise(function (ok, ko) {
+      try { var r = indexedDB.open('smb-offline', 1); r.onupgradeneeded = function () { var d = r.result; if (!d.objectStoreNames.contains('q')) d.createObjectStore('q', { keyPath: 'id', autoIncrement: true }); if (!d.objectStoreNames.contains('c')) d.createObjectStore('c'); }; r.onsuccess = function () { ok(r.result); }; r.onerror = function () { ko(r.error); }; } catch (e) { ko(e); }
+    });
+    return IDB;
+  }
+  function idbDo(st, mode, fn) { return idb().then(function (d) { return new Promise(function (ok, ko) { var t = d.transaction(st, mode), s = t.objectStore(st), res; var rq = fn(s); if (rq) rq.onsuccess = function () { res = rq.result; }; t.oncomplete = function () { ok(res); }; t.onerror = function () { ko(t.error); }; t.onabort = function () { ko(t.error); }; }); }); }
+  function ckey(fn, args) { var a = {}; Object.keys(args || {}).sort().forEach(function (k) { if (k !== 'p_token') a[k] = args[k]; }); return fn + ' ' + JSON.stringify(a); }
+  function cachePut(fn, args, r) { if (OUT_READ.indexOf(fn) < 0 || r == null) return; idbDo('c', 'readwrite', function (s) { return s.put({ r: r, at: Date.now() }, ckey(fn, args)); }).catch(function () {}); }
+  function cacheGet(fn, args) { return idbDo('c', 'readonly', function (s) { return s.get(ckey(fn, args)); }).then(function (v) { if (!v) throw { offline: true }; return v.r; }); }
+  function outMeta() { try { return JSON.parse(localStorage.getItem('smb-out-meta') || '{}') || {}; } catch (e) { return {}; } }
+  function outMetaPut(m) { try { localStorage.setItem('smb-out-meta', JSON.stringify(m)); } catch (e) {} }
+  var OUT = { n: 0, busy: false, err: '' };
+  function outCount() { return idbDo('q', 'readonly', function (s) { return s.count(); }).then(function (n) { var ch = n !== OUT.n; OUT.n = n; if (ch && view === 'home') render(); return n; }).catch(function () { return 0; }); }
+  function offCall(fn, args) {
+    if (OUT_SKIP.indexOf(fn) >= 0) return Promise.resolve({ ok: true, offline: true });
+    if (OUT_FNS.indexOf(fn) < 0) return cacheGet(fn, args);
+    var a = {}; Object.keys(args || {}).forEach(function (k) { if (k !== 'p_token') a[k] = args[k]; });
+    var meta = outMeta(), lid = meta.cur || null, fake = 'off-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), res = { ok: true, offline: true, id: fake };
+    if (fn === 'rpc_start_shift') { lid = 'sh-' + Date.now().toString(36); meta.cur = lid; meta[lid] = { owner: SESSION.name, day: todayKey(), boat: a.p_boat, startAt: Date.now() }; res = { shift_id: lid, offline: true }; }
+    if (!lid) lid = 'x-' + todayKey(); // dati fuori turno (es. DDT): si mandano comunque
+    if (!meta[lid]) meta[lid] = { owner: SESSION.name, day: todayKey() };
+    if (fn === 'rpc_set_plan') meta[lid].plan = a.p_plan;
+    if (fn === 'rpc_ddt_sign' && a.p_id) { var os = offSigned(); os[a.p_id] = Date.now(); try { localStorage.setItem('smb-off-signed', JSON.stringify(os)); } catch (e) {} }
+    if (fn === 'rpc_end_shift') { meta[lid].endAt = Date.now(); meta[lid].closed = true; if (meta.cur === lid) meta.cur = null; res = { ok: true, offline: true, shift_id: lid }; }
+    outMetaPut(meta);
+    return idbDo('q', 'readwrite', function (s) { return s.add({ lid: lid, fn: fn, args: a, fake: fake, at: Date.now(), owner: SESSION.name }); }).then(function () { outCount(); return res; }).catch(function () { toast('Non riesco a salvare sul telefono: memoria piena?'); return null; });
+  }
+  function outTimes(m) { // inizio e fine come da programma (primo e ultimo orario delle tappe)
+    var t = (m.plan || []).map(function (z) { return z && /^\d{1,2}:\d{2}$/.test(z.t || '') ? new Date(m.day + 'T' + (z.t.length === 4 ? '0' + z.t : z.t) + ':00').getTime() : null; }).filter(function (x) { return x; });
+    var a = t.length ? Math.min.apply(null, t) : null, b = t.length ? Math.max.apply(null, t) : null;
+    if (a == null || b - a < 5 * 60000) { a = Math.min(a || m.startAt || Date.now(), m.startAt || a || Date.now()); b = Math.max(b || m.endAt || Date.now(), m.endAt || b || Date.now()); }
+    return [new Date(a).toISOString(), new Date(b).toISOString()];
+  }
+  function outSync() {
+    if (OUT.busy || !tok() || !SESSION || SESSION.offline || navigator.onLine === false) return;
+    if (!(SESSION.full || SESSION.role === 'admin' || SESSION.role === 'manager')) return;
+    OUT.busy = true;
+    idbDo('q', 'readonly', function (s) { return s.getAll(); }).then(function (items) {
+      var meta = outMeta(), ids = {}, me = SESSION.name;
+      items = (items || []).filter(function (x) { return x.owner === me; });
+      // un turno offline ancora aperto sul telefono si manda solo quando è finito
+      items = items.filter(function (x) { return !(meta[x.lid] && x.lid === meta.cur && !meta[x.lid].closed); });
+      if (!items.length) { OUT.busy = false; outCount(); return; }
+      Object.keys(meta).forEach(function (k) { if (meta[k] && meta[k].fakes) Object.assign(ids, meta[k].fakes); });
+      function fix(v) { if (typeof v === 'string' && ids[v]) return ids[v]; if (Array.isArray(v)) return v.map(fix); if (v && typeof v === 'object') { var o = {}; Object.keys(v).forEach(function (k) { o[k] = fix(v[k]); }); return o; } return v; }
+      (function next(i) {
+        if (i >= items.length) { OUT.busy = false; OUT.err = ''; outCount(); outFinish(); return; }
+        var x = items[i], m = meta[x.lid] || {};
+        if (m.halt) { next(i + 1); return; }
+        cl('rpc_offline_call', { p_local_id: x.lid, p_seq: x.id, p_fn: x.fn, p_args: fix(x.args) }).then(function (r) {
+          if (r == null) { OUT.busy = false; return; } // niente rete: si riprova dopo
+          if (x.fn === 'rpc_start_shift') {
+            if (r.error) { m.halt = r.error; meta[x.lid] = m; outMetaPut(meta); OUT.err = r.error; OUT.busy = false; toast(r.error === 'turno_aperto' || r.error === 'turno_aperto_su_altra_barca' ? 'Turno offline non caricato: chiudi prima il turno aperto sul server' : r.error === 'barca_in_uso' ? 'Turno offline non caricato: la barca risulta in uso da un altro' : 'Turno offline non caricato (' + r.error + ')'); render(); return; }
+            m.sid = r.shift_id; m.fakes = m.fakes || {}; m.fakes[x.lid] = r.shift_id; ids[x.lid] = r.shift_id;
+          }
+          if (r && (r.id || r.shift_id) && x.fake) { m.fakes = m.fakes || {}; m.fakes[x.fake] = r.id || r.shift_id; ids[x.fake] = r.id || r.shift_id; }
+          meta[x.lid] = m; outMetaPut(meta);
+          idbDo('q', 'readwrite', function (s) { return s.delete(x.id); }).then(function () { next(i + 1); });
+        });
+      })(0);
+    }).catch(function () { OUT.busy = false; });
+  }
+  function outFinish() {
+    var meta = outMeta();
+    idbDo('q', 'readonly', function (s) { return s.getAll(); }).then(function (items) {
+      Object.keys(meta).forEach(function (lid) {
+        var m = meta[lid]; if (lid === 'cur' || !m || !m.closed || !m.sid || m.done || m.halt) return;
+        if ((items || []).some(function (x) { return x.lid === lid; })) return;
+        var tt = outTimes(m);
+        cl('rpc_offline_finish', { p_local_id: lid, p_shift: m.sid, p_day: m.day, p_start: tt[0], p_end: tt[1] }).then(function (r) {
+          if (r && r.ok) { var mm = outMeta(); if (mm[lid]) { mm[lid].done = Date.now(); } Object.keys(mm).forEach(function (k) { if (mm[k] && mm[k].done && Date.now() - mm[k].done > 7 * 864e5) delete mm[k]; }); outMetaPut(mm); toast('Turno offline del ' + m.day.split('-').reverse().slice(0, 2).join('/') + ' caricato nel database'); }
+        });
+      });
+    }).catch(function () {});
+  }
+  setInterval(function () { if (!document.hidden) outSync(); }, 45000); setTimeout(function () { outCount(); outSync(); }, 5000);
+  window.addEventListener('online', function () { setTimeout(outSync, 2500); });
+  // prima di andare offline: i DDT del giorno si scaricano sul telefono, così si vedono e si firmano anche senza rete
+  function ddtPrefetch() {
+    if (!tok() || !DD.items) return; var d0 = todayKey(), d1 = (function () { var d = new Date(); d.setDate(d.getDate() + 1); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); })();
+    DD.items.filter(function (x) { return x.mine && x.status === 'pending' && (!x.date || x.date === d0 || x.date === d1); }).slice(0, 25).forEach(function (x, i) {
+      if (DD.pre && DD.pre[x.id]) return; DD.pre = DD.pre || {}; DD.pre[x.id] = 1; setTimeout(function () { cl('rpc_ddt_file', { p_id: x.id }); }, 400 * i);
+    });
+  }
   function cloud(fn, args) {
     if (GHOST && GHOST_BLOCK.indexOf(fn) >= 0) return Promise.resolve({ ok: true, ghost: true });
+    if (isOffSess() && fn !== 'rpc_login') return offCall(fn, args);
     return fetch(SB_URL + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(args || {}) }).then(function (r) {
-      return r.json().then(function (j) { if (!r.ok) throw { api: true, msg: (j && (j.message || j.hint)) || 'errore' }; return j; });
-    });
+      return r.json().then(function (j) { if (!r.ok) throw { api: true, msg: (j && (j.message || j.hint)) || 'errore' }; cachePut(fn, args, j); return j; });
+    }, function (e) { if (OUT_READ.indexOf(fn) >= 0) return cacheGet(fn, args); throw e; });
   }
   function tok() { return SESSION && SESSION.token ? SESSION.token : null; }
   function cl(fn, args) {
-    if (!tok()) return Promise.resolve(null);
+    if (!tok()) return isOffSess() && !(GHOST && GHOST_BLOCK.indexOf(fn) >= 0) ? offCall(fn, args || {}).catch(function () { return null; }) : Promise.resolve(null);
     if (GHOST && GHOST_BLOCK.indexOf(fn) >= 0) return Promise.resolve({ ok: true, ghost: true, id: 'ghost-' + Date.now() });
     args = args || {}; args.p_token = tok();
     return cloud(fn, args).catch(function (e) {
@@ -8989,7 +9093,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     SESSION = { role: oc.role || 'admin', name: oc.name, t: Date.now(), token: null, offline: true, full: !!oc.full, works: !!oc.works, locator: !!oc.locator };
     try { localStorage.setItem(SKEY, JSON.stringify(SESSION)); } catch (e) {}
     loginStep = 'pin'; pinBuf = ''; loginErr = ''; loginNames = []; view = 'home';
-    drawLogin(); render(); toast('Sbloccata con il codice offline');
+    drawLogin(); render(); toast(oc.msg || 'Sbloccata con il codice offline');
   }
   function submitPin() {
     var w = lockLeft(); if (w > 0) { loginErr = 'Troppi tentativi. Riprova tra ' + w + ' secondi.'; $('lgErr').textContent = loginErr; return; }
