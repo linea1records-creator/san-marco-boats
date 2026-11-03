@@ -1788,6 +1788,32 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   // Contano solo le lamentele "merce o polybox non pronti" segnate proprio lì: le altre consegne non influiscono.
   var RP = { d: null, k: null, busy: false };
   function rpLoad(key) { if (RP.busy) return; RP.busy = true; cl('rpc_ready_punct', { p_year: ST2.y, p_month: ST2.m || 0 }).then(function (r) { RP.busy = false; if (r && r.cucina) { RP.d = r; RP.k = key; if (view === 'stat') render(); } }).catch(function () { RP.busy = false; }); }
+  // storico di tutte le consegne fatte: 50 per pagina
+  var HS = { d: null, k: null, busy: null };
+  function hsLoad(k) { if (HS.busy === k) return; HS.busy = k; cl('rpc_deliveries_page', { p_year: ST2.y, p_month: ST2.m || 0, p_page: ST2.hp || 1 }).then(function (r) { if (HS.busy === k) HS.busy = null; if (r && r.items) { HS.d = r; HS.k = k; if (view === 'stat') render(); } }).catch(function () { HS.busy = null; }); }
+  function delivRow(x) {
+    var dt = new Date(x.at), when = dt.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' }) + ' ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes()), dl = x.delay, es, c2;
+    if (x.status !== 'ok') { es = 'Problema' + (x.reason ? ': ' + x.reason : ''); c2 = 'bad'; }
+    else if (dl == null) { es = x.extra ? 'Straordinaria · completata' : 'Completata · senza orario'; c2 = ''; }
+    else if (Math.abs(dl) <= 5) { es = 'Completata in orario' + (dl ? ' (' + (dl > 0 ? '+' : '') + dl + ' min)' : ''); c2 = 'ok'; }
+    else if (dl > 0) { es = 'Completata in ritardo di ' + dl + ' min'; c2 = 'late'; }
+    else { es = 'Completata in anticipo di ' + (-dl) + ' min'; c2 = 'early'; }
+    return '<div class="l10r"><div class="l10h"><b>' + esc(x.stop || '') + '</b><span class="mono">' + esc(when) + '</span></div><div class="muted">' + (BOATS[x.boat] ? esc(BOATS[x.boat].name) : esc(x.boat || '')) + (x.who ? ' · ' + esc(String(x.who).split(' ')[0]) : '') + (x.planned ? ' · previsto ' + esc(x.planned) : '') + (x.extra ? ' · straordinaria' : '') + '</div><span class="l10p ' + c2 + '">' + esc(es) + '</span></div>';
+  }
+  function histSec(key) {
+    var pg = ST2.hp || 1, k = key + ':' + pg; if (HS.k !== k) hsLoad(k);
+    var r = HS.k === k ? HS.d : null;
+    if (!r) return stSec('storico', '📋 Storico consegne', 'Carico…', '<p class="muted">Carico…</p>');
+    var pages = Math.max(1, Math.ceil(r.total / 50)), from = r.total ? (pg - 1) * 50 + 1 : 0, to = Math.min(pg * 50, r.total);
+    var nav = pages > 1 ? '<div class="ldnav"><button class="btn sm" data-act="hspg" data-n="-1" aria-label="Pagina precedente"' + (pg <= 1 ? ' disabled' : '') + '>‹</button><b>Pagina ' + pg + ' di ' + pages + '</b><button class="btn sm" data-act="hspg" data-n="1" aria-label="Pagina successiva"' + (pg >= pages ? ' disabled' : '') + '>›</button></div>' : '';
+    var body = r.total ? '<p class="hint" style="margin:0">Dalla più recente · ' + from + '–' + to + ' di ' + r.total + '</p>' + nav + '<div class="l10">' + r.items.map(delivRow).join('') + '</div>' + nav : '<p class="muted">Nessuna consegna in questo periodo.</p>';
+    return stSec('storico', '📋 Storico consegne', r.total + (r.total === 1 ? ' consegna' : ' consegne') + (pages > 1 ? ' · ' + pages + ' pagine' : ''), body);
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act="hspg"]') : null; if (!el || el.disabled) return;
+    ST2.hp = Math.max(1, (ST2.hp || 1) + (+el.getAttribute('data-n'))); render();
+    var sc = document.querySelector('details[data-st="storico"]'); if (sc && sc.scrollIntoView) sc.scrollIntoView({ block: 'start' });
+  });
   function rpSec(id, title, who, x) {
     if (!x) return stSec(id, title, 'Carico…', '<p class="muted">Carico…</p>');
     var p = x.pct, cls = p == null ? '' : p >= 95 ? 'ok' : p >= 80 ? 'late' : 'bad';
@@ -1867,6 +1893,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       else { es = 'Completata in anticipo di ' + (-dl) + ' min'; cl2 = 'early'; }
       return '<div class="l10r"><div class="l10h"><b>' + esc(x.stop) + '</b><span class="mono">' + esc(when) + '</span></div><div class="muted">' + (BOATS[x.boat] ? esc(BOATS[x.boat].name) : esc(x.boat || '')) + ' · ' + esc(String(x.who || '').split(' ')[0]) + (x.planned ? ' · previsto ' + esc(x.planned) : '') + '</div><span class="l10p ' + cl2 + '">' + esc(es) + '</span></div>';
     }).join('') + '</div>' : '<p class="muted">Ancora nessuna consegna.</p>'));
+    h += histSec(key);
     var maxH = Math.max.apply(null, d.hours.map(function (x) { return x.min; }).concat([1]));
     h += stSec('oreturni', 'Ore lavorate nei turni', hmin(totMin) + ' · ' + d.hours.length + (d.hours.length === 1 ? ' persona' : ' persone'), '<button class="aslink" style="align-self:flex-start" data-act="nav" data-v="ore">Tabella dettagliata ›</button>' + (d.hours.length ? d.hours.map(function (x) {
       return '<div class="stb"><span class="stbn">' + esc(x.who) + '</span><span class="stbb"><i style="width:' + (x.min / maxH * 100).toFixed(1) + '%"></i></span><span class="stbv">' + hmin(x.min) + '<small>' + x.shifts + ' turni · ' + x.km + ' km</small></span></div>';
@@ -1895,6 +1922,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'stmv' || a === 'stper') ST2.hp = 1;
     if (a === 'stmv') { var n = +el.getAttribute('data-n'); if (ST2.m) { ST2.m += n; if (ST2.m < 1) { ST2.m = 12; ST2.y--; } if (ST2.m > 12) { ST2.m = 1; ST2.y++; } } else ST2.y += n; render(); }
     else if (a === 'stper') { ST2.m = el.getAttribute('data-p') === 'y' ? 0 : (new Date().getMonth() + 1); render(); }
     else if (a === 'stcli') { ST2.cli = el.getAttribute('data-k') || null; ST2.mon = null; render(); }
