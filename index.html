@@ -449,7 +449,7 @@ body.drive .nxrow .chk .chkc{width:46px;height:46px}
 body.drive .nxrow .chk .chkt{min-width:0;font-size:clamp(16px,5.4vw,24px);line-height:1.05;white-space:normal;overflow-wrap:break-word}
 body.drive #nextBtn.locked{padding-bottom:26px}
 #nextBtn .chkl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 8px;font-size:11.5px}
-</style><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Caveat:wght@600;700&family=Inter:wght@500;700;800&display=swap">
+</style><link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Caveat:wght@600;700&family=Inter:wght@500;700;800&display=swap">
 </head><body>
 <title>San Marco Boat</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -459,7 +459,7 @@ body.drive #nextBtn.locked{padding-bottom:26px}
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="San Marco">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
 /* Layout: app a schermo intero per telefono. Intestazione sottile con icona impostazioni, area centrale che scorre, barra in basso con il tasto Turno rialzato al centro. */
 :root {
@@ -1228,6 +1228,19 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var LITE = false; try { LITE = !(window.CSS && CSS.supports && CSS.supports('display', 'grid')) || /[?&]lite=1/.test(location.search); } catch (e) { LITE = true; }
   try { if (/[?&]lite=0/.test(location.search)) LITE = false; } catch (e) {}
   if (LITE) document.documentElement.classList.add('lite');
+  /* Diagnostica sui telefoni vecchi: ricorda gli ultimi passi dell'app. Se la pagina si blocca, alla riapertura
+     mostra in rosso dove si era fermata (così si capisce cosa la blocca). */
+  var DIAG = [];
+  function diag(t) { if (!LITE) return; DIAG.push(new Date().toTimeString().slice(0, 8) + ' ' + t); if (DIAG.length > 40) DIAG.shift(); try { localStorage.setItem('smb-diag', JSON.stringify(DIAG)); } catch (e) {} }
+  (function () {
+    if (!LITE) return;
+    var old = null; try { old = JSON.parse(localStorage.getItem('smb-diag') || 'null'); } catch (e) {}
+    var clean = false; try { clean = localStorage.getItem('smb-diag-ok') === '1'; } catch (e) {}
+    try { localStorage.setItem('smb-diag-ok', '0'); } catch (e) {}
+    window.addEventListener('pagehide', function () { try { localStorage.setItem('smb-diag-ok', '1'); } catch (e) {} });
+    if (old && old.length && !clean) setTimeout(function () { if (window.__smbErr) window.__smbErr('Ultima volta l’app si è fermata dopo: ' + old.slice(-6).join(' → ')); }, 1500);
+    document.addEventListener('click', function (e) { var el = e.target && e.target.closest ? e.target.closest('[data-act],button,a') : null; diag('tocco ' + (el ? (el.getAttribute('data-act') || el.id || (el.textContent || '').trim().slice(0, 20)) : e.target.tagName)); }, true);
+  })();
   // se qualcosa va storto su un telefono vecchio, l'errore si vede in basso (si può fotografare e mandare)
   (function () {
     if (!LITE) return; var box = null;
@@ -7796,7 +7809,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (view !== 'guida') document.body.classList.remove('drive-open');
     var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
-    var _t0 = Date.now(), m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); m.scrollTop = (view === 'guida') ? 0 : sc;
+    diag('disegno ' + view); var _t0 = Date.now(), m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); m.scrollTop = (view === 'guida') ? 0 : sc; diag('fatto ' + view + ' ' + (Date.now() - _t0) + 'ms');
     if (LITE && Date.now() - _t0 > 2500 && window.__smbErr) window.__smbErr('Pagina lenta: ' + view + ' ' + (Date.now() - _t0) + ' ms');
     if (view === 'ddt') ddApplySearch();
   }
@@ -8684,6 +8697,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var OUT = { n: 0, busy: false, err: '' };
   function outCount() { return idbDo('q', 'readonly', function (s) { return s.count(); }).then(function (n) { var ch = n !== OUT.n; OUT.n = n; if (ch && view === 'home') render(); return n; }).catch(function () { return 0; }); }
   function offCall(fn, args) {
+    diag('offline ' + fn);
     if (OUT_SKIP.indexOf(fn) >= 0) return Promise.resolve({ ok: true, offline: true });
     if (OUT_FNS.indexOf(fn) < 0) return cacheGet(fn, args);
     var a = {}; Object.keys(args || {}).forEach(function (k) { if (k !== 'p_token') a[k] = args[k]; });
