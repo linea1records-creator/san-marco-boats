@@ -1257,8 +1257,11 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     { t: '', name: 'Pane', note: 'Prova: parti dal punto in cui hai avviato il turno' },
     { t: '', name: 'Santa Marta', note: 'Prova: da Pane a Santa Marta' }] }; });
   // simulazione del turno offline: consegna di prova sulla barca di prova (non entra nelle statistiche)
-  var TULLIO_TEST = { '2026-11-03': [{ t: '23:30', name: 'Santa Marta', note: 'Consegna di prova del turno offline' }] };
-  Object.keys(TULLIO_TEST).forEach(function (k) { if (PROGRAM[k]) PROGRAM[k].boats.TULLIO = { test: true, stops: JSON.parse(JSON.stringify(TULLIO_TEST[k])) }; });
+  // stasera fino a mezzanotte: il giro della Patana di domani, sulla barca di prova
+  var SIM = { '2026-11-03': { from: '2026-11-04', boat: 'PATANA', label: 'Giro Patana di domani' } };
+  var TULLIO_TEST = {};
+  function simApply(P) { Object.keys(SIM).forEach(function (k) { var c = SIM[k], src = P[c.from] && P[c.from].boats[c.boat]; if (!P[k] || !src) return; var st = (src.stops || []).filter(function (z) { return !z.cancelled; }).map(function (z) { var o = JSON.parse(JSON.stringify(z)); o.note = (o.note ? o.note + ' · ' : '') + 'Simulazione'; return o; }); TULLIO_TEST[k] = st; P[k].boats.TULLIO = { test: true, stops: JSON.parse(JSON.stringify(st)) }; }); }
+  simApply(PROGRAM);
   var BASE_PROGRAM = JSON.parse(JSON.stringify(PROGRAM)), BASE_KEYS = DAYKEYS.slice();
   var CANC = [];
   function markCancels() {
@@ -1308,7 +1311,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     });
     if (S && S.shift && !P[S.shift.day] && PROGRAM[S.shift.day]) { P[S.shift.day] = PROGRAM[S.shift.day]; K.push(S.shift.day); }
     K.sort();
-    K.forEach(function (k) { if (TULLIO_TEST[k]) P[k].boats.TULLIO = { test: true, stops: JSON.parse(JSON.stringify(TULLIO_TEST[k])) }; });
+    simApply(P);
     K.forEach(function (k) { if (!P[k].boats.TULLIO) P[k].boats.TULLIO = { test: true, stops: [{ t: '', name: 'Pane', note: 'Prova: parti dal punto in cui hai avviato il turno' }, { t: '', name: 'Santa Marta', note: 'Prova: da Pane a Santa Marta' }] }; });
     PROGRAM = P; DAYKEYS = K; markCancels(); fillBoatDays();
   }
@@ -7712,7 +7715,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   // in modalità offline: scorciatoia per la simulazione con la consegna di prova di oggi
   function viewTurnoOff() {
     var t = TULLIO_TEST[todayKey()], card = '';
-    if (isOffSess() && !S.shift && t && t.length) card = '<div class="wrap" style="padding-bottom:0"><div class="card" style="border:2px solid #7c3aed;gap:8px"><b style="font-size:17px">🧪 Simulazione turno offline</b><span class="muted">Barca di prova <b>Tullio di Trops</b> · ' + t.map(function (z) { return esc(z.name) + ' alle ' + esc(z.t); }).join(', ') + '. Non entra nelle statistiche.</span><button class="btn primary" data-act="simstart">Inizia la simulazione</button></div></div>';
+    if (isOffSess() && !S.shift && t && t.length) card = '<div class="wrap" style="padding-bottom:0"><div class="card" style="border:2px solid #7c3aed;gap:8px"><b style="font-size:17px">🧪 Simulazione turno offline</b><span class="muted">' + (SIM[todayKey()] ? esc(SIM[todayKey()].label) + ': ' + t.length + ' tappe, dalle ' + esc(t[0].t || '') : '') + ' sulla barca di prova <b>Tullio di Trops</b>. Non entra nelle statistiche e non tocca DDT, polybox o benzina veri.</span><button class="btn primary" data-act="simstart">Inizia la simulazione</button></div></div>';
     return card + viewTurno();
   }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="simstart"]') : null; if (!el || S.shift) return; if (BOATS.TULLIO) BOATS.TULLIO.gone = false; startShift('TULLIO'); });
@@ -8665,6 +8668,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (OUT_FNS.indexOf(fn) < 0) return cacheGet(fn, args);
     var a = {}; Object.keys(args || {}).forEach(function (k) { if (k !== 'p_token') a[k] = args[k]; });
     var meta = outMeta(), lid = meta.cur || null, fake = 'off-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), res = { ok: true, offline: true, id: fake };
+    if (fn === 'rpc_start_shift' && lid && meta[lid] && !meta[lid].closed) { meta[lid].closed = true; meta[lid].endAt = Date.now(); var old = lid; idbDo('q', 'readwrite', function (s) { return s.add({ lid: old, fn: 'rpc_end_shift', args: { p_km: 0, p_total: 0 }, fake: 'auto', at: Date.now() - 1, owner: SESSION.name }); }).catch(function () {}); }
     if (fn === 'rpc_start_shift') { lid = 'sh-' + Date.now().toString(36); meta.cur = lid; meta[lid] = { owner: SESSION.name, day: todayKey(), boat: a.p_boat, startAt: Date.now() }; res = { shift_id: lid, offline: true }; }
     if (!lid) lid = 'x-' + todayKey(); // dati fuori turno (es. DDT): si mandano comunque
     if (!meta[lid]) meta[lid] = { owner: SESSION.name, day: todayKey() };
