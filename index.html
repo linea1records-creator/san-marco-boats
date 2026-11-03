@@ -1279,7 +1279,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
      Turno, GPS, consegne, foto e firme restano solo su questo telefono: niente viene mandato al server,
      quindi nessuno lo vede (né clienti, né Lisa, né la dashboard) e statistiche e ore non cambiano. */
   var GHOST = false; try { GHOST = localStorage.getItem('smb-ghost') === '1'; } catch (e) {}
-  var GHOST_BLOCK = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_log_gps', 'rpc_stop_event2', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_colli_set', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_refuel_add2', 'rpc_refuel_void', 'rpc_fuel_set', 'rpc_track_move', 'rpc_ddt_edit_file', 'rpc_ddt_place_sig', 'rpc_shift_edit', 'rpc_task_update', 'rpc_pos_share', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_shift_void'];
+  var GHOST_BLOCK = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_log_gps', 'rpc_stop_event2', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_colli_set', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_refuel_add2', 'rpc_refuel_void', 'rpc_fuel_set', 'rpc_track_move', 'rpc_ddt_edit_file', 'rpc_ddt_place_sig', 'rpc_bread_crates_set', 'rpc_shift_edit', 'rpc_task_update', 'rpc_pos_share', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_shift_void'];
   function ghostAllowed() { return !!(SESSION && SESSION.name && /avicolli/i.test(SESSION.name)); }
   function ghostSet(on) {
     try {
@@ -3293,8 +3293,9 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       else if (e) late = '<span class="muted">—</span>';
       if (e && e.status === 'ok') totDone++;
       var n = colliFor(id, name, t); if (n) totN += n;
+      if (isPane(name)) { var cz = (D.casse || []).filter(function (q) { return q.boat === id; })[0]; if (cz) { n = null; var cs = '<b>' + cz.n + '</b><small class="muted" style="display:block">casse</small>'; } }
       var dd = ddtFor(id, name).map(function (x) { var lab = (x.customer || 'DDT') + (x.status === 'signed' ? ' ✓' : ''); return x.open ? '<button class="pdx" data-act="pdddt" data-id="' + esc(x.id) + '" data-s="' + (x.status === 'signed' ? 1 : 0) + '">' + esc(lab) + '</button>' : '<span style="display:block">' + esc(lab) + '</span>'; }).join('');
-      return '<tr><td class="mono"><span class="muted">' + esc(t || '—') + '</span><b style="display:block">' + (at ? esc(at) : '–') + '</b></td><td><b>' + esc(name) + '</b>' + (note ? '<small class="muted" style="display:block">' + esc(note) + '</small>' : '') + (!e && k < todayKey() ? '<small class="muted" style="display:block">non segnata</small>' : '') + '</td><td>' + late + '</td><td class="mono" style="text-align:center">' + (n ? '<b>' + n + '</b>' : '<span class="muted">—</span>') + '</td><td>' + (dd || '<span class="muted">—</span>') + '</td></tr>';
+      return '<tr><td class="mono"><span class="muted">' + esc(t || '—') + '</span><b style="display:block">' + (at ? esc(at) : '–') + '</b></td><td><b>' + esc(name) + '</b>' + (note ? '<small class="muted" style="display:block">' + esc(note) + '</small>' : '') + (!e && k < todayKey() ? '<small class="muted" style="display:block">non segnata</small>' : '') + '</td><td>' + late + '</td><td class="mono" style="text-align:center">' + (cs ? cs : n ? '<b>' + n + '</b>' : '<span class="muted">—</span>') + '</td><td>' + (dd || '<span class="muted">—</span>') + '</td></tr>';
     }
     var body = '';
     ids.forEach(function (id) {
@@ -5374,12 +5375,39 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       if (n > 0) { var x = document.createElement('b'); x.className = 'dbadge'; x.textContent = n > 9 ? '9+' : n; b.appendChild(x); }
     });
   }
+  // casse del pane consegnate dal fornitore: si chiedono quando si carica il DDT del pane
+  function casseAsk(day, boat, done) {
+    if ($('casseS')) return;
+    var n = null, nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    openSheet('<div class="dfxs colli" id="casseS"><h2>🧺 Quante casse del pane?</h2><p class="muted">Quante casse di pane ti ha consegnato il fornitore?</p>' +
+      '<div class="chips casseN">' + nums.map(function (k) { return '<button class="chip" data-act="casseN" data-n="' + k + '" style="min-width:52px;min-height:48px;font-size:18px;justify-content:center">' + k + '</button>'; }).join('') + '</div>' +
+      '<label class="clsec" for="casseIn">Oppure scrivi il numero</label><input class="field txt" id="casseIn" type="number" min="0" max="200" inputmode="numeric">' +
+      '<div class="btns clbtns"><button class="btn primary" data-act="casseOk">Salva</button></div></div>');
+    if (S.voice) say('Quante casse del pane ti ha consegnato?');
+    CASSE.cb = done; CASSE.day = day; CASSE.boat = boat;
+  }
+  var CASSE = { cb: null };
+  function casseSave(n) {
+    var sh = S.shift, day = CASSE.day, boat = CASSE.boat, cb = CASSE.cb;
+    if (!(n >= 0 && n <= 200)) { toast('Scrivi un numero di casse'); return; }
+    closeSheet(); CASSE.cb = null;
+    if (sh) { sh.casse = sh.casse || {}; sh.casse[day + ':' + boat] = n; save(); }
+    cl('rpc_bread_crates_set', { p_day: day, p_boat: boat, p_n: n }).then(function (r) { toast(r && r.ok ? '🧺 ' + n + (n === 1 ? ' cassa' : ' casse') + ' del pane segnate' : 'Casse non salvate: controlla la connessione'); });
+    if (cb) setTimeout(cb, 200);
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'casseN') { Array.prototype.forEach.call(document.querySelectorAll('[data-act=casseN]'), function (b) { b.setAttribute('aria-pressed', b === el ? 'true' : 'false'); }); var inp = $('casseIn'); if (inp) inp.value = el.getAttribute('data-n'); }
+    else if (a === 'casseOk') { var v = parseInt((($('casseIn') || {}).value || ''), 10); casseSave(v); }
+  });
   function paneAutoDone() {
     var sh = S.shift; if (!sh || holdIdx() != null || revIdx() != null) return; var i = curIdx(); if (i < 0) return;
     var z = stops()[i]; if (!z || !isPane(z.name) || sh.done[i]) return;
     var t0 = sh.arr && sh.arr[arrKey(i)]; if (!t0) return;
     var up = cnsDdts(z).filter(function (x) { return x.at && Date.parse(x.at) >= t0 - 120000; });
     if (!up.length) return;
+    var ck = sh.day + ':' + sh.boat; sh.casse = sh.casse || {};
+    if (sh.casse[ck] == null) { casseAsk(sh.day, sh.boat, function () { paneAutoDone(); }); return; }
     if ($('cnsS')) closeSheet();
     finish(i, 'ok', ''); CNS.i = null; toast('🥖 DDT del pane caricato: tappa Pane fatta');
     var n = curIdx(); if (n >= 0) say('DDT del pane caricato. Prossima tappa: ' + stops()[n].name + '.');
