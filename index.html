@@ -2899,7 +2899,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (!w || !w.source) return '';
     var t = w.at ? ' · ' + agoText(w.at) : '', by = w.by ? String(w.by).split(' ')[0] : '';
     var m = { conferma: 'Confermato da ' + by + t + (w.note ? ' · “' + w.note + '”' : ''), tappa_carico: 'Automatico: caricato a ' + (w.stop || '') + (by ? ' (' + by + ')' : '') + t, tappa_scarico: 'Automatico: lasciato a ' + (w.stop || '') + (by ? ' (' + by + ')' : '') + t,
-      fine_turno_si: 'Fine turno: “carrello in barca” spuntato' + (by ? ' da ' + by : '') + t, fine_turno_no: 'Fine turno: carrello NON in barca' + (by ? ' (' + by + ')' : '') + t, rifornimento: 'Automatico: ultimo rifornimento fatto da ' + by + t, predefinito: 'Sta di solito sulla sua barca' }[w.source] || '';
+      fine_turno_si: 'Fine turno: “carrello in barca” spuntato' + (by ? ' da ' + by : '') + t, fine_turno_no: 'Fine turno: carrello NON in barca' + (by ? ' (' + by + ')' : '') + t, rifornimento: 'Automatico: ultimo rifornimento fatto da ' + by + t,
+      pane_carico: 'Automatico: caricate piene a Pane sulla Patana' + (by ? ' (' + by + ')' : '') + t, verso_pane: 'Automatico: riportate vuote a Pane sulla Patana' + t, scaricate_seminario: 'Automatico: scaricate al Seminario' + (by ? ' (' + by + ')' : '') + t, predefinito: 'Sta di solito sulla sua barca' }[w.source] || '';
     if (w.pos_src && w.pos_at) m += ' · posizione ' + (w.pos_src === 'persona' ? 'della persona' : 'della barca') + ' ' + agoText(w.pos_at);
     return m;
   }
@@ -3083,6 +3084,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var w = o.where || {}, mgr = TR.d.mgr, hs = TR.hist[o.id], rules = [];
     if ((o.load || []).length) rules.push('si carica a ' + o.load.join(', ')); if ((o.unload || []).length) rules.push('si lascia a ' + o.unload.join(', '));
     if (o.kind === 'cart') rules.push('fine turno: casella “carrello in barca”'); if (o.kind === 'fuelcard') rules.push('segue chi registra un rifornimento');
+    if (o.kind === 'bread') rules.push('Pane → Seminario sulla Patana, scaricate al Seminario, riportate a Pane il mattino dopo (non girano con le altre consegne)');
     var h = '<div class="trsrc">' + esc(trSource(w)) + '</div>' + (rules.length ? '<div class="trsrc">⚙️ ' + esc(rules.join(' · ')) + '</div>' : '');
     if (TR.mv === o.id) h += trMovePanel(o);
     else h += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button class="btn sm primary" data-act="trmove" data-id="' + esc(o.id) + '">📍 Aggiorna posizione</button><button class="btn sm" data-act="trhist" data-id="' + esc(o.id) + '">' + (hs ? 'Nascondi' : 'Spostamenti') + '</button>' + (mgr ? '<button class="btn sm" data-act="tred" data-id="' + esc(o.id) + '">✏️ Modifica</button>' : '') + '</div>';
