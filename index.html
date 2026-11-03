@@ -237,6 +237,21 @@ li.on .ddwk{background:#4FC3F7;border-color:#4FC3F7;color:#0B1317}.ddwk.ok{borde
 .stk{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .stk>div{display:flex;flex-direction:column;gap:2px;padding:14px;border-radius:14px;background:var(--card,#fff);box-shadow:0 0 0 1px var(--line,#e2e5ea)}
 .stk b{font-size:26px;font-variant-numeric:tabular-nums;line-height:1.1}.stk span{font-size:13px;color:var(--muted,#667)}.stk small{font-size:12px;color:var(--muted,#667)}.stk small.bad{color:#D93025;font-weight:700}
+.emgo{margin-top:18px;display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;max-width:320px;padding:12px 14px;border-radius:14px;border:1.5px solid #B3261E;background:transparent;color:#B3261E;font:700 15px/1.2 inherit;font-family:inherit;cursor:pointer}.emgo small{font-weight:500;font-size:12px;opacity:.85}
+.emwrap{position:fixed;inset:0;z-index:9800;background:#000;color:#F2F2F2;overflow:auto;-webkit-overflow-scrolling:touch}
+.emtop{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 12px max(16px,env(safe-area-inset-left,0px));background:#000;border-bottom:1px solid #2a2a2a}.emtop b{font-size:18px;display:block}.emtop small{font-size:12.5px;color:#FFB4A9}
+.emx{width:42px;height:42px;border-radius:50%;border:0;background:#1d1d1d;color:#fff;font-size:18px;cursor:pointer}
+.embody{padding:14px max(16px,env(safe-area-inset-right,0px)) calc(28px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px;max-width:640px;margin:0 auto}
+.emm{margin:0;font-size:14.5px;color:#BDBDBD;line-height:1.45}.emwarn{margin:0;padding:10px 12px;border-radius:12px;background:#3b1d00;color:#FFCC80;font-size:14px}
+.emboats{display:flex;gap:6px;flex-wrap:wrap}.emboats button{flex:1;min-width:90px;padding:12px;border-radius:12px;border:1.5px solid #333;background:#111;color:#eee;font:600 15px inherit;font-family:inherit;cursor:pointer}.emboats button[aria-pressed="true"]{background:#F2F2F2;color:#000;border-color:#F2F2F2}
+.emst{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}.emst li{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid #222}.emst .emt{font:700 17px/1 ui-monospace,Menlo,monospace;color:#FFD23F;flex:0 0 58px}.emst li>span:nth-child(2){flex:1;min-width:0;font-size:16.5px;font-weight:600;display:flex;flex-direction:column;gap:2px}
+.emst small{font-size:12.5px;font-weight:400;color:#9E9E9E}.emst em{font-style:normal;font-size:13px;font-weight:700;color:#9E9E9E}.emst em.ok{color:#81C995}.emst em.go{color:#8AB4F8}.emst em.warn{color:#FFB74D}.emst em.bad{color:#F28B82}
+.emst li.past{opacity:.72}.emst li.now{background:#0d1b2e;margin:0 -10px;padding:11px 10px;border-radius:12px;border-top-color:transparent}
+.emp{flex:0 0 46px;height:46px;border-radius:12px;border:1.5px solid #4a3000;background:#1a1200;color:#FFB74D;font-size:19px;cursor:pointer}
+.embig{width:100%;min-height:58px;border-radius:16px;border:0;background:#F2F2F2;color:#000;font:800 17px inherit;font-family:inherit;cursor:pointer}.embig:disabled{opacity:.4}.embig[data-sure="1"]{background:#B3261E;color:#fff}
+.emh{margin:0;font-size:22px;display:flex;flex-direction:column}.emh small{font-size:14px;color:#FFD23F;font-weight:600}
+.emlist{display:flex;flex-direction:column;gap:8px}.embtn{min-height:52px;border-radius:14px;border:1.5px solid #333;background:#111;color:#eee;font:600 15.5px inherit;font-family:inherit;text-align:left;padding:12px 14px;cursor:pointer}.embtn[aria-pressed="true"]{border-color:#FFB74D;background:#2a1a00}.embtn.red{border-color:#5c1a14;color:#F28B82}.embtn.red[aria-pressed="true"]{background:#3a0d09}.embtn.ghost{background:none;border-color:transparent;color:#8AB4F8;text-align:center}
+.emwrap button:focus-visible{outline:3px solid #8AB4F8;outline-offset:2px}
 .vxwrap{position:fixed;inset:0;z-index:9500;background:#E8EEF0;display:flex;flex-direction:column;color:#111}
 .vxtop{display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));background:#fff;box-shadow:0 1px 0 #d9dee3;z-index:2}
 .vxx{width:40px;height:40px;flex:0 0 40px;border-radius:50%;border:0;background:#F1F3F5;font-size:18px;cursor:pointer;color:#111}
@@ -7333,6 +7348,121 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var t = { name: nm, note: c.getAttribute('data-no'), day: k, boat: DG.boat || (S.shift && S.shift.boat) || bs[0] || null };
     ddtUpFile(t, cls[0], f);
   });
+  /* ---------- Turno d'emergenza offline: senza PIN, senza GPS, senza internet ----------
+     Le tappe si danno per fatte all'orario del programma. Tutto resta sul telefono; si carica nel database
+     solo quando qualcuno con accesso completo (Pietro) entra con il suo PIN e c'è internet. */
+  var EMK = 'smb-emerg', EM_WHO = 'Pietro Avicolli';
+  var EM = { open: false, boat: null, sheet: null };
+  function emGet() { try { var o = JSON.parse(localStorage.getItem(EMK) || 'null'); if (o && typeof o === 'object') { o.done = o.done || []; return o; } } catch (e) {} return { cur: null, done: [] }; }
+  function emPut(o) { try { localStorage.setItem(EMK, JSON.stringify(o)); return true; } catch (e) { return false; } }
+  function emDay() { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function emAt(day, t) { return /^\d{1,2}:\d{2}$/.test(t || '') ? new Date(day + 'T' + (t.length === 4 ? '0' + t : t) + ':00') : null; }
+  function emBoatDefault(day) { var P = PROGRAM[day]; if (P && P.boats.PATANA && !P.boats.PATANA.off && (P.boats.PATANA.stops || []).length) return 'PATANA'; var c = boatCodes().filter(function (k) { return P && P.boats[k] && !P.boats[k].off && !BOATS[k].test && (P.boats[k].stops || []).length; }); return c[0] || 'PATANA'; }
+  function emStops(day, boat) { var P = PROGRAM[day], b = P && P.boats[boat]; return b ? (b.stops || []).filter(function (z) { return !z.cancelled; }).map(function (z) { return { t: z.t || '', name: z.name, note: z.note || '', ind: !!z.ind }; }) : []; }
+  // chiude da solo un turno d'emergenza rimasto aperto da un giorno passato
+  function emAutoEnd() { var o = emGet(); if (o.cur && o.cur.day < emDay()) { o.cur.ended = o.cur.ended || Date.now(); o.done.push(o.cur); o.cur = null; emPut(o); } }
+  function emOpen() {
+    emAutoEnd(); EM.open = true; var w = $('emWrap');
+    if (!w) { w = document.createElement('div'); w.id = 'emWrap'; w.className = 'emwrap'; w.setAttribute('role', 'dialog'); w.setAttribute('aria-label', 'Turno d’emergenza offline'); document.body.appendChild(w); }
+    emRender();
+  }
+  function emClose() { EM.open = false; EM.sheet = null; var w = $('emWrap'); if (w) w.remove(); }
+  function emState(sh) { // per ogni tappa: fatta (orario passato), prossima, da fare
+    var now = Date.now(), next = -1;
+    return sh.stops.map(function (z, i) {
+      var at = emAt(sh.day, z.t), p = sh.probs && sh.probs[i], done = at ? at.getTime() <= now : false;
+      if (!done && next < 0) next = i;
+      return { z: z, at: at, done: done, next: false, p: p };
+    }).map(function (x, i) { x.next = i === next; return x; });
+  }
+  function emRender() {
+    var w = $('emWrap'); if (!w || !EM.open) return;
+    var o = emGet(), sh = o.cur, day = sh ? sh.day : emDay(), boat = sh ? sh.boat : (EM.boat || emBoatDefault(day)), P = PROGRAM[day];
+    var h = '<div class="emtop"><div><b>🆘 Turno d’emergenza</b><small>' + (navigator.onLine ? 'Funziona anche senza internet' : 'Offline · tutto resta su questo telefono') + '</small></div><button class="emx" data-act="emclose" aria-label="Chiudi">✕</button></div><div class="embody">';
+    if (EM.sheet != null && sh) {
+      var z = sh.stops[EM.sheet], cur = sh.probs && sh.probs[EM.sheet];
+      h += '<h2 class="emh">' + esc(z.name) + '<small>' + esc(z.t || 'senza orario') + '</small></h2><p class="emm">Che problema c’è? La consegna resta fatta all’orario del programma, con il problema segnato.</p><div class="emlist">' +
+        REASONS.map(function (r, i) { return '<button class="embtn" data-act="emprob" data-r="' + i + '"' + (cur && cur.r === r && !cur.skip ? ' aria-pressed="true"' : '') + '>' + esc(r) + '</button>'; }).join('') +
+        '<button class="embtn red" data-act="emskip"' + (cur && cur.skip ? ' aria-pressed="true"' : '') + '>Consegna NON fatta (saltata)</button>' +
+        (cur ? '<button class="embtn" data-act="emclear">Togli il problema</button>' : '') + '<button class="embtn ghost" data-act="emback">Indietro</button></div>';
+      return w.innerHTML = h + '</div>';
+    }
+    if (!sh) {
+      var st = emStops(day, boat), codes = boatCodes().filter(function (k) { return !BOATS[k].test; });
+      h += '<p class="emm">' + esc(P ? P.label : day) + ' · ' + esc(EM_WHO) + '<br>Niente PIN e niente GPS: le tappe si segnano da sole all’orario del programma. Tu segni solo se qualcosa va storto.</p>' +
+        '<div class="emboats">' + codes.map(function (k) { return '<button data-act="emboat" data-b="' + k + '" aria-pressed="' + (k === boat) + '">' + esc(BOATS[k].name) + '</button>'; }).join('') + '</div>';
+      if (!st.length) h += '<p class="emwarn">Nel programma salvato su questo telefono non ci sono tappe per ' + esc(BOATS[boat] ? BOATS[boat].name : boat) + ' oggi.</p>';
+      else h += '<ol class="emst">' + st.map(function (z) { return '<li><span class="emt">' + esc(z.t || '––:––') + '</span><span>' + esc(z.name) + (z.note ? '<small>' + esc(z.note) + '</small>' : '') + '</span></li>'; }).join('') + '</ol>';
+      h += '<button class="embig" data-act="emstart"' + (st.length ? '' : ' disabled') + '>Inizia turno d’emergenza</button>';
+      if (o.done.length) h += emPending(o);
+      return w.innerHTML = h + '</div>';
+    }
+    var S2 = emState(sh), nd = S2.filter(function (x) { return x.done; }).length;
+    h += '<p class="emm">' + esc(BOATS[sh.boat] ? BOATS[sh.boat].name : sh.boat) + ' · ' + esc(P ? P.label : sh.day) + ' · ' + nd + ' di ' + S2.length + ' tappe fatte</p>' +
+      '<ol class="emst run">' + S2.map(function (x, i) {
+        var st2 = x.p ? (x.p.skip ? '<em class="bad">Non fatta</em>' : '<em class="warn">⚠ ' + esc(x.p.r) + '</em>') : x.done ? '<em class="ok">✓ Fatta</em>' : x.next ? '<em class="go">Prossima</em>' : '<em>Da fare</em>';
+        return '<li class="' + (x.next ? 'now' : x.done ? 'past' : '') + '"><span class="emt">' + esc(x.z.t || '––:––') + '</span><span>' + esc(x.z.name) + st2 + '</span><button class="emp" data-act="emsheet" data-i="' + i + '" aria-label="Segna un problema a ' + esc(x.z.name) + '">⚠</button></li>';
+      }).join('') + '</ol>' +
+      '<button class="embig" data-act="emend">Termina turno</button><p class="emm">Per segnare un problema tocca ⚠ accanto alla tappa.</p>';
+    w.innerHTML = h + '</div>';
+    var nw = w.querySelector('li.now'); if (nw && !EM.scrolled) { EM.scrolled = true; nw.scrollIntoView({ block: 'center' }); }
+  }
+  function emPending(o) {
+    var n = o.done.filter(function (x) { return !x.sent; }).length; if (!n) return '';
+    return '<p class="emwarn">' + n + (n === 1 ? ' turno d’emergenza da inviare' : ' turni d’emergenza da inviare') + '. Si inviano da soli quando entri con il tuo PIN e c’è internet.</p>';
+  }
+  function emEndConfirm(btn) {
+    if (btn.getAttribute('data-sure') !== '1') { btn.setAttribute('data-sure', '1'); btn.textContent = 'Tocca di nuovo per terminare'; setTimeout(function () { if (btn.isConnected) { btn.removeAttribute('data-sure'); btn.textContent = 'Termina turno'; } }, 4000); return; }
+    var o = emGet(); if (!o.cur) return; o.cur.ended = Date.now(); o.done.push(o.cur); o.cur = null; emPut(o); EM.scrolled = false;
+    toast('Turno salvato sul telefono · si invia quando entri con il PIN'); emRender(); emSync();
+  }
+  // payload per il database: ogni tappa all'orario del programma
+  function emPayload(sh) {
+    var st = sh.stops.map(function (z, i) { var at = emAt(sh.day, z.t), p = sh.probs && sh.probs[i]; return { name: z.name, t: z.t || '', at: at ? at.toISOString() : null, skip: !!(p && p.skip), reason: p ? (p.skip ? 'Consegna saltata' + (p.r ? ' · ' + p.r : '') : p.r) : null }; });
+    var times = st.filter(function (x) { return x.at; }).map(function (x) { return Date.parse(x.at); });
+    var a = times.length ? Math.min.apply(null, times) : sh.started, b = times.length ? Math.max.apply(null, times) : (sh.ended || sh.started);
+    st.forEach(function (x) { if (!x.at) x.at = new Date(a).toISOString(); });
+    return { p_local_id: sh.id, p_boat: sh.boat, p_emp_name: sh.who, p_start: new Date(a).toISOString(), p_end: new Date(b).toISOString(), p_stops: st };
+  }
+  var EM_SYNC = false;
+  function emSync() {
+    if (EM_SYNC || !SESSION || !SESSION.token || !(SESSION.full || SESSION.role === 'admin') || (navigator.onLine === false)) return;
+    emAutoEnd(); var o = emGet(), list = o.done.filter(function (x) { return !x.sent; }); if (!list.length) return;
+    EM_SYNC = true;
+    (function next(i) {
+      if (i >= list.length) { EM_SYNC = false; return; }
+      var sh = list[i];
+      cl('rpc_offline_shift_import', emPayload(sh)).then(function (r) {
+        if (r && r.ok) { var o2 = emGet(); o2.done.forEach(function (x) { if (x.id === sh.id) x.sent = Date.now(); }); o2.done = o2.done.filter(function (x) { return !x.sent || Date.now() - x.sent < 7 * 864e5; }); emPut(o2); toast('Turno d’emergenza del ' + sh.day.split('-').reverse().slice(0, 2).join('/') + ' caricato nel database'); }
+        next(i + 1);
+      }).catch(function () { EM_SYNC = false; });
+    })(0);
+  }
+  setInterval(emSync, 60000); setTimeout(emSync, 4000); window.addEventListener('online', function () { setTimeout(emSync, 2000); if (EM.open) emRender(); });
+  window.addEventListener('offline', function () { if (EM.open) emRender(); });
+  setInterval(function () { if (EM.open && EM.sheet == null && !document.hidden) emRender(); }, 30000);
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act^="em"]') : null; if (!el || el.disabled) return; var a = el.getAttribute('data-act');
+    if (['emopen', 'emclose', 'emboat', 'emstart', 'emend', 'emsheet', 'emprob', 'emskip', 'emclear', 'emback'].indexOf(a) < 0) return;
+    e.preventDefault(); e.stopPropagation();
+    var o = emGet();
+    if (a === 'emopen') emOpen();
+    else if (a === 'emclose') emClose();
+    else if (a === 'emboat') { EM.boat = el.getAttribute('data-b'); emRender(); }
+    else if (a === 'emstart') { var day = emDay(), boat = EM.boat || emBoatDefault(day), st = emStops(day, boat); if (!st.length) return; o.cur = { id: 'em-' + day + '-' + boat + '-' + Date.now().toString(36), day: day, boat: boat, who: EM_WHO, started: Date.now(), stops: st, probs: {} }; emPut(o); EM.scrolled = false; emRender(); }
+    else if (a === 'emend') emEndConfirm(el);
+    else if (a === 'emsheet') { EM.sheet = +el.getAttribute('data-i'); emRender(); var w = $('emWrap'); if (w) w.scrollTop = 0; }
+    else if (a === 'emback') { EM.sheet = null; emRender(); }
+    else if (o.cur && EM.sheet != null) {
+      var i = EM.sheet; o.cur.probs = o.cur.probs || {};
+      if (a === 'emprob') o.cur.probs[i] = { r: REASONS[+el.getAttribute('data-r')], t: Date.now() };
+      else if (a === 'emskip') o.cur.probs[i] = { r: (o.cur.probs[i] && !o.cur.probs[i].skip) ? o.cur.probs[i].r : '', skip: true, t: Date.now() };
+      else if (a === 'emclear') delete o.cur.probs[i];
+      emPut(o); EM.sheet = null; emRender();
+    }
+  }, true);
+  // la copia dell'app sul telefono: serve per aprirla anche senza internet
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) { try { navigator.serviceWorker.register('sw.js', { scope: './' }).catch(function () {}); } catch (e) {} }
   /* ---------- Velox: mappa a schermo intero dei pontili ACTV, velox funzionanti e collegamenti tra velox ---------- */
   // pontili dei vaporetti ACTV (fonte: orari GTFS ACTV navigazione) · [id, nome, lat, lng]
   var PONTILI = [["5048","Accademia \"A\"",45.431736,12.328523],["5047","Accademia \"B\"",45.431633,12.328705],["5103","Alberoni Faro Rocchetta",45.341526,12.308979],["5008","Arsenale \"A\"",45.432774,12.348552],["5133","Arsenale \"B\"",45.432896,12.34833],["5115","Bacini - Arsenale Nord",45.439205,12.357293],["5151","Burano \"A\"",45.48769,12.415232],["5068","Burano \"B\"",45.487602,12.416217],["5113","Burano \"C\"",45.487572,12.416754],["5045","Ca' Rezzonico",45.433285,12.327133],["5037","Ca' d'Oro",45.440563,12.333899],["5017","Caroman",45.243614,12.294001],["5019","Celestia",45.439079,12.349658],["5018","Certosa",45.430523,12.367644],["5072","Chioggia",45.22369,12.280678],["5062","Cimitero San Michele",45.448673,12.345977],["5135","Crea",45.445278,12.321106],["5086","F.te Nove \"A\"",45.443958,12.339143],["5061","F.te Nove \"B\"",45.443138,12.340671],["5060","F.te Nove \"C\"",45.443016,12.340888],["5087","F.te Nove \"D\"",45.442867,12.341126],["5071","Ferrovia",45.441292,12.322843],["5033","Ferrovia \"A\"",45.441017,12.322206],["5032","Ferrovia \"B\"",45.440937,12.322042],["5088","Ferrovia \"C\"",45.440372,12.321408],["5089","Ferrovia \"D\"",45.440216,12.321242],["5191","Ferrovia \"E\"",45.439873,12.32088],["5010","Fusina",45.418373,12.258713],["5124","Giardini \"A\"",45.42976,12.354997],["5007","Giardini \"B\"",45.429848,12.354835],["5128","Giardini Biennale \"A\"",45.428886,12.356096],["5006","Giardini Biennale \"B\"",45.429047,12.355934],["5129","Giudecca Palanca \"A\"",45.426899,12.325401],["5022","Giudecca Palanca \"B\"",45.426849,12.325638],["5084","Guglie \"A\"",45.444294,12.32445],["5189","Guglie \"B\"",45.444424,12.324183],["5098","Lido S. Nicolo'",45.424339,12.377113],["5099","Lido S. Nicolo' Ferry",45.425873,12.378331],["5094","Lido S.M.E. \"A\"",45.418144,12.368973],["5001","Lido S.M.E. \"B\"",45.417992,12.368725],["5002","Lido S.M.E. \"C\"",45.417683,12.368217],["5003","Lido S.M.E. \"D\"",45.41748,12.367735],["5152","Lido S.M.E. \"E\"",45.417358,12.36754],["5101","Mazzorbo",45.488094,12.409512],["5063","Murano Colonna \"A\"",45.451107,12.349192],["5114","Murano Colonna \"B\"",45.451111,12.348869],["5120","Murano Colonna \"C\"",45.451134,12.348564],["5117","Murano Da Mula",45.456116,12.351936],["5096","Murano Faro \"A\"",45.452663,12.354642],["5095","Murano Faro \"B\"",45.452557,12.354241],["5065","Murano Museo \"A\"",45.456104,12.355435],["5119","Murano Museo \"B\"",45.456139,12.355189],["5064","Murano Navagero",45.454693,12.35658],["5067","Murano Serenella",45.454853,12.347479],["5066","Murano Venier",45.457447,12.351191],["5058","Orto",45.447674,12.332901],["5020","Ospedale",45.44088,12.344753],["5104","P.le Roma \"B\"",45.4389,12.316018],["5027","P.le Roma \"C\"",45.43985,12.317839],["5029","P.le Roma \"D\"",45.439556,12.318337],["5028","P.le Roma \"E\"",45.439388,12.318463],["5030","P.le Roma \"F\"",45.438923,12.31883],["5031","P.le Roma \"G\"",45.438816,12.319038],["5073","Pellestrina Cimitero",45.262791,12.299958],["5108","Punta Sabbioni \"A\"",45.447338,12.424333],["5070","Punta Sabbioni \"B\"",45.447639,12.424682],["5109","Punta Sabbioni Ferry",45.446976,12.424375],["5082","Redentore",45.425579,12.332047],["5166","Rialto \"A\"",45.436981,12.334541],["5040","Rialto \"B\"",45.437088,12.334779],["5039","Rialto \"C\"",45.437428,12.335405],["5038","Rialto \"D\"",45.437584,12.335558],["5138","Rialto Mercato",45.439453,12.335298],["5136","Riva de Biasio \"A\"",45.44183,12.325079],["5034","Riva de Biasio \"B\"",45.441998,12.325667],["5059","S. Alvise",45.448704,12.329509],["5042","S. Angelo",45.435596,12.33035],["5083","S. Basilio",45.430534,12.320824],["5091","S. Erasmo Capannone",45.454636,12.388567],["5092","S. Erasmo Chiesa",45.459461,12.410089],["5093","S. Erasmo Punta Vela",45.46838,12.42021],["5213","S. Giobbe",45.446522,12.318007],["5021","S. Giorgio",45.42947,12.342235],["5079","S. Lazzaro",45.412113,12.359925],["5056","S. Marco Giardinetti \"A\"",45.432446,12.338422],["5054","S. Marco Vallaresso \"A\"",45.432186,12.337525],["5053","S. Marco Vallaresso \"B\"",45.432125,12.337271],["5009","S. Marco-San Zaccaria \"A\"",45.433395,12.344964],["5076","S. Marco-San Zaccaria \"B\"",45.433514,12.344095],["5012","S. Marco-San Zaccaria \"C\"",45.433491,12.343048],["5011","S. Marco-San Zaccaria \"D\"",45.433456,12.342809],["5014","S. Marco-San Zaccaria \"E\"",45.433384,12.342215],["5013","S. Marco-San Zaccaria \"F\"",45.433342,12.342007],["5035","S. Marcuola-Casino' \"A\"",45.442444,12.32882],["5132","S. Marcuola-Casino' \"B\"",45.442513,12.328278],["5051","S. Maria del Giglio",45.431431,12.332637],["5102","S. Maria del Mare Ferry",45.332737,12.316975],["5015","S. Marta",45.433571,12.31126],["5116","S. Pietro di Castello",45.433834,12.361842],["5046","S. Samuele",45.433479,12.3276],["5078","S. Servolo",45.419617,12.35535],["5041","S. Silvestro",45.43681,12.333188],["5036","S. Stae",45.441746,12.330798],["5044","S. Toma' \"A\"",45.435249,12.328128],["5043","S. Toma' \"B\"",45.435184,12.327917],["5004","S.Elena-Stadio Penzo \"B\"",45.42532,12.360782],["5005","S.Elena-Stadio Penzo \"C\"",45.425426,12.360565],["5111","S.Erasmo Forte Mass.",45.445339,12.391397],["5023","Sacca Fisola \"A\"",45.429008,12.315648],["5139","Sacca Fisola \"B\"",45.428959,12.316327],["5052","Salute",45.431171,12.334374],["5159","Spirito Santo",45.42831,12.331958],["5097","Torcello",45.49509,12.412183],["5085","Tre Archi",45.446289,12.31978],["5069","Treporti",45.471558,12.447123],["5025","Tronchetto \"A\"",45.440308,12.306533],["5024","Tronchetto \"B\"",45.440094,12.306348],["5026","Tronchetto Ferry",45.438023,12.303988],["5075","Tronchetto Mercato",45.441383,12.309408],["5090","Vignole",45.443707,12.376256],["5050","Zattere \"A\"",45.429153,12.3268],["5049","Zattere \"B\"",45.42926,12.32628],["5137","Zattere Gesuati",45.42905,12.327344],["5118","Zitelle \"A\"",45.426624,12.337678],["5081","Zitelle \"B\"",45.42672,12.337905]];
@@ -7617,6 +7747,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var nm = SESSION && SESSION.name ? String(SESSION.name).split(' ')[0] : '', hr = new Date().getHours();
     var h = '<div class="wrap hmwrap"><div class="hmhi">' + (hr < 13 ? 'Buongiorno' : hr < 18 ? 'Buon pomeriggio' : 'Buonasera') + (nm ? ', ' + esc(nm) : '') + '</div><div class="muted">' + esc(new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })) + '</div>';
     if (S.shift && !isVan() && !isOff()) h += '<button class="hmshift" data-act="nav" data-v="turno"><span style="font-size:28px" aria-hidden="true">🚤</span><span><b>Turno in corso</b>' + esc(BOATS[S.shift.boat] ? BOATS[S.shift.boat].name : '') + ' · tocca per riprendere</span></button>';
+    if (navigator.onLine === false && !isVan() && !isOff()) h += '<button class="hmshift" data-act="emopen" style="background:#7f1d1d;color:#fff"><span style="font-size:28px" aria-hidden="true">🆘</span><span><b>Sei offline</b>Apri il turno d’emergenza: le tappe si segnano dal programma</span></button>';
     h += turniHomeBanner() + shipHomeBanner();
     h += '<div class="hmgrid" role="list">' + homeApps().map(function (k) {
       var a = APPS[k] || [k, '#475569'], ic = ICONS[k === 'impost' ? 'gear' : k] || ICONS.altro;
@@ -8794,7 +8925,8 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<div class="dots" id="lgDots">' + pinBuf.split('').map(function () { return '<i></i>'; }).join('') + '</div>' +
       '<div class="err" id="lgErr">' + esc(loginErr) + '</div>' +
       '<div class="pad">' + keys.map(function (k) { return k ? '<button data-k="' + k + '">' + k + '</button>' : '<span></span>'; }).join('') + '</div>' +
-      '<button class="go" id="lgGo">Entra</button>';
+      '<button class="go" id="lgGo">Entra</button>' +
+      '<button class="emgo" data-act="emopen">🆘 Turno d’emergenza offline<small>senza PIN, senza internet, senza GPS</small></button>';
     $('brandLg').innerHTML = logo(56);
     el.querySelectorAll('.pad button').forEach(function (b) {
       b.onclick = function () {
