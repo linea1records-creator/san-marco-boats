@@ -1,5 +1,5 @@
 /* San Marco Boat - service worker: notifiche push + copia dell'app sul telefono per aprirla anche senza internet */
-var CACHE = 'smb-app-v1';
+var CACHE = 'smb-app-v2';
 var FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
 self.addEventListener('install', function (e) {
   self.skipWaiting();
@@ -17,8 +17,9 @@ self.addEventListener('fetch', function (e) {
   e.respondWith(new Promise(function (ok) {
     var done = false;
     function fromCache() { return caches.match(page ? './index.html' : r, { ignoreSearch: page }).then(function (m) { return m || caches.match('./'); }); }
-    // con poco segnale non aspettiamo all'infinito: dopo 4 secondi apriamo la copia salvata
-    var t = setTimeout(function () { fromCache().then(function (m) { if (m && !done) { done = true; ok(m); } }); }, 4000);
+    // con internet si aspetta sempre la versione nuova; la copia salvata si apre solo senza rete
+    // (o se dopo 25 secondi la rete non ha ancora risposto)
+    var t = setTimeout(function () { fromCache().then(function (m) { if (m && !done) { done = true; ok(m); } }); }, self.navigator && self.navigator.onLine === false ? 0 : 25000);
     fetch(r).then(function (res) {
       if (res && res.ok) { var cp = res.clone(); caches.open(CACHE).then(function (c) { c.put(page ? './index.html' : r, cp); }); }
       clearTimeout(t); if (!done) { done = true; ok(res); }
