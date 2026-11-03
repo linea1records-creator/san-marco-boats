@@ -237,6 +237,24 @@ li.on .ddwk{background:#4FC3F7;border-color:#4FC3F7;color:#0B1317}.ddwk.ok{borde
 .stk{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .stk>div{display:flex;flex-direction:column;gap:2px;padding:14px;border-radius:14px;background:var(--card,#fff);box-shadow:0 0 0 1px var(--line,#e2e5ea)}
 .stk b{font-size:26px;font-variant-numeric:tabular-nums;line-height:1.1}.stk span{font-size:13px;color:var(--muted,#667)}.stk small{font-size:12px;color:var(--muted,#667)}.stk small.bad{color:#D93025;font-weight:700}
+.vxwrap{position:fixed;inset:0;z-index:9500;background:#E8EEF0;display:flex;flex-direction:column;color:#111}
+.vxtop{display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));background:#fff;box-shadow:0 1px 0 #d9dee3;z-index:2}
+.vxx{width:40px;height:40px;flex:0 0 40px;border-radius:50%;border:0;background:#F1F3F5;font-size:18px;cursor:pointer;color:#111}
+.vxtabs{flex:1;display:flex;background:#F1F3F5;border-radius:12px;padding:3px;gap:3px}.vxtabs button{flex:1;border:0;background:none;border-radius:9px;padding:9px 6px;font:600 14px/1.1 inherit;font-family:inherit;color:#334;cursor:pointer}.vxtabs button[aria-selected="true"]{background:#fff;color:#111;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.vxbox{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:none;cursor:grab;background:#AAD3DF}.vxbox .mtiles .mtb{filter:none}
+.vxzoom{position:absolute;right:max(10px,env(safe-area-inset-right,0px));top:10px;display:flex;flex-direction:column;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.25)}.vxzoom button{width:44px;height:44px;border:0;background:#fff;font-size:22px;font-weight:700;cursor:pointer;color:#111}.vxzoom button+button{border-top:1px solid #e3e6ea}
+.vxbox .mattr{color:#333;background:rgba(255,255,255,.7);padding:0 4px;border-radius:3px}
+.vxpan{background:#fff;padding:12px max(14px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;max-height:44vh;overflow:auto;box-shadow:0 -2px 10px rgba(0,0,0,.12);z-index:2}
+.vxh{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.vxh b{font-size:16px}.vxm{margin:0;font-size:13px;color:#5b6570}
+.vxl{border:0;background:none;color:#1655C8;font:600 14px inherit;font-family:inherit;cursor:pointer;padding:4px}
+.vxlg{display:flex;align-items:center;gap:5px;font-size:13px;color:#5b6570}.vxlg i,.vxres i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-left:6px}
+i.d-ok{background:#1E8E3E}i.d-ko{background:#E65100}i.d-none{background:#FFD23F;border-radius:2px!important;box-shadow:0 0 0 1.5px #3A3000}
+.vxst{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}.vxst button{border:1.5px solid #d6dbe0;background:#fff;border-radius:12px;padding:10px 6px;font:600 13.5px/1.2 inherit;font-family:inherit;color:#222;cursor:pointer;min-height:48px}
+.vxst button.s-ok[aria-pressed="true"]{background:#1E8E3E;border-color:#1E8E3E;color:#fff}.vxst button.s-ko[aria-pressed="true"]{background:#E65100;border-color:#E65100;color:#fff}.vxst button.s-none[aria-pressed="true"]{background:#333;border-color:#333;color:#fff}
+.vxnote{display:flex;gap:6px}.vxnote input{flex:1;min-width:0}
+.vxres{display:flex;flex-direction:column}.vxres button{display:flex;align-items:center;gap:8px;border:0;border-top:1px solid #eef0f3;background:none;text-align:left;padding:10px 2px;font:15px inherit;font-family:inherit;color:#111;cursor:pointer}.vxres button i{margin-left:0}
+.vxbtns{display:flex;gap:8px;flex-wrap:wrap}
+.vxll{display:flex;flex-direction:column}.vxli{display:flex;align-items:center;gap:8px;border-top:1px solid #eef0f3;padding:4px 0}.vxli.on{background:rgba(217,48,37,.07)}.vxlt{flex:1;min-width:0;border:0;background:none;text-align:left;padding:6px 2px;cursor:pointer;color:#111;font-family:inherit;display:flex;flex-direction:column}.vxlt b{font-size:14.5px}.vxlt small{font-size:12.5px;color:#5b6570}
 .card.stsec{padding:0;display:block;gap:0;margin-bottom:8px}.stsec>summary{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;list-style:none;min-height:52px}.stsec>summary::-webkit-details-marker{display:none}.stsec>summary:focus-visible{outline:2px solid #1655C8;outline-offset:-2px;border-radius:14px}
 .stst{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.stst b{font-size:16px}.stst small{font-size:13px;color:var(--muted,#667);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stst small.ok{color:#2E7D32;font-weight:700}.stst small.late{color:#E65100;font-weight:700}.stst small.bad{color:#D93025;font-weight:700}
 .stsec[open]>summary .secc{transform:rotate(90deg)}.stsb{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}.stsb.flush{padding:0 0 6px;gap:0}.stsb .stk{margin-bottom:0}
@@ -1359,6 +1377,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       '<path d="M17 55c3-2.5 6-2.5 8 0s5 2.5 8 0 5-2.5 8 0 4 2.5 6 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
   }
   var ICONS = {
+    velox: '<path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/>',
     presenze: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 10h7M8.5 13.5h7M8.5 17h4"/>',
     turni: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6M12 2v3"/>',
     spedizioni: '<circle cx="6" cy="18" r="2.2"/><path d="M8.2 18H14a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/><path d="M18 9.5s-3-2.8-3-5a3 3 0 0 1 6 0c0 2.2-3 5-3 5z"/>',
@@ -7314,6 +7333,214 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var t = { name: nm, note: c.getAttribute('data-no'), day: k, boat: DG.boat || (S.shift && S.shift.boat) || bs[0] || null };
     ddtUpFile(t, cls[0], f);
   });
+  /* ---------- Velox: mappa a schermo intero dei pontili ACTV, velox funzionanti e collegamenti tra velox ---------- */
+  // pontili dei vaporetti ACTV (fonte: orari GTFS ACTV navigazione) · [id, nome, lat, lng]
+  var PONTILI = [["5048","Accademia \"A\"",45.431736,12.328523],["5047","Accademia \"B\"",45.431633,12.328705],["5103","Alberoni Faro Rocchetta",45.341526,12.308979],["5008","Arsenale \"A\"",45.432774,12.348552],["5133","Arsenale \"B\"",45.432896,12.34833],["5115","Bacini - Arsenale Nord",45.439205,12.357293],["5151","Burano \"A\"",45.48769,12.415232],["5068","Burano \"B\"",45.487602,12.416217],["5113","Burano \"C\"",45.487572,12.416754],["5045","Ca' Rezzonico",45.433285,12.327133],["5037","Ca' d'Oro",45.440563,12.333899],["5017","Caroman",45.243614,12.294001],["5019","Celestia",45.439079,12.349658],["5018","Certosa",45.430523,12.367644],["5072","Chioggia",45.22369,12.280678],["5062","Cimitero San Michele",45.448673,12.345977],["5135","Crea",45.445278,12.321106],["5086","F.te Nove \"A\"",45.443958,12.339143],["5061","F.te Nove \"B\"",45.443138,12.340671],["5060","F.te Nove \"C\"",45.443016,12.340888],["5087","F.te Nove \"D\"",45.442867,12.341126],["5071","Ferrovia",45.441292,12.322843],["5033","Ferrovia \"A\"",45.441017,12.322206],["5032","Ferrovia \"B\"",45.440937,12.322042],["5088","Ferrovia \"C\"",45.440372,12.321408],["5089","Ferrovia \"D\"",45.440216,12.321242],["5191","Ferrovia \"E\"",45.439873,12.32088],["5010","Fusina",45.418373,12.258713],["5124","Giardini \"A\"",45.42976,12.354997],["5007","Giardini \"B\"",45.429848,12.354835],["5128","Giardini Biennale \"A\"",45.428886,12.356096],["5006","Giardini Biennale \"B\"",45.429047,12.355934],["5129","Giudecca Palanca \"A\"",45.426899,12.325401],["5022","Giudecca Palanca \"B\"",45.426849,12.325638],["5084","Guglie \"A\"",45.444294,12.32445],["5189","Guglie \"B\"",45.444424,12.324183],["5098","Lido S. Nicolo'",45.424339,12.377113],["5099","Lido S. Nicolo' Ferry",45.425873,12.378331],["5094","Lido S.M.E. \"A\"",45.418144,12.368973],["5001","Lido S.M.E. \"B\"",45.417992,12.368725],["5002","Lido S.M.E. \"C\"",45.417683,12.368217],["5003","Lido S.M.E. \"D\"",45.41748,12.367735],["5152","Lido S.M.E. \"E\"",45.417358,12.36754],["5101","Mazzorbo",45.488094,12.409512],["5063","Murano Colonna \"A\"",45.451107,12.349192],["5114","Murano Colonna \"B\"",45.451111,12.348869],["5120","Murano Colonna \"C\"",45.451134,12.348564],["5117","Murano Da Mula",45.456116,12.351936],["5096","Murano Faro \"A\"",45.452663,12.354642],["5095","Murano Faro \"B\"",45.452557,12.354241],["5065","Murano Museo \"A\"",45.456104,12.355435],["5119","Murano Museo \"B\"",45.456139,12.355189],["5064","Murano Navagero",45.454693,12.35658],["5067","Murano Serenella",45.454853,12.347479],["5066","Murano Venier",45.457447,12.351191],["5058","Orto",45.447674,12.332901],["5020","Ospedale",45.44088,12.344753],["5104","P.le Roma \"B\"",45.4389,12.316018],["5027","P.le Roma \"C\"",45.43985,12.317839],["5029","P.le Roma \"D\"",45.439556,12.318337],["5028","P.le Roma \"E\"",45.439388,12.318463],["5030","P.le Roma \"F\"",45.438923,12.31883],["5031","P.le Roma \"G\"",45.438816,12.319038],["5073","Pellestrina Cimitero",45.262791,12.299958],["5108","Punta Sabbioni \"A\"",45.447338,12.424333],["5070","Punta Sabbioni \"B\"",45.447639,12.424682],["5109","Punta Sabbioni Ferry",45.446976,12.424375],["5082","Redentore",45.425579,12.332047],["5166","Rialto \"A\"",45.436981,12.334541],["5040","Rialto \"B\"",45.437088,12.334779],["5039","Rialto \"C\"",45.437428,12.335405],["5038","Rialto \"D\"",45.437584,12.335558],["5138","Rialto Mercato",45.439453,12.335298],["5136","Riva de Biasio \"A\"",45.44183,12.325079],["5034","Riva de Biasio \"B\"",45.441998,12.325667],["5059","S. Alvise",45.448704,12.329509],["5042","S. Angelo",45.435596,12.33035],["5083","S. Basilio",45.430534,12.320824],["5091","S. Erasmo Capannone",45.454636,12.388567],["5092","S. Erasmo Chiesa",45.459461,12.410089],["5093","S. Erasmo Punta Vela",45.46838,12.42021],["5213","S. Giobbe",45.446522,12.318007],["5021","S. Giorgio",45.42947,12.342235],["5079","S. Lazzaro",45.412113,12.359925],["5056","S. Marco Giardinetti \"A\"",45.432446,12.338422],["5054","S. Marco Vallaresso \"A\"",45.432186,12.337525],["5053","S. Marco Vallaresso \"B\"",45.432125,12.337271],["5009","S. Marco-San Zaccaria \"A\"",45.433395,12.344964],["5076","S. Marco-San Zaccaria \"B\"",45.433514,12.344095],["5012","S. Marco-San Zaccaria \"C\"",45.433491,12.343048],["5011","S. Marco-San Zaccaria \"D\"",45.433456,12.342809],["5014","S. Marco-San Zaccaria \"E\"",45.433384,12.342215],["5013","S. Marco-San Zaccaria \"F\"",45.433342,12.342007],["5035","S. Marcuola-Casino' \"A\"",45.442444,12.32882],["5132","S. Marcuola-Casino' \"B\"",45.442513,12.328278],["5051","S. Maria del Giglio",45.431431,12.332637],["5102","S. Maria del Mare Ferry",45.332737,12.316975],["5015","S. Marta",45.433571,12.31126],["5116","S. Pietro di Castello",45.433834,12.361842],["5046","S. Samuele",45.433479,12.3276],["5078","S. Servolo",45.419617,12.35535],["5041","S. Silvestro",45.43681,12.333188],["5036","S. Stae",45.441746,12.330798],["5044","S. Toma' \"A\"",45.435249,12.328128],["5043","S. Toma' \"B\"",45.435184,12.327917],["5004","S.Elena-Stadio Penzo \"B\"",45.42532,12.360782],["5005","S.Elena-Stadio Penzo \"C\"",45.425426,12.360565],["5111","S.Erasmo Forte Mass.",45.445339,12.391397],["5023","Sacca Fisola \"A\"",45.429008,12.315648],["5139","Sacca Fisola \"B\"",45.428959,12.316327],["5052","Salute",45.431171,12.334374],["5159","Spirito Santo",45.42831,12.331958],["5097","Torcello",45.49509,12.412183],["5085","Tre Archi",45.446289,12.31978],["5069","Treporti",45.471558,12.447123],["5025","Tronchetto \"A\"",45.440308,12.306533],["5024","Tronchetto \"B\"",45.440094,12.306348],["5026","Tronchetto Ferry",45.438023,12.303988],["5075","Tronchetto Mercato",45.441383,12.309408],["5090","Vignole",45.443707,12.376256],["5050","Zattere \"A\"",45.429153,12.3268],["5049","Zattere \"B\"",45.42926,12.32628],["5137","Zattere Gesuati",45.42905,12.327344],["5118","Zitelle \"A\"",45.426624,12.337678],["5081","Zitelle \"B\"",45.42672,12.337905]];
+  var PT = {}; PONTILI.forEach(function (p) { PT[p[0]] = p; });
+  var VX = { open: false, z: 14, la: 45.4370, lo: 12.3350, mode: 'velox', sel: null, link: null, draft: null, d: null, keys: {}, q: '', busy: false };
+  function vxLoad() { if (VX.busy) return; VX.busy = true; cl('rpc_velox_get', {}).then(function (r) { VX.busy = false; if (r && r.marks) { VX.d = r; VX.M = {}; r.marks.forEach(function (m) { VX.M[m.id] = m; }); vxRender(); } }).catch(function () { VX.busy = false; }); }
+  function vxMark(id) { return VX.M && VX.M[id]; }
+  function vxCan() { return !!(VX.d && VX.d.edit); }
+  function vxDistM(a, b, c, d) { var R = 6371000, p = Math.PI / 180, x = (d - b) * p * Math.cos((a + c) / 2 * p), y = (c - a) * p; return Math.sqrt(x * x + y * y) * R; }
+  function vxPath(a, pts, b) { var A = PT[a], B = PT[b], l = [[A[2], A[3]]].concat(pts || []); if (B) l.push([B[2], B[3]]); return l; }
+  function vxLen(l) { var s = 0; for (var i = 1; i < l.length; i++) s += vxDistM(l[i - 1][0], l[i - 1][1], l[i][0], l[i][1]); return Math.round(s); }
+  function vxKm(m) { return m >= 1000 ? (m / 1000).toFixed(m >= 10000 ? 0 : 2).replace('.', ',') + ' km' : m + ' m'; }
+  function vxShort(n) { return String(n || '').replace(/\s+"([A-Z])"$/, ' $1'); }
+  function vxOpen() {
+    if (VX.open) return; VX.open = true;
+    var w = document.createElement('div'); w.id = 'vxWrap'; w.className = 'vxwrap'; w.setAttribute('role', 'dialog'); w.setAttribute('aria-label', 'Mappa velox');
+    w.innerHTML = '<div class="vxtop" id="vxTop"></div><div class="vxbox" id="vxBox"><div class="mtiles" id="vxTiles"></div><svg class="msvg" id="vxSvg" aria-hidden="true"></svg>' +
+      '<div class="vxzoom"><button data-act="vxzoom" data-n="1" aria-label="Avvicina">+</button><button data-act="vxzoom" data-n="-1" aria-label="Allontana">−</button></div><div class="mattr">© OpenStreetMap</div></div><div class="vxpan" id="vxPan"></div>';
+    document.body.appendChild(w);
+    if (window.innerWidth < 600) VX.z = 13;
+    try { document.documentElement.style.overflow = 'hidden'; } catch (e) {}
+    vxRender(); vxLoad();
+  }
+  function vxClose() { VX.open = false; VX.draft = null; VX.sel = null; VX.link = null; var w = $('vxWrap'); if (w) w.remove(); VX.keys = {}; try { document.documentElement.style.overflow = ''; } catch (e) {} if (view === 'velox') { view = 'home'; render(); } }
+  function vxRender() {
+    if (!VX.open) return;
+    var t = $('vxTop'), p = $('vxPan'); if (!t || !p) return;
+    t.innerHTML = '<button class="vxx" data-act="vxclose" aria-label="Chiudi la mappa">✕</button><div class="vxtabs" role="tablist">' +
+      [['velox', '📷 Velox'], ['link', '🔗 Collegamenti']].map(function (m) { return '<button role="tab" data-act="vxmode" data-m="' + m[0] + '" aria-selected="' + (VX.mode === m[0]) + '">' + m[1] + '</button>'; }).join('') + '</div>';
+    p.innerHTML = vxPanel(); vxDraw();
+  }
+  function vxPanel() {
+    if (!VX.d) return '<p class="vxm">Carico i velox…</p>';
+    var marks = VX.d.marks, nOk = marks.filter(function (m) { return m.state === 'ok'; }).length, nKo = marks.length - nOk, ro = vxCan() ? '' : '<p class="vxm">Solo lettura: puoi guardare ma non modificare.</p>';
+    if (VX.mode === 'velox') {
+      if (VX.sel && PT[VX.sel]) {
+        var P = PT[VX.sel], m = vxMark(VX.sel), st = m ? m.state : 'none';
+        return '<div class="vxh"><b>' + esc(P[1]) + '</b><button class="vxl" data-act="vxsel" data-id="">Chiudi</button></div>' + (m && m.by ? '<p class="vxm">Segnato da ' + esc(String(m.by).split(' ')[0]) + ' il ' + new Date(m.at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }) + '</p>' : '') + ro +
+          '<div class="vxst">' + [['none', 'Nessun velox'], ['ok', 'Velox funzionante'], ['ko', 'Velox non funzionante']].map(function (o) { return '<button data-act="vxset" data-s="' + o[0] + '" class="s-' + o[0] + '" aria-pressed="' + (st === o[0]) + '"' + (vxCan() ? '' : ' disabled') + '>' + o[1] + '</button>'; }).join('') + '</div>' +
+          (m ? '<div class="vxnote"><input id="vxNote" class="field txt" placeholder="Nota (es. velox lato canale, solo verso Rialto)" value="' + esc(m.note || '') + '"' + (vxCan() ? '' : ' disabled') + '><button class="btn sm" data-act="vxnote"' + (vxCan() ? '' : ' disabled') + '>Salva</button></div>' : '') +
+          (st === 'none' ? '' : '<p class="vxm">Se togli il velox, si cancellano anche i suoi collegamenti.</p>');
+      }
+      return '<div class="vxh"><b>Pontili con velox</b><span class="vxlg"><i class="d-ok"></i>' + nOk + ' funzionanti <i class="d-ko"></i>' + nKo + ' non funzionanti</span></div>' +
+        '<p class="vxm">Tocca un pontile giallo sulla mappa per segnare se ha il velox.</p>' + ro +
+        '<input id="vxQ" class="field txt" type="search" placeholder="Cerca un pontile (es. Rialto, Murano Faro)" autocomplete="off" value="' + esc(VX.q) + '"><div id="vxRes" class="vxres">' + vxRes() + '</div>';
+    }
+    // collegamenti
+    if (VX.draft) {
+      var D = VX.draft, len = vxLen(vxPath(D.a, D.pts));
+      return '<div class="vxh"><b>Da ' + esc(vxShort(PT[D.a][1])) + '</b><span class="vxm">' + D.pts.length + (D.pts.length === 1 ? ' punto' : ' punti') + ' · ' + vxKm(len) + '</span></div>' +
+        '<p class="vxm">Tocca l’acqua per segnare la rotta che fanno le barche, poi tocca il pontile con velox d’arrivo. Senza punti la linea è dritta.</p>' +
+        '<div class="vxbtns"><button class="btn sm" data-act="vxundo"' + (D.pts.length ? '' : ' disabled') + '>Togli ultimo punto</button><button class="btn sm" data-act="vxcancel">Annulla</button></div>';
+    }
+    var L = VX.d.links;
+    var lst = L.length ? '<div class="vxll">' + L.map(function (l) {
+      var A = PT[l.a], B = PT[l.b]; if (!A || !B) return '';
+      return '<div class="vxli' + (VX.link === l.id ? ' on' : '') + '"><button class="vxlt" data-act="vxlink" data-id="' + l.id + '"><b>' + esc(vxShort(A[1])) + ' ↔ ' + esc(vxShort(B[1])) + '</b><small>' + (l.dist ? vxKm(l.dist) : '') + (l.path && l.path.length ? ' · rotta con ' + l.path.length + ' punti' : ' · linea dritta') + '</small></button>' + (vxCan() ? '<button class="btn sm danger" data-act="vxdel" data-id="' + l.id + '">Elimina</button>' : '') + '</div>';
+    }).join('') + '</div>' : '<p class="vxm">Ancora nessun collegamento.</p>';
+    return '<div class="vxh"><b>Collegamenti tra velox</b><span class="vxm">' + L.length + '</span></div>' + ro +
+      (marks.length < 2 ? '<p class="vxm">Prima segna almeno due pontili con velox nella scheda Velox.</p>' : '<p class="vxm">Tocca un pontile con velox per iniziare un collegamento.</p>') + lst;
+  }
+  function vxRes() {
+    var q = VX.q.trim().toLowerCase(); if (q.length < 2) return '';
+    var r = PONTILI.filter(function (p) { return p[1].toLowerCase().indexOf(q) >= 0; }).slice(0, 8);
+    return r.length ? r.map(function (p) { var m = vxMark(p[0]); return '<button data-act="vxgo" data-id="' + p[0] + '"><i class="d-' + (m ? m.state : 'none') + '"></i>' + esc(p[1]) + '</button>'; }).join('') : '<p class="vxm">Nessun pontile trovato.</p>';
+  }
+  function vxXY(la, lo) { var b = $('vxBox'), W = b.clientWidth, H = b.clientHeight; return [tileX(lo, VX.z) - tileX(VX.lo, VX.z) + W / 2, tileY(la, VX.z) - tileY(VX.la, VX.z) + H / 2]; }
+  function vxLL(x, y) { var b = $('vxBox'), W = b.clientWidth, H = b.clientHeight, n = Math.pow(2, VX.z) * 256, px = tileX(VX.lo, VX.z) + x - W / 2, py = tileY(VX.la, VX.z) + y - H / 2; return [Math.atan(Math.sinh(Math.PI * (1 - 2 * py / n))) * 180 / Math.PI, px / n * 360 - 180]; }
+  function vxDraw() {
+    var box = $('vxBox'); if (!box) return; var W = box.clientWidth, H = box.clientHeight; if (W < 40 || H < 40) return;
+    var z = VX.z, x0 = tileX(VX.lo, z) - W / 2, y0 = tileY(VX.la, z) - H / 2;
+    paintTiles($('vxTiles'), VX.keys, z, x0, y0, W, H, false);
+    var g = '', M = VX.M || {}, links = (VX.d && VX.d.links) || [];
+    function pl(l) { return l.map(function (q) { var p = vxXY(q[0], q[1]); return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' '); }
+    links.forEach(function (l) {
+      if (!PT[l.a] || !PT[l.b]) return; var ko = (M[l.a] && M[l.a].state === 'ko') || (M[l.b] && M[l.b].state === 'ko'), on = VX.link === l.id;
+      g += '<polyline points="' + pl(vxPath(l.a, l.path, l.b)) + '" fill="none" stroke="#fff" stroke-width="' + (on ? 10 : 7) + '" stroke-linejoin="round" stroke-linecap="round" opacity=".9"/>' +
+        '<polyline points="' + pl(vxPath(l.a, l.path, l.b)) + '" fill="none" stroke="' + (on ? '#D93025' : '#1655C8') + '" stroke-width="' + (on ? 6 : 4) + '" stroke-linejoin="round" stroke-linecap="round"' + (ko ? ' stroke-dasharray="8 7"' : '') + '/>';
+    });
+    if (VX.draft) {
+      var dl = vxPath(VX.draft.a, VX.draft.pts);
+      g += '<polyline points="' + pl(dl) + '" fill="none" stroke="#7C3AED" stroke-width="4" stroke-dasharray="2 6" stroke-linecap="round"/>';
+      VX.draft.pts.forEach(function (q) { var p = vxXY(q[0], q[1]); g += '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="5" fill="#7C3AED" stroke="#fff" stroke-width="2"/>'; });
+    }
+    var lab = '';
+    PONTILI.forEach(function (P) {
+      var p = vxXY(P[2], P[3]); if (p[0] < -30 || p[1] < -30 || p[0] > W + 30 || p[1] > H + 30) return;
+      var m = M[P[0]], sel = VX.sel === P[0] || (VX.draft && VX.draft.a === P[0]), dim = VX.mode === 'link' && !m, x = p[0].toFixed(1), y = p[1].toFixed(1);
+      if (m) {
+        var col = m.state === 'ok' ? '#1E8E3E' : '#E65100';
+        g += (sel ? '<circle cx="' + x + '" cy="' + y + '" r="17" fill="none" stroke="#7C3AED" stroke-width="3"/>' : '') + '<circle cx="' + x + '" cy="' + y + '" r="11" fill="' + col + '" stroke="#fff" stroke-width="2.5"/>' +
+          '<path transform="translate(' + (p[0] - 6).toFixed(1) + ',' + (p[1] - 4.5).toFixed(1) + ')" d="M0 2.2h3l1.3-2.2h3.4l1.3 2.2h3v6.8h-12z" fill="#fff"/><circle cx="' + x + '" cy="' + (p[1] + 0.9).toFixed(1) + '" r="1.9" fill="' + col + '"/>' + (m.state === 'ko' ? '<path d="M' + (p[0] - 8) + ' ' + (p[1] + 8) + 'L' + (p[0] + 8) + ' ' + (p[1] - 8) + '" stroke="#fff" stroke-width="2.4"/>' : '');
+      } else {
+        g += (sel ? '<circle cx="' + x + '" cy="' + y + '" r="13" fill="none" stroke="#7C3AED" stroke-width="3"/>' : '') + '<rect x="' + (p[0] - 5.5).toFixed(1) + '" y="' + (p[1] - 5.5).toFixed(1) + '" width="11" height="11" rx="2" fill="#FFD23F" stroke="#3A3000" stroke-width="1.6"' + (dim ? ' opacity=".45"' : '') + '/>';
+      }
+      if (z >= 16 || (m && z >= 14) || sel) lab += '<text x="' + x + '" y="' + (p[1] - (m ? 16 : 10)).toFixed(1) + '" text-anchor="middle" font-size="' + (m ? 12.5 : 11.5) + '" font-weight="700" fill="#111" stroke="#fff" stroke-width="3.2" paint-order="stroke">' + esc(vxShort(P[1])) + '</text>';
+    });
+    var s = $('vxSvg'); s.setAttribute('viewBox', '0 0 ' + W + ' ' + H); s.innerHTML = g + lab;
+  }
+  function vxCenter(la, lo, z) { VX.la = la; VX.lo = lo; if (z) VX.z = Math.max(VX.z, z); }
+  function vxZoom(n, x, y) {
+    var nz = Math.max(11, Math.min(19, VX.z + n)); if (nz === VX.z) return;
+    if (x != null) { // il punto sotto il dito resta fermo
+      var b = $('vxBox'), ll = vxLL(x, y); VX.z = nz; var n = Math.pow(2, nz) * 256, px = tileX(ll[1], nz) - (x - b.clientWidth / 2), py = tileY(ll[0], nz) - (y - b.clientHeight / 2);
+      VX.lo = px / n * 360 - 180; VX.la = Math.atan(Math.sinh(Math.PI * (1 - 2 * py / n))) * 180 / Math.PI;
+    } else VX.z = nz;
+    vxDraw();
+  }
+  function vxHit(x, y) {
+    var best = null, bd = 24, M = VX.M || {};
+    PONTILI.forEach(function (P) { var p = vxXY(P[2], P[3]), d = Math.hypot(p[0] - x, p[1] - y) - (M[P[0]] ? 6 : 0); if (d < bd) { bd = d; best = P[0]; } });
+    return best;
+  }
+  function vxHitLink(x, y) {
+    var best = null, bd = 14;
+    ((VX.d && VX.d.links) || []).forEach(function (l) {
+      if (!PT[l.a] || !PT[l.b]) return; var pts = vxPath(l.a, l.path, l.b).map(function (q) { return vxXY(q[0], q[1]); });
+      for (var i = 1; i < pts.length; i++) {
+        var a = pts[i - 1], b = pts[i], dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy, t = L2 ? Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / L2)) : 0, d = Math.hypot(a[0] + t * dx - x, a[1] + t * dy - y);
+        if (d < bd) { bd = d; best = l.id; }
+      }
+    });
+    return best;
+  }
+  function vxTap(x, y) {
+    var id = vxHit(x, y), m = id && vxMark(id);
+    if (VX.mode === 'velox') { VX.sel = id || null; VX.q = ''; vxRender(); return; }
+    if (!vxCan()) { VX.link = vxHitLink(x, y); vxRender(); return; }
+    if (VX.draft) {
+      if (id && m && id !== VX.draft.a) { vxSaveLink(VX.draft.a, id, VX.draft.pts); return; }
+      if (id && id === VX.draft.a) return;
+      if (id && !m) { toast('Questo pontile non ha il velox: segnalo prima nella scheda Velox'); return; }
+      VX.draft.pts.push(vxLL(x, y).map(function (v) { return Math.round(v * 1e6) / 1e6; })); vxRender(); return;
+    }
+    if (id && m) { VX.draft = { a: id, pts: [] }; VX.link = null; vxRender(); return; }
+    if (id && !m) { toast('Solo i pontili con velox si collegano'); return; }
+    VX.link = vxHitLink(x, y); vxRender();
+  }
+  function vxSaveLink(a, b, pts) {
+    var len = vxLen(vxPath(a, pts, b));
+    cl('rpc_velox_link_add', { p_a: a, p_b: b, p_path: pts, p_dist: len }).then(function (r) {
+      if (r && r.ok) { VX.draft = null; VX.link = r.id; toast('Collegati ' + vxShort(PT[a][1]) + ' e ' + vxShort(PT[b][1]) + ' · ' + vxKm(len)); VX.busy = false; vxLoad(); }
+      else toast('Non salvato: controlla la connessione');
+    });
+  }
+  function vxSet(s) {
+    var id = VX.sel, P = PT[id]; if (!P || !vxCan()) return;
+    var old = vxMark(id), note = old ? old.note : null;
+    if (s === 'none') { delete VX.M[id]; VX.d.marks = VX.d.marks.filter(function (m) { return m.id !== id; }); VX.d.links = VX.d.links.filter(function (l) { return l.a !== id && l.b !== id; }); }
+    else { var m = old || { id: id }; m.state = s; m.at = new Date().toISOString(); m.by = SESSION && SESSION.name; if (!old) { VX.M[id] = m; VX.d.marks.push(m); } }
+    vxRender();
+    cl('rpc_velox_mark', { p_stop: id, p_name: P[1], p_state: s, p_note: note }).then(function (r) { if (r && r.ok) toast(s === 'none' ? 'Velox tolto da ' + vxShort(P[1]) : 'Salvato: ' + vxShort(P[1])); else { toast('Non salvato: controlla la connessione'); VX.busy = false; vxLoad(); } });
+  }
+  // gesti sulla mappa: trascina per spostare, pizzica o rotellina per zoom, tocco per scegliere
+  (function () {
+    var pts = {}, st = null, pinch = null;
+    function inBox(e) { return e.target && e.target.closest && e.target.closest('#vxBox') && !e.target.closest('.vxzoom'); }
+    document.addEventListener('pointerdown', function (e) {
+      if (!inBox(e)) return; var b = $('vxBox').getBoundingClientRect(); pts[e.pointerId] = [e.clientX, e.clientY];
+      var k = Object.keys(pts);
+      if (k.length === 1) st = { x: e.clientX, y: e.clientY, la: VX.la, lo: VX.lo, moved: false, bx: b.left, by: b.top };
+      else if (k.length === 2) { var a = pts[k[0]], c = pts[k[1]]; pinch = { d: Math.hypot(a[0] - c[0], a[1] - c[1]) }; if (st) st.moved = true; }
+      try { e.target.setPointerCapture && e.target.setPointerCapture(e.pointerId); } catch (x) {}
+    });
+    document.addEventListener('pointermove', function (e) {
+      if (!pts[e.pointerId]) return; pts[e.pointerId] = [e.clientX, e.clientY]; var k = Object.keys(pts);
+      if (k.length === 2 && pinch) { var a = pts[k[0]], c = pts[k[1]], d = Math.hypot(a[0] - c[0], a[1] - c[1]); if (d / pinch.d > 1.5) { vxZoom(1); pinch.d = d; } else if (d / pinch.d < 0.66) { vxZoom(-1); pinch.d = d; } return; }
+      if (!st) return; var dx = e.clientX - st.x, dy = e.clientY - st.y; if (Math.abs(dx) + Math.abs(dy) > 6) st.moved = true; if (!st.moved) return;
+      var z = VX.z, n = Math.pow(2, z) * 256, px = tileX(st.lo, z) - dx, py = tileY(st.la, z) - dy;
+      VX.lo = px / n * 360 - 180; VX.la = Math.atan(Math.sinh(Math.PI * (1 - 2 * py / n))) * 180 / Math.PI; vxDraw();
+    });
+    function up(e) {
+      if (!pts[e.pointerId]) return; delete pts[e.pointerId];
+      if (Object.keys(pts).length === 0) { if (st && !st.moved && e.type === 'pointerup') vxTap(e.clientX - st.bx, e.clientY - st.by); st = null; pinch = null; }
+      else if (st) { st.moved = true; var k = Object.keys(pts)[0]; st.x = pts[k][0]; st.y = pts[k][1]; st.la = VX.la; st.lo = VX.lo; pinch = null; }
+    }
+    document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up);
+    document.addEventListener('wheel', function (e) { if (!inBox(e)) return; e.preventDefault(); var b = $('vxBox').getBoundingClientRect(); vxZoom(e.deltaY < 0 ? 1 : -1, e.clientX - b.left, e.clientY - b.top); }, { passive: false });
+    window.addEventListener('resize', function () { if (VX.open) vxDraw(); });
+    document.addEventListener('keydown', function (e) { if (VX.open && e.key === 'Escape') { if (VX.draft) { VX.draft = null; vxRender(); } else vxClose(); } });
+  })();
+  document.addEventListener('input', function (e) { if (e.target && e.target.id === 'vxQ') { VX.q = e.target.value; var r = $('vxRes'); if (r) r.innerHTML = vxRes(); } });
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act^="vx"]') : null; if (!el || el.disabled) return; var a = el.getAttribute('data-act');
+    if (a === 'vxclose') vxClose();
+    else if (a === 'vxmode') { VX.mode = el.getAttribute('data-m'); VX.sel = null; VX.draft = null; VX.link = null; vxRender(); }
+    else if (a === 'vxzoom') vxZoom(+el.getAttribute('data-n'));
+    else if (a === 'vxsel') { VX.sel = el.getAttribute('data-id') || null; vxRender(); }
+    else if (a === 'vxgo') { var P = PT[el.getAttribute('data-id')]; if (P) { vxCenter(P[2], P[3], 16); VX.sel = P[0]; VX.q = ''; vxRender(); } }
+    else if (a === 'vxset') vxSet(el.getAttribute('data-s'));
+    else if (a === 'vxnote') { var id = VX.sel, m = vxMark(id), v = ($('vxNote') || {}).value || ''; if (!m) return; m.note = v.trim(); cl('rpc_velox_mark', { p_stop: id, p_name: PT[id][1], p_state: m.state, p_note: m.note || null }).then(function (r) { toast(r && r.ok ? 'Nota salvata' : 'Non salvata: controlla la connessione'); }); }
+    else if (a === 'vxundo') { if (VX.draft) { VX.draft.pts.pop(); vxRender(); } }
+    else if (a === 'vxcancel') { VX.draft = null; vxRender(); }
+    else if (a === 'vxlink') {
+      var lid = el.getAttribute('data-id'); VX.link = VX.link === lid ? null : lid;
+      var l = VX.d.links.filter(function (x) { return x.id === lid; })[0];
+      if (l && VX.link) { var pp = vxPath(l.a, l.path, l.b), las = pp.map(function (q) { return q[0]; }), los = pp.map(function (q) { return q[1]; }); VX.la = (Math.max.apply(null, las) + Math.min.apply(null, las)) / 2; VX.lo = (Math.max.apply(null, los) + Math.min.apply(null, los)) / 2; }
+      vxRender();
+    }
+    else if (a === 'vxdel') {
+      var did = el.getAttribute('data-id');
+      if (el.getAttribute('data-sure') !== '1') { el.setAttribute('data-sure', '1'); el.textContent = 'Sicuro?'; setTimeout(function () { if (el.isConnected) { el.removeAttribute('data-sure'); el.textContent = 'Elimina'; } }, 3000); return; }
+      VX.d.links = VX.d.links.filter(function (x) { return x.id !== did; }); if (VX.link === did) VX.link = null; vxRender();
+      cl('rpc_velox_link_del', { p_id: did }).then(function (r) { toast(r && r.ok ? 'Collegamento eliminato' : 'Non eliminato: controlla la connessione'); });
+    }
+  });
+  function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
+  document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
   /* ---------- render ---------- */
   var NAV_ADMIN = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['tracking', 'Dov’è'], ['spedizioni', 'Tracking'], ['stat', 'Statistiche'], ['barca', 'Barche'], ['benzina', 'Benzina'], ['contatti', 'Contatti']];
   var NAV_FULL = [['logistica', 'Logistica'], ['barca', 'Barche'], ['turno', 'Turno'], ['notifiche', 'Notifiche'], ['altro', 'Altro']];
@@ -7349,12 +7576,13 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var g = $('gear'); g.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS.gear + '</svg>'; if (view === 'impost') g.setAttribute('aria-current', 'page'); else g.removeAttribute('aria-current');
     var cur = view === 'guida' ? 'turno' : view;
     if (view === 'pin' && !isFullAcc()) { view = 'impost'; cur = 'impost'; }
-    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'polybox', 'benzina', 'tracking'].indexOf(cur) >= 0) cur = 'altro';
+    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'velox', 'polybox', 'benzina', 'tracking'].indexOf(cur) >= 0) cur = 'altro';
     if (!isFull && !isAdm && cur === 'benzina') cur = 'barca';
     if (!isFull && !isAdm && !isVan() && cur === 'tracking') cur = 'barca';
     if (isAdm && cur === 'polybox') cur = 'logistica';
     if (isAdm && cur === 'ore') cur = 'stat';
     if (view === 'stat' && !isMgr()) view = 'turno';
+    if (view === 'velox' && !isMgr() && !isFullAcc()) view = 'home';
     if (isMgr() && cur === 'contatti') cur = 'notifiche';
     if (isMgr() && !isOff() && ['programma', 'ddt', 'murano'].indexOf(cur) >= 0) cur = 'logistica';
     if (isMgr() && cur === 'richieste') cur = 'barca';
@@ -7364,7 +7592,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurno, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat }[view] || viewTurno;
+    var fn = { admin: viewAdmin, turno: viewTurno, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     var m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); m.scrollTop = (view === 'guida') ? 0 : sc;
     if (view === 'ddt') ddApplySearch();
@@ -7374,15 +7602,15 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   var APPS = {
     logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
     barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], notifiche: ['Notifiche', '#db2777'],
-    stat: ['Statistiche', '#4f46e5'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
+    stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
   };
   function homeApps() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isVan()) return ['polybox', 'tracking', 'programma', 'contatti', 'impost'];
     if (isOff()) return ['presenze', 'ddt', 'cucina', 'programma', 'notifiche', 'contatti', 'impost'];
-    if (isAdm) return ['logistica', 'notifiche', 'turni', 'presenze', 'spedizioni', 'tracking', 'stat', 'barca', 'benzina', 'programma', 'contatti', 'impost'];
-    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'cucina', 'contatti', 'impost'];
-    if (isMgr()) return ['logistica', 'turno', 'turni', 'programma', 'notifiche', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'contatti', 'impost'];
+    if (isAdm) return ['logistica', 'notifiche', 'turni', 'presenze', 'spedizioni', 'tracking', 'stat', 'velox', 'barca', 'benzina', 'programma', 'contatti', 'impost'];
+    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'velox', 'cucina', 'contatti', 'impost'];
+    if (isMgr()) return ['logistica', 'turno', 'turni', 'programma', 'notifiche', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'velox', 'contatti', 'impost'];
     return ['turno', 'programma', 'ddtgiro', 'barca', 'notifiche', 'tracking', 'benzina', 'impost'];
   }
   function viewHome() {
