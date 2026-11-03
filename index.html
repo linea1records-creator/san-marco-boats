@@ -305,6 +305,8 @@ body.tbfs .tb{position:fixed;inset:0;z-index:40;border-radius:0;margin:0;font-si
 .mus .mubr[aria-pressed="true"]{background:#FFF0C7;border-color:#C98A00}.mus .mubr[aria-pressed="true"] i{background:#C98A00;border-color:#C98A00}
 .cnss .mucns{border:1px solid #BBDEFB;background:#F2F8FE;border-radius:12px;padding:6px 12px;margin-bottom:6px}.cnss .mucns div{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:15px}.cnss .mucns div+div{border-top:1px solid #DCEBF8}.cnss .mucns b{color:#0D47A1}
 .pbcl li small{display:block;color:#7A5300;font-size:12.5px;font-weight:600}
+.trav{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#2563eb;color:#fff;font-size:12px;font-weight:800}.trav.st{background:#64748b}
+.trsec{font-size:12.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B6870;margin:12px 0 4px}
 .cnss .cnsh{color:#5B6870;font-size:14px;margin:-4px 0 10px}.cnss .cnsh b{color:#11181C;font-family:var(--font-mono)}
 .cnss .cnsnote{border-left:4px solid #F9A825;background:#FFF8E1;color:#5D4300;border-radius:10px;padding:10px 12px;font-weight:600;margin-bottom:6px}
 .cnss .cnspb{display:inline-block;background:#E3F2FD;color:#0D47A1;border-radius:999px;padding:3px 10px;font-size:14px;font-weight:700;margin-bottom:4px}
@@ -1294,7 +1296,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
      Turno, GPS, consegne, foto e firme restano solo su questo telefono: niente viene mandato al server,
      quindi nessuno lo vede (né clienti, né Lisa, né la dashboard) e statistiche e ore non cambiano. */
   var GHOST = false; try { GHOST = localStorage.getItem('smb-ghost') === '1'; } catch (e) {}
-  var GHOST_BLOCK = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_log_gps', 'rpc_stop_event2', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_colli_set', 'rpc_murano_colli_set', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_refuel_add2', 'rpc_refuel_void', 'rpc_fuel_set', 'rpc_track_move', 'rpc_ddt_edit_file', 'rpc_ddt_place_sig', 'rpc_bread_crates_set', 'rpc_pb_return_set', 'rpc_shift_edit', 'rpc_task_update', 'rpc_pos_share', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_shift_void'];
+  var GHOST_BLOCK = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_log_gps', 'rpc_stop_event2', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_colli_set', 'rpc_murano_colli_set', 'rpc_shift_gps_mode', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_refuel_add2', 'rpc_refuel_void', 'rpc_fuel_set', 'rpc_track_move', 'rpc_ddt_edit_file', 'rpc_ddt_place_sig', 'rpc_bread_crates_set', 'rpc_pb_return_set', 'rpc_shift_edit', 'rpc_task_update', 'rpc_pos_share', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_shift_void'];
   function ghostAllowed() { return !!(SESSION && SESSION.name && /avicolli/i.test(SESSION.name)); }
   function ghostSet(on) {
     try {
@@ -3023,8 +3025,19 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     function add(k, lab, ic, em) { if (seen[k]) return; seen[k] = 1; out.push({ k: k, lab: lab, ic: ic, em: em }); }
     (D.objects || []).forEach(function (o) { var k = trCatOf(o); add(k, k === 'carrelli' ? 'Carrelli' : k === 'tesserino' ? 'Tesserino' : k === 'polybox' ? 'Polybox' : o.name.replace(/^Ceste bianche del pane$/i, 'Ceste del pane'), trIconKey(o), o.emoji); });
     if ((D.pb_here || []).length || (D.polybox || []).length) add('polybox', 'Polybox', 'polybox', '📦');
+    if ((D.crew || []).length) out.unshift({ k: 'crew', lab: 'Trasportatori', ic: null, em: '🧑‍✈️' });
     return out;
   }
+  // trasportatori in turno: GPS recente oppure, senza GPS, l'ultima tappa fatta
+  function trCrew() { return (TR.d && TR.d.crew) || []; }
+  function trCrewWho(c) { return c.role === 'van' ? 'Furgone' : 'Sulla ' + trBoatName(c.boat); }
+  function trCrewSub(c) {
+    if (c.src === 'tappa') return (c.no_gps ? '✋ Senza GPS · ' : '📍 GPS fermo · ') + 'ultima tappa ' + c.stop + ' alle ' + hm(Date.parse(c.stop_at));
+    if (c.src === 'gps') return '📍 GPS ' + agoText(c.gps_at) + (c.stop ? ' · ultima tappa ' + c.stop : '');
+    if (c.src === 'gps_vecchio') return (c.no_gps ? '✋ Senza GPS · ' : '') + 'ultimo GPS ' + agoText(c.gps_at) + ' · nessuna tappa fatta';
+    return (c.no_gps ? '✋ Senza GPS · ' : '') + 'nessuna tappa fatta finora';
+  }
+  function trInit(n) { var p = String(n || '?').trim().split(/\s+/); return (p[0][0] + (p[1] ? p[1][0] : '')).toUpperCase(); }
   function trHidden() { if (!TR.hide) { try { TR.hide = JSON.parse(localStorage.getItem('smb-tr-hide') || '{}') || {}; } catch (e) { TR.hide = {}; } } return TR.hide; }
   function trFilterBar() {
     var hd = trHidden();
@@ -3032,6 +3045,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   }
   function trMarkers() {
     var D = TR.d, out = [], hd = trHidden();
+    if (!hd.crew) trCrew().forEach(function (c) { if (c.lat != null) out.push({ id: 'cr' + c.id, la: +c.lat, lo: +c.lng, cr: trInit(c.name), stale: c.src !== 'gps', lab: c.name.split(' ')[0] + (c.src === 'tappa' ? ' · ' + c.stop : '') }); });
     (D.objects || []).forEach(function (o) { if (hd[trCatOf(o)]) return; var p = trPos(o.where); if (p) out.push({ id: o.id, la: p[0], lo: p[1], em: o.emoji || '📦', ic: trIconKey(o), lab: o.name + (o.qty ? ' ×' + o.qty : '') }); });
     if (hd.polybox) return out;
     var here = D.pb_here || [], muDays = {};
@@ -3099,13 +3113,16 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var inf = $('trInfo'); if (inf) inf.innerHTML = trInfoHtml();
   }
   function trMarkIcon(m, x, y) {
+    if (m.cr) return '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="13" fill="' + (m.stale ? '#64748b' : '#2563eb') + '"/><text x="' + x.toFixed(1) + '" y="' + (y + 4.5).toFixed(1) + '" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">' + esc(m.cr) + '</text>';
     if (m.ic && TR_SVG[m.ic]) return '<g transform="translate(' + (x - 10.5).toFixed(1) + ',' + (y - 10.5).toFixed(1) + ') scale(.875)">' + TR_SVG[m.ic] + '</g>';
     return '<text x="' + x.toFixed(1) + '" y="' + (y + 6).toFixed(1) + '" text-anchor="middle" font-size="17">' + esc(m.em) + '</text>';
   }
   function trInfoHtml() {
     if (!TR.fs || !TR.sel || !TR.d) return '';
     var o = (TR.d.objects || []).filter(function (x) { return x.id === TR.sel; })[0], t = '', sub = '';
-    if (o) { t = (o.emoji || '📦') + ' ' + o.name; sub = trWhere(o.where) + ' · ' + trSource(o.where); }
+    var cw = trCrew().filter(function (c) { return 'cr' + c.id === TR.sel; })[0];
+    if (cw) { t = '🧑‍✈️ ' + cw.name + ' · ' + trCrewWho(cw); sub = trCrewSub(cw); }
+    else if (o) { t = (o.emoji || '📦') + ' ' + o.name; sub = trWhere(o.where) + ' · ' + trSource(o.where); }
     else if (TR.sel.indexOf('ph') === 0) { var x = (TR.d.pb_here || []).filter(function (q) { return 'ph' + q.stop + q.day === TR.sel; })[0]; if (x) { t = '📦 ' + x.n + ' polybox · ' + (x.name || x.stop); sub = 'Consegnati ' + pbDayLab(x.day) + (x.t ? ' alle ' + x.t : '') + ' · ' + trBoatName(x.boat); } }
     else if (TR.sel.indexOf('pb') === 0) { var b = (TR.d.polybox || []).filter(function (q) { return 'pb' + q.day === TR.sel; })[0]; if (b) { t = '📦 ' + b.n + ' polybox di Murano'; sub = TR_PB[+b.stage] || ''; } }
     return t ? '<b>' + esc(t) + '</b><span>' + esc(sub) + '</span>' : '';
@@ -3215,8 +3232,13 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       rows += trRow('phall', trIconHtml('polybox', '📦', 22), 'Polybox ai clienti · ' + tot, here.length + ' consegne', here.map(function (x) { return '<div class="trli"><span><b>' + x.n + '</b> · ' + esc(x.name || x.stop) + '</span><small>' + esc(pbDayLab(x.day)) + (x.t ? ' ' + esc(x.t) : '') + ' · ' + esc(trBoatName(x.boat)) + '</small></div>'; }).join('') + '<div class="trsrc">⚙️ messi in automatico dove sono stati consegnati</div>');
     }
     if (pb.length) rows += trRow('pbmur', trIconHtml('polybox', '📦', 22), 'Polybox di Murano · ' + pb.reduce(function (a, b) { return a + (+b.n || 0); }, 0), TR_PB[+pb[0].stage] || '', pb.map(function (b) { return '<div class="trli"><span><b>' + b.n + '</b> · ' + esc(TR_PB[+b.stage] || '') + '</span><small>consegnati ' + esc(pbDayLab(b.day)) + '</small></div>'; }).join('') + (isVan() || pbIsMgr() ? '<button class="btn sm" data-act="nav" data-v="polybox" style="margin-top:6px">Apri la sezione Polybox</button>' : ''));
+    var crw = trCrew().map(function (c) {
+      return trRow('cr' + c.id, '<span class="trav' + (c.src !== 'gps' ? ' st' : '') + '">' + esc(trInit(c.name)) + '</span>', c.name.split(' ')[0] + ' · ' + trCrewWho(c).replace('Sulla ', ''), trCrewSub(c),
+        '<div class="trsrc"><b>' + esc(trCrewSub(c)) + '</b></div><div class="trsrc">In turno dalle ' + hm(Date.parse(c.since)) + (c.no_gps ? ' · modalità senza GPS: la posizione è l’ultima tappa segnata' : c.src === 'tappa' ? ' · il GPS non si aggiorna da un po’: la posizione è l’ultima tappa segnata' : '') + '</div>');
+    }).join('');
+    if (crw) rows = '<div class="trsec">Trasportatori in turno</div>' + crw + '<div class="trsec">Oggetti</div>' + rows;
     rows += (TR.d.objects || []).map(trCard).join('');
-    var nObj = (TR.d.objects || []).length + (here.length ? 1 : 0) + (pb.length ? 1 : 0);
+    var nObj = (TR.d.objects || []).length + (here.length ? 1 : 0) + (pb.length ? 1 : 0) + trCrew().length;
     return h + '<section class="card trcat"><div class="trch"><h3>Catalogo · ' + nObj + '</h3><button class="btn sm" data-act="trreload">Aggiorna</button></div>' + rows + '</section></div>';
   }
   function trSend(args, msg) {
@@ -4965,6 +4987,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       if (!!SESSION.locator !== !!r.locator) { SESSION.locator = !!r.locator; ch = true; }
       // turno chiuso da Pietro sul server: il telefono smette di registrare (non in modalità prova)
       if (r.shift_open === false && S.shift && S.shift.sid && !GHOST && Date.now() - (S.shift.start || 0) > 180000) { S.shift = null; try { gpsApply(); } catch (x) {} save(); if (view === 'turno' || view === 'guida') view = 'home'; ch = true; setTimeout(function () { toast('Il tuo turno è stato chiuso dalla logistica'); render(); }, 50); }
+      if (r.shift_open && S.shift && !GHOST && !S.shift.gmSync) { S.shift.gmSync = 1; save(); cl('rpc_shift_gps_mode', { p_no_gps: !!S.shift.noGps }); }
       if (SESSION.locator) { locApply(); loadPeople(); }
       if (ch) { try { localStorage.setItem(SKEY, JSON.stringify(SESSION)); } catch (e) {} }
       return ch;
@@ -7427,7 +7450,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el || !S.shift) return; var a = el.getAttribute('data-act');
     if (a === 'gpsmode') gpsModeAsk(false);
     else if (a === 'gpsset') {
-      var ng = el.getAttribute('data-v') === 'manual', was = !!S.shift.noGps; S.shift.noGps = ng; save(); closeSheet();
+      var ng = el.getAttribute('data-v') === 'manual', was = !!S.shift.noGps; S.shift.noGps = ng; save(); closeSheet(); cl('rpc_shift_gps_mode', { p_no_gps: ng });
       if (was !== ng || GMODE.first) toast(ng ? '✋ Senza GPS: premi “Sono arrivato” quando arrivi' : '📍 Con GPS: l’arrivo si segna da solo');
       if (!ng) setTimeout(arrCheck, 300);
       render(); if (GMODE.first) { GMODE.first = false; setTimeout(function () { noticeCheck(true); }, 600); }
