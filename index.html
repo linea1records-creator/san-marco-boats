@@ -270,6 +270,13 @@ i.d-ok{background:#1E8E3E}i.d-ko{background:#E65100}i.d-none{background:#FFD23F;
 .vxres{display:flex;flex-direction:column}.vxres button{display:flex;align-items:center;gap:8px;border:0;border-top:1px solid #eef0f3;background:none;text-align:left;padding:10px 2px;font:15px inherit;font-family:inherit;color:#111;cursor:pointer}.vxres button i{margin-left:0}
 .vxbtns{display:flex;gap:8px;flex-wrap:wrap}
 .vxll{display:flex;flex-direction:column}.vxli{display:flex;align-items:center;gap:8px;border-top:1px solid #eef0f3;padding:4px 0}.vxli.on{background:rgba(217,48,37,.07)}.vxlt{flex:1;min-width:0;border:0;background:none;text-align:left;padding:6px 2px;cursor:pointer;color:#111;font-family:inherit;display:flex;flex-direction:column}.vxlt b{font-size:14.5px}.vxlt small{font-size:12.5px;color:#5b6570}
+.dtw{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line,#e2e5ea);border-radius:10px;max-width:100%}
+.dtt{border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}.dtt th,.dtt td{padding:7px 9px;border-bottom:1px solid var(--line,#eef0f3);text-align:right}
+.dtt thead th{position:sticky;top:0;background:var(--surface,#fff);font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted,#667);font-weight:700;white-space:normal;min-width:64px;vertical-align:bottom}
+.dtt th[scope=row],.dtt thead th:first-child{position:sticky;left:0;background:var(--surface,#fff);text-align:left;z-index:1;font-weight:700}
+.dtt tbody tr{cursor:pointer}.dtt tbody tr:hover td,.dtt tbody tr.on td,.dtt tbody tr.on th{background:rgba(22,85,200,.08)}
+.dtd{display:flex;flex-direction:column;gap:6px;padding:10px 0 0}.dtd h4{margin:8px 0 0;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted,#667)}
+.dtr{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line,#eef0f3)}.dtr>span{min-width:0;display:block;font-size:14px}.dtr small{display:block;font-size:12.5px;color:var(--muted,#667)}.dtr .btn{flex:0 0 auto}
 .card.stsec{padding:0;display:block;gap:0;margin-bottom:8px}.stsec>summary{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;list-style:none;min-height:52px}.stsec>summary::-webkit-details-marker{display:none}.stsec>summary:focus-visible{outline:2px solid #1655C8;outline-offset:-2px;border-radius:14px}
 .stst{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.stst b{font-size:16px}.stst small{font-size:13px;color:var(--muted,#667);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stst small.ok{color:#2E7D32;font-weight:700}.stst small.late{color:#E65100;font-weight:700}.stst small.bad{color:#D93025;font-weight:700}
 .stsec[open]>summary .secc{transform:rotate(90deg)}.stsb{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}.stsb.flush{padding:0 0 6px;gap:0}.stsb .stk{margin-bottom:0}
@@ -1868,14 +1875,14 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   // storico di tutte le consegne fatte: 50 per pagina
   var HS = { d: null, k: null, busy: null };
   function hsLoad(k) { if (HS.busy === k) return; HS.busy = k; cl('rpc_deliveries_page', { p_year: ST2.y, p_month: ST2.m || 0, p_page: ST2.hp || 1 }).then(function (r) { if (HS.busy === k) HS.busy = null; if (r && r.items) { HS.d = r; HS.k = k; if (view === 'stat') render(); } }).catch(function () { HS.busy = null; }); }
-  function delivRow(x) {
+  function delivRow(x, canDel) {
     var dt = new Date(x.at), when = dt.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' }) + ' ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes()), dl = x.delay, es, c2;
     if (x.status !== 'ok') { es = 'Problema' + (x.reason ? ': ' + x.reason : ''); c2 = 'bad'; }
     else if (dl == null) { es = x.extra ? 'Straordinaria · completata' : 'Completata · senza orario'; c2 = ''; }
     else if (Math.abs(dl) <= 5) { es = 'Completata in orario' + (dl ? ' (' + (dl > 0 ? '+' : '') + dl + ' min)' : ''); c2 = 'ok'; }
     else if (dl > 0) { es = 'Completata in ritardo di ' + dl + ' min'; c2 = 'late'; }
     else { es = 'Completata in anticipo di ' + (-dl) + ' min'; c2 = 'early'; }
-    return '<div class="l10r"><div class="l10h"><b>' + esc(x.stop || '') + '</b><span class="mono">' + esc(when) + '</span></div><div class="muted">' + (BOATS[x.boat] ? esc(BOATS[x.boat].name) : esc(x.boat || '')) + (x.who ? ' · ' + esc(String(x.who).split(' ')[0]) : '') + (x.planned ? ' · previsto ' + esc(x.planned) : '') + (x.extra ? ' · straordinaria' : '') + '</div><span class="l10p ' + c2 + '">' + esc(es) + '</span></div>';
+    return '<div class="l10r"><div class="l10h"><b>' + esc(x.stop || '') + '</b><span class="mono">' + esc(when) + '</span></div><div class="muted">' + (BOATS[x.boat] ? esc(BOATS[x.boat].name) : esc(x.boat || '')) + (x.who ? ' · ' + esc(String(x.who).split(' ')[0]) : '') + (x.planned ? ' · previsto ' + esc(x.planned) : '') + (x.extra ? ' · straordinaria' : '') + '</div><span class="l10p ' + c2 + '">' + esc(es) + '</span>' + (canDel && x.id ? '<div style="margin-top:6px">' + dtDel(x.kind || 'event', x.id, x.stop) + '</div>' : '') + '</div>';
   }
   function histSec(key) {
     var pg = ST2.hp || 1, k = key + ':' + pg; if (HS.k !== k) hsLoad(k);
@@ -1883,7 +1890,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     if (!r) return stSec('storico', '📋 Storico consegne', 'Carico…', '<p class="muted">Carico…</p>');
     var pages = Math.max(1, Math.ceil(r.total / 50)), from = r.total ? (pg - 1) * 50 + 1 : 0, to = Math.min(pg * 50, r.total);
     var nav = pages > 1 ? '<div class="ldnav"><button class="btn sm" data-act="hspg" data-n="-1" aria-label="Pagina precedente"' + (pg <= 1 ? ' disabled' : '') + '>‹</button><b>Pagina ' + pg + ' di ' + pages + '</b><button class="btn sm" data-act="hspg" data-n="1" aria-label="Pagina successiva"' + (pg >= pages ? ' disabled' : '') + '>›</button></div>' : '';
-    var body = r.total ? '<p class="hint" style="margin:0">Dalla più recente · ' + from + '–' + to + ' di ' + r.total + '</p>' + nav + '<div class="l10">' + r.items.map(delivRow).join('') + '</div>' + nav : '<p class="muted">Nessuna consegna in questo periodo.</p>';
+    var body = r.total ? '<p class="hint" style="margin:0">Dalla più recente · ' + from + '–' + to + ' di ' + r.total + '</p>' + nav + '<div class="l10">' + r.items.map(function (x) { return delivRow(x, r.del); }).join('') + '</div>' + nav : '<p class="muted">Nessuna consegna in questo periodo.</p>';
     return stSec('storico', '📋 Storico consegne', r.total + (r.total === 1 ? ' consegna' : ' consegne') + (pages > 1 ? ' · ' + pages + ' pagine' : ''), body);
   }
   document.addEventListener('click', function (e) {
@@ -1932,6 +1939,62 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
   function dlTxt(v) { if (v == null) return '—'; v = +v; return Math.abs(v) <= 0.5 ? 'puntuale' : (v > 0 ? '+' : '−') + Math.abs(v).toFixed(Math.abs(v) < 10 ? 1 : 0) + ' min'; }
   function dlCls(v) { return v == null ? '' : Math.abs(v) <= 5 ? 'ok' : v > 0 ? 'late' : 'early'; }
   function dlBar(v) { var p = v == null ? 50 : Math.max(0, Math.min(100, 50 + v / 30 * 50)); return '<div class="dlbar"><i class="z"></i><b style="left:' + p.toFixed(1) + '%" class="' + dlCls(v) + '"></b><span>−30</span><span>0</span><span>+30</span></div>'; }
+  /* ---------- Tabella unica: tutti i dati dell'app giorno per giorno + eliminazione di turni e consegne ---------- */
+  var DT = { d: null, k: null, busy: false, sel: null, det: {}, detBusy: {} };
+  function dtLoad(key) { if (DT.busy) return; DT.busy = true; cl('rpc_day_table', { p_year: ST2.y, p_month: ST2.m || 0 }).then(function (r) { DT.busy = false; if (r && r.rows) { DT.d = r; DT.k = key; if (view === 'stat') render(); } }).catch(function () { DT.busy = false; }); }
+  function dtDet(day, force) { if (DT.detBusy[day] || (DT.det[day] && !force)) return; DT.detBusy[day] = true; cl('rpc_day_detail', { p_day: day }).then(function (r) { DT.detBusy[day] = false; if (r && r.events) { DT.det[day] = r; if (view === 'stat') render(); } }); }
+  var DT_COLS = [['shifts', 'Turni'], ['people', 'Persone'], ['boats', 'Barche'], ['min', 'Ore'], ['check', 'Checkpoint raggiunti'], ['deliv', 'Consegne'], ['ontime', 'In orario'], ['skipped', 'Saltate'], ['problems', 'Problemi'], ['notready', 'Merce non pronta'], ['extra', 'Straord.'], ['photos', 'Foto consegna'], ['ddt', 'DDT firmati'], ['colli', 'Colli / polybox'], ['bread', 'Casse pane'], ['pbret', 'Polybox ritirati'], ['fuel_l', 'Benzina L'], ['fuel_eur', 'Benzina €'], ['endph', 'Foto barca'], ['km', 'Km'], ['gps', 'Punti GPS'], ['offline', 'Turni offline']];
+  function dtCell(x, k) {
+    var v = x[k];
+    if (k === 'min') return hmin(+v || 0);
+    if (k === 'boats') return esc(String(v || '').split(', ').map(function (c) { return BOATS[c] ? BOATS[c].name : c; }).join(', ') || '—');
+    if (k === 'people') return esc(v || '—');
+    if (k === 'ontime') return x.timed ? Math.round(x.ontime / x.timed * 100) + '%' : '—';
+    if (k === 'fuel_eur') return +v ? (+v).toFixed(2).replace('.', ',') : '—';
+    if (k === 'fuel_l' || k === 'km') return +v ? String(+v).replace('.', ',') : '—';
+    return +v ? String(v) : '—';
+  }
+  function dtSec(key) {
+    if (DT.k !== key) dtLoad(key);
+    var d = DT.k === key ? DT.d : null;
+    if (!d) return stSec('daytab', '📅 Tutti i dati, giorno per giorno', 'Carico…', '<p class="muted">Carico…</p>');
+    var rows = d.rows || [];
+    var body = rows.length ? '<p class="hint" style="margin:0">Una riga per giorno. Scorri di lato per vedere tutte le colonne; tocca un giorno per il dettaglio' + (d.del ? ' e per eliminare turni o consegne' : '') + '.</p>' +
+      '<div class="dtw"><table class="dtt"><thead><tr><th scope="col">Giorno</th>' + DT_COLS.map(function (c) { return '<th scope="col">' + c[1] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      rows.map(function (x) { var dp = dateParts(x.day); return '<tr class="' + (DT.sel === x.day ? 'on' : '') + '" data-act="dtday" data-d="' + x.day + '" tabindex="0"><th scope="row">' + esc(DNALL[dp.dow].slice(0, 3) + ' ' + dp.n + '/' + (dp.m + 1)) + '</th>' + DT_COLS.map(function (c) { return '<td>' + dtCell(x, c[0]) + '</td>'; }).join('') + '</tr>'; }).join('') +
+      '</tbody></table></div>' + (DT.sel ? dtDetail(DT.sel, d.del) : '')
+      : '<p class="muted">Nessun dato in questo periodo.</p>';
+    return stSec('daytab', '📅 Tutti i dati, giorno per giorno', rows.length + (rows.length === 1 ? ' giorno' : ' giorni') + ' con attività', body);
+  }
+  function dtDel(kind, id, label) { return '<button class="btn sm danger" data-act="dtdel" data-k="' + kind + '" data-id="' + esc(id) + '" aria-label="Elimina ' + esc(label) + '">Elimina</button>'; }
+  function dtDetail(day, canDel) {
+    var r = DT.det[day]; if (!r) { dtDet(day); return '<div class="dtd"><p class="muted">Carico il ' + esc(pbDayLab(day)) + '…</p></div>'; }
+    var h = '<div class="dtd"><div class="row"><h3 style="margin:0">' + esc(pbDayLab(day)) + '</h3><button class="aslink" data-act="dtday" data-d="' + day + '">Chiudi</button></div>';
+    h += '<h4>Turni</h4>' + (r.shifts.length ? r.shifts.map(function (s) {
+      return '<div class="dtr"><span><b>' + esc(String(s.who).split(' ')[0]) + '</b> · ' + esc(BOATS[s.boat] ? BOATS[s.boat].name : s.boat) + (s.offline ? ' · offline' : '') + '<small>' + hm(s.start) + (s.end ? '–' + hm(s.end) : ' · in corso') + ' · ' + s.ok + ' tappe' + (s.bad ? ', ' + s.bad + ' saltate' : '') + '</small></span>' + (canDel ? dtDel('shift', s.id, 'turno di ' + s.who) : '') + '</div>';
+    }).join('') : '<p class="muted">Nessun turno.</p>');
+    var ev = r.events.concat(r.tasks).sort(function (a, b) { return Date.parse(a.at) - Date.parse(b.at); });
+    h += '<h4>Checkpoint e consegne</h4>' + (ev.length ? ev.map(function (x) {
+      var st = x.kind === 'task' ? (x.status === 'fatta' ? 'straordinaria' : 'straordinaria · problema') : x.status !== 'ok' ? 'saltata' + (x.reason ? ': ' + x.reason : '') : x.delay == null ? 'senza orario' : Math.abs(x.delay) <= 5 ? 'in orario' : x.delay > 0 ? '+' + x.delay + ' min' : x.delay + ' min';
+      return '<div class="dtr"><span><span class="mono">' + hm(x.at) + '</span> <b>' + esc(x.stop || '') + '</b><small>' + esc((BOATS[x.boat] ? BOATS[x.boat].name : (x.boat || '')) + (x.who ? ' · ' + String(x.who).split(' ')[0] : '') + (x.planned ? ' · previsto ' + x.planned : '') + ' · ' + st) + '</small></span>' + (canDel ? dtDel(x.kind, x.id, x.stop) : '') + '</div>';
+    }).join('') : '<p class="muted">Nessuna tappa registrata.</p>');
+    if (r.problems.length) h += '<h4>Problemi segnalati</h4>' + r.problems.map(function (p) { return '<div class="dtr"><span><span class="mono">' + hm(p.at) + '</span> <b>' + esc(p.stop) + '</b><small>' + esc(p.reason || '') + '</small></span></div>'; }).join('');
+    return h + '</div>';
+  }
+  function dtRefresh() { DT.k = null; DT.det = {}; HS.k = null; ST2.dk = null; RP.k = null; HO.k = null; render(); }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act="dtday"],[data-act="dtdel"],[data-act="hsdel"],[data-act="tudel"]') : null; if (!el) return;
+    var a = el.getAttribute('data-act');
+    if (a === 'dtday') { var dd = el.getAttribute('data-d'); DT.sel = DT.sel === dd ? null : dd; render(); return; }
+    // eliminazione con doppio tocco (niente finestre del browser: sui telefoni vecchi bloccano tutto)
+    if (el.getAttribute('data-sure') !== '1') { el.setAttribute('data-sure', '1'); el.textContent = 'Sicuro? Tocca'; setTimeout(function () { if (el.isConnected) { el.removeAttribute('data-sure'); el.textContent = 'Elimina'; } }, 3500); return; }
+    var k = el.getAttribute('data-k'), id = el.getAttribute('data-id'); el.disabled = true; el.textContent = '…';
+    var p = (k === 'shift') ? cl('rpc_shift_void', { p_shift: id, p_mode: 2 }) : cl('rpc_delivery_void', { p_kind: k, p_id: id, p_void: true });
+    p.then(function (r) {
+      if (r && r.ok) { toast(k === 'shift' ? 'Turno eliminato: non conta più in ore e statistiche' : 'Consegna eliminata dalle statistiche'); if (a === 'tudel') { TU.d = null; tuLoad(); } dtRefresh(); }
+      else { el.disabled = false; el.removeAttribute('data-sure'); el.textContent = 'Elimina'; toast('Non eliminato: controlla la connessione'); }
+    });
+  });
   function viewStat() {
     var now = new Date(); if (!ST2.y) { ST2.y = now.getFullYear(); ST2.m = now.getMonth() + 1; }
     var key = ST2.y + '-' + ST2.m; if (ST2.dk !== key) stLoad();
@@ -1939,6 +2002,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
     var lbl = ST2.m ? MN[ST2.m - 1].replace(/^./, function (c) { return c.toUpperCase(); }) + ' ' + ST2.y : 'Tutto il ' + ST2.y;
     var h = '<div class="wrap stw"><h2>📊 Statistiche</h2><div class="ldnav"><button class="btn sm" data-act="stmv" data-n="-1" aria-label="Prima">‹</button><b>' + esc(lbl) + '</b><button class="btn sm" data-act="stmv" data-n="1" aria-label="Dopo">›</button></div>' +
       '<div class="seg2 stseg"><button data-act="stper" data-p="m"' + (ST2.m ? ' aria-pressed="true"' : '') + '>Mese</button><button data-act="stper" data-p="y"' + (!ST2.m ? ' aria-pressed="true"' : '') + '>Anno</button></div>';
+    h += dtSec(key);
     h += '<div class="seg2 stdept" role="tablist" aria-label="Reparto">' + [['barche', '🚤 Barche'], ['cucina', '👨‍🍳 Cucina'], ['altro', '🧑‍🍽️ Altro']].map(function (t) { return '<button role="tab" data-act="stdept" data-k="' + t[0] + '"' + ((ST2.dept || 'barche') === t[0] ? ' aria-pressed="true" aria-selected="true"' : '') + '>' + t[1] + '</button>'; }).join('') + '</div>';
     h += '<p class="hint" style="margin:0 0 8px">Tocca una sezione per aprirla.</p>';
     if ((ST2.dept || 'barche') === 'cucina') {
@@ -2874,7 +2938,7 @@ body.drive .btn.primary { background: #2E7D32; color: #fff; }
       det = '<div class="trsrc">' + esc((BOATS[x.boat] ? BOATS[x.boat].name : x.boat) + ' · ' + x.stops_ok + ' consegne fatte' + (x.last_act ? ' · ultima attività ' + tuWhen(x.last_act) : '') + (x.edited_by ? ' · corretto da ' + String(x.edited_by).split(' ')[0] : '')) + '</div>' +
         '<div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;min-width:0"><label class="muted" style="font-size:13px;display:flex;flex-direction:column;gap:2px">Inizio<input class="field" style="width:100%;min-width:0" type="datetime-local" id="tuS' + esc(x.id) + '" value="' + esc(tuLocal(x.started)) + '" max="' + esc(tuLocal(Date.now())) + '"></label><label class="muted" style="font-size:13px;display:flex;flex-direction:column;gap:2px">Fine<input class="field" style="width:100%;min-width:0" type="datetime-local" id="tuE' + esc(x.id) + '" value="' + esc(x.ended ? tuLocal(x.ended) : '') + '" max="' + esc(tuLocal(Date.now())) + '"></label></div>' +
         (TU.err[x.id] ? '<div class="note" role="alert">' + esc(TU.err[x.id]) + '</div>' : '') +
-        '<div class="shsh">' + la + (x.open ? '<button class="btn sm" data-act="tunow" data-id="' + esc(x.id) + '">Fine = adesso</button>' : '') + '<button class="btn sm primary" data-act="tusave" data-id="' + esc(x.id) + '"' + (TU.busy ? ' disabled' : '') + '>' + (x.open ? 'Salva e chiudi il turno' : 'Salva') + '</button></div>' +
+        '<div class="shsh">' + la + (x.open ? '<button class="btn sm" data-act="tunow" data-id="' + esc(x.id) + '">Fine = adesso</button>' : '') + '<button class="btn sm primary" data-act="tusave" data-id="' + esc(x.id) + '"' + (TU.busy ? ' disabled' : '') + '>' + (x.open ? 'Salva e chiudi il turno' : 'Salva') + '</button>' + (isFullAcc() || (SESSION && SESSION.role === 'admin') ? '<button class="btn sm danger" data-act="tudel" data-k="shift" data-id="' + esc(x.id) + '">Elimina</button>' : '') + '</div>' +
         (x.open ? '<p class="trsrc">Se lasci vuota la fine, il turno resta aperto e cambia solo l’inizio.</p>' : '');
     }
     return '<div class="tri' + (op ? ' op' : '') + '"><button class="trrow" data-act="tutog" data-id="' + esc(x.id) + '" aria-expanded="' + op + '"><span class="tric" aria-hidden="true" style="color:' + bcol(x.boat) + '">●</span><span class="trtx"><b>' + esc(String(x.who).split(' ')[0]) + '</b><small' + (bad ? ' style="color:#b42318;font-weight:700"' : '') + '>' + esc(sub) + '</small></span><span class="trchev" aria-hidden="true">›</span></button>' + (op ? '<div class="trdet">' + det + '</div>' : '') + '</div>';
