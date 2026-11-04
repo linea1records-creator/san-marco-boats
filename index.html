@@ -1548,6 +1548,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       '<path d="M17 55c3-2.5 6-2.5 8 0s5 2.5 8 0 5-2.5 8 0 4 2.5 6 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
   }
   var ICONS = {
+    menu: '<path d="M5 3h14v18H5z"/><path d="M9 8h6M9 12h6M9 16h4"/>',
     porzione: '<path d="M12 3v18M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/>',
     listini: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/>',
     allergeni: '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
@@ -8088,7 +8089,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   setInterval(function () { if (view === 'home' && isMioUser() && !document.hidden && !document.querySelector('#layer .sheet')) render(); }, 30000);
   /* ---------- Food Cost (Pietro Avicolli): ingredienti, ricette, costo per porzione, food cost %, prezzo consigliato ---------- */
   var FC = { d: null, busy: false, tab: 'rec', q: '', ed: null, err: '' };
-  function fcLoad(force) { if (FC.busy || (FC.d && !force)) return; FC.busy = true; cl('rpc_fc_get', {}).then(function (r) { FC.busy = false; if (r && r.ing) { FC.d = r; try { localStorage.setItem('smb-fc', JSON.stringify(r)); } catch (e) {} if (view === 'foodcost' || view === 'allergeni' || view === 'porzione') render(); } }).catch(function () { FC.busy = false; }); }
+  function fcLoad(force) { if (FC.busy || (FC.d && !force)) return; FC.busy = true; cl('rpc_fc_get', {}).then(function (r) { FC.busy = false; if (r && r.ing) { FC.d = r; try { localStorage.setItem('smb-fc', JSON.stringify(r)); } catch (e) {} if (view === 'foodcost' || view === 'allergeni' || view === 'porzione' || view === 'menu') render(); } }).catch(function () { FC.busy = false; }); }
   try { var _fcc = JSON.parse(localStorage.getItem('smb-fc') || 'null'); if (_fcc && _fcc.ing) FC.d = _fcc; } catch (e) {}
   function eur(v, d) { if (v == null || !isFinite(v)) return '—'; return '€ ' + (+v).toFixed(d == null ? 2 : d).replace('.', ','); }
   function fcNum(v) { if (v == null) return null; var n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; }
@@ -8181,7 +8182,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (a === 'fctab') { FC.tab = el.getAttribute('data-t'); FC.q = ''; render(); }
     else if (a === 'fcnew') { var k = el.getAttribute('data-k'); FC.err = ''; FC.ed = { k: k, o: k === 'ing' ? { name: '', unit: 'kg', price: '', yield_pct: 100 } : { name: '', portions: 10, sell_price: '', target_pct: 30, lines: [{ ing: '', q: '', u: 'g' }] } }; render(); window.scrollTo(0, 0); }
     else if (a === 'fcedit') { var kk = el.getAttribute('data-k'), id = el.getAttribute('data-id'), src = (kk === 'ing' ? FC.d.ing : FC.d.rec).filter(function (x) { return x.id === id; })[0]; if (!src) return; FC.err = ''; FC.ed = { k: kk, o: JSON.parse(JSON.stringify(src)) }; if (kk === 'rec' && !FC.ed.o.lines.length) FC.ed.o.lines.push({ ing: '', q: '', u: 'g' }); render(); window.scrollTo(0, 0); }
-    else if (a === 'fccancel') { FC.ed = null; render(); }
+    else if (a === 'fccancel') { FC.ed = null; if (FC.back) { view = FC.back; FC.back = null; } render(); }
     else if (a === 'fcladd') { FC.ed.o.lines.push({ ing: '', q: '', u: 'g' }); render(); }
     else if (a === 'fclrm') { FC.ed.o.lines.splice(+el.getAttribute('data-i'), 1); render(); }
     else if (a === 'fccsv') fcCsv();
@@ -8189,9 +8190,9 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (a === 'fcsave') {
       var E = FC.ed, o2 = JSON.parse(JSON.stringify(E.o)); if (!String(o2.name || '').trim()) { FC.err = 'Scrivi il nome.'; render(); return; }
       if (E.k === 'ing') { o2.price = fcNum(o2.price) || 0; o2.yield_pct = fcNum(o2.yield_pct) || 100; }
-      else { o2.portions = fcNum(o2.portions) || 1; o2.sell_price = fcNum(o2.sell_price); o2.target_pct = fcNum(o2.target_pct) || 30; o2.lines = (o2.lines || []).filter(function (l) { return l.ing && fcNum(l.q); }).map(function (l) { return { ing: l.ing, q: fcNum(l.q), u: l.u }; }); }
+      else { o2.portions = fcNum(o2.portions) || 1; o2.sell_price = fcNum(o2.sell_price); o2.target_pct = fcNum(o2.target_pct) || 30; o2.lines = (o2.lines || []).filter(function (l) { return l.ing; }).map(function (l) { return { ing: l.ing, q: fcNum(l.q), u: l.u }; }); }
       el.disabled = true;
-      cl(E.k === 'ing' ? 'rpc_fc_ing_save' : 'rpc_fc_rec_save', { p_item: o2 }).then(function (r) { if (r && r.ok) { toast('Salvato'); FC.ed = null; fcLoad(true); } else { el.disabled = false; FC.err = 'Non salvato: controlla la connessione.'; render(); } });
+      cl(E.k === 'ing' ? 'rpc_fc_ing_save' : 'rpc_fc_rec_save', { p_item: o2 }).then(function (r) { if (r && r.ok) { toast('Salvato'); FC.ed = null; fcLoad(true); if (FC.back) { view = FC.back; FC.back = null; render(); } } else { el.disabled = false; FC.err = 'Non salvato: controlla la connessione.'; render(); } });
     }
     else if (a === 'fcdel') {
       if (el.getAttribute('data-sure') !== '1') { el.setAttribute('data-sure', '1'); el.textContent = 'Sicuro? Tocca'; setTimeout(function () { if (el.isConnected) { el.removeAttribute('data-sure'); el.textContent = 'Elimina'; } }, 3500); return; }
@@ -8519,6 +8520,46 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       });
     }
   });
+  /* ---------- Menu: i menu delle sedi (es. Lido) con i piatti collegati alle ricette del Food Cost:
+     allergeni del giorno, grammature che mancano, costo a porzione quando i cuochi danno le quantità ---------- */
+  var MN = { list: null, busy: false, sel: null };
+  function mnLoad(force) { if (MN.busy || (MN.list && !force)) return; MN.busy = true; cl('rpc_menu_list', {}).then(function (r) { MN.busy = false; if (Array.isArray(r)) { MN.list = r; if (!MN.sel && r.length) MN.sel = r[0].id; if (view === 'menu') render(); } }).catch(function () { MN.busy = false; }); }
+  function mnRec(id) { return ((FC.d && FC.d.rec) || []).filter(function (r) { return r.id === id; })[0]; }
+  function viewMenu() {
+    mnLoad(false); fcLoad(false);
+    var h = '<div class="wrap fcw"><button class="aslink" data-act="nav" data-v="home">‹ Home</button><div class="fchd"><h2>📋 Menu</h2>' + (FC.d && MN.list && MN.list.length ? '<button class="btn sm" data-act="mncsv">Esporta allergeni</button>' : '') + '</div>';
+    if (!MN.list || !FC.d) return h + '<div class="card"><p class="muted">' + (tok() ? 'Carico…' : 'Serve la connessione la prima volta.') + '</p></div></div>';
+    if (!MN.list.length) return h + '<div class="fcempty"><b>Nessun menu ancora</b><span>Mandami il foglio del menu (Excel) e lo carico, con i piatti collegati alle ricette.</span></div></div>';
+    if (MN.list.length > 1) h += '<div class="alfil">' + MN.list.map(function (m) { return '<button class="chip" data-act="mnsel" data-id="' + m.id + '" aria-pressed="' + (m.id === MN.sel) + '">' + esc((m.place || '') + ' ' + (m.day ? lpDate(m.day).slice(0, 5) : '')) + '</button>'; }).join('') + '</div>';
+    var M = MN.list.filter(function (m) { return m.id === MN.sel; })[0] || MN.list[0];
+    var D = (M.dishes || []).map(function (d) { var r = mnRec(d.recipe); return { d: d, r: r, al: r ? alRecipe(r) : { a: {}, t: {} }, c: r ? fcCalc(r) : null, miss: r ? (r.lines || []).filter(function (l) { return !fcNum(l.q); }).length : 0, n: r ? (r.lines || []).length : 0 }; });
+    var missAll = D.reduce(function (a, x) { return a + x.miss; }, 0), allA = {}; D.forEach(function (x) { Object.keys(x.al.a).forEach(function (k) { allA[k] = 1; }); });
+    h += '<div class="card lphd"><b>' + esc(M.title || 'Menu') + '</b><span class="muted">' + esc([M.place, M.day ? DNALL[dateParts(String(M.day)).dow].toLowerCase() + ' ' + lpDate(M.day) : '', M.season].filter(Boolean).join(' · ')) + ' · ' + D.length + ' piatti</span>' + (missAll ? '<span class="lpexp">⚖️ Mancano ' + missAll + ' grammature: le danno i cuochi, poi il costo a porzione si calcola da solo</span>' : '') + '</div>';
+    h += '<div class="card"><b style="font-size:13px">Allergeni presenti nel menu</b><div class="alcs" style="margin-top:6px">' + alChips(Object.keys(allA), [], false) + '</div></div>';
+    var courses = []; D.forEach(function (x) { var c = x.d.course || 'Piatti'; if (courses.indexOf(c) < 0) courses.push(c); });
+    courses.forEach(function (c) {
+      h += '<h4 class="fch4">' + esc(c) + '</h4><div class="fcl">' + D.filter(function (x) { return (x.d.course || 'Piatti') === c; }).map(function (x) {
+        var ka = Object.keys(x.al.a), kt = Object.keys(x.al.t), full = x.n && !x.miss;
+        return '<button class="fcr" data-act="mnrec" data-id="' + esc(x.d.recipe || '') + '"><span><b>' + esc(x.d.name) + '</b><small>' + (x.r ? x.n + (x.n == 1 ? ' ingrediente' : ' ingredienti') + (x.miss ? ' · <i class="almiss">' + x.miss + (x.miss == 1 ? ' grammatura' : ' grammature') + ' da inserire</i>' : ' · grammature complete') : 'ricetta non trovata') + '</small><span class="alcs">' + alChips(ka, kt, true) + '</span></span><span class="fcv">' + (full ? '<b>' + eur(x.c.pp, 3) + '<i>/porz.</i></b>' + (x.c.bad ? '<small>⚠ prezzi da controllare</small>' : '') : '<small>costo dopo le grammature</small>') + '</span></button>';
+      }).join('') + '</div>';
+    });
+    if (M.note) h += '<p class="hint">' + esc(M.note) + '</p>';
+    h += '<p class="hint">Tocca un piatto per aprire la ricetta nel Food Cost e scrivere le grammature dei cuochi. Gli allergeni vengono dalle schede degli ingredienti: controllale con le etichette.</p>';
+    return h + '</div>';
+  }
+  function mnCsv() {
+    var M = MN.list.filter(function (m) { return m.id === MN.sel; })[0] || MN.list[0];
+    var rows = [['Piatto', 'Portata'].concat(ALG.map(function (a) { return a[1]; }))];
+    (M.dishes || []).forEach(function (d) { var r = mnRec(d.recipe), x = r ? alRecipe(r) : { a: {}, t: {} }; rows.push([d.name, d.course || ''].concat(ALG.map(function (a) { return x.a[a[0]] ? 'SÌ' : x.t[a[0]] ? 'tracce' : ''; }))); });
+    var csv = '﻿' + rows.map(function (r) { return r.map(function (v) { v = String(v == null ? '' : v); return /[;"\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(';'); }).join('\n');
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'allergeni-menu-' + (M.place || '') + '-' + (M.day || todayKey()) + '.csv'; document.body.appendChild(a); a.click(); setTimeout(function () { a.remove(); }, 500);
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act^="mn"]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'mnsel') { MN.sel = el.getAttribute('data-id'); render(); }
+    else if (a === 'mncsv') mnCsv();
+    else if (a === 'mnrec') { var r = mnRec(el.getAttribute('data-id')); if (!r) { toast('Ricetta non trovata nel Food Cost'); return; } FC.err = ''; FC.ed = { k: 'rec', o: JSON.parse(JSON.stringify(r)) }; if (!FC.ed.o.lines.length) FC.ed.o.lines.push({ ing: '', q: '', u: 'g' }); FC.back = 'menu'; view = 'foodcost'; render(); window.scrollTo(0, 0); }
+  });
   function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
   /* ---------- render ---------- */
@@ -8559,7 +8600,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var g = $('gear'); g.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS.gear + '</svg>'; if (view === 'impost') g.setAttribute('aria-current', 'page'); else g.removeAttribute('aria-current');
     var cur = view === 'guida' ? 'turno' : view;
     if (view === 'pin' && !isFullAcc()) { view = 'impost'; cur = 'impost'; }
-    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'velox', 'oggi', 'foodcost', 'allergeni', 'listini', 'porzione', 'mio', 'polybox', 'benzina', 'tracking'].indexOf(cur) >= 0) cur = 'altro';
+    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'velox', 'oggi', 'foodcost', 'allergeni', 'listini', 'porzione', 'menu', 'mio', 'polybox', 'benzina', 'tracking'].indexOf(cur) >= 0) cur = 'altro';
     if (!isFull && !isAdm && cur === 'benzina') cur = 'barca';
     if (!isFull && !isAdm && !isVan() && cur === 'tracking') cur = 'barca';
     if (isAdm && cur === 'polybox') cur = 'logistica';
@@ -8567,7 +8608,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (view === 'stat' && !isMgr()) view = 'turno';
     if (view === 'velox' && !isMgr() && !isFullAcc()) view = 'home';
     if (view === 'oggi' && !isMgr() && !isFullAcc()) view = 'home';
-    if ((view === 'foodcost' || view === 'allergeni' || view === 'listini' || view === 'porzione') && !isFullAcc() && !(SESSION && SESSION.role === 'admin')) view = 'home';
+    if ((view === 'foodcost' || view === 'allergeni' || view === 'listini' || view === 'porzione' || view === 'menu') && !isFullAcc() && !(SESSION && SESSION.role === 'admin')) view = 'home';
     // Elia, Daffa…: la plancia sostituisce navigatore e schermata del turno
     if ((view === 'guida' || view === 'turno') && isMioUser()) view = 'home';
     if (isMgr() && cur === 'contatti') cur = 'notifiche';
@@ -8580,7 +8621,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione }[view] || viewTurno;
+    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     diag('disegno ' + view); var _t0 = Date.now(), m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); m.scrollTop = (view === 'guida') ? 0 : sc; diag('fatto ' + view + ' ' + (Date.now() - _t0) + 'ms');
     if (LITE && Date.now() - _t0 > 2500 && window.__smbErr) window.__smbErr('Pagina lenta: ' + view + ' ' + (Date.now() - _t0) + ' ms');
@@ -8667,7 +8708,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   // Home dei responsabili: gli strumenti divisi in aree, con il riassunto di oggi in cima
   var HOME_AREAS = [
     ['Pianifica', 'Programmi, nuovi turni e consegne, cucina', ['logistica', 'programma', 'turno', 'cucina']],
-    ['Cucina e costi', 'Food cost, allergeni e listini dei fornitori', ['foodcost', 'porzione', 'allergeni', 'listini']],
+    ['Cucina e costi', 'Food cost, allergeni e listini dei fornitori', ['menu', 'foodcost', 'porzione', 'allergeni', 'listini']],
     ['Flotta', 'Barche, documenti, benzina e velox', ['barca', 'benzina', 'velox']],
     ['Oggetti', 'Polybox, ceste e cose in viaggio', ['polybox', 'tracking', 'spedizioni']],
     ['Archivio', 'Statistiche, turni, presenze e DDT', ['stat', 'turni', 'presenze', 'ddtgiro']],
@@ -8695,14 +8736,14 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   var APPS = {
     logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
     barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], notifiche: ['Notifiche', '#db2777'],
-    oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], listini: ['Listini', '#0e7490'], porzione: ['Costo porzione', '#7c2d12'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
+    oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], listini: ['Listini', '#0e7490'], porzione: ['Costo porzione', '#7c2d12'], menu: ['Menu', '#9d174d'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
   };
   function homeApps() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isVan()) return ['polybox', 'tracking', 'programma', 'contatti', 'impost'];
     if (isOff()) return ['presenze', 'ddt', 'cucina', 'programma', 'notifiche', 'contatti', 'impost'];
     if (isAdm) return ['logistica', 'notifiche', 'turni', 'presenze', 'spedizioni', 'tracking', 'stat', 'velox', 'barca', 'benzina', 'programma', 'contatti', 'impost'];
-    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'velox', 'cucina', 'foodcost', 'porzione', 'allergeni', 'listini', 'contatti', 'impost'];
+    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'velox', 'cucina', 'menu', 'foodcost', 'porzione', 'allergeni', 'listini', 'contatti', 'impost'];
     if (isMgr()) return ['logistica', 'turno', 'turni', 'programma', 'notifiche', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'velox', 'contatti', 'impost'];
     return ['turno', 'programma', 'ddtgiro', 'barca', 'notifiche', 'tracking', 'benzina', 'impost'];
   }
