@@ -346,6 +346,13 @@ body.fspl{background:#000!important}body.fspl .top,body.fspl .nav{display:none!i
 @supports not (display: grid) { .algrid, .alnut { display: flex; flex-wrap: wrap; } .algrid > * { width: 47%; margin: 1.5%; } .alnut > * { width: 30%; margin: 1%; } }
 .lphd{display:flex;flex-direction:column;gap:3px}.lpexp{font-size:13px;font-weight:700;color:#B06000}.lplink{color:#1655C8!important;font-weight:600}
 .fcbar .field.lpsort{flex:0 0 118px;width:118px}.fcbar input.field{width:auto;flex:1 1 auto;min-width:0}.lpdet{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;font-size:14px}.lpdet span{color:var(--muted,#667)}.lpdet b{text-align:right;font-variant-numeric:tabular-nums}
+.pcrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pcrow>div{display:flex;flex-direction:column;min-width:0}
+.pcqu{display:flex;gap:6px;align-items:stretch}.pcqu .field{min-width:0}.pcqu input.field{flex:1 1 auto;width:auto}.pcqu select.field{flex:0 0 74px;width:74px}
+.pcmode{display:flex;flex:0 0 auto}.pcmode button{font-size:12.5px;padding:6px 10px;white-space:nowrap}
+.pcres{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px;padding:14px;border-radius:14px;background:#0f2a3a;color:#fff}.pcres>div{display:flex;flex-direction:column}.pcres small{font-size:12px;color:#b9cfd8}.pcres b{font-size:20px;font-variant-numeric:tabular-nums}
+.pcres .pcbig{grid-column:1/-1}.pcres .pcbig b{font-size:40px;line-height:1.05;color:#FFD23F}.pcres .muted,.pcres .hint{color:#b9cfd8}.pcexp{grid-column:1/-1;margin:0}
+@media (max-width:420px){.pcrow{grid-template-columns:1fr}.pcqp{flex-wrap:wrap}.pcmode{flex:1 1 100%}.pcmode button{flex:1}}
+@supports not (display: grid) { .pcrow, .pcres { display: flex; flex-wrap: wrap; } .pcrow > *, .pcres > * { flex: 1 1 30%; margin: 4px; } .pcres .pcbig { flex-basis: 100%; } }
 .card.stsec{padding:0;display:block;gap:0;margin-bottom:8px}.stsec>summary{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;list-style:none;min-height:52px}.stsec>summary::-webkit-details-marker{display:none}.stsec>summary:focus-visible{outline:2px solid #1655C8;outline-offset:-2px;border-radius:14px}
 .stst{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.stst b{font-size:16px}.stst small{font-size:13px;color:var(--muted,#667);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stst small.ok{color:#2E7D32;font-weight:700}.stst small.late{color:#E65100;font-weight:700}.stst small.bad{color:#D93025;font-weight:700}
 .stsec[open]>summary .secc{transform:rotate(90deg)}.stsb{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}.stsb.flush{padding:0 0 6px;gap:0}.stsb .stk{margin-bottom:0}
@@ -1541,6 +1548,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       '<path d="M17 55c3-2.5 6-2.5 8 0s5 2.5 8 0 5-2.5 8 0 4 2.5 6 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
   }
   var ICONS = {
+    porzione: '<path d="M12 3v18M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/>',
     listini: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/>',
     allergeni: '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
     foodcost: '<path d="M4 3v8a2 2 0 0 0 2 2v8M8 3v8M6 3v5"/><path d="M14 21V13h4a2 2 0 0 0 2-2V7a4 4 0 0 0-4-4h-2z"/>',
@@ -8080,7 +8088,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   setInterval(function () { if (view === 'home' && isMioUser() && !document.hidden && !document.querySelector('#layer .sheet')) render(); }, 30000);
   /* ---------- Food Cost (Pietro Avicolli): ingredienti, ricette, costo per porzione, food cost %, prezzo consigliato ---------- */
   var FC = { d: null, busy: false, tab: 'rec', q: '', ed: null, err: '' };
-  function fcLoad(force) { if (FC.busy || (FC.d && !force)) return; FC.busy = true; cl('rpc_fc_get', {}).then(function (r) { FC.busy = false; if (r && r.ing) { FC.d = r; try { localStorage.setItem('smb-fc', JSON.stringify(r)); } catch (e) {} if (view === 'foodcost' || view === 'allergeni') render(); } }).catch(function () { FC.busy = false; }); }
+  function fcLoad(force) { if (FC.busy || (FC.d && !force)) return; FC.busy = true; cl('rpc_fc_get', {}).then(function (r) { FC.busy = false; if (r && r.ing) { FC.d = r; try { localStorage.setItem('smb-fc', JSON.stringify(r)); } catch (e) {} if (view === 'foodcost' || view === 'allergeni' || view === 'porzione') render(); } }).catch(function () { FC.busy = false; }); }
   try { var _fcc = JSON.parse(localStorage.getItem('smb-fc') || 'null'); if (_fcc && _fcc.ing) FC.d = _fcc; } catch (e) {}
   function eur(v, d) { if (v == null || !isFinite(v)) return '—'; return '€ ' + (+v).toFixed(d == null ? 2 : d).replace('.', ','); }
   function fcNum(v) { if (v == null) return null; var n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; }
@@ -8284,9 +8292,9 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   /* ---------- Listini prezzi dei fornitori: importati dai file dei fornitori (es. AIA), confronto con il listino precedente,
      collegamento articolo ↔ ingrediente del Food Cost (base per incrociare ricette dei cuochi e fatture) ---------- */
   var LP = { ov: null, sup: null, list: null, items: {}, q: '', sort: 'desc', sel: null, imp: null, busy: false };
-  function lpLoad(force) { if (LP.busy || (LP.ov && !force)) return; LP.busy = true; cl('rpc_pl_overview', {}).then(function (r) { LP.busy = false; if (r && r.suppliers) { LP.ov = r; if (!LP.sup && r.suppliers.length) LP.sup = r.suppliers[0].id; var s = lpSup(); if (s && (!LP.list || !s.lists.some(function (l) { return l.id === LP.list; }))) LP.list = s.lists.length ? s.lists[0].id : null; if (view === 'listini') render(); } }).catch(function () { LP.busy = false; }); }
+  function lpLoad(force) { if (LP.busy || (LP.ov && !force)) return; LP.busy = true; cl('rpc_pl_overview', {}).then(function (r) { LP.busy = false; if (r && r.suppliers) { LP.ov = r; if (!LP.sup && r.suppliers.length) LP.sup = r.suppliers[0].id; var s = lpSup(); if (s && (!LP.list || !s.lists.some(function (l) { return l.id === LP.list; }))) LP.list = s.lists.length ? s.lists[0].id : null; if (view === 'listini' || view === 'porzione') render(); } }).catch(function () { LP.busy = false; }); }
   function lpSup() { return LP.ov && LP.ov.suppliers.filter(function (s) { return s.id === LP.sup; })[0]; }
-  function lpItems(id, force) { if (!id) return null; if (LP.items[id] && !force) return LP.items[id]; if (!LP.items['_b' + id]) { LP.items['_b' + id] = 1; cl('rpc_pl_items', { p_list: id }).then(function (r) { delete LP.items['_b' + id]; if (r && r.items) { LP.items[id] = r; if (view === 'listini') render(); } }); } return null; }
+  function lpItems(id, force) { if (!id) return null; if (LP.items[id] && !force) return LP.items[id]; if (!LP.items['_b' + id]) { LP.items['_b' + id] = 1; cl('rpc_pl_items', { p_list: id }).then(function (r) { delete LP.items['_b' + id]; if (r && r.items) { LP.items[id] = r; if (view === 'listini' || view === 'porzione') render(); } }); } return null; }
   function lpKg(x) { // prezzo al kg, quando si può ricavare
     var p = +x.price; if (!isFinite(p) || p <= 0) return null; var um = String(x.um || '').toUpperCase().replace(/\./g, '');
     if (um === 'KG') return p; if ((um === 'CF' || um === 'N') && +x.kg_conf > 0) return p / +x.kg_conf; if (um === 'C' && +x.kg_cassa > 0) return p / +x.kg_cassa; return null;
@@ -8414,6 +8422,83 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       cl('rpc_pl_delete', { p_list: el.getAttribute('data-id') }).then(function (r) { if (r && r.ok) { toast('Listino eliminato'); LP.list = null; LP.ov = null; lpLoad(true); } });
     }
   });
+  /* ---------- Costo a porzione: prodotto, confezione del fornitore (es. cannelloni 3 kg) e grammatura della porzione data dai cuochi ---------- */
+  var PC = { f: null, list: null, busy: false, pick: '', err: '' };
+  function pcNew() { return { id: null, name: '', supplier: '', code: '', price: '', price_mode: 'pack', pack_qty: '', pack_unit: 'kg', portion_qty: '', portion_unit: 'g', waste_pct: '', note: '' }; }
+  var PC_BASE = { g: ['m', 1], kg: ['m', 1000], ml: ['v', 1], l: ['v', 1000], pz: ['p', 1] };
+  function pcCalc(f) {
+    var pr = fcNum(f.price), pq = fcNum(f.pack_qty), po = fcNum(f.portion_qty), w = Math.min(95, Math.max(0, fcNum(f.waste_pct) || 0));
+    var A = PC_BASE[f.pack_unit], B = PC_BASE[f.portion_unit]; if (pr == null || !pq || !po || !A || !B) return null;
+    if (A[0] !== B[0] && !(A[0] !== 'p' && B[0] !== 'p')) return { err: 'Confezione e porzione devono essere entrambe a peso/volume oppure entrambe a pezzi.' };
+    var packBase = pq * A[1], useBase = packBase * (1 - w / 100), porBase = po * B[1];
+    var packPrice = f.price_mode === 'kg' ? (A[0] === 'p' ? null : pr * packBase / 1000) : pr; if (packPrice == null) return { err: 'Il prezzo al kg vale solo per confezioni a peso o volume.' };
+    var portions = useBase / porBase, cost = packPrice / portions;
+    return { cost: cost, portions: portions, packPrice: packPrice, perKg: A[0] === 'p' ? null : packPrice / (useBase / 1000), use: useBase, unitLbl: A[0] === 'v' ? 'l' : A[0] === 'p' ? 'pz' : 'kg', w: w };
+  }
+  function pcLoad(force) { if (PC.busy || (PC.list && !force)) return; PC.busy = true; cl('rpc_pc_list', {}).then(function (r) { PC.busy = false; if (Array.isArray(r)) { PC.list = r; if (view === 'porzione') render(); } }).catch(function () { PC.busy = false; }); }
+  function pcSources() { // prodotti da cui partire: articoli dei listini (prezzo e confezione già compilati) e ingredienti del Food Cost
+    var out = []; Object.keys(LP.items || {}).forEach(function (k) { var R = LP.items[k]; if (!R || !R.items) return; var sup = ''; (LP.ov ? LP.ov.suppliers : []).forEach(function (s) { if (s.lists.some(function (l) { return l.id === k; })) sup = s.name; }); R.items.forEach(function (x) { out.push({ k: 'li:' + x.id, label: x.desc + (sup ? ' · ' + sup : '') + ' · ' + eur(+x.price) + ' ' + (LP_UM[x.um] || ''), x: x, sup: sup }); }); });
+    ((FC.d && FC.d.ing) || []).forEach(function (i) { out.push({ k: 'in:' + i.id, label: i.name + ' · ' + eur(+i.price) + '/' + i.unit + ' (Food Cost)', i: i }); });
+    return out;
+  }
+  function viewPorzione() {
+    pcLoad(false); lpLoad(false); fcLoad(false); if (LP.ov) LP.ov.suppliers.forEach(function (s) { s.lists.slice(0, 1).forEach(function (l) { lpItems(l.id); }); });
+    var f = PC.f = PC.f || pcNew(), r = pcCalc(f), src = pcSources();
+    var h = '<div class="wrap fcw"><button class="aslink" data-act="nav" data-v="home">‹ Home</button><div class="fchd"><h2>⚖️ Costo a porzione</h2></div>';
+    h += '<section class="card fced pcf"><label for="pcPick">Parti da un prodotto <span class="muted">(facoltativo)</span></label><select id="pcPick" class="field txt" data-pc="pick"><option value="">— scrivi a mano o scegli dal listino / Food Cost —</option>' + src.map(function (s) { return '<option value="' + esc(s.k) + '"' + (PC.pick === s.k ? ' selected' : '') + '>' + esc(s.label) + '</option>'; }).join('') + '</select>';
+    h += '<label for="pcName">Prodotto</label><input id="pcName" class="field txt" data-pc="name" value="' + esc(f.name) + '" placeholder="Es. Cannelloni">';
+    h += '<div class="pcrow"><div><label for="pcPackQty">Confezione del fornitore</label><div class="pcqu"><input id="pcPackQty" class="field txt" inputmode="decimal" data-pc="pack_qty" value="' + esc(f.pack_qty) + '" placeholder="3"><select class="field txt" data-pc="pack_unit" aria-label="Unità confezione">' + ['kg', 'g', 'l', 'ml', 'pz'].map(function (u) { return '<option' + (f.pack_unit === u ? ' selected' : '') + '>' + u + '</option>'; }).join('') + '</select></div></div>' +
+      '<div><label for="pcPorQty">Porzione (dai cuochi)</label><div class="pcqu"><input id="pcPorQty" class="field txt" inputmode="decimal" data-pc="portion_qty" value="' + esc(f.portion_qty) + '" placeholder="150"><select class="field txt" data-pc="portion_unit" aria-label="Unità porzione">' + ['g', 'kg', 'ml', 'l', 'pz'].map(function (u) { return '<option' + (f.portion_unit === u ? ' selected' : '') + '>' + u + '</option>'; }).join('') + '</select></div></div></div>';
+    h += '<label for="pcPrice">Prezzo</label><div class="pcqu pcqp"><input id="pcPrice" class="field txt" inputmode="decimal" data-pc="price" value="' + esc(f.price) + '" placeholder="Es. 18,90"><div class="seg2 pcmode">' + [['pack', '€ della confezione'], ['kg', '€ al kg / l']].map(function (m) { return '<button data-act="pcmode" data-m="' + m[0] + '" aria-pressed="' + (f.price_mode === m[0]) + '">' + m[1] + '</button>'; }).join('') + '</div></div>';
+    h += '<label for="pcWaste">Scarto / calo di cottura % <span class="muted">(facoltativo)</span></label><input id="pcWaste" class="field txt" inputmode="decimal" data-pc="waste_pct" value="' + esc(f.waste_pct) + '" placeholder="0">';
+    h += '<div class="pcres" id="pcRes">' + pcResHtml(r, f) + '</div>';
+    h += '<label for="pcNote">Nota <span class="muted">(es. chi ha dato la grammatura)</span></label><input id="pcNote" class="field txt" data-pc="note" value="' + esc(f.note) + '">';
+    if (PC.err) h += '<p class="note" role="alert">' + esc(PC.err) + '</p>';
+    h += '<div class="btns"><button class="btn primary" data-act="pcsave">' + (f.id ? 'Salva modifiche' : 'Salva il calcolo') + '</button><button class="btn quiet" data-act="pcclear">Nuovo calcolo</button></div></section>';
+    var L = PC.list;
+    h += '<section class="card"><h3>Calcoli salvati</h3>' + (!L ? '<p class="muted">Carico…</p>' : !L.length ? '<p class="muted">Ancora nessuno. Salva il primo calcolo qui sopra.</p>' : L.map(function (c) {
+      return '<button class="fcr" data-act="pcopen" data-id="' + c.id + '"><span><b>' + esc(c.name) + '</b><small>' + String(+c.pack_qty).replace('.', ',') + ' ' + esc(c.pack_unit) + ' · porzione ' + String(+c.portion_qty).replace('.', ',') + ' ' + esc(c.portion_unit) + (+c.waste_pct ? ' · scarto ' + (+c.waste_pct) + '%' : '') + (c.supplier ? ' · ' + esc(c.supplier) : '') + '</small></span><span class="fcv"><b>' + eur(+c.cost_portion, 3) + '<i>/porz.</i></b><small>' + (c.portions ? String(Math.floor(+c.portions)) + ' porzioni' : '') + '</small></span></button>';
+    }).join('')) + '</section>';
+    return h + '</div>';
+  }
+  function pcResHtml(r, f) {
+    if (!r) return '<p class="muted" style="margin:0">Scrivi confezione, porzione e prezzo: il costo si calcola subito.</p>';
+    if (r.err) return '<p class="note" style="margin:0">' + esc(r.err) + '</p>';
+    return '<div class="pcbig"><small>Costo a porzione</small><b>' + eur(r.cost, 3) + '</b></div><div><small>Porzioni per confezione</small><b>' + (r.portions >= 100 ? Math.floor(r.portions) : r.portions.toFixed(1).replace('.', ',')) + '</b></div><div><small>Prezzo confezione</small><b>' + eur(r.packPrice) + '</b></div><div><small>' + (r.w ? 'Al kg del pulito/cotto' : 'Al ' + r.unitLbl) + '</small><b>' + (r.perKg == null ? '—' : eur(r.perKg)) + '</b></div>' +
+      '<p class="hint pcexp">' + eur(r.packPrice) + ' ÷ ' + (r.portions >= 100 ? Math.floor(r.portions) : r.portions.toFixed(2).replace('.', ',')) + ' porzioni da ' + esc(String(f.portion_qty).replace('.', ',')) + ' ' + esc(f.portion_unit) + (r.w ? ' (dopo il ' + r.w + '% di scarto)' : '') + '</p>';
+  }
+  document.addEventListener('input', function (e) {
+    var t = e.target, k = t && t.getAttribute && t.getAttribute('data-pc'); if (!k || k === 'pick' || !PC.f) return;
+    PC.f[k] = t.value; PC.err = ''; var el = $('pcRes'); if (el) el.innerHTML = pcResHtml(pcCalc(PC.f), PC.f);
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target, k = t && t.getAttribute && t.getAttribute('data-pc'); if (!k) return;
+    if (k === 'pick') {
+      PC.pick = t.value; var s = pcSources().filter(function (x) { return x.k === t.value; })[0], f = PC.f = PC.f || pcNew(); if (!s) { render(); return; }
+      if (s.x) { var x = s.x, um = String(x.um || '').toUpperCase().replace(/\./g, ''); f.name = x.desc.replace(/\s+/g, ' ').trim(); f.supplier = s.sup; f.code = x.code || '';
+        if (um === 'KG') { f.price_mode = 'kg'; f.price = String(x.price).replace('.', ','); f.pack_qty = x.kg_conf ? String(x.kg_conf).replace('.', ',') : (x.kg_cassa ? String(x.kg_cassa).replace('.', ',') : ''); f.pack_unit = 'kg'; }
+        else if (um === 'C') { f.price_mode = 'pack'; f.price = String(x.price).replace('.', ','); f.pack_qty = x.kg_cassa ? String(x.kg_cassa).replace('.', ',') : (x.pz_conf || ''); f.pack_unit = x.kg_cassa ? 'kg' : 'pz'; }
+        else { f.price_mode = 'pack'; f.price = String(x.price).replace('.', ','); f.pack_qty = x.kg_conf ? String(x.kg_conf).replace('.', ',') : (x.pz_conf || ''); f.pack_unit = x.kg_conf ? 'kg' : 'pz'; } }
+      else if (s.i) { var i = s.i; f.name = i.name; f.supplier = i.supplier || ''; f.code = ''; f.price = String(fcUnitCost(i).toFixed(3)).replace('.', ','); f.price_mode = i.unit === 'pz' ? 'pack' : 'kg'; f.pack_unit = i.unit === 'pz' ? 'pz' : i.unit; f.pack_qty = i.unit === 'pz' ? '1' : (i.pack_size ? String(i.pack_size).replace('.', ',') : '1'); }
+      render(); return;
+    }
+    if (PC.f && (k === 'pack_unit' || k === 'portion_unit')) { PC.f[k] = t.value; var el = $('pcRes'); if (el) el.innerHTML = pcResHtml(pcCalc(PC.f), PC.f); }
+  });
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act^="pc"]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (['pcmode', 'pcsave', 'pcclear', 'pcopen', 'pcdel'].indexOf(a) < 0) return;
+    if (a === 'pcmode') { PC.f.price_mode = el.getAttribute('data-m'); render(); }
+    else if (a === 'pcclear') { PC.f = pcNew(); PC.pick = ''; PC.err = ''; render(); }
+    else if (a === 'pcopen') { var c = (PC.list || []).filter(function (x) { return x.id === el.getAttribute('data-id'); })[0]; if (!c) return; var f = pcNew(); Object.keys(f).forEach(function (k) { if (c[k] != null) f[k] = typeof c[k] === 'number' || /^\d/.test(String(c[k])) && k !== 'name' && k !== 'note' && k !== 'code' ? String(+c[k]).replace('.', ',') : c[k]; }); f.id = c.id; f.waste_pct = +c.waste_pct ? String(+c.waste_pct) : ''; PC.f = f; PC.pick = ''; render(); window.scrollTo(0, 0); }
+    else if (a === 'pcsave') {
+      var f2 = PC.f, r = pcCalc(f2); if (!String(f2.name || '').trim()) { PC.err = 'Scrivi il nome del prodotto.'; render(); return; } if (!r || r.err) { PC.err = r && r.err ? r.err : 'Mancano confezione, porzione o prezzo.'; render(); return; }
+      el.disabled = true;
+      cl('rpc_pc_save', { p_item: { id: f2.id, name: f2.name.trim(), supplier: f2.supplier, code: f2.code, price: fcNum(f2.price), price_mode: f2.price_mode, pack_qty: fcNum(f2.pack_qty), pack_unit: f2.pack_unit, portion_qty: fcNum(f2.portion_qty), portion_unit: f2.portion_unit, waste_pct: fcNum(f2.waste_pct) || 0, cost_portion: +r.cost.toFixed(4), portions: +r.portions.toFixed(2), note: f2.note } }).then(function (res) {
+        if (res && res.ok) { toast('Calcolo salvato: ' + eur(r.cost, 3) + ' a porzione'); PC.f = pcNew(); PC.pick = ''; pcLoad(true); }
+        else { el.disabled = false; PC.err = 'Non salvato: controlla la connessione.'; render(); }
+      });
+    }
+  });
   function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
   /* ---------- render ---------- */
@@ -8454,7 +8539,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var g = $('gear'); g.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS.gear + '</svg>'; if (view === 'impost') g.setAttribute('aria-current', 'page'); else g.removeAttribute('aria-current');
     var cur = view === 'guida' ? 'turno' : view;
     if (view === 'pin' && !isFullAcc()) { view = 'impost'; cur = 'impost'; }
-    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'velox', 'oggi', 'foodcost', 'allergeni', 'listini', 'mio', 'polybox', 'benzina', 'tracking'].indexOf(cur) >= 0) cur = 'altro';
+    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'velox', 'oggi', 'foodcost', 'allergeni', 'listini', 'porzione', 'mio', 'polybox', 'benzina', 'tracking'].indexOf(cur) >= 0) cur = 'altro';
     if (!isFull && !isAdm && cur === 'benzina') cur = 'barca';
     if (!isFull && !isAdm && !isVan() && cur === 'tracking') cur = 'barca';
     if (isAdm && cur === 'polybox') cur = 'logistica';
@@ -8462,7 +8547,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (view === 'stat' && !isMgr()) view = 'turno';
     if (view === 'velox' && !isMgr() && !isFullAcc()) view = 'home';
     if (view === 'oggi' && !isMgr() && !isFullAcc()) view = 'home';
-    if ((view === 'foodcost' || view === 'allergeni' || view === 'listini') && !isFullAcc() && !(SESSION && SESSION.role === 'admin')) view = 'home';
+    if ((view === 'foodcost' || view === 'allergeni' || view === 'listini' || view === 'porzione') && !isFullAcc() && !(SESSION && SESSION.role === 'admin')) view = 'home';
     // Elia, Daffa…: la plancia sostituisce navigatore e schermata del turno
     if ((view === 'guida' || view === 'turno') && isMioUser()) view = 'home';
     if (isMgr() && cur === 'contatti') cur = 'notifiche';
@@ -8475,7 +8560,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini }[view] || viewTurno;
+    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     diag('disegno ' + view); var _t0 = Date.now(), m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); m.scrollTop = (view === 'guida') ? 0 : sc; diag('fatto ' + view + ' ' + (Date.now() - _t0) + 'ms');
     if (LITE && Date.now() - _t0 > 2500 && window.__smbErr) window.__smbErr('Pagina lenta: ' + view + ' ' + (Date.now() - _t0) + ' ms');
@@ -8562,7 +8647,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   // Home dei responsabili: gli strumenti divisi in aree, con il riassunto di oggi in cima
   var HOME_AREAS = [
     ['Pianifica', 'Programmi, nuovi turni e consegne, cucina', ['logistica', 'programma', 'turno', 'cucina']],
-    ['Cucina e costi', 'Food cost, allergeni e listini dei fornitori', ['foodcost', 'allergeni', 'listini']],
+    ['Cucina e costi', 'Food cost, allergeni e listini dei fornitori', ['foodcost', 'porzione', 'allergeni', 'listini']],
     ['Flotta', 'Barche, documenti, benzina e velox', ['barca', 'benzina', 'velox']],
     ['Oggetti', 'Polybox, ceste e cose in viaggio', ['polybox', 'tracking', 'spedizioni']],
     ['Archivio', 'Statistiche, turni, presenze e DDT', ['stat', 'turni', 'presenze', 'ddtgiro']],
@@ -8590,14 +8675,14 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   var APPS = {
     logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
     barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], notifiche: ['Notifiche', '#db2777'],
-    oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], listini: ['Listini', '#0e7490'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
+    oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], listini: ['Listini', '#0e7490'], porzione: ['Costo porzione', '#7c2d12'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
   };
   function homeApps() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isVan()) return ['polybox', 'tracking', 'programma', 'contatti', 'impost'];
     if (isOff()) return ['presenze', 'ddt', 'cucina', 'programma', 'notifiche', 'contatti', 'impost'];
     if (isAdm) return ['logistica', 'notifiche', 'turni', 'presenze', 'spedizioni', 'tracking', 'stat', 'velox', 'barca', 'benzina', 'programma', 'contatti', 'impost'];
-    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'velox', 'cucina', 'foodcost', 'allergeni', 'listini', 'contatti', 'impost'];
+    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'velox', 'cucina', 'foodcost', 'porzione', 'allergeni', 'listini', 'contatti', 'impost'];
     if (isMgr()) return ['logistica', 'turno', 'turni', 'programma', 'notifiche', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'velox', 'contatti', 'impost'];
     return ['turno', 'programma', 'ddtgiro', 'barca', 'notifiche', 'tracking', 'benzina', 'impost'];
   }
