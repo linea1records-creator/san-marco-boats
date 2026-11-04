@@ -311,6 +311,26 @@ body.fspl{background:#000!important}body.fspl .top,body.fspl .nav{display:none!i
 .plsub{display:flex;gap:8px}.plsub button{flex:1;min-height:46px;border-radius:14px;border:1.5px solid #2a2a2a;background:#111;color:#eee;font:600 15px Inter,system-ui,sans-serif;cursor:pointer}.plsub button:first-child{color:#ffb4a9;border-color:#4a1c17}
 .plst{flex:0 0 auto;display:flex;gap:6px}.plst button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;border-radius:14px;border:0;background:#141414;color:#ddd;font:600 11.5px/1.15 Inter,system-ui,sans-serif;cursor:pointer}.plst button span{font-size:22px}.plst button:last-child{flex:0 0 52px}
 .plw button:focus-visible{outline:3px solid #8AB4F8;outline-offset:2px}
+/* Food cost */
+.fcw{display:flex;flex-direction:column;gap:12px;padding-bottom:110px}.fchd{display:flex;justify-content:space-between;align-items:center}.fchd h2{margin:0}
+.fctabs{display:flex}.fctabs button{flex:1}.fcbar{display:flex;gap:8px}.fcbar input{flex:1 1 auto;width:auto;min-width:0}.fcbar .btn{flex:0 0 auto;width:auto;padding-left:16px;padding-right:16px}
+.fcl{display:flex;flex-direction:column;border:1px solid var(--line,#e2e5ea);border-radius:14px;background:var(--surface,#fff);overflow:hidden}
+.fcr{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:12px 14px;border:0;border-top:1px solid var(--line,#eef0f3);background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}.fcr:first-child{border-top:0}
+.fcr>span:first-child{min-width:0;display:flex;flex-direction:column}.fcr small{font-size:12.5px;color:var(--muted,#667)}.fcv{display:flex;flex-direction:column;align-items:flex-end;flex:0 0 auto;font-variant-numeric:tabular-nums}.fcv i{font-style:normal;font-size:12px;color:var(--muted,#667);margin-left:2px}
+.fcp{font-size:13px;font-weight:800;padding:3px 9px;border-radius:999px;background:rgba(127,127,127,.14);font-variant-numeric:tabular-nums}.fcp.ok{background:#e3f4e8;color:#1E7D3A}.fcp.warn{background:#fff0d6;color:#8a4b00}.fcp.bad{background:#fde3e0;color:#B3261E}
+.fcempty{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:20px;border-radius:14px;border:1.5px dashed var(--line,#cfd5db)}.fcempty span{color:var(--muted,#667);font-size:14.5px;line-height:1.45}
+.fced{display:flex;flex-direction:column;gap:6px}.fced label{font-size:13px;font-weight:600;color:var(--muted,#667);margin-top:6px}.fced h3{margin:0}
+.fc2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.fc3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.fc2>div,.fc3>div{display:flex;flex-direction:column;min-width:0}
+@media (max-width:520px){.fc3{grid-template-columns:1fr 1fr}.fc3>div:last-child{grid-column:1/-1}}
+.fch4{margin:12px 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted,#667)}
+.fclines{display:flex;flex-direction:column;gap:6px}.fcln{display:grid;grid-template-columns:84px 72px minmax(0,1fr) 34px;gap:6px;align-items:center;padding:8px;border-radius:12px;background:rgba(127,127,127,.06)}.fcln>select:first-child{grid-column:1/-1}.fcln .field{min-height:44px;padding:6px 8px;font-size:15px}
+.fclc{text-align:right;font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums}.fclc.bad{color:#B3261E}.fcx{width:34px;height:34px;border-radius:10px;border:1px solid var(--line,#d6dbe0);background:none;color:inherit;cursor:pointer}
+
+.fcres{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px;padding:12px;border-radius:14px;background:rgba(127,127,127,.07)}.fcres>div{display:flex;flex-direction:column}.fcres small{font-size:12px;color:var(--muted,#667)}.fcres b{font-size:22px;font-variant-numeric:tabular-nums}
+.fcres .ok b{color:#1E7D3A}.fcres .warn b{color:#B06000}.fcres .bad b{color:#C5221F}.fcres .fcsg{grid-column:1/-1;border-top:1px solid var(--line,#e2e5ea);padding-top:8px}
+.fck{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.fck>div{display:flex;flex-direction:column;padding:12px;border-radius:14px;border:1px solid var(--line,#e2e5ea);background:var(--surface,#fff)}.fck b{font-size:24px;font-variant-numeric:tabular-nums}.fck span{font-size:12.5px;color:var(--muted,#667)}.fck .bad b{color:#C5221F}.fck .ok b{color:#1E7D3A}
+.fcr2{display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid var(--line,#eef0f3);font-variant-numeric:tabular-nums}
+@supports not (display: grid) { .fc2, .fc3, .fcres, .fck { display: flex; flex-wrap: wrap; } .fc2 > *, .fc3 > *, .fcres > *, .fck > * { flex: 1 1 45%; margin: 4px; } .fcln { display: flex; flex-wrap: wrap; } .fcln > select:first-child { flex: 1 1 100%; } }
 .card.stsec{padding:0;display:block;gap:0;margin-bottom:8px}.stsec>summary{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;list-style:none;min-height:52px}.stsec>summary::-webkit-details-marker{display:none}.stsec>summary:focus-visible{outline:2px solid #1655C8;outline-offset:-2px;border-radius:14px}
 .stst{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.stst b{font-size:16px}.stst small{font-size:13px;color:var(--muted,#667);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stst small.ok{color:#2E7D32;font-weight:700}.stst small.late{color:#E65100;font-weight:700}.stst small.bad{color:#D93025;font-weight:700}
 .stsec[open]>summary .secc{transform:rotate(90deg)}.stsb{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}.stsb.flush{padding:0 0 6px;gap:0}.stsb .stk{margin-bottom:0}
@@ -1506,6 +1526,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       '<path d="M17 55c3-2.5 6-2.5 8 0s5 2.5 8 0 5-2.5 8 0 4 2.5 6 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
   }
   var ICONS = {
+    foodcost: '<path d="M4 3v8a2 2 0 0 0 2 2v8M8 3v8M6 3v5"/><path d="M14 21V13h4a2 2 0 0 0 2-2V7a4 4 0 0 0-4-4h-2z"/>',
     velox: '<path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/>',
     presenze: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 10h7M8.5 13.5h7M8.5 17h4"/>',
     turni: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6M12 2v3"/>',
@@ -8040,6 +8061,122 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     plFire('next'); setTimeout(function () { if (view === 'home') render(); }, 700);
   });
   setInterval(function () { if (view === 'home' && isMioUser() && !document.hidden && !document.querySelector('#layer .sheet')) render(); }, 30000);
+  /* ---------- Food Cost (Pietro Avicolli): ingredienti, ricette, costo per porzione, food cost %, prezzo consigliato ---------- */
+  var FC = { d: null, busy: false, tab: 'rec', q: '', ed: null, err: '' };
+  function fcLoad(force) { if (FC.busy || (FC.d && !force)) return; FC.busy = true; cl('rpc_fc_get', {}).then(function (r) { FC.busy = false; if (r && r.ing) { FC.d = r; try { localStorage.setItem('smb-fc', JSON.stringify(r)); } catch (e) {} if (view === 'foodcost') render(); } }).catch(function () { FC.busy = false; }); }
+  try { var _fcc = JSON.parse(localStorage.getItem('smb-fc') || 'null'); if (_fcc && _fcc.ing) FC.d = _fcc; } catch (e) {}
+  function eur(v, d) { if (v == null || !isFinite(v)) return '—'; return '€ ' + (+v).toFixed(d == null ? 2 : d).replace('.', ','); }
+  function fcNum(v) { if (v == null) return null; var n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; }
+  function fcIng(id) { return ((FC.d && FC.d.ing) || []).filter(function (x) { return x.id === id; })[0]; }
+  function fcUnitCost(i) { return i ? (+i.price || 0) / ((+i.yield_pct || 100) / 100) : 0; } // € per kg/l/pezzo pulito
+  var FC_CONV = { kg: { g: .001, kg: 1, ml: .001, l: 1 }, l: { ml: .001, l: 1, g: .001, kg: 1 }, pz: { pz: 1 } };
+  function fcLineCost(l) { var i = fcIng(l.ing); if (!i) return { c: 0, bad: 'Ingrediente tolto' }; var f = (FC_CONV[i.unit] || {})[l.u]; if (f == null) return { c: 0, bad: 'Unità non compatibile (' + l.u + ' / ' + i.unit + ')' }; return { c: (fcNum(l.q) || 0) * f * fcUnitCost(i) }; }
+  function fcCalc(r) {
+    var tot = 0, bad = 0; (r.lines || []).forEach(function (l) { var x = fcLineCost(l); tot += x.c; if (x.bad) bad++; });
+    var por = fcNum(r.portions) || 1, pp = tot / por, sp = fcNum(r.sell_price), tg = fcNum(r.target_pct) || 30;
+    return { tot: tot, pp: pp, pct: sp ? pp / sp * 100 : null, margin: sp ? sp - pp : null, sugg: pp / (tg / 100), tg: tg, bad: bad };
+  }
+  function fcCls(c) { return c.pct == null ? '' : c.pct <= c.tg ? 'ok' : c.pct <= c.tg + 5 ? 'warn' : 'bad'; }
+  function viewFoodcost() {
+    fcLoad(false);
+    var h = '<div class="wrap fcw"><button class="aslink" data-act="nav" data-v="home">‹ Home</button><div class="fchd"><h2>🍽️ Food Cost</h2>' + (FC.d ? '<button class="btn sm" data-act="fccsv">Esporta CSV</button>' : '') + '</div>';
+    if (!FC.d) return h + '<div class="card"><p class="muted">' + (tok() ? 'Carico…' : 'Serve la connessione la prima volta.') + '</p></div></div>';
+    if (FC.ed) return h + fcEditor() + '</div>';
+    h += '<div class="seg2 fctabs" role="tablist">' + [['rec', 'Ricette · ' + FC.d.rec.length], ['ing', 'Ingredienti · ' + FC.d.ing.length], ['sum', 'Riepilogo']].map(function (t) { return '<button role="tab" data-act="fctab" data-t="' + t[0] + '" aria-pressed="' + (FC.tab === t[0]) + '">' + t[1] + '</button>'; }).join('') + '</div>';
+    if (FC.tab !== 'sum') h += '<div class="fcbar"><input id="fcQ" class="field txt" type="search" placeholder="Cerca" value="' + esc(FC.q) + '" autocomplete="off"><button class="btn primary" data-act="fcnew" data-k="' + FC.tab + '">+ ' + (FC.tab === 'rec' ? 'Ricetta' : 'Ingrediente') + '</button></div>';
+    var q = FC.q.trim().toLowerCase();
+    if (FC.tab === 'ing') {
+      var L = FC.d.ing.filter(function (x) { return !q || (x.name + ' ' + (x.category || '') + ' ' + (x.supplier || '')).toLowerCase().indexOf(q) >= 0; });
+      if (!FC.d.ing.length) return h + '<div class="fcempty"><b>Nessun ingrediente ancora</b><span>Aggiungi le materie prime con il prezzo d’acquisto (al kg, al litro o al pezzo) e la resa dopo lo scarto. Poi le usi nelle ricette.</span><button class="btn primary" data-act="fcnew" data-k="ing">+ Aggiungi il primo ingrediente</button></div></div>';
+      h += '<div class="fcl">' + L.map(function (x) { var used = FC.d.rec.filter(function (r) { return (r.lines || []).some(function (l) { return l.ing === x.id; }); }).length; return '<button class="fcr" data-act="fcedit" data-k="ing" data-id="' + x.id + '"><span><b>' + esc(x.name) + '</b><small>' + esc([x.category, x.supplier].filter(Boolean).join(' · ') || 'Senza categoria') + (used ? ' · in ' + used + (used === 1 ? ' ricetta' : ' ricette') : '') + '</small></span><span class="fcv"><b>' + eur(+x.price) + '/' + x.unit + '</b><small>' + (+x.yield_pct < 100 ? 'resa ' + (+x.yield_pct) + '% → ' + eur(fcUnitCost(x)) + '/' + x.unit : 'resa 100%') + '</small></span></button>'; }).join('') + '</div>';
+      return h + '</div>';
+    }
+    if (FC.tab === 'rec') {
+      var R = FC.d.rec.filter(function (x) { return !q || (x.name + ' ' + (x.category || '')).toLowerCase().indexOf(q) >= 0; });
+      if (!FC.d.rec.length) return h + '<div class="fcempty"><b>Nessuna ricetta ancora</b><span>' + (FC.d.ing.length ? 'Crea una ricetta: scegli gli ingredienti con le quantità, quante porzioni rende e il prezzo di vendita. Il costo per porzione e il food cost si calcolano da soli.' : 'Prima aggiungi qualche ingrediente nella scheda Ingredienti, poi crea le ricette.') + '</span><button class="btn primary" data-act="fcnew" data-k="' + (FC.d.ing.length ? 'rec' : 'ing') + '">+ ' + (FC.d.ing.length ? 'Crea la prima ricetta' : 'Aggiungi un ingrediente') + '</button></div></div>';
+      h += '<div class="fcl">' + R.map(function (x) { var c = fcCalc(x), cl2 = fcCls(c); return '<button class="fcr" data-act="fcedit" data-k="rec" data-id="' + x.id + '"><span><b>' + esc(x.name) + '</b><small>' + esc(x.category || 'Senza categoria') + ' · ' + (x.lines || []).length + ' ingredienti · ' + (+x.portions) + ' porz.' + (c.bad ? ' · ⚠ da controllare' : '') + '</small></span><span class="fcv"><b>' + eur(c.pp) + '<i>/porz.</i></b>' + (c.pct == null ? '<small>prezzo da mettere</small>' : '<span class="fcp ' + cl2 + '">' + c.pct.toFixed(1).replace('.', ',') + '%</span>') + '</span></button>'; }).join('') + '</div>';
+      return h + '</div>';
+    }
+    // riepilogo
+    var all = FC.d.rec.map(function (r) { return { r: r, c: fcCalc(r) }; }), priced = all.filter(function (x) { return x.c.pct != null; });
+    var avg = priced.length ? priced.reduce(function (a, x) { return a + x.c.pct; }, 0) / priced.length : null, over = priced.filter(function (x) { return x.c.pct > x.c.tg; }).sort(function (a, b) { return (b.c.pct - b.c.tg) - (a.c.pct - a.c.tg); });
+    h += '<div class="fck"><div><b>' + (avg == null ? '—' : avg.toFixed(1).replace('.', ',') + '%') + '</b><span>food cost medio</span></div><div><b>' + priced.length + '/' + all.length + '</b><span>ricette con prezzo</span></div><div class="' + (over.length ? 'bad' : 'ok') + '"><b>' + over.length + '</b><span>sopra l’obiettivo</span></div></div>';
+    h += '<section class="card"><h3>Sopra l’obiettivo</h3>' + (over.length ? over.map(function (x) { return '<button class="fcr" data-act="fcedit" data-k="rec" data-id="' + x.r.id + '"><span><b>' + esc(x.r.name) + '</b><small>Obiettivo ' + x.c.tg + '% · prezzo consigliato ' + eur(x.c.sugg) + ' (ora ' + eur(fcNum(x.r.sell_price)) + ')</small></span><span class="fcp bad">' + x.c.pct.toFixed(1).replace('.', ',') + '%</span></button>'; }).join('') : '<p class="muted">Tutte le ricette con prezzo sono dentro l’obiettivo.</p>') + '</section>';
+    var top = FC.d.ing.map(function (i) { var s = 0; FC.d.rec.forEach(function (r) { (r.lines || []).forEach(function (l) { if (l.ing === i.id) s += fcLineCost(l).c / (fcNum(r.portions) || 1); }); }); return { i: i, s: s }; }).filter(function (x) { return x.s > 0; }).sort(function (a, b) { return b.s - a.s; }).slice(0, 8);
+    h += '<section class="card"><h3>Ingredienti che pesano di più</h3><p class="hint" style="margin:0">Somma del costo per porzione in tutte le ricette: sono quelli su cui conviene trattare il prezzo.</p>' + (top.length ? top.map(function (x) { return '<div class="fcr2"><span>' + esc(x.i.name) + '</span><b>' + eur(x.s) + '</b></div>'; }).join('') : '<p class="muted">Ancora nessun dato.</p>') + '</section>';
+    return h + '</div>';
+  }
+  function fcEditor() {
+    var E = FC.ed, o = E.o, h = '<section class="card fced"><div class="row"><h3>' + (E.k === 'ing' ? (o.id ? 'Modifica ingrediente' : 'Nuovo ingrediente') : (o.id ? 'Modifica ricetta' : 'Nuova ricetta')) + '</h3><button class="aslink" data-act="fccancel">Annulla</button></div>';
+    function fld(id, lab, v, extra) { return '<label for="' + id + '">' + lab + '</label><input id="' + id + '" class="field txt" data-fc="' + id.slice(2) + '" value="' + esc(v == null ? '' : v) + '"' + (extra || '') + '>'; }
+    if (E.k === 'ing') {
+      h += fld('fcname', 'Nome', o.name) + '<div class="fc2">' + '<div>' + fld('fcprice', 'Prezzo d’acquisto (€, IVA esclusa)', o.price, ' inputmode="decimal" placeholder="Es. 2,40"') + '</div><div><label for="fcunit">Per</label><select id="fcunit" class="field txt" data-fc="unit">' + [['kg', 'kg'], ['l', 'litro'], ['pz', 'pezzo']].map(function (u) { return '<option value="' + u[0] + '"' + (o.unit === u[0] ? ' selected' : '') + '>' + u[1] + '</option>'; }).join('') + '</select></div></div>' +
+        fld('fcyield_pct', 'Resa dopo lo scarto (%)', o.yield_pct, ' inputmode="decimal" placeholder="100"') + '<p class="hint" style="margin:0">Es. patate sbucciate 80%: il costo del pulito sale da solo. Costo pulito: <b id="fcUc">' + eur(fcUnitCost({ price: fcNum(o.price) || 0, yield_pct: fcNum(o.yield_pct) || 100 })) + '/' + o.unit + '</b></p>' +
+        '<div class="fc2"><div>' + fld('fccategory', 'Categoria', o.category, ' placeholder="Es. verdura, carne"') + '</div><div>' + fld('fcsupplier', 'Fornitore', o.supplier, ' placeholder="Es. Fabio Pane"') + '</div></div>' + fld('fcnote', 'Nota', o.note);
+    } else {
+      var c = fcCalc(o), cl2 = fcCls(c), ings = FC.d.ing.slice().sort(function (a, b) { return a.name.localeCompare(b.name, 'it'); });
+      h += fld('fcname', 'Nome della ricetta', o.name) + '<div class="fc3"><div>' + fld('fcportions', 'Porzioni che rende', o.portions, ' inputmode="decimal"') + '</div><div>' + fld('fcsell_price', 'Prezzo di vendita a porzione (€)', o.sell_price, ' inputmode="decimal" placeholder="Es. 4,50"') + '</div><div>' + fld('fctarget_pct', 'Obiettivo food cost (%)', o.target_pct, ' inputmode="decimal"') + '</div></div>' + fld('fccategory', 'Categoria', o.category, ' placeholder="Es. primi, secondi, menù scuola"');
+      h += '<h4 class="fch4">Ingredienti</h4><div class="fclines">' + (o.lines || []).map(function (l, i) {
+        var x = fcLineCost(l), ing = fcIng(l.ing), us = ing ? (ing.unit === 'pz' ? ['pz'] : ing.unit === 'l' ? ['ml', 'l'] : ['g', 'kg']) : ['g', 'kg', 'ml', 'l', 'pz'];
+        return '<div class="fcln"><select class="field txt" data-fcl="ing" data-i="' + i + '" aria-label="Ingrediente">' + '<option value="">Scegli…</option>' + ings.map(function (g) { return '<option value="' + g.id + '"' + (g.id === l.ing ? ' selected' : '') + '>' + esc(g.name) + '</option>'; }).join('') + '</select>' +
+          '<input class="field txt" data-fcl="q" data-i="' + i + '" inputmode="decimal" value="' + esc(l.q == null ? '' : l.q) + '" placeholder="Qtà" aria-label="Quantità"><select class="field txt" data-fcl="u" data-i="' + i + '" aria-label="Unità">' + us.map(function (u) { return '<option' + (l.u === u ? ' selected' : '') + '>' + u + '</option>'; }).join('') + '</select>' +
+          '<span class="fclc' + (x.bad ? ' bad' : '') + '" title="' + esc(x.bad || '') + '">' + (x.bad ? '⚠' : eur(x.c)) + '</span><button class="fcx" data-act="fclrm" data-i="' + i + '" aria-label="Togli riga">✕</button></div>';
+      }).join('') + '</div><button class="btn sm" data-act="fcladd">+ Aggiungi ingrediente</button>' + (!ings.length ? '<p class="hint">Non ci sono ancora ingredienti: aggiungili nella scheda Ingredienti.</p>' : '');
+      h += '<div class="fcres" id="fcRes">' + fcResHtml(c, cl2) + '</div>' + fld('fcnote', 'Note (procedimento, grammature…)', o.note);
+    }
+    if (FC.err) h += '<p class="note" role="alert">' + esc(FC.err) + '</p>';
+    h += '<div class="btns"><button class="btn primary" data-act="fcsave">Salva</button>' + (o.id && E.k === 'rec' ? '<button class="btn" data-act="fcdup">Duplica</button>' : '') + (o.id ? '<button class="btn danger" data-act="fcdel">Elimina</button>' : '') + '</div></section>';
+    return h;
+  }
+  function fcResHtml(c, cl2) { return '<div><small>Costo totale</small><b>' + eur(c.tot) + '</b></div><div><small>Costo a porzione</small><b>' + eur(c.pp, 3) + '</b></div><div class="' + cl2 + '"><small>Food cost</small><b>' + (c.pct == null ? '—' : c.pct.toFixed(1).replace('.', ',') + '%') + '</b></div><div><small>Margine a porzione</small><b>' + eur(c.margin) + '</b></div><div class="fcsg"><small>Prezzo consigliato per stare al ' + c.tg + '%</small><b>' + eur(c.sugg) + '</b></div>'; }
+  function fcRefreshRes() { if (!FC.ed || FC.ed.k !== 'rec') return; var r = $('fcRes'); if (r) { var c = fcCalc(FC.ed.o); r.innerHTML = fcResHtml(c, fcCls(c)); } document.querySelectorAll('.fcln').forEach(function (row, i) { var l = FC.ed.o.lines[i], sp = row.querySelector('.fclc'); if (l && sp) { var x = fcLineCost(l); sp.textContent = x.bad ? '⚠' : eur(x.c); sp.className = 'fclc' + (x.bad ? ' bad' : ''); } }); }
+  function fcCsv() {
+    var rows = [['Ricetta', 'Categoria', 'Porzioni', 'Costo totale €', 'Costo porzione €', 'Prezzo vendita €', 'Food cost %', 'Obiettivo %', 'Prezzo consigliato €']];
+    FC.d.rec.forEach(function (r) { var c = fcCalc(r); rows.push([r.name, r.category || '', r.portions, c.tot.toFixed(2), c.pp.toFixed(3), r.sell_price == null ? '' : (+r.sell_price).toFixed(2), c.pct == null ? '' : c.pct.toFixed(1), c.tg, c.sugg.toFixed(2)]); });
+    rows.push([]); rows.push(['Ingrediente', 'Categoria', 'Fornitore', 'Prezzo €', 'Unità', 'Resa %', 'Costo pulito €']);
+    FC.d.ing.forEach(function (i) { rows.push([i.name, i.category || '', i.supplier || '', (+i.price).toFixed(2), i.unit, i.yield_pct, fcUnitCost(i).toFixed(3)]); });
+    var csv = '﻿' + rows.map(function (r) { return r.map(function (v) { v = String(v == null ? '' : v).replace('.', ','); return /[;"\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(';'); }).join('\n');
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'food-cost-' + todayKey() + '.csv'; document.body.appendChild(a); a.click(); setTimeout(function () { a.remove(); }, 500);
+  }
+  document.addEventListener('input', function (e) {
+    var t = e.target; if (!t || !t.getAttribute) return;
+    if (t.id === 'fcQ') { FC.q = t.value; var pos = t.selectionStart; render(); var n = $('fcQ'); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (x) {} } return; }
+    var f = t.getAttribute('data-fc'), fl = t.getAttribute('data-fcl'); if (!FC.ed || (!f && !fl)) return;
+    if (f) { FC.ed.o[f] = t.value; if (FC.ed.k === 'ing') { var u = $('fcUc'); if (u) u.textContent = eur(fcUnitCost({ price: fcNum(FC.ed.o.price) || 0, yield_pct: fcNum(FC.ed.o.yield_pct) || 100 })) + '/' + FC.ed.o.unit; } }
+    else { var l = FC.ed.o.lines[+t.getAttribute('data-i')]; if (l) l[fl] = t.value; }
+    fcRefreshRes();
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target; if (!t || !t.getAttribute || !FC.ed) return;
+    if (t.getAttribute('data-fcl') === 'ing') { var l = FC.ed.o.lines[+t.getAttribute('data-i')], g = fcIng(t.value); if (l) { l.ing = t.value; if (g) l.u = g.unit === 'pz' ? 'pz' : g.unit === 'l' ? 'ml' : 'g'; } render(); }
+    else if (t.getAttribute('data-fc') === 'unit') { FC.ed.o.unit = t.value; render(); }
+  });
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act^="fc"]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'fctab') { FC.tab = el.getAttribute('data-t'); FC.q = ''; render(); }
+    else if (a === 'fcnew') { var k = el.getAttribute('data-k'); FC.err = ''; FC.ed = { k: k, o: k === 'ing' ? { name: '', unit: 'kg', price: '', yield_pct: 100 } : { name: '', portions: 10, sell_price: '', target_pct: 30, lines: [{ ing: '', q: '', u: 'g' }] } }; render(); window.scrollTo(0, 0); }
+    else if (a === 'fcedit') { var kk = el.getAttribute('data-k'), id = el.getAttribute('data-id'), src = (kk === 'ing' ? FC.d.ing : FC.d.rec).filter(function (x) { return x.id === id; })[0]; if (!src) return; FC.err = ''; FC.ed = { k: kk, o: JSON.parse(JSON.stringify(src)) }; if (kk === 'rec' && !FC.ed.o.lines.length) FC.ed.o.lines.push({ ing: '', q: '', u: 'g' }); render(); window.scrollTo(0, 0); }
+    else if (a === 'fccancel') { FC.ed = null; render(); }
+    else if (a === 'fcladd') { FC.ed.o.lines.push({ ing: '', q: '', u: 'g' }); render(); }
+    else if (a === 'fclrm') { FC.ed.o.lines.splice(+el.getAttribute('data-i'), 1); render(); }
+    else if (a === 'fccsv') fcCsv();
+    else if (a === 'fcdup') { var o = JSON.parse(JSON.stringify(FC.ed.o)); delete o.id; o.name = o.name + ' (copia)'; FC.ed = { k: 'rec', o: o }; render(); toast('Copia pronta: cambia il nome e salva'); }
+    else if (a === 'fcsave') {
+      var E = FC.ed, o2 = JSON.parse(JSON.stringify(E.o)); if (!String(o2.name || '').trim()) { FC.err = 'Scrivi il nome.'; render(); return; }
+      if (E.k === 'ing') { o2.price = fcNum(o2.price) || 0; o2.yield_pct = fcNum(o2.yield_pct) || 100; }
+      else { o2.portions = fcNum(o2.portions) || 1; o2.sell_price = fcNum(o2.sell_price); o2.target_pct = fcNum(o2.target_pct) || 30; o2.lines = (o2.lines || []).filter(function (l) { return l.ing && fcNum(l.q); }).map(function (l) { return { ing: l.ing, q: fcNum(l.q), u: l.u }; }); }
+      el.disabled = true;
+      cl(E.k === 'ing' ? 'rpc_fc_ing_save' : 'rpc_fc_rec_save', { p_item: o2 }).then(function (r) { if (r && r.ok) { toast('Salvato'); FC.ed = null; fcLoad(true); } else { el.disabled = false; FC.err = 'Non salvato: controlla la connessione.'; render(); } });
+    }
+    else if (a === 'fcdel') {
+      if (el.getAttribute('data-sure') !== '1') { el.setAttribute('data-sure', '1'); el.textContent = 'Sicuro? Tocca'; setTimeout(function () { if (el.isConnected) { el.removeAttribute('data-sure'); el.textContent = 'Elimina'; } }, 3500); return; }
+      var E2 = FC.ed; cl('rpc_fc_del', { p_kind: E2.k, p_id: E2.o.id }).then(function (r) {
+        if (r && r.ok) { toast('Eliminato'); FC.ed = null; fcLoad(true); }
+        else if (r && r.error === 'in_uso') { FC.err = 'Non si può eliminare: è usato in ' + (r.recipes || []).join(', ') + '. Toglilo prima da queste ricette.'; render(); }
+        else toast('Non eliminato: controlla la connessione');
+      });
+    }
+  });
   function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
   /* ---------- render ---------- */
@@ -8080,7 +8217,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var g = $('gear'); g.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS.gear + '</svg>'; if (view === 'impost') g.setAttribute('aria-current', 'page'); else g.removeAttribute('aria-current');
     var cur = view === 'guida' ? 'turno' : view;
     if (view === 'pin' && !isFullAcc()) { view = 'impost'; cur = 'impost'; }
-    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'velox', 'oggi', 'polybox', 'benzina', 'tracking'].indexOf(cur) >= 0) cur = 'altro';
+    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'velox', 'oggi', 'foodcost', 'mio', 'polybox', 'benzina', 'tracking'].indexOf(cur) >= 0) cur = 'altro';
     if (!isFull && !isAdm && cur === 'benzina') cur = 'barca';
     if (!isFull && !isAdm && !isVan() && cur === 'tracking') cur = 'barca';
     if (isAdm && cur === 'polybox') cur = 'logistica';
@@ -8088,6 +8225,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (view === 'stat' && !isMgr()) view = 'turno';
     if (view === 'velox' && !isMgr() && !isFullAcc()) view = 'home';
     if (view === 'oggi' && !isMgr() && !isFullAcc()) view = 'home';
+    if (view === 'foodcost' && !isFullAcc() && !(SESSION && SESSION.role === 'admin')) view = 'home';
     // Elia, Daffa…: la plancia sostituisce navigatore e schermata del turno
     if ((view === 'guida' || view === 'turno') && isMioUser()) view = 'home';
     if (isMgr() && cur === 'contatti') cur = 'notifiche';
@@ -8100,7 +8238,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio }[view] || viewTurno;
+    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     diag('disegno ' + view); var _t0 = Date.now(), m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); m.scrollTop = (view === 'guida') ? 0 : sc; diag('fatto ' + view + ' ' + (Date.now() - _t0) + 'ms');
     if (LITE && Date.now() - _t0 > 2500 && window.__smbErr) window.__smbErr('Pagina lenta: ' + view + ' ' + (Date.now() - _t0) + ' ms');
@@ -8110,12 +8248,12 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   /* ---------- Oggi: la pagina che Pietro apre per prima. Barche adesso, ritardi, problemi, cose da sistemare ---------- */
   var OG = { d: null, k: null, t: 0, busy: false };
   function ogLoad(force) {
-    var k = todayKey(); if (OG.busy || (!force && OG.k === k && Date.now() - OG.t < 25000)) return;
-    OG.busy = true;
+    var k = todayKey(); if (OG.busy || (!force && ((OG.k === k && Date.now() - OG.t < 25000) || Date.now() - (OG.try || 0) < 25000))) return;
+    OG.busy = true; OG.try = Date.now();
     Promise.all([cl('rpc_day_detail', { p_day: k }), cl('rpc_fleet_positions', {})]).then(function (r) {
       OG.busy = false; if (r[0] && r[0].events) { OG.d = r[0]; OG.k = k; OG.t = Date.now(); }
       if (r[1]) { MG.fleet = r[1]; MG.fleetAt = Date.now(); }
-      if (view === 'oggi' || view === 'home') render();
+      if ((view === 'oggi' || view === 'home') && r[0] && r[0].events) render();
     }).catch(function () { OG.busy = false; });
     if (tok() && (!DD.loaded || Date.now() - (DD.t || 0) > 60000)) { DD.t = Date.now(); loadDdt(); }
   }
@@ -8187,6 +8325,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   // Home dei responsabili: gli strumenti divisi in aree, con il riassunto di oggi in cima
   var HOME_AREAS = [
     ['Pianifica', 'Programmi, nuovi turni e consegne, cucina', ['logistica', 'programma', 'turno', 'cucina']],
+    ['Costi', 'Food cost delle ricette', ['foodcost']],
     ['Flotta', 'Barche, documenti, benzina e velox', ['barca', 'benzina', 'velox']],
     ['Oggetti', 'Polybox, ceste e cose in viaggio', ['polybox', 'tracking', 'spedizioni']],
     ['Archivio', 'Statistiche, turni, presenze e DDT', ['stat', 'turni', 'presenze', 'ddtgiro']],
@@ -8214,14 +8353,14 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   var APPS = {
     logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
     barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], notifiche: ['Notifiche', '#db2777'],
-    oggi: ['Oggi', '#0f172a'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
+    oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
   };
   function homeApps() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isVan()) return ['polybox', 'tracking', 'programma', 'contatti', 'impost'];
     if (isOff()) return ['presenze', 'ddt', 'cucina', 'programma', 'notifiche', 'contatti', 'impost'];
     if (isAdm) return ['logistica', 'notifiche', 'turni', 'presenze', 'spedizioni', 'tracking', 'stat', 'velox', 'barca', 'benzina', 'programma', 'contatti', 'impost'];
-    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'velox', 'cucina', 'contatti', 'impost'];
+    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'velox', 'cucina', 'foodcost', 'contatti', 'impost'];
     if (isMgr()) return ['logistica', 'turno', 'turni', 'programma', 'notifiche', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'velox', 'contatti', 'impost'];
     return ['turno', 'programma', 'ddtgiro', 'barca', 'notifiche', 'tracking', 'benzina', 'impost'];
   }
