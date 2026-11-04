@@ -277,6 +277,22 @@ i.d-ok{background:#1E8E3E}i.d-ko{background:#E65100}i.d-none{background:#FFD23F;
 .dtt tbody tr{cursor:pointer}.dtt tbody tr:hover td,.dtt tbody tr.on td,.dtt tbody tr.on th{background:rgba(22,85,200,.08)}
 .dtd{display:flex;flex-direction:column;gap:6px;padding:10px 0 0}.dtd h4{margin:8px 0 0;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted,#667)}
 .dtr{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line,#eef0f3)}.dtr>span{min-width:0;display:block;font-size:14px}.dtr small{display:block;font-size:12.5px;color:var(--muted,#667)}.dtr .btn{flex:0 0 auto}
+/* pagina di partenza dei trasportatori */
+.miow{display:flex;flex-direction:column;gap:14px;padding-bottom:110px}
+.miohd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.miost{font-size:12.5px;font-weight:700;padding:5px 10px;border-radius:999px;background:rgba(127,127,127,.14);white-space:nowrap;margin-top:6px}.miost.on{background:#e3f4e8;color:#1E7D3A}
+.miobig{display:flex;align-items:center;gap:14px;width:100%;padding:18px 16px;border:0;border-radius:18px;background:#0f766e;color:#fff;font:inherit;text-align:left;cursor:pointer;box-shadow:0 6px 16px rgba(15,118,110,.28)}
+.miobig.on{background:#1655C8;box-shadow:0 6px 16px rgba(22,85,200,.28)}.miobig b{display:block;font-size:20px}.miobig small{display:block;font-size:13px;opacity:.9;margin-top:2px;line-height:1.3}
+.mioi{flex:0 0 48px;height:48px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:22px}
+.mioadd{display:flex;flex-direction:column;gap:6px}.mioadd h3{margin:0 0 4px;font-size:19px;text-transform:none;letter-spacing:0;color:inherit}.mioadd h3 .muted{font-size:13px;font-weight:500}.mioadd label{font-size:13px;font-weight:600;color:var(--muted,#667);margin-top:4px}.mioadd .btn.primary{margin-top:8px;min-height:50px;font-size:16px}
+.miocargo{display:flex;flex-direction:column;gap:8px;margin-top:8px;padding:10px 12px;border-radius:12px;background:rgba(127,127,127,.07)}
+.miocr{display:flex;align-items:center;gap:10px}.miocr>span{flex:1;min-width:0;display:flex;flex-direction:column}.miocr small{font-size:12px;color:var(--muted,#667)}.miocr input{flex:1;min-width:0}
+.miostep{display:flex;align-items:center;gap:4px;flex:0 0 auto}.miostep button{width:40px;height:40px;border-radius:10px;border:1px solid var(--line,#d6dbe0);background:var(--surface,#fff);color:inherit;font-size:20px;font-weight:700;cursor:pointer}.miostep button:disabled{opacity:.35}.miostep output{min-width:30px;text-align:center;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.miobtns{display:grid;grid-template-columns:1fr 1fr;gap:10px}.miob{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:16px 14px;border-radius:16px;border:1px solid var(--line,#e2e5ea);background:var(--surface,#fff);color:inherit;font:inherit;text-align:left;cursor:pointer}.miob>span{font-size:26px}.miob b{font-size:17px}.miob small{font-size:12.5px;color:var(--muted,#667)}
+.miosmall{display:flex;gap:8px;flex-wrap:wrap}
+.mioli h3{margin:0 0 4px;text-transform:none;letter-spacing:0;font-size:16px;color:inherit}.miot{display:flex;align-items:center;gap:12px;padding:8px 0;border-top:1px solid var(--line,#eef0f3)}.miot>span:nth-child(2){flex:1;min-width:0;display:flex;flex-direction:column}.miot small{font-size:12.5px;color:var(--muted,#667)}.miot .mono{font-weight:700;flex:0 0 48px}
+.miopl{list-style:none;margin:0;padding:0}.miopl li{display:flex;gap:12px;padding:8px 0;border-top:1px solid var(--line,#eef0f3)}.miopl li>span:last-child{display:flex;flex-direction:column}.miopl small{font-size:12.5px;color:var(--muted,#667)}.miopl .mono{font-weight:700;flex:0 0 48px}
+.mioempty{padding:18px;border-radius:14px;background:rgba(127,127,127,.08);text-align:center;font-weight:600}
+@supports not (display: grid) { .miobtns { display: flex; } .miobtns > * { flex: 1; margin: 0 4px; } }
 .card.stsec{padding:0;display:block;gap:0;margin-bottom:8px}.stsec>summary{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;list-style:none;min-height:52px}.stsec>summary::-webkit-details-marker{display:none}.stsec>summary:focus-visible{outline:2px solid #1655C8;outline-offset:-2px;border-radius:14px}
 .stst{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.stst b{font-size:16px}.stst small{font-size:13px;color:var(--muted,#667);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stst small.ok{color:#2E7D32;font-weight:700}.stst small.late{color:#E65100;font-weight:700}.stst small.bad{color:#D93025;font-weight:700}
 .stsec[open]>summary .secc{transform:rotate(90deg)}.stsb{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}.stsb.flush{padding:0 0 6px;gap:0}.stsb .stk{margin-bottom:0}
@@ -7846,6 +7862,89 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     return card + viewTurno();
   }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="simstart"]') : null; if (!el || S.shift) return; if (BOATS.TULLIO) BOATS.TULLIO.gone = false; startShift('TULLIO'); });
+  /* ---------- Pagina di partenza dei trasportatori (tutti tranne Pietro Avicolli) ----------
+     In cima "Aggiungi tappa" (sempre per oggi), poi i tasti grandi: inizio turno, programma, DDT. GPS in piccolo. */
+  function isMioUser() { return isCrewOnly() && !(SESSION && /avicolli/i.test(SESSION.name || '')); }
+  var MIO = { place: '', t: '', pb: 0, items: [], note: '', busy: false, err: '' };
+  function mioBoats() { // barche affidate a me oggi: assegnazione della logistica, altrimenti equipaggio di default
+    var me = String((SESSION && SESSION.name) || '').trim().toLowerCase(), first = me.split(' ')[0], out = [];
+    boatCodes().forEach(function (c) { if (BOATS[c].test || c === 'TULLIO') return; var a = ASG && ASG[c]; if (a && a.name) { if (String(a.name).toLowerCase() === me) out.push(c); return; } if (first && String(BOATS[c].crew || '').toLowerCase().split(' ')[0] === first) out.push(c); });
+    return out;
+  }
+  function mioPlaces() { var s = {}; Object.keys(typeof COORDS === 'object' && COORDS ? COORDS : {}).concat(Object.keys(PCO || {})).forEach(function (n) { if (n && !/^(tullio|prova)/i.test(n)) s[n] = 1; }); var P = PROGRAM[todayKey()]; if (P) Object.keys(P.boats).forEach(function (c) { (P.boats[c].stops || []).forEach(function (z) { s[z.name] = 1; }); }); return Object.keys(s).sort(function (a, b) { return a.localeCompare(b, 'it'); }); }
+  function mioCargo() { var p = []; if (MIO.pb > 0) p.push(MIO.pb + (MIO.pb === 1 ? ' polybox' : ' polybox')); MIO.items.forEach(function (x) { if (x.name && x.name.trim()) p.push((x.n > 1 ? x.n + ' ' : '') + x.name.trim()); }); return p.join(' · '); }
+  function mioMine() { var me = (SESSION && SESSION.name) || ''; return (X.my || []).filter(function (t) { return t.status === 'assegnata' || t.status === 'in_corso'; }).sort(function (a, b) { return String(a.t || '99').localeCompare(String(b.t || '99')); }).map(function (t) { t._mine = t.by === me; return t; }); }
+  function viewMio() {
+    var nm = SESSION && SESSION.name ? String(SESSION.name).split(' ')[0] : '', dt = new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+    var h = '<div class="wrap miow"><div class="miohd"><div><div class="hmhi">Ciao' + (nm ? ', ' + esc(nm) : '') + '</div><div class="muted">' + esc(dt) + '</div></div>' +
+      (S.shift ? '<span class="miost on">● In turno</span>' : '<span class="miost">Turno non iniziato</span>') + '</div>';
+    // tasto principale: inizio turno
+    h += S.shift ? '<button class="miobig on" data-act="nav" data-v="turno"><span class="mioi" aria-hidden="true">🚤</span><span><b>Turno in corso</b><small>' + esc(BOATS[S.shift.boat] ? BOATS[S.shift.boat].name : '') + ' · dalle ' + hm(S.shift.start) + ' · tocca per riprendere</small></span></button>'
+      : '<button class="miobig" data-act="scan"><span class="mioi" aria-hidden="true">▶</span><span><b>Inizia turno</b><small>Da qui parte l’orario di lavoro: solo quello che fai in turno conta nelle statistiche</small></span></button>';
+    // aggiungi tappa
+    var pl = mioPlaces();
+    h += '<section class="card mioadd"><h3>+ Aggiungi tappa <span class="muted">per oggi</span></h3>' +
+      '<label for="mioPlace">Posto</label><input id="mioPlace" class="field txt" list="mioPlaces" autocomplete="off" placeholder="Es. Caritas, Lido, Murano…" value="' + esc(MIO.place) + '" data-mio="place"><datalist id="mioPlaces">' + pl.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist>' +
+      '<label for="mioT">Devo arrivare alle</label><input id="mioT" class="field txt" type="time" value="' + esc(MIO.t) + '" data-mio="t">' +
+      '<div class="miocargo"><div class="miocr"><span><b>Polybox</b><small>da consegnare in questa tappa</small></span><div class="miostep"><button data-act="miopb" data-n="-1" aria-label="Un polybox in meno"' + (MIO.pb ? '' : ' disabled') + '>−</button><output aria-live="polite">' + MIO.pb + '</output><button data-act="miopb" data-n="1" aria-label="Un polybox in più">+</button></div></div>' +
+      MIO.items.map(function (x, i) { return '<div class="miocr"><input class="field txt" placeholder="Oggetto (es. carrello, ceste)" value="' + esc(x.name) + '" data-mio="iname" data-i="' + i + '" aria-label="Nome oggetto"><div class="miostep"><button data-act="mioit" data-i="' + i + '" data-n="-1" aria-label="Uno in meno">−</button><output>' + x.n + '</output><button data-act="mioit" data-i="' + i + '" data-n="1" aria-label="Uno in più">+</button></div></div>'; }).join('') +
+      '<button class="aslink" data-act="mioitadd">+ Aggiungi un altro oggetto</button></div>' +
+      '<label for="mioNote">Nota <span class="muted">(facoltativa)</span></label><input id="mioNote" class="field txt" placeholder="Es. chiamare prima di arrivare" value="' + esc(MIO.note) + '" data-mio="note">' +
+      (MIO.err ? '<p class="note" role="alert">' + esc(MIO.err) + '</p>' : '') +
+      '<button class="btn primary" data-act="mioadd"' + (MIO.busy ? ' disabled' : '') + '>' + (MIO.busy ? 'Salvo…' : 'Aggiungi tappa') + '</button></section>';
+    // tappe aggiunte oggi
+    var my = mioMine();
+    if (my.length) h += '<section class="card mioli"><h3>Le tue tappe in più di oggi</h3>' + my.map(function (t) { return '<div class="miot"><span class="mono">' + esc(t.t || '––:––') + '</span><span><b>' + esc(t.name) + '</b>' + (t.cargo ? '<small>' + esc(t.cargo) + '</small>' : '') + (!t._mine && t.by ? '<small>da ' + esc(String(t.by).split(' ')[0]) + '</small>' : '') + '</span>' + (t._mine && !S.shift ? '<button class="btn sm danger" data-act="miodel" data-id="' + esc(t.id) + '">Togli</button>' : '') + '</div>'; }).join('') + '</section>';
+    // tasti
+    h += '<div class="miobtns"><button class="miob" data-act="mioprog"><span aria-hidden="true">📋</span><b>Programma</b><small>Le tue tappe di oggi</small></button><button class="miob" data-act="nav" data-v="ddtgiro"><span aria-hidden="true">📄</span><b>DDT</b><small>Carica e fai firmare</small></button></div>';
+    h += '<div class="miosmall"><button class="btn sm" data-act="miogps">📍 GPS</button><button class="btn sm" data-act="nav" data-v="notifiche">💬 Chat</button><button class="btn sm" data-act="nav" data-v="barca">🚤 Barche</button><button class="btn sm" data-act="nav" data-v="impost">⚙️ Opzioni</button></div>';
+    if (!X.my || !X.my.length) setTimeout(loadMyTasks, 300);
+    return h + '</div>';
+  }
+  function mioProgSheet() {
+    var k = todayKey(), P = PROGRAM[k], bs = mioBoats(), h = '<h2>Il tuo programma di oggi</h2><p class="muted">' + esc(new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })) + '</p>', any = false;
+    bs.forEach(function (c) {
+      var bd = P && P.boats[c], st = bd && !bd.off ? (bd.stops || []).filter(function (z) { return !z.cancelled; }) : [];
+      if (!st.length) return; any = true;
+      h += '<h3 style="margin:6px 0 0">' + esc(BOATS[c].name) + '</h3><ol class="miopl">' + st.map(function (z) { return '<li><span class="mono">' + esc(z.t || '––:––') + '</span><span><b>' + esc(z.name) + '</b>' + (z.note ? '<small>' + esc(z.note) + '</small>' : '') + '</span></li>'; }).join('') + '</ol>';
+    });
+    var my = mioMine(); if (my.length) { any = true; h += '<h3 style="margin:6px 0 0">Tappe in più</h3><ol class="miopl">' + my.map(function (t) { return '<li><span class="mono">' + esc(t.t || '––:––') + '</span><span><b>' + esc(t.name) + '</b>' + (t.cargo ? '<small>' + esc(t.cargo) + '</small>' : '') + '</span></li>'; }).join('') + '</ol>'; }
+    if (!any) h += '<div class="mioempty">Non c’è niente in programma per te oggi.</div>';
+    openSheet(h + '<div class="btns"><button class="btn quiet" data-act="close">Chiudi</button></div>');
+  }
+  document.addEventListener('input', function (e) {
+    var f = e.target && e.target.getAttribute && e.target.getAttribute('data-mio'); if (!f) return;
+    if (f === 'iname') { var it = MIO.items[+e.target.getAttribute('data-i')]; if (it) it.name = e.target.value; } else MIO[f] = e.target.value;
+    if (MIO.err) { MIO.err = ''; }
+  });
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act^="mio"]') : null; if (!el || el.disabled) return; var a = el.getAttribute('data-act');
+    if (a === 'miopb') { MIO.pb = Math.max(0, Math.min(99, MIO.pb + (+el.getAttribute('data-n')))); render(); }
+    else if (a === 'mioitadd') { MIO.items.push({ name: '', n: 1 }); render(); setTimeout(function () { var l = document.querySelectorAll('[data-mio="iname"]'); if (l.length) l[l.length - 1].focus(); }, 30); }
+    else if (a === 'mioit') { var i = +el.getAttribute('data-i'), it = MIO.items[i]; if (!it) return; it.n += +el.getAttribute('data-n'); if (it.n <= 0) MIO.items.splice(i, 1); render(); }
+    else if (a === 'mioprog') mioProgSheet();
+    else if (a === 'miogps') toast('Il GPS arriva presto: per ora si accende quando inizi il turno');
+    else if (a === 'miodel') {
+      if (el.getAttribute('data-sure') !== '1') { el.setAttribute('data-sure', '1'); el.textContent = 'Sicuro?'; setTimeout(function () { if (el.isConnected) { el.removeAttribute('data-sure'); el.textContent = 'Togli'; } }, 3000); return; }
+      var id = el.getAttribute('data-id'); X.my = (X.my || []).filter(function (t) { return t.id !== id; }); render();
+      cl('rpc_self_stop_remove', { p_id: id }).then(function (r) { toast(r && r.ok ? 'Tappa tolta' : 'Non tolta: controlla la connessione'); loadMyTasks(); });
+    }
+    else if (a === 'mioadd') {
+      var place = (MIO.place || '').trim(); if (!place) { MIO.err = 'Scrivi il posto della tappa.'; render(); var pi = $('mioPlace'); if (pi) pi.focus(); return; }
+      if (MIO.t && !/^\d{2}:\d{2}$/.test(MIO.t)) { MIO.err = 'Scrivi un orario valido, per esempio 10:30.'; render(); return; }
+      var co = (typeof COORDS === 'object' && COORDS && COORDS[place]) || PCO[place] || null, bs = mioBoats(), cargo = mioCargo();
+      MIO.busy = true; render();
+      cl('rpc_self_stop_add', { p_name: place, p_t: MIO.t || '', p_cargo: cargo, p_note: (MIO.note || '').trim(), p_lat: co ? co[0] : null, p_lng: co ? co[1] : null, p_boat: (S.shift && S.shift.boat) || bs[0] || null }).then(function (r) {
+        MIO.busy = false;
+        if (r && r.ok) {
+          X.my = (X.my || []).concat([{ id: r.id, name: place, t: MIO.t || '', cargo: cargo, status: 'assegnata', by: SESSION.name, note: MIO.note || '', lat: co ? co[0] : null, lng: co ? co[1] : null }]);
+          toast('Tappa aggiunta: ' + place + (MIO.t ? ' alle ' + MIO.t : '')); MIO.place = ''; MIO.t = ''; MIO.pb = 0; MIO.items = []; MIO.note = ''; MIO.err = '';
+          if (!r.offline) setTimeout(loadMyTasks, 500);
+        } else MIO.err = r && r.error === 'orario' ? 'Orario non valido.' : 'Non sono riuscito a salvare. Controlla la connessione e riprova.';
+        render();
+      });
+    }
+  });
   function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
   /* ---------- render ---------- */
@@ -8029,6 +8128,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     return ['turno', 'programma', 'ddtgiro', 'barca', 'notifiche', 'tracking', 'benzina', 'impost'];
   }
   function viewHome() {
+    if (isMioUser()) return viewMio();
     var nm = SESSION && SESSION.name ? String(SESSION.name).split(' ')[0] : '', hr = new Date().getHours();
     var h = '<div class="wrap hmwrap"><div class="hmhi">' + (hr < 13 ? 'Buongiorno' : hr < 18 ? 'Buon pomeriggio' : 'Buonasera') + (nm ? ', ' + esc(nm) : '') + '</div><div class="muted">' + esc(new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })) + '</div>';
     if (S.shift && !isVan() && !isOff()) h += '<button class="hmshift" data-act="nav" data-v="turno"><span style="font-size:28px" aria-hidden="true">🚤</span><span><b>Turno in corso</b>' + esc(BOATS[S.shift.boat] ? BOATS[S.shift.boat].name : '') + ' · tocca per riprendere</span></button>';
@@ -8871,7 +8971,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
      In modalità offline (codice di sblocco o tasto 🆘) ogni dato del turno (tappe, problemi, colli/polybox, casse del pane,
      foto, DDT firmati, benzina, foto finale) si salva sul telefono in ordine. Quando la stessa persona entra con il PIN
      e c'è internet, l'app li rimanda al server uno per uno; a fine turno gli orari si sistemano come da programma. */
-  var OUT_FNS = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_stop_event2', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_delivery_proof_photo', 'rpc_colli_set', 'rpc_murano_colli_set', 'rpc_shift_gps_mode', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_refuel_add2', 'rpc_refuel_photo', 'rpc_refuel_photo2', 'rpc_refuel_void', 'rpc_fuel_set', 'rpc_track_move', 'rpc_ddt_edit_file', 'rpc_ddt_place_sig', 'rpc_bread_crates_set', 'rpc_pb_return_set', 'rpc_task_update', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_polybox_set'];
+  var OUT_FNS = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_stop_event2', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_delivery_proof_photo', 'rpc_colli_set', 'rpc_murano_colli_set', 'rpc_shift_gps_mode', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_refuel_add2', 'rpc_refuel_photo', 'rpc_refuel_photo2', 'rpc_refuel_void', 'rpc_fuel_set', 'rpc_track_move', 'rpc_ddt_edit_file', 'rpc_ddt_place_sig', 'rpc_bread_crates_set', 'rpc_pb_return_set', 'rpc_task_update', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_polybox_set', 'rpc_self_stop_add', 'rpc_self_stop_remove'];
   // letture che servono durante il turno: l'ultima risposta resta sul telefono per quando non c'è rete
   var OUT_READ = ['rpc_ddt_list', 'rpc_ddt_file', 'rpc_ddt_signature', 'rpc_my_tasks', 'rpc_boat_info', 'rpc_contacts2', 'rpc_program_active', 'rpc_cancels_active', 'rpc_pb_expected', 'rpc_murano_colli_last', 'rpc_polybox_status', 'rpc_fuel_status', 'rpc_assign_list', 'rpc_end_photo_status', 'rpc_delivery_proof_list', 'rpc_task_day'];
   var OUT_SKIP = ['rpc_log_gps', 'rpc_pos_share']; // GPS: in offline non serve
