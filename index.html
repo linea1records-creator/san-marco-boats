@@ -344,6 +344,8 @@ body.fspl{background:#000!important}body.fspl .top,body.fspl .nav{display:none!i
 .dtt.alt th small{display:block;font-size:9.5px;text-transform:none;letter-spacing:0;font-weight:600;line-height:1.1;max-width:60px;white-space:normal}.dtt.alt th span{font-size:16px}
 .dtt.alt td{text-align:center;font-size:16px;min-width:44px}.dtt.alt td.y{color:#B3261E;background:#fff3f1}.dtt.alt td.t{color:#B06000}
 @supports not (display: grid) { .algrid, .alnut { display: flex; flex-wrap: wrap; } .algrid > * { width: 47%; margin: 1.5%; } .alnut > * { width: 30%; margin: 1%; } }
+.lphd{display:flex;flex-direction:column;gap:3px}.lpexp{font-size:13px;font-weight:700;color:#B06000}.lplink{color:#1655C8!important;font-weight:600}
+.fcbar .field.lpsort{flex:0 0 118px;width:118px}.fcbar input.field{width:auto;flex:1 1 auto;min-width:0}.lpdet{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;font-size:14px}.lpdet span{color:var(--muted,#667)}.lpdet b{text-align:right;font-variant-numeric:tabular-nums}
 .card.stsec{padding:0;display:block;gap:0;margin-bottom:8px}.stsec>summary{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;list-style:none;min-height:52px}.stsec>summary::-webkit-details-marker{display:none}.stsec>summary:focus-visible{outline:2px solid #1655C8;outline-offset:-2px;border-radius:14px}
 .stst{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.stst b{font-size:16px}.stst small{font-size:13px;color:var(--muted,#667);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stst small.ok{color:#2E7D32;font-weight:700}.stst small.late{color:#E65100;font-weight:700}.stst small.bad{color:#D93025;font-weight:700}
 .stsec[open]>summary .secc{transform:rotate(90deg)}.stsb{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}.stsb.flush{padding:0 0 6px;gap:0}.stsb .stk{margin-bottom:0}
@@ -1539,6 +1541,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       '<path d="M17 55c3-2.5 6-2.5 8 0s5 2.5 8 0 5-2.5 8 0 4 2.5 6 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
   }
   var ICONS = {
+    listini: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/>',
     allergeni: '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
     foodcost: '<path d="M4 3v8a2 2 0 0 0 2 2v8M8 3v8M6 3v5"/><path d="M14 21V13h4a2 2 0 0 0 2-2V7a4 4 0 0 0-4-4h-2z"/>',
     velox: '<path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/>',
@@ -8278,6 +8281,139 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       cl('rpc_fc_ing_save', { p_item: o }).then(function (r) { if (r && r.ok) { if (o.label_photo) AL.photo[r.id] = o.label_photo; toast('Scheda salvata'); AL.ed = null; fcLoad(true); } else { el.disabled = false; AL.err = r && r.error === 'foto' ? 'Foto troppo grande o non valida.' : 'Non salvato: controlla la connessione.'; render(); } });
     }
   });
+  /* ---------- Listini prezzi dei fornitori: importati dai file dei fornitori (es. AIA), confronto con il listino precedente,
+     collegamento articolo ↔ ingrediente del Food Cost (base per incrociare ricette dei cuochi e fatture) ---------- */
+  var LP = { ov: null, sup: null, list: null, items: {}, q: '', sort: 'desc', sel: null, imp: null, busy: false };
+  function lpLoad(force) { if (LP.busy || (LP.ov && !force)) return; LP.busy = true; cl('rpc_pl_overview', {}).then(function (r) { LP.busy = false; if (r && r.suppliers) { LP.ov = r; if (!LP.sup && r.suppliers.length) LP.sup = r.suppliers[0].id; var s = lpSup(); if (s && (!LP.list || !s.lists.some(function (l) { return l.id === LP.list; }))) LP.list = s.lists.length ? s.lists[0].id : null; if (view === 'listini') render(); } }).catch(function () { LP.busy = false; }); }
+  function lpSup() { return LP.ov && LP.ov.suppliers.filter(function (s) { return s.id === LP.sup; })[0]; }
+  function lpItems(id, force) { if (!id) return null; if (LP.items[id] && !force) return LP.items[id]; if (!LP.items['_b' + id]) { LP.items['_b' + id] = 1; cl('rpc_pl_items', { p_list: id }).then(function (r) { delete LP.items['_b' + id]; if (r && r.items) { LP.items[id] = r; if (view === 'listini') render(); } }); } return null; }
+  function lpKg(x) { // prezzo al kg, quando si può ricavare
+    var p = +x.price; if (!isFinite(p) || p <= 0) return null; var um = String(x.um || '').toUpperCase().replace(/\./g, '');
+    if (um === 'KG') return p; if ((um === 'CF' || um === 'N') && +x.kg_conf > 0) return p / +x.kg_conf; if (um === 'C' && +x.kg_cassa > 0) return p / +x.kg_cassa; return null;
+  }
+  var LP_UM = { KG: 'al kg', CF: 'a confezione', 'C.': 'a cartone', 'N.': 'al pezzo' };
+  function lpDate(d) { if (!d) return ''; var p = String(d).slice(0, 10).split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
+  function viewListini() {
+    lpLoad(false); fcLoad(false);
+    var h = '<div class="wrap fcw"><button class="aslink" data-act="nav" data-v="home">‹ Home</button><div class="fchd"><h2>📒 Listini fornitori</h2><button class="btn sm" data-act="lpimp">Importa listino</button></div>';
+    if (LP.imp) return h + lpImport() + '</div>';
+    if (!LP.ov) return h + '<div class="card"><p class="muted">' + (tok() ? 'Carico…' : 'Serve la connessione la prima volta.') + '</p></div></div>';
+    if (!LP.ov.suppliers.length) return h + '<div class="fcempty"><b>Nessun listino ancora</b><span>Importa il file del fornitore (Excel o CSV).</span><button class="btn primary" data-act="lpimp">Importa il primo listino</button></div></div>';
+    h += '<div class="alfil">' + LP.ov.suppliers.map(function (s) { return '<button class="chip" data-act="lpsup" data-id="' + s.id + '" aria-pressed="' + (s.id === LP.sup) + '">' + esc(s.name) + '</button>'; }).join('') + '</div>';
+    var s = lpSup(); if (!s) return h + '</div>';
+    var L = s.lists.filter(function (l) { return l.id === LP.list; })[0] || s.lists[0];
+    if (s.lists.length > 1) h += '<label class="hint" for="lpList">Listino</label><select id="lpList" class="field txt" data-lp="list">' + s.lists.map(function (l) { return '<option value="' + l.id + '"' + (L && l.id === L.id ? ' selected' : '') + '>' + esc((l.from ? lpDate(l.from) + (l.to ? ' – ' + lpDate(l.to) : '') : lpDate(l.at)) + ' · ' + l.n + ' articoli') + '</option>'; }).join('') + '</select>';
+    if (!L) return h + '</div>';
+    var exp = L.to && L.to < todayKey();
+    h += '<div class="card lphd"><b>' + esc(L.title || s.name) + '</b><span class="muted">' + (L.from ? 'In vigore dal ' + lpDate(L.from) + (L.to ? ' al ' + lpDate(L.to) : '') : 'Importato il ' + lpDate(L.at)) + ' · ' + L.n + ' articoli · prezzi di cessione IVA esclusa</span>' + (exp ? '<span class="lpexp">⚠ Scaduto: chiedi a ' + esc(s.name) + ' il listino aggiornato e importalo</span>' : '') + '</div>';
+    var R = lpItems(L.id); if (!R) return h + '<p class="muted">Carico gli articoli…</p></div>';
+    var q = LP.q.trim().toLowerCase(), it = R.items.filter(function (x) { return !q || (x.code + ' ' + x.desc).toLowerCase().indexOf(q) >= 0; });
+    var sorters = { desc: function (a, b) { return a.desc.localeCompare(b.desc, 'it'); }, kg: function (a, b) { return (lpKg(a) == null ? 1e9 : lpKg(a)) - (lpKg(b) == null ? 1e9 : lpKg(b)); }, chg: function (a, b) { var da = a.prev_price ? (a.price - a.prev_price) / a.prev_price : 0, db = b.prev_price ? (b.price - b.prev_price) / b.prev_price : 0; return db - da; } };
+    it.sort(sorters[LP.sort] || sorters.desc);
+    var linked = R.items.filter(function (x) { return x.ing; }).length, chg = R.items.filter(function (x) { return x.prev_price != null && Math.abs(x.price - x.prev_price) > 0.0001; }).length;
+    h += '<div class="fck"><div><b>' + R.items.length + '</b><span>articoli</span></div><div><b>' + linked + '</b><span>collegati a ingredienti</span></div><div><b>' + (R.prev ? chg : '–') + '</b><span>' + (R.prev ? 'prezzi cambiati' : 'nessun listino prima') + '</span></div></div>';
+    h += '<div class="fcbar"><input id="lpQ" class="field txt" type="search" placeholder="Cerca codice o articolo" value="' + esc(LP.q) + '" autocomplete="off"><select class="field txt lpsort" data-lp="sort" aria-label="Ordina">' + [['desc', 'A–Z'], ['kg', '€/kg ↑'], ['chg', 'Aumenti']].map(function (o) { return '<option value="' + o[0] + '"' + (LP.sort === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>';
+    h += '<div class="fcl">' + it.map(function (x) {
+      var kg = lpKg(x), d = x.prev_price != null ? x.price - x.prev_price : null, ing = x.ing && fcIng(x.ing);
+      return '<button class="fcr" data-act="lpitem" data-id="' + x.id + '"><span><b>' + esc(x.desc) + '</b><small><span class="mono">' + esc(x.code || '') + '</span>' + (x.kg_conf ? ' · ' + String(+x.kg_conf).replace('.', ',') + ' kg/conf' : '') + (x.pz_conf ? ' · ' + (+x.pz_conf) + ' pz' : '') + (x.tmc ? ' · scad. ' + x.tmc + ' gg' : '') + '</small>' + (ing ? '<small class="lplink">🔗 ' + esc(ing.name) + '</small>' : '') + '</span><span class="fcv"><b>' + eur(+x.price) + '</b><small>' + (LP_UM[x.um] || x.um || '') + '</small>' + (kg != null && String(x.um).toUpperCase() !== 'KG' ? '<small>' + eur(kg) + '/kg</small>' : '') + (d != null && Math.abs(d) > 0.0001 ? '<span class="fcp ' + (d > 0 ? 'bad' : 'ok') + '">' + (d > 0 ? '▲ +' : '▼ ') + (d / x.prev_price * 100).toFixed(1).replace('.', ',') + '%</span>' : '') + '</span></button>';
+    }).join('') + '</div>';
+    if (L) h += '<button class="btn sm danger" data-act="lpdel" data-id="' + L.id + '" style="align-self:flex-start">Elimina questo listino</button>';
+    return h + '</div>';
+  }
+  function lpItemSheet(x) {
+    var kg = lpKg(x), ing = x.ing && fcIng(x.ing), s = lpSup(), ings = ((FC.d && FC.d.ing) || []).slice().sort(function (a, b) { return a.name.localeCompare(b.name, 'it'); });
+    var rows = [['Codice', x.code], ['Unità di vendita', (x.um || '') + (LP_UM[x.um] ? ' (' + LP_UM[x.um] + ')' : '')], ['Prezzo di cessione', eur(+x.price)], ['Prezzo al kg', kg == null ? '—' : eur(kg)], ['Peso pezzo (indic.)', x.g_pz ? (+x.g_pz) + ' g' : '—'], ['Pezzi per confezione', x.pz_conf || '—'], ['Kg per confezione (indic.)', x.kg_conf ? String(+x.kg_conf).replace('.', ',') : '—'], ['Confezioni per cartone', x.conf_cassa || '—'], ['Kg per cartone (indic.)', x.kg_cassa ? String(+x.kg_cassa).replace('.', ',') : '—'], ['Durata (TMC)', x.tmc ? x.tmc + ' giorni' : '—'], ['Prezzo listino precedente', x.prev_price != null ? eur(+x.prev_price) : '—']];
+    var h = '<h2>' + esc(x.desc) + '</h2><p class="muted">' + esc(s ? s.name : '') + '</p><div class="lpdet">' + rows.map(function (r) { return '<span>' + r[0] + '</span><b>' + esc(String(r[1])) + '</b>'; }).join('') + '</div>';
+    h += '<h3 style="margin:10px 0 4px">Ingrediente del Food Cost</h3>';
+    if (ing) { var diff = kg != null && ing.unit === 'kg' && Math.abs((+ing.price) - kg) > 0.005; h += '<p>🔗 <b>' + esc(ing.name) + '</b> · ' + eur(+ing.price) + '/' + ing.unit + '</p>' + (diff ? '<button class="btn primary" data-act="lpupd" data-id="' + x.id + '">Aggiorna il prezzo a ' + eur(kg) + '/kg</button>' : '<p class="hint">Prezzo allineato al listino.</p>'); }
+    h += '<label class="hint" for="lpIng">' + (ing ? 'Cambia collegamento' : 'Collega a un ingrediente') + '</label><select id="lpIng" class="field txt"><option value="">— nessuno —</option>' + ings.map(function (g) { return '<option value="' + g.id + '"' + (ing && g.id === ing.id ? ' selected' : '') + '>' + esc(g.name) + '</option>'; }).join('') + '</select>' +
+      '<div class="btns"><button class="btn" data-act="lplink" data-id="' + x.id + '">Salva collegamento</button>' + (!ing ? '<button class="btn primary" data-act="lpnewing" data-id="' + x.id + '">Crea ingrediente da questo articolo</button>' : '') + '<button class="btn quiet" data-act="close">Chiudi</button></div>';
+    openSheet(h);
+  }
+  function lpFind(id) { var R = LP.items[LP.list]; return R && R.items.filter(function (x) { return x.id === id; })[0]; }
+  /* importazione: il file si legge sul telefono/computer; si riconosce la riga d'intestazione (Prod., Descrizione, UM, Prz.Cess…) */
+  function lpImport() {
+    var I = LP.imp;
+    var h = '<section class="card fced"><div class="row"><h3>Importa listino</h3><button class="aslink" data-act="lpimpx">Annulla</button></div>';
+    h += '<label for="lpFile">File del fornitore (Excel .xls / .xlsx o .csv)</label><input id="lpFile" type="file" accept=".xls,.xlsx,.csv" class="field txt">';
+    if (I.msg) h += '<p class="note">' + esc(I.msg) + '</p>';
+    if (I.rows) {
+      h += '<label for="lpSupN">Fornitore</label><input id="lpSupN" class="field txt" data-lpi="sup" value="' + esc(I.sup || '') + '" placeholder="Es. AIA">' +
+        '<div class="fc2"><div><label for="lpFrom">In vigore dal</label><input id="lpFrom" type="date" class="field txt" data-lpi="from" value="' + esc(I.from || '') + '"></div><div><label for="lpTo">al</label><input id="lpTo" type="date" class="field txt" data-lpi="to" value="' + esc(I.to || '') + '"></div></div>' +
+        '<p class="hint">Trovati <b>' + I.rows.length + ' articoli</b>. Primi tre: ' + esc(I.rows.slice(0, 3).map(function (r) { return r.desc + ' ' + eur(r.price); }).join(' · ')) + '</p>' +
+        '<button class="btn primary" data-act="lpimpgo"' + (I.busy ? ' disabled' : '') + '>' + (I.busy ? 'Salvo…' : 'Salva il listino') + '</button>';
+    }
+    return h + '</section>';
+  }
+  function lpNum(v) { if (v == null || v === '') return null; if (typeof v === 'number') return v; var s = String(v).trim().replace(/\s/g, ''); if (/,/.test(s)) s = s.replace(/\./g, '').replace(',', '.'); var n = parseFloat(s); return isFinite(n) ? n : null; }
+  function lpParse(aoa, fname) {
+    var hi = -1; for (var i = 0; i < Math.min(aoa.length, 30); i++) { var r = (aoa[i] || []).map(function (c) { return String(c || '').trim().toLowerCase(); }); if (r.some(function (c) { return /^descr/.test(c); }) && r.some(function (c) { return /prz|prezzo/.test(c); })) { hi = i; break; } }
+    if (hi < 0) return { err: 'Non trovo l’intestazione delle colonne (Descrizione, Prezzo…).' };
+    var H = aoa[hi].map(function (c) { return String(c || '').trim().toLowerCase(); });
+    function col(re) { for (var j = 0; j < H.length; j++) if (re.test(H[j])) return j; return -1; }
+    var C = { code: col(/^(prod|cod|art)/), desc: col(/^descr/), um: col(/^um$|^u\.m/), price: col(/prz|prezzo/), g_pz: col(/gr\/pz|gr.pz|grammi/), pz_conf: col(/pz\/con/), kg_conf: col(/kg\/conf/), conf_cassa: col(/^conf/), kg_cassa: col(/kg\/cassa|kg\/cart/), tmc: col(/tmc|scad/) };
+    var umSale = -1; H.forEach(function (c, j) { if (/^um$/.test(c) && j !== C.um) umSale = j; });
+    var rows = [];
+    for (var k = hi + 1; k < aoa.length; k++) {
+      var r = aoa[k] || [], d = C.desc >= 0 ? String(r[C.desc] || '').trim() : ''; if (!d || lpNum(r[C.price]) == null) continue;
+      rows.push({ code: C.code >= 0 ? String(r[C.code] || '').trim() : '', desc: d, um: C.um >= 0 ? String(r[C.um] || '').trim() : '', price: lpNum(r[C.price]), g_pz: C.g_pz >= 0 ? lpNum(r[C.g_pz]) : null, pz_conf: C.pz_conf >= 0 ? lpNum(r[C.pz_conf]) : null, kg_conf: C.kg_conf >= 0 ? lpNum(r[C.kg_conf]) : null, conf_cassa: C.conf_cassa >= 0 && C.conf_cassa !== C.kg_conf ? lpNum(r[C.conf_cassa]) : null, kg_cassa: C.kg_cassa >= 0 ? lpNum(r[C.kg_cassa]) : null, tmc: C.tmc >= 0 ? lpNum(r[C.tmc]) : null, um_sale: umSale >= 0 ? String(r[umSale] || '').trim() : '' });
+    }
+    // validità ("In vigore dal 1/10/26 al 31/10/26") e fornitore dal nome del file o dalle prime righe
+    var top = aoa.slice(0, hi).map(function (r) { return (r || []).join(' '); }).join(' '), m = /dal\s+(\d{1,2})\/(\d{1,2})\/(\d{2,4})\s+al\s+(\d{1,2})\/(\d{1,2})\/(\d{2,4})/i.exec(top), fy = /(\d{4})/.exec(fname || '');
+    function iso(d, mo, y) { var ys = String(y); y = +y; if (y < 100) y = fy && fy[1].indexOf(ys) === 0 ? +fy[1] : 2000 + y; return y + '-' + pad(+mo) + '-' + pad(+d); } // anno a 2 cifre tagliato ("20" di 2026): si prende dal nome del file
+    return { rows: rows, from: m ? iso(m[1], m[2], m[3]) : '', to: m ? iso(m[4], m[5], m[6]) : '' };
+  }
+  function lpReadFile(f) {
+    var I = LP.imp; I.msg = 'Leggo il file…'; I.rows = null; I.file = f.name; render();
+    var go = function () {
+      var rd = new FileReader(); rd.onload = function () {
+        try { var wb = XLSX.read(new Uint8Array(rd.result), { type: 'array' }), ws = wb.Sheets[wb.SheetNames[0]], aoa = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' }), r = lpParse(aoa, f.name);
+          if (r.err) { I.msg = r.err; } else if (!r.rows.length) { I.msg = 'Nel file non ci sono righe con prezzo.'; } else { I.msg = ''; I.rows = r.rows; I.from = r.from; I.to = r.to; if (!I.sup) I.sup = LP.ov && lpSup() ? lpSup().name : ''; }
+        } catch (e) { I.msg = 'Non riesco a leggere questo file. Prova a salvarlo come .xlsx o .csv.'; }
+        render();
+      }; rd.readAsArrayBuffer(f);
+    };
+    if (window.XLSX) go(); else { var sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; sc.onload = go; sc.onerror = function () { I.msg = 'Serve internet per leggere i file Excel.'; render(); }; document.head.appendChild(sc); }
+  }
+  document.addEventListener('change', function (e) {
+    var t = e.target; if (!t) return;
+    if (t.id === 'lpFile' && t.files && t.files[0]) { lpReadFile(t.files[0]); return; }
+    var f = t.getAttribute && t.getAttribute('data-lp'); if (f === 'list') { LP.list = t.value; render(); } else if (f === 'sort') { LP.sort = t.value; render(); }
+  });
+  document.addEventListener('input', function (e) {
+    var t = e.target; if (!t || !t.getAttribute) return;
+    if (t.id === 'lpQ') { LP.q = t.value; var pos = t.selectionStart; render(); var n = $('lpQ'); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (x) {} } return; }
+    var k = t.getAttribute('data-lpi'); if (k && LP.imp) LP.imp[k] = t.value;
+  });
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act^="lp"]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'lpsup') { LP.sup = el.getAttribute('data-id'); var s = lpSup(); LP.list = s && s.lists.length ? s.lists[0].id : null; render(); }
+    else if (a === 'lpimp') { LP.imp = { msg: '' }; render(); }
+    else if (a === 'lpimpx') { LP.imp = null; render(); }
+    else if (a === 'lpitem') { var x = lpFind(el.getAttribute('data-id')); if (x) lpItemSheet(x); }
+    else if (a === 'lpimpgo') {
+      var I = LP.imp; if (!I || !I.rows) return; if (!String(I.sup || '').trim()) { I.msg = 'Scrivi il nome del fornitore.'; render(); return; }
+      I.busy = true; render();
+      cl('rpc_pl_import', { p_supplier: I.sup.trim(), p_title: 'Listino ' + I.sup.trim() + (I.from ? ' dal ' + lpDate(I.from) : ''), p_from: I.from || null, p_to: I.to || null, p_file: I.file || '', p_items: I.rows }).then(function (r) {
+        I.busy = false; if (r && r.ok) { toast('Listino salvato: ' + r.n + ' articoli'); LP.imp = null; LP.list = r.list; LP.sup = null; LP.ov = null; lpLoad(true); setTimeout(function () { var ov = LP.ov; if (ov) ov.suppliers.forEach(function (s) { if (s.lists.some(function (l) { return l.id === r.list; })) LP.sup = s.id; }); LP.list = r.list; render(); }, 1500); }
+        else { I.msg = 'Non salvato: controlla la connessione.'; render(); }
+      });
+    }
+    else if (a === 'lplink' || a === 'lpnewing' || a === 'lpupd') {
+      var it = lpFind(el.getAttribute('data-id')), s2 = lpSup(); if (!it || !s2) return;
+      var done = function (msg) { toast(msg); closeSheet(); LP.items[LP.list] = null; lpItems(LP.list, true); fcLoad(true); };
+      if (a === 'lplink') { var v = ($('lpIng') || {}).value || null; cl('rpc_pl_link', { p_supplier: s2.id, p_code: it.code, p_ing: v }).then(function (r) { if (r && r.ok) done(v ? 'Collegato' : 'Collegamento tolto'); else toast('Non salvato'); }); }
+      else if (a === 'lpnewing') {
+        var kg = lpKg(it), item = { name: it.desc.replace(/\s+/g, ' ').trim(), unit: kg != null ? 'kg' : 'pz', price: kg != null ? +kg.toFixed(3) : +it.price, yield_pct: 100, supplier: s2.name, category: '', note: 'Da listino ' + s2.name + (it.code ? ' · cod. ' + it.code : ''), allergens: [], traces: [] };
+        cl('rpc_fc_ing_save', { p_item: item }).then(function (r) { if (r && r.ok) cl('rpc_pl_link', { p_supplier: s2.id, p_code: it.code, p_ing: r.id }).then(function () { done('Ingrediente creato e collegato: ricorda gli allergeni'); }); else toast('Non creato'); });
+      }
+      else { var g = fcIng(it.ing), kg2 = lpKg(it); if (!g || kg2 == null) return; var o = JSON.parse(JSON.stringify(g)); o.price = +kg2.toFixed(3); delete o.has_photo; cl('rpc_fc_ing_save', { p_item: o }).then(function (r) { if (r && r.ok) done('Prezzo aggiornato: le ricette si ricalcolano'); else toast('Non aggiornato'); }); }
+    }
+    else if (a === 'lpdel') {
+      if (el.getAttribute('data-sure') !== '1') { el.setAttribute('data-sure', '1'); el.textContent = 'Sicuro? Tocca di nuovo'; setTimeout(function () { if (el.isConnected) { el.removeAttribute('data-sure'); el.textContent = 'Elimina questo listino'; } }, 3500); return; }
+      cl('rpc_pl_delete', { p_list: el.getAttribute('data-id') }).then(function (r) { if (r && r.ok) { toast('Listino eliminato'); LP.list = null; LP.ov = null; lpLoad(true); } });
+    }
+  });
   function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
   /* ---------- render ---------- */
@@ -8318,7 +8454,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var g = $('gear'); g.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS.gear + '</svg>'; if (view === 'impost') g.setAttribute('aria-current', 'page'); else g.removeAttribute('aria-current');
     var cur = view === 'guida' ? 'turno' : view;
     if (view === 'pin' && !isFullAcc()) { view = 'impost'; cur = 'impost'; }
-    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'velox', 'oggi', 'foodcost', 'allergeni', 'mio', 'polybox', 'benzina', 'tracking'].indexOf(cur) >= 0) cur = 'altro';
+    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'velox', 'oggi', 'foodcost', 'allergeni', 'listini', 'mio', 'polybox', 'benzina', 'tracking'].indexOf(cur) >= 0) cur = 'altro';
     if (!isFull && !isAdm && cur === 'benzina') cur = 'barca';
     if (!isFull && !isAdm && !isVan() && cur === 'tracking') cur = 'barca';
     if (isAdm && cur === 'polybox') cur = 'logistica';
@@ -8326,7 +8462,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (view === 'stat' && !isMgr()) view = 'turno';
     if (view === 'velox' && !isMgr() && !isFullAcc()) view = 'home';
     if (view === 'oggi' && !isMgr() && !isFullAcc()) view = 'home';
-    if ((view === 'foodcost' || view === 'allergeni') && !isFullAcc() && !(SESSION && SESSION.role === 'admin')) view = 'home';
+    if ((view === 'foodcost' || view === 'allergeni' || view === 'listini') && !isFullAcc() && !(SESSION && SESSION.role === 'admin')) view = 'home';
     // Elia, Daffa…: la plancia sostituisce navigatore e schermata del turno
     if ((view === 'guida' || view === 'turno') && isMioUser()) view = 'home';
     if (isMgr() && cur === 'contatti') cur = 'notifiche';
@@ -8339,7 +8475,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni }[view] || viewTurno;
+    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     diag('disegno ' + view); var _t0 = Date.now(), m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); m.scrollTop = (view === 'guida') ? 0 : sc; diag('fatto ' + view + ' ' + (Date.now() - _t0) + 'ms');
     if (LITE && Date.now() - _t0 > 2500 && window.__smbErr) window.__smbErr('Pagina lenta: ' + view + ' ' + (Date.now() - _t0) + ' ms');
@@ -8426,7 +8562,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   // Home dei responsabili: gli strumenti divisi in aree, con il riassunto di oggi in cima
   var HOME_AREAS = [
     ['Pianifica', 'Programmi, nuovi turni e consegne, cucina', ['logistica', 'programma', 'turno', 'cucina']],
-    ['Cucina e costi', 'Food cost, ingredienti e allergeni', ['foodcost', 'allergeni']],
+    ['Cucina e costi', 'Food cost, allergeni e listini dei fornitori', ['foodcost', 'allergeni', 'listini']],
     ['Flotta', 'Barche, documenti, benzina e velox', ['barca', 'benzina', 'velox']],
     ['Oggetti', 'Polybox, ceste e cose in viaggio', ['polybox', 'tracking', 'spedizioni']],
     ['Archivio', 'Statistiche, turni, presenze e DDT', ['stat', 'turni', 'presenze', 'ddtgiro']],
@@ -8454,14 +8590,14 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   var APPS = {
     logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
     barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], notifiche: ['Notifiche', '#db2777'],
-    oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
+    oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], listini: ['Listini', '#0e7490'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
   };
   function homeApps() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isVan()) return ['polybox', 'tracking', 'programma', 'contatti', 'impost'];
     if (isOff()) return ['presenze', 'ddt', 'cucina', 'programma', 'notifiche', 'contatti', 'impost'];
     if (isAdm) return ['logistica', 'notifiche', 'turni', 'presenze', 'spedizioni', 'tracking', 'stat', 'velox', 'barca', 'benzina', 'programma', 'contatti', 'impost'];
-    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'velox', 'cucina', 'foodcost', 'allergeni', 'contatti', 'impost'];
+    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'velox', 'cucina', 'foodcost', 'allergeni', 'listini', 'contatti', 'impost'];
     if (isMgr()) return ['logistica', 'turno', 'turni', 'programma', 'notifiche', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'velox', 'contatti', 'impost'];
     return ['turno', 'programma', 'ddtgiro', 'barca', 'notifiche', 'tracking', 'benzina', 'impost'];
   }
