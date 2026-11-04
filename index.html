@@ -293,6 +293,24 @@ i.d-ok{background:#1E8E3E}i.d-ko{background:#E65100}i.d-none{background:#FFD23F;
 .miopl{list-style:none;margin:0;padding:0}.miopl li{display:flex;gap:12px;padding:8px 0;border-top:1px solid var(--line,#eef0f3)}.miopl li>span:last-child{display:flex;flex-direction:column}.miopl small{font-size:12.5px;color:var(--muted,#667)}.miopl .mono{font-weight:700;flex:0 0 48px}
 .mioempty{padding:18px;border-radius:14px;background:rgba(127,127,127,.08);text-align:center;font-weight:600}
 @supports not (display: grid) { .miobtns { display: flex; } .miobtns > * { flex: 1; margin: 0 4px; } }
+/* plancia dei trasportatori: schermo intero, nero */
+body.fspl{background:#000!important}body.fspl .top,body.fspl .nav{display:none!important}body.fspl .main{padding:0!important;max-width:none!important}
+.plw{height:100vh;height:100dvh;display:flex;flex-direction:column;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));background:#000;color:#F2F2F2;box-sizing:border-box}
+.plw{padding:10px 12px}.plw{padding:calc(10px + env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.pltb{flex:1 1 0;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:18px 18px;border-radius:20px;background:#0A0F14;box-shadow:inset 0 0 0 1.5px #1f2a33;font-family:'Share Tech Mono',ui-monospace,Menlo,monospace;color:#FFD23F;overflow:hidden}
+.pltop{display:flex;justify-content:space-between;gap:8px;font-size:13px;letter-spacing:.12em;color:#c9a72e}
+.pldest{font-size:40px;font-size:clamp(30px,10vw,64px);line-height:1.02;font-weight:700;color:#FFD23F;text-transform:uppercase;letter-spacing:.02em;word-break:break-word}.pldest.pl0{color:#9aa4ad}
+.plrow{display:flex;gap:10px;align-items:stretch}.plcell{flex:1;display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:#121a21}.plcell small{font-size:11px;letter-spacing:.14em;color:#8f9aa3}.plcell b{font-size:34px;font-size:clamp(28px,9vw,48px);line-height:1;color:#fff}
+.plcell.pll{background:none;padding:0;justify-content:center;align-items:flex-end}.plate{font-family:Inter,system-ui,sans-serif;font-size:14px;font-weight:800;padding:6px 10px;border-radius:999px;background:#1d2a35;color:#cfe3ea}.plate.bad{background:#5c1a14;color:#ffb4a9}.plate.ok{background:#12391f;color:#9be3b0}
+.plnote{font-family:Inter,system-ui,sans-serif;font-size:14px;color:#c9d3da}.plnext{font-size:15px;color:#8f9aa3;letter-spacing:.04em}.plnext b{color:#e8e8e8}
+.plas{flex:1 1 0;min-height:0;display:flex;flex-direction:column;gap:8px}
+.plbig{flex:1;min-height:0;display:flex;align-items:center;gap:16px;padding:18px 20px;border:0;border-radius:20px;background:#1E8E3E;color:#fff;font:inherit;text-align:left;cursor:pointer;box-shadow:0 8px 24px rgba(30,142,62,.25)}
+.plbig.k-start{background:#0f766e}.plbig.k-sem,.plbig.k-semgo{background:#1655C8}.plbig.k-sign,.plbig.k-pane{background:#1E8E3E}.plbig.k-photo,.plbig.k-endphoto,.plbig.k-end{background:#B45309}.plbig.k-go{background:#334155}
+.plbig:active{transform:scale(.985)}.plic{flex:0 0 72px;height:72px;border-radius:50%;background:rgba(255,255,255,.16);display:grid;place-items:center;font-size:34px}
+.pltx{display:flex;flex-direction:column;gap:4px;min-width:0}.pltx b{font-size:28px;font-size:clamp(24px,7.5vw,38px);line-height:1.05}.pltx small{font-size:14.5px;opacity:.9;line-height:1.3}
+.plsub{display:flex;gap:8px}.plsub button{flex:1;min-height:46px;border-radius:14px;border:1.5px solid #2a2a2a;background:#111;color:#eee;font:600 15px Inter,system-ui,sans-serif;cursor:pointer}.plsub button:first-child{color:#ffb4a9;border-color:#4a1c17}
+.plst{flex:0 0 auto;display:flex;gap:6px}.plst button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;border-radius:14px;border:0;background:#141414;color:#ddd;font:600 11.5px/1.15 Inter,system-ui,sans-serif;cursor:pointer}.plst button span{font-size:22px}.plst button:last-child{flex:0 0 52px}
+.plw button:focus-visible{outline:3px solid #8AB4F8;outline-offset:2px}
 .card.stsec{padding:0;display:block;gap:0;margin-bottom:8px}.stsec>summary{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;list-style:none;min-height:52px}.stsec>summary::-webkit-details-marker{display:none}.stsec>summary:focus-visible{outline:2px solid #1655C8;outline-offset:-2px;border-radius:14px}
 .stst{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.stst b{font-size:16px}.stst small{font-size:13px;color:var(--muted,#667);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stst small.ok{color:#2E7D32;font-weight:700}.stst small.late{color:#E65100;font-weight:700}.stst small.bad{color:#D93025;font-weight:700}
 .stsec[open]>summary .secc{transform:rotate(90deg)}.stsb{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}.stsb.flush{padding:0 0 6px;gap:0}.stsb .stk{margin-bottom:0}
@@ -1688,7 +1706,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (!bd || bd.off) pd.boats[code] = { stops: [], onCall: false, off: false, extraOnly: true };
     var go = function () {
       S.shift = { boat: code, day: day, start: Date.now(), done: {}, step: 0, pre: [], km: 0, trip: 0, end: null, who: SESSION ? SESSION.name : '' };
-      save(); closeSheet(); view = 'guida'; spoken = '';
+      save(); closeSheet(); view = isMioUser() ? 'home' : 'guida'; spoken = '';
       wakeOn();
       toast('Turno iniziato su ' + BOATS[code].name);
       gpsApply(); render(); setTimeout(loadMyTasks, 600); setTimeout(function () { gpsModeAsk(true); }, 400);
@@ -7945,6 +7963,83 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       });
     }
   });
+  /* ---------- Plancia dei trasportatori (Elia, Daffa…): tutto lo schermo, tre parti ----------
+     Tabellone (dove vado, quanti polybox, a che ora) · Assistente (un solo tasto per passare allo step dopo) · Strumenti. */
+  var PLA = { sem: {} };
+  function plStep() {
+    if (S.shift) {
+      var st = stops(), i = curIdx(), s = i >= 0 ? st[i] : null, nx = null;
+      if (s) for (var j = i + 1; j < st.length; j++) { if (!S.shift.done[j] && !st[j].cancelled) { nx = st[j]; break; } }
+      var left = st.filter(function (z, k) { return !S.shift.done[k] && !z.cancelled; }).length;
+      return { shift: true, i: i, s: s, next: nx, done: st.length - left, total: st.length, last: !!s && left === 1 };
+    }
+    var bs = mioBoats(), P = PROGRAM[todayKey()], c = bs[0], bd = P && c && P.boats[c], st2 = bd && !bd.off ? (bd.stops || []).filter(function (z) { return !z.cancelled; }) : [];
+    var my = mioMine(); if (!st2.length && my.length) st2 = my.map(function (t) { return { name: t.name, t: t.t, note: t.cargo || '' }; });
+    return { shift: false, boat: c, s: st2[0] || null, next: st2[1] || null, done: 0, total: st2.length };
+  }
+  function plPolybox(p) {
+    if (!p.s) return null;
+    if (p.shift) {
+      var v = colliGet(p.i); if (v != null) return v;
+      if (isSem(p.s.name)) { var tot = 0, any = false, st = stops(); for (var k = p.i + 1; k < st.length; k++) { if (isSem(st[k].name)) break; var c2 = colliGet(k); if (c2 != null) { tot += c2; any = true; } } if (any) return tot; }
+    }
+    var m = /(\d+)\s*polybox/i.exec((p.s.cargo || '') + ' ' + (p.s.note || '')); return m ? +m[1] : null;
+  }
+  function plKind(p) {
+    if (!p.shift) return 'start';
+    if (!p.s) return 'end';
+    var n = String(p.s.name || '').trim();
+    if (/^darsena\b/i.test(n)) return p.last ? 'endphoto' : 'photo';
+    if (isSem(n)) return PLA.sem[S.shift.day + ':' + p.i] ? 'semgo' : 'sem';
+    if (isPane(n)) return 'pane';
+    if (isDel(p.s)) return 'sign';
+    return 'go';
+  }
+  var PL_ACT = {
+    start: ['▶', 'Inizia turno', 'Scegli la barca: da qui parte l’orario di lavoro'],
+    sem: ['📦', 'Numero polybox', 'Segna i polybox caricati al Seminario'],
+    semgo: ['➜', 'Parto dal Seminario', 'Polybox segnati: vai alla prossima tappa'],
+    sign: ['✍️', 'Firma del cliente', 'Fai firmare il DDT e chiudi la consegna'],
+    pane: ['🥖', 'Pane: DDT e casse', 'Carica il DDT del pane e segna le casse'],
+    photo: ['📷', 'Foto barca', 'Scatta la foto della barca in Darsena'],
+    endphoto: ['📷', 'Foto barca e fine turno', 'Ultima tappa: foto della barca e chiudi il turno'],
+    go: ['✓', 'Fatto, avanti', 'Passa alla prossima tappa'],
+    end: ['🏁', 'Termina turno', 'Tutte le tappe fatte']
+  };
+  function viewPlancia() {
+    var p = plStep(), k = plKind(p), A = PL_ACT[k], pb = plPolybox(p), s = p.s;
+    var tz = s && s.t ? s.t : '––:––', late = '';
+    if (p.shift && s && s.t && !s.ind) { var now = new Date(), dm = now.getHours() * 60 + now.getMinutes() - t2m(s.t); if (dm > 5) late = '<span class="plate bad">+' + dm + ' min</span>'; else if (dm < -5) late = '<span class="plate">tra ' + (-dm) + ' min</span>'; else late = '<span class="plate ok">in orario</span>'; }
+    var boatN = p.shift ? (BOATS[S.shift.boat] ? BOATS[S.shift.boat].name : '') : (p.boat && BOATS[p.boat] ? BOATS[p.boat].name : '');
+    var h = '<div class="plw">';
+    // TABELLONE
+    h += '<section class="pltb" aria-label="Tabellone"><div class="pltop"><span>' + (p.shift ? 'PROSSIMA TAPPA' : 'PRIMA TAPPA DI OGGI') + '</span><span>' + esc(boatN.toUpperCase()) + (p.total ? ' · ' + p.done + '/' + p.total : '') + '</span></div>';
+    if (s) h += '<div class="pldest">' + esc(s.name) + '</div><div class="plrow"><div class="plcell"><small>ORA</small><b>' + esc(tz) + '</b></div><div class="plcell"><small>POLYBOX</small><b>' + (pb == null ? '–' : pb) + '</b></div><div class="plcell pll">' + late + '</div></div>' +
+      (s.note ? '<div class="plnote">' + esc(s.note) + '</div>' : '') + (p.next ? '<div class="plnext">POI ▸ <b>' + esc(p.next.name) + '</b>' + (p.next.t ? ' ' + esc(p.next.t) : '') + '</div>' : '');
+    else h += '<div class="pldest pl0">' + (p.shift ? 'Giro finito' : 'Niente in programma') + '</div><div class="plnote">' + (p.shift ? 'Chiudi il turno con la foto della barca.' : 'Aggiungi una consegna da Strumenti oppure guarda il calendario.') + '</div>';
+    h += '</section>';
+    // ASSISTENTE
+    h += '<section class="plas" aria-label="Assistente"><button class="plbig k-' + k + '" data-act="plgo"><span class="plic" aria-hidden="true">' + A[0] + '</span><span class="pltx"><b>' + A[1] + '</b><small>' + A[2] + '</small></span></button>' +
+      (p.shift && s ? '<div class="plsub"><button data-act="problem">⚠ Problema</button><button data-act="plopen">Apri la tappa</button></div>' : '') + '</section>';
+    // STRUMENTI
+    h += '<nav class="plst" aria-label="Strumenti"><button data-act="plcam"><span>📷</span>Fotocamera</button><button data-act="nav" data-v="contatti"><span>📒</span>Rubrica</button><button data-act="nav" data-v="mio"><span>➕</span>Nuova consegna</button><button data-act="nav" data-v="programma"><span>📅</span>Calendario</button><button data-act="nav" data-v="impost" aria-label="Opzioni"><span>⚙️</span>Opzioni</button></nav>';
+    return h + '</div>';
+  }
+  function plFire(act, attrs) { var b = document.createElement('button'); b.setAttribute('data-act', act); Object.keys(attrs || {}).forEach(function (k) { b.setAttribute(k, attrs[k]); }); b.style.display = 'none'; document.body.appendChild(b); b.click(); b.remove(); }
+  function plPhoto(cb) { var inp = $('plPhotoIn'); if (!inp) { inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.setAttribute('capture', 'environment'); inp.id = 'plPhotoIn'; inp.hidden = true; document.body.appendChild(inp); } inp.onchange = function () { var f = inp.files && inp.files[0]; inp.value = ''; if (!f) return; var u = URL.createObjectURL(f), im = new Image(); im.onload = function () { var w = im.naturalWidth, hh = im.naturalHeight, sc = Math.min(1, 1280 / Math.max(w, hh)), cv = document.createElement('canvas'); cv.width = Math.round(w * sc); cv.height = Math.round(hh * sc); cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height); URL.revokeObjectURL(u); cb(cv.toDataURL('image/jpeg', .72)); }; im.onerror = function () { toast('Foto non leggibile, riprova'); }; im.src = u; }; inp.click(); }
+  function plProof(i, url) { var sh = S.shift, z = stops()[i]; if (!sh || !z) return Promise.resolve(null); return cl('rpc_delivery_proof_add', { p_day: sh.day, p_boat: sh.boat, p_stop: z.name, p_planned: z.t || '', p_photo: url, p_lat: null, p_lng: null }); }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act="plgo"],[data-act="plcam"],[data-act="plopen"]') : null; if (!el) return;
+    var a = el.getAttribute('data-act'), p = plStep(), k = plKind(p);
+    if (a === 'plcam') { if (!S.shift || p.i < 0) { toast('Inizia il turno: le foto si salvano sulla tappa in corso'); return; } plPhoto(function (u) { plProof(p.i, u).then(function () { toast('Foto salvata su ' + p.s.name); }); }); return; }
+    if (a === 'plopen') { if (S.shift && p.i >= 0) { if (isSem(p.s.name)) semSheet(p.i, false); else if (isDel(p.s)) cnsSheet(p.i, false); else plFire('next'); } return; }
+    if (k === 'start') { if (S.shift) return; scanSheet(); return; }
+    if (k === 'end' || k === 'endphoto') { plFire('endsheet'); return; }
+    if (k === 'sem') { PLA.sem[S.shift.day + ':' + p.i] = 1; semSheet(p.i, false); return; }
+    if (k === 'photo') { plPhoto(function (u) { plProof(p.i, u).then(function () { toast('Foto della barca salvata'); plFire('next'); setTimeout(render, 600); }); }); return; }
+    plFire('next'); setTimeout(function () { if (view === 'home') render(); }, 700);
+  });
+  setInterval(function () { if (view === 'home' && isMioUser() && !document.hidden && !document.querySelector('#layer .sheet')) render(); }, 30000);
   function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
   /* ---------- render ---------- */
@@ -7993,16 +8088,19 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (view === 'stat' && !isMgr()) view = 'turno';
     if (view === 'velox' && !isMgr() && !isFullAcc()) view = 'home';
     if (view === 'oggi' && !isMgr() && !isFullAcc()) view = 'home';
+    // Elia, Daffa…: la plancia sostituisce navigatore e schermata del turno
+    if ((view === 'guida' || view === 'turno') && isMioUser()) view = 'home';
     if (isMgr() && cur === 'contatti') cur = 'notifiche';
     if (isMgr() && !isOff() && ['programma', 'ddt', 'murano'].indexOf(cur) >= 0) cur = 'logistica';
     if (isMgr() && cur === 'richieste') cur = 'barca';
     if (isCrewOnly() && ['richieste', 'contatti', 'ddt'].indexOf(cur) >= 0) cur = 'barca';
     var NV = isVan() ? NAV_VAN : isOff() ? NAV_OFF : isAdm ? NAV_ADMIN : isFull ? NAV_FULL : (isMgr() ? NAV_MGR : NAV);
     drawHomeNav();
+    document.body.classList.toggle('fspl', view === 'home' && isMioUser());
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi }[view] || viewTurno;
+    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     diag('disegno ' + view); var _t0 = Date.now(), m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); m.scrollTop = (view === 'guida') ? 0 : sc; diag('fatto ' + view + ' ' + (Date.now() - _t0) + 'ms');
     if (LITE && Date.now() - _t0 > 2500 && window.__smbErr) window.__smbErr('Pagina lenta: ' + view + ' ' + (Date.now() - _t0) + ' ms');
@@ -8128,7 +8226,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     return ['turno', 'programma', 'ddtgiro', 'barca', 'notifiche', 'tracking', 'benzina', 'impost'];
   }
   function viewHome() {
-    if (isMioUser()) return viewMio();
+    if (isMioUser()) return viewPlancia();
     var nm = SESSION && SESSION.name ? String(SESSION.name).split(' ')[0] : '', hr = new Date().getHours();
     var h = '<div class="wrap hmwrap"><div class="hmhi">' + (hr < 13 ? 'Buongiorno' : hr < 18 ? 'Buon pomeriggio' : 'Buonasera') + (nm ? ', ' + esc(nm) : '') + '</div><div class="muted">' + esc(new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })) + '</div>';
     if (S.shift && !isVan() && !isOff()) h += '<button class="hmshift" data-act="nav" data-v="turno"><span style="font-size:28px" aria-hidden="true">🚤</span><span><b>Turno in corso</b>' + esc(BOATS[S.shift.boat] ? BOATS[S.shift.boat].name : '') + ' · tocca per riprendere</span></button>';
