@@ -1124,6 +1124,40 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .tbl thead th { font-size: 12px; color: var(--muted); font-weight: 600; }
 .tbl.days td, .tbl.days th { padding: 6px 7px; font-size: 12px; }
 .tbl tr:last-child td { border-bottom: 0; }
+.ddcw { display: block; margin-bottom: 12px; }
+.ddcw > * { margin-top: 0 !important; }
+.ddcp { margin-bottom: 0 !important; border-bottom-left-radius: 0 !important; border-bottom-right-radius: 0 !important; }
+.ddpx { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0; padding: 8px 12px; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 14px 14px; background: var(--surface); font-size: 14px; }
+.ddpx b { margin-left: auto; }
+.blin { width: 84px; min-width: 0; padding: 6px 8px; margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.blin.man { border-color: #b45309; }
+.blin.saving { opacity: .5; }
+.tbl .blin { width: 72px; }
+.blmn { display: flex; align-items: center; gap: 12px; margin: 4px 0 12px; }
+.blmn b { font-size: 17px; min-width: 150px; text-align: center; }
+.blk { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.blk > div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.blk small { display: block; color: var(--muted); font-size: 12px; }
+.blk b { font-size: 20px; font-variant-numeric: tabular-nums; }
+.blk .warn b { color: #b45309; }
+.blpr { padding-top: 8px; }
+.blpl { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); }
+.blpl > span { flex: 1; min-width: 0; }
+.blpl small { display: block; color: var(--muted); }
+.blpl #blNewC { flex: 1; min-width: 0; margin: 0; }
+.blf { display: flex; gap: 8px; margin: 14px 0 6px; flex-wrap: wrap; }
+.bldh { display: flex; justify-content: space-between; margin: 14px 2px 6px; font-size: 14px; }
+.bldh span { color: var(--muted); font-variant-numeric: tabular-nums; }
+.blday { padding: 4px 12px; }
+.blr { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.blr:first-child { border-top: 0; }
+.blrc { flex: 1 1 160px; min-width: 0; }
+.blrc .lnk { font-weight: 700; text-align: left; padding: 0; }
+.blrc small { display: block; color: var(--muted); }
+.blrq { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.blx { color: var(--muted); }
+.blpp { font-variant-numeric: tabular-nums; }
+.blt { min-width: 78px; text-align: right; font-variant-numeric: tabular-nums; }
 details.card summary { cursor: pointer; }
 .fleetbox { position: relative; height: 280px; border-radius: 12px; overflow: hidden; background: #0B1317; box-shadow: inset 0 0 0 1px #2A3C44; }
 .fleetbox .mtiles img { position: absolute; width: 256px; height: 256px; max-width: none; }
@@ -1548,6 +1582,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       '<path d="M17 55c3-2.5 6-2.5 8 0s5 2.5 8 0 5-2.5 8 0 4 2.5 6 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
   }
   var ICONS = {
+    fatturato: '<path d="M18 6.5a7 7 0 1 0 0 11"/><path d="M4 10h10M4 14h10"/>',
     menu: '<path d="M5 3h14v18H5z"/><path d="M9 8h6M9 12h6M9 16h4"/>',
     porzione: '<path d="M12 3v18M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/>',
     listini: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/>',
@@ -2331,7 +2366,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   }
   // appena apri l'app (o arriva un programma nuovo) te lo spiega una volta; se cambia, te lo rispiega
   function briefMaybe() {
-    if (!SESSION || S.shift || isOff() || isVan() || CUSTTOK) return;
+    if (!SESSION || S.shift || isOff() || isVan() || isBill() || CUSTTOK) return;
     var k = briefKey(), code = myBoatCode(); if (!k || !code || !PROGRAM[k]) return;
     if (document.querySelector('#layer .sheet')) return;
     var seen = ''; try { seen = localStorage.getItem('smb-brief') || ''; } catch (e) {}
@@ -2876,7 +2911,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   });
   /* ---------- Trasportatori (Elia, Daffa): Barche = documenti per i controlli + richieste ---------- */
   function isVan() { return !!(SESSION && SESSION.role === 'van'); }
-  function isCrewOnly() { return !!SESSION && !isMgr() && !isOff() && !isFullAcc() && !isVan(); }
+  function isCrewOnly() { return !!SESSION && !isMgr() && !isOff() && !isFullAcc() && !isVan() && !isBill(); }
   function viewBarcaCrew() {
     if (draft) return viewRichieste();
     var code = BF.sel || (S.shift && S.shift.boat) || myBoatCode() || boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO'; })[0];
@@ -5337,6 +5372,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       if (r.full && SESSION.role !== 'admin') { SESSION.role = 'admin'; ch = true; }
       var w = !!r.works; if (!!SESSION.works !== w) { SESSION.works = w; ch = true; }
       var fu = !!r.full; if (!!SESSION.full !== fu) { SESSION.full = fu; ch = true; }
+      if (!!SESSION.money !== !!r.money) { SESSION.money = !!r.money; ch = true; }
+      if (r.bill && SESSION.role !== 'billing') { SESSION.role = 'billing'; ch = true; }
       if (!!SESSION.locator !== !!r.locator) { SESSION.locator = !!r.locator; ch = true; }
       // turno chiuso da Pietro sul server: il telefono smette di registrare (non in modalità prova)
       if (r.shift_open === false && S.shift && S.shift.sid && !GHOST && Date.now() - (S.shift.start || 0) > 180000) { S.shift = null; try { gpsApply(); } catch (x) {} save(); if (view === 'turno' || view === 'guida') view = 'home'; ch = true; setTimeout(function () { toast('Il tuo turno è stato chiuso dalla logistica'); render(); }, 50); }
@@ -5907,7 +5944,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     return jobs[0].then(function (r) {
       DD.busy = false;
       if (!r || !r.items) { DD.err = true; if (view === 'ddt') render(); return; }
-      DD.err = false; DD.loaded = true; DD.items = r.items; DD.office = !!r.office;
+      DD.err = false; DD.loaded = true; DD.items = r.items; DD.office = !!r.office; DD.canPax = !!r.can_pax; DD.money = !!r.money;
       if (isOffSess()) { var _os = offSigned(); DD.items.forEach(function (x) { if (_os[x.id]) { x.status = 'signed'; x.offline = true; } }); }
       var need = DD.office && !DD.carriers ? cl('rpc_ddt_carriers', {}).then(function (c) { if (c && c.length) DD.carriers = c; }) : Promise.resolve();
       return need.then(function () { try { ddtPrefetch(); } catch (x) {} ddtBadge(); ddwRefresh(); if ((view === 'ddt' || view === 'ddtgiro') && !document.getElementById('sigScreen') && !document.querySelector('#layer .sheet')) render(); });
@@ -5915,12 +5952,17 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   }
   setInterval(function () { if (!document.hidden && tok()) loadDdt(); }, 60000);
   function ddtCard(x) {
-    var pend = x.status === 'pending';
-    return '<button class="card ddc" data-act="ddtopen" data-id="' + x.id + '"><div class="ddt1"><b>' + esc(x.customer) + '</b><span class="pill ' + (pend ? 'bad' : 'go') + '">' + (pend ? 'Da consegnare' : 'Firmato') + '</span></div>' +
+    var pend = x.status === 'pending', px = ddPaxStrip(x);
+    return (px ? '<div class="ddcw">' : '') + '<button class="card ddc' + (px ? ' ddcp' : '') + '" data-act="ddtopen" data-id="' + x.id + '"><div class="ddt1"><b>' + esc(x.customer) + '</b><span class="pill ' + (pend ? 'bad' : 'go') + '">' + (pend ? 'Da consegnare' : 'Firmato') + '</span></div>' +
       '<div class="muted">' + (x.number ? esc(x.number) + ' · ' : '') + (DD.office ? 'Trasportatore: ' + esc(x.carrier) : esc(x.address || '')) + '</div>' +
       (x.stop || x.date ? '<div class="muted">' + (x.date ? esc(pgDateLabel(x.date)) : '') + (x.stop ? (x.date ? ' · ' : '') + 'tappa ' + esc(x.stop) : '') + '</div>' : '') +
       (x.address && DD.office ? '<div class="muted">' + esc(x.address) + '</div>' : '') +
-      '<div class="ntw">' + (pend ? 'Caricato ' + esc(ntWhen(x.at)) : 'Firmato da ' + esc(x.signed_by || '') + ' · ' + esc(ntWhen(x.signed_at))) + '</div></button>';
+      '<div class="ntw">' + (pend ? 'Caricato ' + esc(ntWhen(x.at)) : 'Firmato da ' + esc(x.signed_by || '') + ' · ' + esc(ntWhen(x.signed_at))) + '</div></button>' + (px ? px + '</div>' : '');
+  }
+  // a fianco del DDT: quantità in pax (segreteria e Pietro); il prezzo e il totale li vede solo chi vede i soldi
+  function ddPaxStrip(x) {
+    if (!DD.canPax && !(DD.money && x.pax != null)) return '';
+    return '<div class="ddpx"><span>Quantità</span>' + blPaxCell(x.id, x.pax, DD.canPax) + '<span>pax</span>' + (DD.money && x.price != null ? '<span class="muted">× ' + eur(x.price) + '</span><b>' + (x.pax == null ? '—' : eur(x.pax * x.price)) + '</b>' : '') + '</div>';
   }
   /* ---------- DDT letti da Claude: cliente, data, tappa del programma e trasportatore in automatico ---------- */
   function ddtFileData(f) {
@@ -6111,7 +6153,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       if (f) {
         var its = f.items.slice().sort(function (a, b) { return (b.status === 'pending') - (a.status === 'pending') || ((a.signed_at || a.at) < (b.signed_at || b.at) ? 1 : -1); });
         return '<div class="ddfh"><button class="aslink" data-act="ddfback">‹ Tutte le cartelle</button><h3>📂 ' + esc(f.name) + ' <span class="muted">' + f.items.length + ' DDT' + (f.pend ? ' · ' + f.pend + ' da firmare' : '') + '</span></h3></div>' +
-          (wide ? '<div class="tblw"><table class="tbl ddtbl"><thead><tr><th>Cliente</th><th>DDT</th><th>Trasportatore</th><th>Stato</th><th>Data</th><th></th></tr></thead><tbody>' + its.map(ddtRowW).join('') + '</tbody></table></div>' : its.map(ddtCard).join(''));
+          (wide ? '<div class="tblw"><table class="tbl ddtbl"><thead><tr><th>Cliente</th><th>DDT</th><th>Trasportatore</th><th>Stato</th><th>Data</th>' + (DD.canPax ? '<th>Pax</th>' : '') + '<th></th></tr></thead><tbody>' + its.map(ddtRowW).join('') + '</tbody></table></div>' : its.map(ddtCard).join(''));
       }
       DDF.open = null;
     }
@@ -7121,7 +7163,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   var ddtRowW = function (x) {
         var pend = x.status === 'pending';
         return '<tr class="ddrow" data-s="' + esc((x.customer + ' ' + (x.number || '') + ' ' + x.carrier + ' ' + (x.address || '')).toLowerCase()) + '"><td><button class="lnk" data-act="ddtopen" data-id="' + x.id + '">' + esc(x.customer) + '</button>' + (x.address ? '<div class="muted">' + esc(x.address) + '</div>' : '') + '</td><td>' + esc(x.number || '–') + '</td><td>' + esc(x.carrier) + '</td>' +
-          '<td>' + (pend ? '<span class="pill bad">Da consegnare</span>' : '<span class="pill go">Firmato</span><div class="muted">' + esc(x.signed_by || '') + '</div>') + '</td><td>' + esc(ntWhen(pend ? x.at : x.signed_at)) + '</td>' +
+          '<td>' + (pend ? '<span class="pill bad">Da consegnare</span>' : '<span class="pill go">Firmato</span><div class="muted">' + esc(x.signed_by || '') + '</div>') + '</td><td>' + esc(ntWhen(pend ? x.at : x.signed_at)) + '</td>' + (DD.canPax ? '<td>' + blPaxCell(x.id, x.pax, true) + '</td>' : '') +
           '<td class="ddact"><button class="btn sm" data-act="ddtview" data-id="' + x.id + '">Apri</button>' + (pend ? '<button class="btn sm quiet" data-act="ddtcancel" data-id="' + x.id + '">Annulla</button>' : '<button class="btn sm primary" data-act="ddtget" data-id="' + x.id + '">DDT firmato</button>') + '</td></tr>';
       };
   function ddApplySearch() {
@@ -8560,6 +8602,113 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (a === 'mncsv') mnCsv();
     else if (a === 'mnrec') { var r = mnRec(el.getAttribute('data-id')); if (!r) { toast('Ricetta non trovata nel Food Cost'); return; } FC.err = ''; FC.ed = { k: 'rec', o: JSON.parse(JSON.stringify(r)) }; if (!FC.ed.o.lines.length) FC.ed.o.lines.push({ ing: '', q: '', u: 'g' }); FC.back = 'menu'; view = 'foodcost'; render(); window.scrollTo(0, 0); }
   });
+  /* ---------- Fatturato: pax per DDT (segreteria, Pietro) × prezzo per pax (ufficio fatturazione) ---------- */
+  function isBill() { return !!(SESSION && SESSION.role === 'billing'); }
+  function canMoney() { return !!(SESSION && (SESSION.money || SESSION.role === 'billing')); }
+  var BL = { m: null, d: null, busy: false, err: false, f: 'all', dirty: false, pe: false };
+  function blMonth() { if (!BL.m) { var t = new Date(); BL.m = t.getFullYear() + '-' + ('0' + (t.getMonth() + 1)).slice(-2) + '-01'; } return BL.m; }
+  function blNum(v) { v = String(v == null ? '' : v).replace(/\s|€/g, '').replace(',', '.'); if (v === '') return null; var n = +v; return isFinite(n) ? n : NaN; }
+  function blLoad() {
+    if (!tok() || BL.busy) return Promise.resolve();
+    BL.busy = true;
+    return cl('rpc_bill_month', { p_month: blMonth() }).then(function (r) {
+      BL.busy = false;
+      if (!r || !r.items) { BL.err = true; } else { BL.err = false; BL.d = r; }
+      if (view === 'fatturato') render();
+    }).catch(function () { BL.busy = false; BL.err = true; if (view === 'fatturato') render(); });
+  }
+  function blTot(it) { return it.pax != null && it.price != null ? it.pax * it.price : null; }
+  function blPaxCell(id, pax, can) {
+    return can ? '<input class="field txt blin" type="number" inputmode="numeric" min="0" step="1" placeholder="pax" aria-label="Quantità in pax" data-blpax="' + esc(id) + '" value="' + (pax == null ? '' : pax) + '">' : (pax == null ? '<span class="muted">—</span>' : '<b>' + pax + '</b>');
+  }
+  function viewFatturato() {
+    if (!BL.d && !BL.busy && !BL.err) blLoad();
+    var m = blMonth(), md = new Date(m + 'T12:00:00'), lab = md.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
+    var h = '<div class="wrap blw">' + (isBill() ? '' : '<button class="aslink" data-act="nav" data-v="home">‹ Home</button>') +
+      '<h2>💶 Fatturato consegne</h2><div class="blmn"><button class="btn sm" data-act="blm" data-d="-1" aria-label="Mese prima">‹</button><b>' + esc(lab.charAt(0).toUpperCase() + lab.slice(1)) + '</b><button class="btn sm" data-act="blm" data-d="1" aria-label="Mese dopo">›</button></div>';
+    if (BL.err && !BL.d) return h + '<div class="note">Non riesco a caricare i dati: serve la connessione.</div></div>';
+    if (!BL.d) return h + '<div class="card"><p class="muted">Carico…</p></div></div>';
+    var d = BL.d, its = d.items || [], withPax = its.filter(function (x) { return x.pax != null; }), miss = its.length - withPax.length;
+    var tot = 0, pax = 0; withPax.forEach(function (x) { tot += blTot(x) || 0; pax += x.pax; });
+    h += '<div class="blk"><div><small>Fatturato</small><b>' + eur(tot) + '</b></div><div><small>Pax</small><b>' + pax.toLocaleString('it-IT') + '</b></div><div><small>Consegne con quantità</small><b>' + withPax.length + '</b></div>' +
+      '<div' + (miss ? ' class="warn"' : '') + '><small>Senza quantità</small><b>' + miss + '</b></div></div>';
+    // per cliente
+    var by = {}, cl2 = [];
+    withPax.forEach(function (x) { var k = ddtNorm(x.customer) || '—'; if (!by[k]) { by[k] = { n: x.customer, c: 0, p: 0, e: 0 }; cl2.push(by[k]); } by[k].c++; by[k].p += x.pax; by[k].e += blTot(x) || 0; });
+    cl2.sort(function (a, b) { return b.e - a.e; });
+    if (cl2.length) h += '<details class="card mgdet"><summary><span>Per cliente (' + cl2.length + ')</span><span class="secc">›</span></summary><div class="tblw"><table class="tbl"><thead><tr><th>Cliente</th><th>Consegne</th><th>Pax</th><th>Euro</th></tr></thead><tbody>' +
+      cl2.map(function (c) { return '<tr><td>' + esc(c.n) + '</td><td>' + c.c + '</td><td>' + c.p + '</td><td><b>' + eur(c.e) + '</b></td></tr>'; }).join('') + '</tbody></table></div></details>';
+    // prezzi (solo fatturazione li cambia, gli altri li vedono)
+    var pr = d.prices || [];
+    h += '<details class="card mgdet"' + (BL.pe ? ' open' : '') + ' id="blPr"><summary><span>Prezzi per pax · base ' + eur(d['default']) + '</span><span class="secc">›</span></summary><div class="blpr">' +
+      (d.can_price ? '<p class="muted">Il prezzo base vale per tutti i clienti senza un prezzo loro. Un prezzo cambiato vale per le consegne dal 1° di questo mese in poi (non per quelle con prezzo scritto a mano).</p>' : '<p class="muted">I prezzi li mette l’ufficio fatturazione.</p>') +
+      '<div class="blpl"><span><b>Tutti i clienti</b><small>prezzo base</small></span>' + (d.can_price ? '<input class="field txt blin" inputmode="decimal" data-blcp="*" value="' + String(d['default']).replace('.', ',') + '" aria-label="Prezzo base per pax">' : '<b>' + eur(d['default']) + '</b>') + '</div>' +
+      pr.map(function (p) { return '<div class="blpl"><span><b>' + esc(p.customer) + '</b></span>' + (d.can_price ? '<input class="field txt blin" inputmode="decimal" data-blcp="' + esc(p.customer) + '" value="' + String(p.price).replace('.', ',') + '" aria-label="Prezzo per pax di ' + esc(p.customer) + '"><button class="btn sm quiet" data-act="blcpdel" data-c="' + esc(p.customer) + '" title="Torna al prezzo base">✕</button>' : '<b>' + eur(p.price) + '</b>') + '</div>'; }).join('') +
+      (d.can_price ? '<div class="blpl"><input class="field txt" id="blNewC" list="blCl" placeholder="Cliente con prezzo diverso…" autocomplete="off"><input class="field txt blin" id="blNewP" inputmode="decimal" placeholder="€/pax"><button class="btn sm primary" data-act="blcpadd">Aggiungi</button></div><datalist id="blCl">' +
+        Object.keys(its.reduce(function (o, x) { o[x.customer] = 1; return o; }, {})).sort().map(function (c) { return '<option value="' + esc(c) + '">'; }).join('') + '</datalist>' : '') + '</div></details>';
+    // consegne
+    var list = BL.f === 'miss' ? its.filter(function (x) { return x.pax == null; }) : its;
+    h += '<div class="blf"><button class="sw" data-act="blf" data-f="all" aria-pressed="' + (BL.f !== 'miss') + '">Tutte (' + its.length + ')</button><button class="sw" data-act="blf" data-f="miss" aria-pressed="' + (BL.f === 'miss') + '">Senza quantità (' + miss + ')</button></div>';
+    if (!list.length) return h + '<div class="card"><p class="muted">' + (its.length ? 'Tutte le consegne hanno la quantità.' : 'Nessun DDT in questo mese.') + '</p></div></div>';
+    var days = [], byd = {};
+    list.forEach(function (x) { if (!byd[x.date]) { byd[x.date] = []; days.push(x.date); } byd[x.date].push(x); });
+    days.forEach(function (k) {
+      var dt = byd[k].reduce(function (s, x) { return s + (blTot(x) || 0); }, 0);
+      h += '<div class="bldh"><b>' + esc(pgDateLabel(k)) + '</b><span>' + eur(dt) + '</span></div><div class="card blday">' + byd[k].map(function (x) {
+        var t = blTot(x);
+        return '<div class="blr"><div class="blrc">' + (ddtFind(x.id) ? '<button class="lnk" data-act="ddtopen" data-id="' + esc(x.id) + '">' + esc(x.customer) + '</button>' : '<b>' + esc(x.customer) + '</b>') + '<small>' + esc([x.number ? 'DDT ' + x.number : '', x.carrier, x.status === 'signed' ? 'firmato' : 'da firmare'].filter(Boolean).join(' · ')) + '</small></div>' +
+          '<div class="blrq">' + blPaxCell(x.id, x.pax, d.can_pax) + '<span class="blx">×</span>' +
+          (d.can_price ? '<input class="field txt blin' + (x.manual ? ' man' : '') + '" inputmode="decimal" data-blpp="' + esc(x.id) + '" value="' + String(x.price).replace('.', ',') + '" aria-label="Prezzo per pax" title="' + (x.manual ? 'Prezzo scritto a mano: cancellalo per tornare al prezzo del cliente' : 'Prezzo del cliente') + '">' : '<span class="blpp">' + eur(x.price) + (x.manual ? '*' : '') + '</span>') +
+          '<b class="blt">' + (t == null ? '—' : eur(t)) + '</b></div></div>';
+      }).join('') + '</div>';
+    });
+    return h + '<p class="muted" style="margin-top:12px">' + (d.can_pax ? 'Scrivi i pax a fianco di ogni DDT: il totale si calcola da solo. ' : '') + (d.can_price ? 'Un prezzo cambiato su una sola consegna resta “a mano”; se lo cancelli torna quello del cliente.' : 'Solo le consegne con la quantità contano nel fatturato.') + '</p></div>';
+  }
+  function blFindItem(id) { var a = (BL.d && BL.d.items) || []; for (var i = 0; i < a.length; i++) if (a[i].id === id) return a[i]; return null; }
+  function blAfter() { BL.dirty = true; setTimeout(function () { var a = document.activeElement; if (BL.dirty && !(a && a.classList && a.classList.contains('blin'))) { BL.dirty = false; render(); } }, 120); }
+  function paxSave(id, raw, el) {
+    var n = blNum(raw); if (n !== null && (isNaN(n) || n < 0 || n % 1)) { toast('Scrivi un numero intero di pax'); return; }
+    if (el) el.classList.add('saving');
+    cl('rpc_ddt_pax_set', { p_id: id, p_pax: n }).then(function (r) {
+      if (el) el.classList.remove('saving');
+      if (!r || !r.ok) { toast(r && r.error === 'non_autorizzato' ? 'Non puoi cambiare la quantità' : 'Non salvato: controlla la connessione'); return; }
+      var x = ddtFind(id); if (x) x.pax = n;
+      var b = blFindItem(id); if (b) b.pax = n;
+      toast(n == null ? 'Quantità tolta' : 'Salvato: ' + n + ' pax');
+      if (view === 'fatturato') { blLoad(); } else blAfter();
+    }).catch(function () { if (el) el.classList.remove('saving'); toast('Non salvato: controlla la connessione'); });
+  }
+  document.addEventListener('change', function (e) {
+    var t = e.target; if (!t || !t.getAttribute) return;
+    var id = t.getAttribute('data-blpax'); if (id) { paxSave(id, t.value, t); return; }
+    id = t.getAttribute('data-blpp');
+    if (id) {
+      var n = blNum(t.value); if (n !== null && (isNaN(n) || n < 0)) { toast('Prezzo non valido'); return; }
+      cl('rpc_ddt_price_set', { p_id: id, p_price: n }).then(function (r) { if (!r || !r.ok) { toast('Non salvato'); return; } toast(n == null ? 'Torna al prezzo del cliente' : 'Prezzo salvato'); blLoad(); }).catch(function () { toast('Non salvato: controlla la connessione'); });
+      return;
+    }
+    var c = t.getAttribute('data-blcp');
+    if (c) {
+      var p = blNum(t.value); if (p == null || isNaN(p) || p < 0) { toast('Prezzo non valido'); return; }
+      BL.pe = true;
+      cl('rpc_bill_price_set', { p_customer: c, p_price: p, p_from: blMonth() }).then(function (r) { if (!r || !r.ok) { toast('Non salvato'); return; } toast('Prezzo ' + (c === '*' ? 'base' : 'di ' + c) + ' salvato' + (r.updated ? ' · ' + r.updated + ' consegne aggiornate' : '')); blLoad(); }).catch(function () { toast('Non salvato: controlla la connessione'); });
+    }
+  });
+  document.addEventListener('keydown', function (e) { var t = e.target; if (e.key === 'Enter' && t && t.classList && t.classList.contains('blin')) t.blur(); });
+  document.addEventListener('focusout', function (e) { if (BL.dirty && e.target && e.target.classList && e.target.classList.contains('blin')) blAfter(); });
+  document.addEventListener('toggle', function (e) { if (e.target && e.target.id === 'blPr') BL.pe = e.target.open; }, true);
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'blm') { var dd = new Date(blMonth() + 'T12:00:00'); dd.setMonth(dd.getMonth() + (+el.getAttribute('data-d'))); BL.m = dd.getFullYear() + '-' + ('0' + (dd.getMonth() + 1)).slice(-2) + '-01'; BL.d = null; BL.err = false; render(); blLoad(); }
+    else if (a === 'blf') { BL.f = el.getAttribute('data-f'); render(); }
+    else if (a === 'blcpdel') { var c = el.getAttribute('data-c'); BL.pe = true; cl('rpc_bill_price_set', { p_customer: c, p_price: null, p_from: blMonth() }).then(function (r) { if (r && r.ok) { toast(c + ': torna al prezzo base'); blLoad(); } else toast('Non salvato'); }); }
+    else if (a === 'blcpadd') {
+      var cn = ($('blNewC') || {}).value || '', p = blNum(($('blNewP') || {}).value);
+      if (!cn.trim()) { toast('Scrivi il cliente'); return; } if (p == null || isNaN(p) || p < 0) { toast('Scrivi il prezzo per pax'); return; }
+      BL.pe = true; cl('rpc_bill_price_set', { p_customer: cn.trim(), p_price: p, p_from: blMonth() }).then(function (r) { if (r && r.ok) { toast('Prezzo di ' + cn.trim() + ' salvato'); blLoad(); } else toast('Non salvato'); });
+    }
+    else if (a === 'nav' && el.getAttribute('data-v') === 'fatturato') { BL.d = null; BL.err = false; blLoad(); }
+  });
   function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
   /* ---------- render ---------- */
@@ -8588,6 +8737,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (!isOff() && isAdm && ['turno', 'guida', 'richieste', 'ddt'].indexOf(view) >= 0) view = 'logistica';
     if (isAdm && ['turno', 'guida', 'richieste'].indexOf(view) >= 0) view = 'logistica';
     if (!isAdm && view === 'admin') view = isFull ? 'logistica' : 'turno';
+    if (isBill() && ['home', 'fatturato', 'impost', 'contatti'].indexOf(view) < 0) view = 'fatturato';
+    if (view === 'fatturato' && !canMoney()) view = 'home';
     if (view === 'altro') view = 'home';
     if (view === 'nuovo') view = 'logistica';
     if (view === 'logistica' && !isMgr()) view = 'turno';
@@ -8600,7 +8751,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var g = $('gear'); g.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS.gear + '</svg>'; if (view === 'impost') g.setAttribute('aria-current', 'page'); else g.removeAttribute('aria-current');
     var cur = view === 'guida' ? 'turno' : view;
     if (view === 'pin' && !isFullAcc()) { view = 'impost'; cur = 'impost'; }
-    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'velox', 'oggi', 'foodcost', 'allergeni', 'listini', 'porzione', 'menu', 'mio', 'polybox', 'benzina', 'tracking'].indexOf(cur) >= 0) cur = 'altro';
+    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'velox', 'oggi', 'foodcost', 'allergeni', 'listini', 'porzione', 'menu', 'fatturato', 'mio', 'polybox', 'benzina', 'tracking'].indexOf(cur) >= 0) cur = 'altro';
     if (!isFull && !isAdm && cur === 'benzina') cur = 'barca';
     if (!isFull && !isAdm && !isVan() && cur === 'tracking') cur = 'barca';
     if (isAdm && cur === 'polybox') cur = 'logistica';
@@ -8621,7 +8772,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu }[view] || viewTurno;
+    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     diag('disegno ' + view); var _t0 = Date.now(), m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); m.scrollTop = (view === 'guida') ? 0 : sc; diag('fatto ' + view + ' ' + (Date.now() - _t0) + 'ms');
     if (LITE && Date.now() - _t0 > 2500 && window.__smbErr) window.__smbErr('Pagina lenta: ' + view + ' ' + (Date.now() - _t0) + ' ms');
@@ -8711,7 +8862,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     ['Cucina e costi', 'Food cost, allergeni e listini dei fornitori', ['menu', 'foodcost', 'porzione', 'allergeni', 'listini']],
     ['Flotta', 'Barche, documenti, benzina e velox', ['barca', 'benzina', 'velox']],
     ['Oggetti', 'Polybox, ceste e cose in viaggio', ['polybox', 'tracking', 'spedizioni']],
-    ['Archivio', 'Statistiche, turni, presenze e DDT', ['stat', 'turni', 'presenze', 'ddtgiro']],
+    ['Archivio', 'Statistiche, turni, presenze e DDT', ['stat', 'turni', 'presenze', 'ddtgiro', 'fatturato']],
     ['Persone', 'Messaggi, contatti e opzioni', ['notifiche', 'contatti', 'impost']]
   ];
   function homeTile(k) {
@@ -8736,14 +8887,15 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   var APPS = {
     logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
     barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], notifiche: ['Notifiche', '#db2777'],
-    oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], listini: ['Listini', '#0e7490'], porzione: ['Costo porzione', '#7c2d12'], menu: ['Menu', '#9d174d'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
+    oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], listini: ['Listini', '#0e7490'], porzione: ['Costo porzione', '#7c2d12'], menu: ['Menu', '#9d174d'], fatturato: ['Fatturato', '#047857'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
   };
   function homeApps() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isVan()) return ['polybox', 'tracking', 'programma', 'contatti', 'impost'];
+    if (isBill()) return ['fatturato', 'contatti', 'impost'];
     if (isOff()) return ['presenze', 'ddt', 'cucina', 'programma', 'notifiche', 'contatti', 'impost'];
-    if (isAdm) return ['logistica', 'notifiche', 'turni', 'presenze', 'spedizioni', 'tracking', 'stat', 'velox', 'barca', 'benzina', 'programma', 'contatti', 'impost'];
-    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'velox', 'cucina', 'menu', 'foodcost', 'porzione', 'allergeni', 'listini', 'contatti', 'impost'];
+    if (isAdm) return ['logistica', 'notifiche', 'turni', 'presenze'].concat(canMoney() ? ['fatturato'] : [], ['spedizioni', 'tracking', 'stat', 'velox', 'barca', 'benzina', 'programma', 'contatti', 'impost']);
+    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'fatturato', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'velox', 'cucina', 'menu', 'foodcost', 'porzione', 'allergeni', 'listini', 'contatti', 'impost'];
     if (isMgr()) return ['logistica', 'turno', 'turni', 'programma', 'notifiche', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'velox', 'contatti', 'impost'];
     return ['turno', 'programma', 'ddtgiro', 'barca', 'notifiche', 'tracking', 'benzina', 'impost'];
   }
