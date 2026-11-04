@@ -331,6 +331,19 @@ body.fspl{background:#000!important}body.fspl .top,body.fspl .nav{display:none!i
 .fck{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.fck>div{display:flex;flex-direction:column;padding:12px;border-radius:14px;border:1px solid var(--line,#e2e5ea);background:var(--surface,#fff)}.fck b{font-size:24px;font-variant-numeric:tabular-nums}.fck span{font-size:12.5px;color:var(--muted,#667)}.fck .bad b{color:#C5221F}.fck .ok b{color:#1E7D3A}
 .fcr2{display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid var(--line,#eef0f3);font-variant-numeric:tabular-nums}
 @supports not (display: grid) { .fc2, .fc3, .fcres, .fck { display: flex; flex-wrap: wrap; } .fc2 > *, .fc3 > *, .fcres > *, .fck > * { flex: 1 1 45%; margin: 4px; } .fcln { display: flex; flex-wrap: wrap; } .fcln > select:first-child { flex: 1 1 100%; } }
+/* Ingredienti e allergeni */
+.alfil{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}.alfil .chip{flex:0 0 auto;white-space:nowrap}
+.alr>span:first-child{gap:4px}.alcs{display:flex;flex-wrap:wrap;gap:4px}
+.alc{display:inline-flex;align-items:center;gap:3px;font-size:12.5px;font-weight:700;padding:3px 8px;border-radius:999px;background:#fde8c8;color:#7a3e00}.alc.tr{background:none;box-shadow:inset 0 0 0 1.5px #e7b56e;color:#8a5a14;font-weight:600}
+.alnone{font-size:12.5px;color:#1E7D3A;font-weight:600}.almiss{color:#B06000;font-style:normal;font-weight:600}
+.algrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px}
+.alt2{display:flex;align-items:center;gap:6px;min-height:44px;padding:8px 10px;border-radius:12px;border:1.5px solid var(--line,#d6dbe0);background:var(--surface,#fff);color:inherit;font:600 14px inherit;font-family:inherit;text-align:left;cursor:pointer}
+.alt2.on{background:#fde8c8;border-color:#e08a00;color:#6a3400}.alt2.tr.on{background:#fff7e8;border-style:dashed}
+.alnut{display:grid;grid-template-columns:minmax(0,1fr) 92px 92px;gap:6px;align-items:center}.alnut>b{font-size:12px;color:var(--muted,#667);text-align:center}.alnut>span{font-size:14px}.alnut .field{min-height:40px;padding:6px 8px;font-size:15px;text-align:right}
+.alph{display:flex;flex-direction:column;gap:8px;align-items:flex-start}.alph img{max-width:100%;max-height:360px;border-radius:12px;border:1px solid var(--line,#e2e5ea)}
+.dtt.alt th small{display:block;font-size:9.5px;text-transform:none;letter-spacing:0;font-weight:600;line-height:1.1;max-width:60px;white-space:normal}.dtt.alt th span{font-size:16px}
+.dtt.alt td{text-align:center;font-size:16px;min-width:44px}.dtt.alt td.y{color:#B3261E;background:#fff3f1}.dtt.alt td.t{color:#B06000}
+@supports not (display: grid) { .algrid, .alnut { display: flex; flex-wrap: wrap; } .algrid > * { width: 47%; margin: 1.5%; } .alnut > * { width: 30%; margin: 1%; } }
 .card.stsec{padding:0;display:block;gap:0;margin-bottom:8px}.stsec>summary{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;list-style:none;min-height:52px}.stsec>summary::-webkit-details-marker{display:none}.stsec>summary:focus-visible{outline:2px solid #1655C8;outline-offset:-2px;border-radius:14px}
 .stst{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.stst b{font-size:16px}.stst small{font-size:13px;color:var(--muted,#667);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stst small.ok{color:#2E7D32;font-weight:700}.stst small.late{color:#E65100;font-weight:700}.stst small.bad{color:#D93025;font-weight:700}
 .stsec[open]>summary .secc{transform:rotate(90deg)}.stsb{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}.stsb.flush{padding:0 0 6px;gap:0}.stsb .stk{margin-bottom:0}
@@ -1526,6 +1539,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       '<path d="M17 55c3-2.5 6-2.5 8 0s5 2.5 8 0 5-2.5 8 0 4 2.5 6 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
   }
   var ICONS = {
+    allergeni: '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
     foodcost: '<path d="M4 3v8a2 2 0 0 0 2 2v8M8 3v8M6 3v5"/><path d="M14 21V13h4a2 2 0 0 0 2-2V7a4 4 0 0 0-4-4h-2z"/>',
     velox: '<path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/>',
     presenze: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 10h7M8.5 13.5h7M8.5 17h4"/>',
@@ -8063,7 +8077,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   setInterval(function () { if (view === 'home' && isMioUser() && !document.hidden && !document.querySelector('#layer .sheet')) render(); }, 30000);
   /* ---------- Food Cost (Pietro Avicolli): ingredienti, ricette, costo per porzione, food cost %, prezzo consigliato ---------- */
   var FC = { d: null, busy: false, tab: 'rec', q: '', ed: null, err: '' };
-  function fcLoad(force) { if (FC.busy || (FC.d && !force)) return; FC.busy = true; cl('rpc_fc_get', {}).then(function (r) { FC.busy = false; if (r && r.ing) { FC.d = r; try { localStorage.setItem('smb-fc', JSON.stringify(r)); } catch (e) {} if (view === 'foodcost') render(); } }).catch(function () { FC.busy = false; }); }
+  function fcLoad(force) { if (FC.busy || (FC.d && !force)) return; FC.busy = true; cl('rpc_fc_get', {}).then(function (r) { FC.busy = false; if (r && r.ing) { FC.d = r; try { localStorage.setItem('smb-fc', JSON.stringify(r)); } catch (e) {} if (view === 'foodcost' || view === 'allergeni') render(); } }).catch(function () { FC.busy = false; }); }
   try { var _fcc = JSON.parse(localStorage.getItem('smb-fc') || 'null'); if (_fcc && _fcc.ing) FC.d = _fcc; } catch (e) {}
   function eur(v, d) { if (v == null || !isFinite(v)) return '—'; return '€ ' + (+v).toFixed(d == null ? 2 : d).replace('.', ','); }
   function fcNum(v) { if (v == null) return null; var n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; }
@@ -8122,7 +8136,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
           '<input class="field txt" data-fcl="q" data-i="' + i + '" inputmode="decimal" value="' + esc(l.q == null ? '' : l.q) + '" placeholder="Qtà" aria-label="Quantità"><select class="field txt" data-fcl="u" data-i="' + i + '" aria-label="Unità">' + us.map(function (u) { return '<option' + (l.u === u ? ' selected' : '') + '>' + u + '</option>'; }).join('') + '</select>' +
           '<span class="fclc' + (x.bad ? ' bad' : '') + '" title="' + esc(x.bad || '') + '">' + (x.bad ? '⚠' : eur(x.c)) + '</span><button class="fcx" data-act="fclrm" data-i="' + i + '" aria-label="Togli riga">✕</button></div>';
       }).join('') + '</div><button class="btn sm" data-act="fcladd">+ Aggiungi ingrediente</button>' + (!ings.length ? '<p class="hint">Non ci sono ancora ingredienti: aggiungili nella scheda Ingredienti.</p>' : '');
-      h += '<div class="fcres" id="fcRes">' + fcResHtml(c, cl2) + '</div>' + fld('fcnote', 'Note (procedimento, grammature…)', o.note);
+      var alx = alRecipe(o); h += '<div class="fcres" id="fcRes">' + fcResHtml(c, cl2) + '</div><div class="alcs" style="margin-top:6px"><b style="font-size:13px;margin-right:4px">Allergeni:</b>' + alChips(Object.keys(alx.a), Object.keys(alx.t), false) + '</div>' + fld('fcnote', 'Note (procedimento, grammature…)', o.note);
     }
     if (FC.err) h += '<p class="note" role="alert">' + esc(FC.err) + '</p>';
     h += '<div class="btns"><button class="btn primary" data-act="fcsave">Salva</button>' + (o.id && E.k === 'rec' ? '<button class="btn" data-act="fcdup">Duplica</button>' : '') + (o.id ? '<button class="btn danger" data-act="fcdel">Elimina</button>' : '') + '</div></section>';
@@ -8177,6 +8191,93 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       });
     }
   });
+  /* ---------- Ingredienti e allergeni: scheda di ogni prodotto (marca, composizione, 14 allergeni UE, tracce, valori nutrizionali, foto etichetta)
+     e tabella degli allergeni di ogni ricetta, calcolata dagli ingredienti del Food Cost ---------- */
+  var ALG = [['glutine', 'Glutine', '🌾'], ['crostacei', 'Crostacei', '🦐'], ['uova', 'Uova', '🥚'], ['pesce', 'Pesce', '🐟'], ['arachidi', 'Arachidi', '🥜'], ['soia', 'Soia', '🫘'], ['latte', 'Latte', '🥛'], ['frutta_guscio', 'Frutta a guscio', '🌰'], ['sedano', 'Sedano', '🥬'], ['senape', 'Senape', '🟡'], ['sesamo', 'Sesamo', '⚪'], ['solfiti', 'Solfiti', '🍷'], ['lupini', 'Lupini', '🟠'], ['molluschi', 'Molluschi', '🐚']];
+  var ALN = {}; ALG.forEach(function (a) { ALN[a[0]] = a; });
+  var NUT = [['kj', 'Energia (kJ)'], ['kcal', 'Energia (kcal)'], ['fat', 'Grassi (g)'], ['sat', 'di cui saturi (g)'], ['carb', 'Carboidrati (g)'], ['sugar', 'di cui zuccheri (g)'], ['protein', 'Proteine (g)'], ['salt', 'Sale (g)']];
+  var AL = { tab: 'prod', q: '', f: '', ed: null, err: '', open: null, photo: {} };
+  function alChips(a, t, small) { a = a || []; t = t || []; if (!a.length && !t.length) return '<span class="alnone">Nessun allergene</span>'; return a.map(function (k) { return ALN[k] ? '<span class="alc"' + (small ? ' title="' + ALN[k][1] + '"' : '') + '>' + ALN[k][2] + (small ? '' : ' ' + ALN[k][1]) + '</span>' : ''; }).join('') + t.map(function (k) { return ALN[k] ? '<span class="alc tr" title="Può contenere ' + ALN[k][1] + '">' + ALN[k][2] + (small ? '' : ' tracce di ' + ALN[k][1].toLowerCase()) + '</span>' : ''; }).join(''); }
+  function alRecipe(r) { var a = {}, t = {}; (r.lines || []).forEach(function (l) { var i = fcIng(l.ing); if (!i) return; (i.allergens || []).forEach(function (k) { (a[k] = a[k] || []).push(i.name); }); (i.traces || []).forEach(function (k) { (t[k] = t[k] || []).push(i.name); }); }); Object.keys(a).forEach(function (k) { delete t[k]; }); return { a: a, t: t }; }
+  function viewAllergeni() {
+    fcLoad(false);
+    var h = '<div class="wrap fcw"><button class="aslink" data-act="nav" data-v="home">‹ Home</button><div class="fchd"><h2>🏷️ Ingredienti e allergeni</h2>' + (FC.d ? '<button class="btn sm" data-act="alcsv">Esporta tabella</button>' : '') + '</div>';
+    if (!FC.d) return h + '<div class="card"><p class="muted">' + (tok() ? 'Carico…' : 'Serve la connessione la prima volta.') + '</p></div></div>';
+    if (AL.ed) return h + alEditor() + '</div>';
+    h += '<div class="seg2 fctabs" role="tablist">' + [['prod', 'Prodotti · ' + FC.d.ing.length], ['rec', 'Allergeni delle ricette']].map(function (t) { return '<button role="tab" data-act="altab" data-t="' + t[0] + '" aria-pressed="' + (AL.tab === t[0]) + '">' + t[1] + '</button>'; }).join('') + '</div>';
+    if (AL.tab === 'prod') {
+      h += '<div class="fcbar"><input id="alQ" class="field txt" type="search" placeholder="Cerca prodotto, marca, ingrediente" value="' + esc(AL.q) + '" autocomplete="off"><button class="btn primary" data-act="alnew">+ Prodotto</button></div>';
+      h += '<div class="alfil" role="group" aria-label="Filtra per allergene"><button class="chip" data-act="alf" data-k="" aria-pressed="' + !AL.f + '">Tutti</button>' + ALG.map(function (a) { return '<button class="chip" data-act="alf" data-k="' + a[0] + '" aria-pressed="' + (AL.f === a[0]) + '">' + a[2] + ' ' + a[1] + '</button>'; }).join('') + '</div>';
+      var q = AL.q.trim().toLowerCase(), L = FC.d.ing.filter(function (x) { return (!q || [x.name, x.brand, x.product, x.composition, x.supplier].join(' ').toLowerCase().indexOf(q) >= 0) && (!AL.f || (x.allergens || []).indexOf(AL.f) >= 0 || (x.traces || []).indexOf(AL.f) >= 0); });
+      if (!FC.d.ing.length) return h + '<div class="fcempty"><b>Nessun prodotto ancora</b><span>Aggiungi i prodotti che usi in cucina con la composizione dell’etichetta e gli allergeni. Sono gli stessi ingredienti del Food Cost.</span><button class="btn primary" data-act="alnew">+ Aggiungi il primo prodotto</button></div></div>';
+      h += L.length ? '<div class="fcl">' + L.map(function (x) { return '<button class="fcr alr" data-act="aledit" data-id="' + x.id + '"><span><b>' + esc(x.name) + '</b><small>' + esc([x.brand, x.pack_size ? (String(+x.pack_size).replace('.', ',') + ' ' + (x.pack_unit || x.unit)) : '', x.pack_portions ? x.pack_portions + ' porzioni' : ''].filter(Boolean).join(' · ') || (x.category || '')) + (!x.composition ? ' · <i class="almiss">composizione da inserire</i>' : '') + '</small><span class="alcs">' + alChips(x.allergens, x.traces, true) + '</span></span><span aria-hidden="true">›</span></button>'; }).join('') + '</div>' : '<p class="muted">Nessun prodotto con questi filtri.</p>';
+      return h + '</div>';
+    }
+    // allergeni delle ricette
+    if (!FC.d.rec.length) return h + '<div class="fcempty"><b>Nessuna ricetta</b><span>Crea le ricette nel Food Cost: qui vedi da soli gli allergeni di ogni piatto, presi dagli ingredienti.</span><button class="btn primary" data-act="nav" data-v="foodcost">Apri il Food Cost</button></div></div>';
+    h += '<p class="hint" style="margin:0">● contiene · ○ può contenere tracce. Tocca un piatto per vedere da quale ingrediente viene ogni allergene.</p><div class="dtw"><table class="dtt alt"><thead><tr><th scope="col">Piatto</th>' + ALG.map(function (a) { return '<th scope="col" title="' + a[1] + '"><span aria-hidden="true">' + a[2] + '</span><small>' + a[1] + '</small></th>'; }).join('') + '</tr></thead><tbody>' +
+      FC.d.rec.map(function (r) { var x = alRecipe(r); return '<tr class="' + (AL.open === r.id ? 'on' : '') + '" data-act="alrec" data-id="' + r.id + '" tabindex="0"><th scope="row">' + esc(r.name) + '</th>' + ALG.map(function (a) { return '<td class="' + (x.a[a[0]] ? 'y' : x.t[a[0]] ? 't' : '') + '">' + (x.a[a[0]] ? '●' : x.t[a[0]] ? '○' : '') + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
+    if (AL.open) { var r0 = FC.d.rec.filter(function (r) { return r.id === AL.open; })[0]; if (r0) { var x0 = alRecipe(r0), ka = Object.keys(x0.a), kt = Object.keys(x0.t), miss = (r0.lines || []).map(function (l) { return fcIng(l.ing); }).filter(function (i) { return i && !i.composition; });
+      h += '<section class="card"><div class="row"><h3>' + esc(r0.name) + '</h3><button class="aslink" data-act="alrec" data-id="' + r0.id + '">Chiudi</button></div>' +
+        (ka.length ? ka.map(function (k) { return '<div class="fcr2"><span>' + ALN[k][2] + ' <b>' + ALN[k][1] + '</b></span><small class="muted">da ' + esc(x0.a[k].join(', ')) + '</small></div>'; }).join('') : '<p class="muted">Nessun allergene dichiarato negli ingredienti.</p>') +
+        (kt.length ? '<h4 class="fch4">Può contenere tracce</h4>' + kt.map(function (k) { return '<div class="fcr2"><span>' + ALN[k][2] + ' ' + ALN[k][1] + '</span><small class="muted">da ' + esc(x0.t[k].join(', ')) + '</small></div>'; }).join('') : '') +
+        (miss.length ? '<p class="note">⚠ Mancano le schede di: ' + esc(miss.map(function (i) { return i.name; }).join(', ')) + '. Controlla l’etichetta e completa gli allergeni.</p>' : '') + '</section>'; } }
+    return h + '</div>';
+  }
+  function alEditor() {
+    var o = AL.ed, n = o.nutrition || {}, p = n.prep || {};
+    function fld(id, lab, v, extra) { return '<label for="al' + id + '">' + lab + '</label><input id="al' + id + '" class="field txt" data-al="' + id + '" value="' + esc(v == null ? '' : v) + '"' + (extra || '') + '>'; }
+    function tog(kind) { var sel = o[kind] || []; return '<div class="algrid">' + ALG.map(function (a) { var on = sel.indexOf(a[0]) >= 0; return '<button class="alt2' + (on ? ' on' : '') + (kind === 'traces' ? ' tr' : '') + '" data-act="altog" data-kind="' + kind + '" data-k="' + a[0] + '" aria-pressed="' + on + '"><span aria-hidden="true">' + a[2] + '</span>' + a[1] + '</button>'; }).join('') + '</div>'; }
+    var h = '<section class="card fced"><div class="row"><h3>' + (o.id ? 'Scheda prodotto' : 'Nuovo prodotto') + '</h3><button class="aslink" data-act="alcancel">Annulla</button></div>';
+    h += fld('name', 'Nome (come lo usi nelle ricette)', o.name) + '<div class="fc2"><div>' + fld('brand', 'Marca', o.brand, ' placeholder="Es. Pfanni"') + '</div><div>' + fld('supplier', 'Fornitore', o.supplier) + '</div></div>' + fld('product', 'Denominazione in etichetta', o.product, ' placeholder="Es. Preparato per purè"');
+    h += '<div class="fc3"><div>' + fld('pack_size', 'Confezione', o.pack_size, ' inputmode="decimal" placeholder="4"') + '</div><div><label for="alpack_unit">Unità</label><select id="alpack_unit" class="field txt" data-al="pack_unit">' + ['kg', 'g', 'l', 'ml', 'pz'].map(function (u) { return '<option' + ((o.pack_unit || 'kg') === u ? ' selected' : '') + '>' + u + '</option>'; }).join('') + '</select></div><div>' + fld('pack_portions', 'Porzioni per confezione', o.pack_portions, ' inputmode="numeric"') + '</div></div>';
+    h += '<label for="alcomposition">Ingredienti (dall’etichetta)</label><textarea id="alcomposition" class="field txt" rows="4" data-al="composition" placeholder="Copia l’elenco ingredienti: gli allergeni sono in MAIUSCOLO o in grassetto">' + esc(o.composition || '') + '</textarea>';
+    h += '<h4 class="fch4">Contiene</h4>' + tog('allergens') + '<h4 class="fch4">Può contenere tracce</h4>' + tog('traces');
+    h += '<h4 class="fch4">Valori nutrizionali per 100 g</h4><div class="alnut"><span></span><b>Prodotto</b><b>Preparato</b>' + NUT.map(function (x) { return '<span>' + x[1] + '</span><input class="field txt" inputmode="decimal" data-aln="' + x[0] + '" value="' + esc(n[x[0]] == null ? '' : String(n[x[0]]).replace('.', ',')) + '" aria-label="' + x[1] + ' prodotto"><input class="field txt" inputmode="decimal" data-alp="' + x[0] + '" value="' + esc(p[x[0]] == null ? '' : String(p[x[0]]).replace('.', ',')) + '" aria-label="' + x[1] + ' preparato">'; }).join('') + '</div>';
+    h += '<h4 class="fch4">Foto dell’etichetta</h4><div class="alph">' + (o.label_photo ? '<img src="' + o.label_photo + '" alt="Etichetta di ' + esc(o.name) + '">' : o.has_photo ? '<p class="muted">Carico la foto…</p>' : '<p class="muted">Nessuna foto.</p>') + '<button class="btn sm" data-act="alphoto">📷 ' + (o.label_photo || o.has_photo ? 'Cambia foto' : 'Fotografa l’etichetta') + '</button></div>';
+    h += '<div class="fc2"><div>' + fld('price', 'Prezzo d’acquisto (€)', o.price, ' inputmode="decimal"') + '</div><div><label for="alunit">Per</label><select id="alunit" class="field txt" data-al="unit">' + [['kg', 'kg'], ['l', 'litro'], ['pz', 'pezzo']].map(function (u) { return '<option value="' + u[0] + '"' + (o.unit === u[0] ? ' selected' : '') + '>' + u[1] + '</option>'; }).join('') + '</select></div></div>' + fld('note', 'Nota', o.note);
+    if (AL.err) h += '<p class="note" role="alert">' + esc(AL.err) + '</p>';
+    return h + '<div class="btns"><button class="btn primary" data-act="alsave">Salva</button>' + (o.id ? '<button class="btn" data-act="nav" data-v="foodcost">Vai al Food Cost</button>' : '') + '</div></section>';
+  }
+  function alCsv() {
+    var rows = [['Piatto'].concat(ALG.map(function (a) { return a[1]; }))];
+    FC.d.rec.forEach(function (r) { var x = alRecipe(r); rows.push([r.name].concat(ALG.map(function (a) { return x.a[a[0]] ? 'SÌ' : x.t[a[0]] ? 'tracce' : ''; }))); });
+    rows.push([]); rows.push(['Prodotto', 'Marca', 'Ingredienti', 'Contiene', 'Può contenere']);
+    FC.d.ing.forEach(function (i) { rows.push([i.name, i.brand || '', i.composition || '', (i.allergens || []).map(function (k) { return ALN[k][1]; }).join(', '), (i.traces || []).map(function (k) { return ALN[k][1]; }).join(', ')]); });
+    var csv = '﻿' + rows.map(function (r) { return r.map(function (v) { v = String(v == null ? '' : v); return /[;"\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(';'); }).join('\n');
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'allergeni-' + todayKey() + '.csv'; document.body.appendChild(a); a.click(); setTimeout(function () { a.remove(); }, 500);
+  }
+  document.addEventListener('input', function (e) {
+    var t = e.target; if (!t || !t.getAttribute) return;
+    if (t.id === 'alQ') { AL.q = t.value; var pos = t.selectionStart; render(); var nn = $('alQ'); if (nn) { nn.focus(); try { nn.setSelectionRange(pos, pos); } catch (x) {} } return; }
+    if (!AL.ed) return; var f = t.getAttribute('data-al'), fn = t.getAttribute('data-aln'), fp = t.getAttribute('data-alp');
+    if (f) AL.ed[f] = t.value;
+    else if (fn || fp) { var n = AL.ed.nutrition = AL.ed.nutrition || {}, tgt = fp ? (n.prep = n.prep || {}) : n, v = fcNum(t.value); if (v == null) delete tgt[fn || fp]; else tgt[fn || fp] = v; }
+  });
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act^="al"]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (['altab', 'alf', 'alnew', 'aledit', 'alcancel', 'altog', 'alsave', 'alrec', 'alcsv', 'alphoto'].indexOf(a) < 0) return;
+    if (a === 'altab') { AL.tab = el.getAttribute('data-t'); render(); }
+    else if (a === 'alf') { AL.f = el.getAttribute('data-k'); render(); }
+    else if (a === 'alcsv') alCsv();
+    else if (a === 'alrec') { var id0 = el.getAttribute('data-id'); AL.open = AL.open === id0 ? null : id0; render(); }
+    else if (a === 'alnew') { AL.err = ''; AL.ed = { name: '', unit: 'kg', price: '', yield_pct: 100, allergens: [], traces: [], pack_unit: 'kg', nutrition: {} }; render(); window.scrollTo(0, 0); }
+    else if (a === 'aledit') {
+      var src = FC.d.ing.filter(function (x) { return x.id === el.getAttribute('data-id'); })[0]; if (!src) return; AL.err = ''; AL.ed = JSON.parse(JSON.stringify(src)); AL.ed.nutrition = AL.ed.nutrition || {};
+      if (src.has_photo) { if (AL.photo[src.id]) AL.ed.label_photo = AL.photo[src.id]; else cl('rpc_fc_ing_photo', { p_id: src.id }).then(function (r) { if (r && r.photo) { AL.photo[src.id] = r.photo; if (AL.ed && AL.ed.id === src.id && !AL.ed.newPhoto) { AL.ed.label_photo = r.photo; render(); } } }); }
+      render(); window.scrollTo(0, 0);
+    }
+    else if (a === 'alcancel') { AL.ed = null; render(); }
+    else if (a === 'altog') { var kind = el.getAttribute('data-kind'), k = el.getAttribute('data-k'), L = AL.ed[kind] = AL.ed[kind] || [], ix = L.indexOf(k); if (ix >= 0) L.splice(ix, 1); else { L.push(k); var other = kind === 'allergens' ? 'traces' : 'allergens', O = AL.ed[other] || [], j = O.indexOf(k); if (j >= 0) O.splice(j, 1); } render(); }
+    else if (a === 'alphoto') { plPhoto(function (u) { if (!AL.ed) return; AL.ed.label_photo = u; AL.ed.newPhoto = true; render(); }); }
+    else if (a === 'alsave') {
+      var o = JSON.parse(JSON.stringify(AL.ed)); if (!String(o.name || '').trim()) { AL.err = 'Scrivi il nome.'; render(); return; }
+      o.price = fcNum(o.price) || 0; o.yield_pct = fcNum(o.yield_pct) || 100; o.pack_size = fcNum(o.pack_size); o.pack_portions = fcNum(o.pack_portions);
+      if (!o.newPhoto) delete o.label_photo; delete o.newPhoto; delete o.has_photo;
+      el.disabled = true;
+      cl('rpc_fc_ing_save', { p_item: o }).then(function (r) { if (r && r.ok) { if (o.label_photo) AL.photo[r.id] = o.label_photo; toast('Scheda salvata'); AL.ed = null; fcLoad(true); } else { el.disabled = false; AL.err = r && r.error === 'foto' ? 'Foto troppo grande o non valida.' : 'Non salvato: controlla la connessione.'; render(); } });
+    }
+  });
   function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
   /* ---------- render ---------- */
@@ -8217,7 +8318,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var g = $('gear'); g.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS.gear + '</svg>'; if (view === 'impost') g.setAttribute('aria-current', 'page'); else g.removeAttribute('aria-current');
     var cur = view === 'guida' ? 'turno' : view;
     if (view === 'pin' && !isFullAcc()) { view = 'impost'; cur = 'impost'; }
-    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'velox', 'oggi', 'foodcost', 'mio', 'polybox', 'benzina', 'tracking'].indexOf(cur) >= 0) cur = 'altro';
+    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'velox', 'oggi', 'foodcost', 'allergeni', 'mio', 'polybox', 'benzina', 'tracking'].indexOf(cur) >= 0) cur = 'altro';
     if (!isFull && !isAdm && cur === 'benzina') cur = 'barca';
     if (!isFull && !isAdm && !isVan() && cur === 'tracking') cur = 'barca';
     if (isAdm && cur === 'polybox') cur = 'logistica';
@@ -8225,7 +8326,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (view === 'stat' && !isMgr()) view = 'turno';
     if (view === 'velox' && !isMgr() && !isFullAcc()) view = 'home';
     if (view === 'oggi' && !isMgr() && !isFullAcc()) view = 'home';
-    if (view === 'foodcost' && !isFullAcc() && !(SESSION && SESSION.role === 'admin')) view = 'home';
+    if ((view === 'foodcost' || view === 'allergeni') && !isFullAcc() && !(SESSION && SESSION.role === 'admin')) view = 'home';
     // Elia, Daffa…: la plancia sostituisce navigatore e schermata del turno
     if ((view === 'guida' || view === 'turno') && isMioUser()) view = 'home';
     if (isMgr() && cur === 'contatti') cur = 'notifiche';
@@ -8238,7 +8339,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost }[view] || viewTurno;
+    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     diag('disegno ' + view); var _t0 = Date.now(), m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); m.scrollTop = (view === 'guida') ? 0 : sc; diag('fatto ' + view + ' ' + (Date.now() - _t0) + 'ms');
     if (LITE && Date.now() - _t0 > 2500 && window.__smbErr) window.__smbErr('Pagina lenta: ' + view + ' ' + (Date.now() - _t0) + ' ms');
@@ -8325,7 +8426,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   // Home dei responsabili: gli strumenti divisi in aree, con il riassunto di oggi in cima
   var HOME_AREAS = [
     ['Pianifica', 'Programmi, nuovi turni e consegne, cucina', ['logistica', 'programma', 'turno', 'cucina']],
-    ['Costi', 'Food cost delle ricette', ['foodcost']],
+    ['Cucina e costi', 'Food cost, ingredienti e allergeni', ['foodcost', 'allergeni']],
     ['Flotta', 'Barche, documenti, benzina e velox', ['barca', 'benzina', 'velox']],
     ['Oggetti', 'Polybox, ceste e cose in viaggio', ['polybox', 'tracking', 'spedizioni']],
     ['Archivio', 'Statistiche, turni, presenze e DDT', ['stat', 'turni', 'presenze', 'ddtgiro']],
@@ -8353,14 +8454,14 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   var APPS = {
     logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
     barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], notifiche: ['Notifiche', '#db2777'],
-    oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
+    oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
   };
   function homeApps() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isVan()) return ['polybox', 'tracking', 'programma', 'contatti', 'impost'];
     if (isOff()) return ['presenze', 'ddt', 'cucina', 'programma', 'notifiche', 'contatti', 'impost'];
     if (isAdm) return ['logistica', 'notifiche', 'turni', 'presenze', 'spedizioni', 'tracking', 'stat', 'velox', 'barca', 'benzina', 'programma', 'contatti', 'impost'];
-    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'velox', 'cucina', 'foodcost', 'contatti', 'impost'];
+    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'velox', 'cucina', 'foodcost', 'allergeni', 'contatti', 'impost'];
     if (isMgr()) return ['logistica', 'turno', 'turni', 'programma', 'notifiche', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'velox', 'contatti', 'impost'];
     return ['turno', 'programma', 'ddtgiro', 'barca', 'notifiche', 'tracking', 'benzina', 'impost'];
   }
