@@ -1324,7 +1324,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     { t: '', name: 'Santa Marta', note: 'Prova: da Pane a Santa Marta' }] }; });
   // simulazione del turno offline: consegna di prova sulla barca di prova (non entra nelle statistiche)
   // stasera fino a mezzanotte: il giro della Patana di domani, sulla barca di prova
-  var SIM = { '2026-11-03': { from: '2026-11-04', boat: 'PATANA', label: 'Giro Patana di domani' } };
+  var SIM = {}; // simulazioni finite
   var TULLIO_TEST = {};
   function simApply(P) { Object.keys(SIM).forEach(function (k) { var c = SIM[k], src = P[c.from] && P[c.from].boats[c.boat]; if (!P[k] || !src) return; var st = (src.stops || []).filter(function (z) { return !z.cancelled; }).map(function (z) { var o = JSON.parse(JSON.stringify(z)); o.note = (o.note ? o.note + ' · ' : '') + 'Simulazione'; return o; }); TULLIO_TEST[k] = st; P[k].boats.TULLIO = { test: true, stops: JSON.parse(JSON.stringify(st)) }; }); }
   simApply(PROGRAM);
@@ -1413,9 +1413,10 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   /* ---------- Modalità prova (fantasma): solo per Pietro Avicolli ----------
      Turno, GPS, consegne, foto e firme restano solo su questo telefono: niente viene mandato al server,
      quindi nessuno lo vede (né clienti, né Lisa, né la dashboard) e statistiche e ore non cambiano. */
-  var GHOST = false; try { GHOST = localStorage.getItem('smb-ghost') === '1'; } catch (e) {}
+  // modalità prova tolta: si lavora solo con i dati veri (anche offline)
+  var GHOST = false; try { localStorage.removeItem('smb-ghost'); } catch (e) {}
   var GHOST_BLOCK = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_log_gps', 'rpc_stop_event2', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_colli_set', 'rpc_murano_colli_set', 'rpc_shift_gps_mode', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_refuel_add2', 'rpc_refuel_void', 'rpc_fuel_set', 'rpc_track_move', 'rpc_ddt_edit_file', 'rpc_ddt_place_sig', 'rpc_bread_crates_set', 'rpc_pb_return_set', 'rpc_shift_edit', 'rpc_task_update', 'rpc_pos_share', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_shift_void'];
-  function ghostAllowed() { return !!(SESSION && SESSION.name && /avicolli/i.test(SESSION.name)); }
+  function ghostAllowed() { return false; }
   function ghostSet(on) {
     try {
       if (on) { var real = JSON.parse(localStorage.getItem('smb-state-v2') || '{}'), g = JSON.parse(localStorage.getItem('smb-state-ghost') || 'null'); real.shift = null; real.requests = []; real.history = (g && g.history) || []; localStorage.setItem('smb-state-ghost', JSON.stringify(real)); localStorage.setItem('smb-ghost', '1'); }
@@ -8956,6 +8957,16 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       });
     }).catch(function () {});
   }
+  // un turno di prova (barca di prova) rimasto aperto sul telefono si chiude da solo: non blocca il turno vero
+  setTimeout(function () {
+    try {
+      if (S.shift && (S.shift.boat === 'TULLIO' || (BOATS[S.shift.boat] && BOATS[S.shift.boat].test))) {
+        var meta = outMeta(), lid = meta.cur;
+        if (lid && meta[lid] && !meta[lid].closed) { meta[lid].closed = true; meta[lid].endAt = Date.now(); meta.cur = null; outMetaPut(meta); idbDo('q', 'readwrite', function (st) { return st.add({ lid: lid, fn: 'rpc_end_shift', args: { p_km: 0, p_total: 0 }, fake: 'auto', at: Date.now(), owner: (SESSION && SESSION.name) || '' }); }).catch(function () {}); }
+        S.shift = null; save(); if (view === 'guida') view = 'turno'; render(); toast('Turno di prova chiuso: puoi iniziare il turno vero');
+      }
+    } catch (e) {}
+  }, 1200);
   setInterval(function () { if (!document.hidden) outSync(); }, 45000); setTimeout(function () { outCount(); outSync(); }, 5000);
   window.addEventListener('online', function () { setTimeout(outSync, 2500); });
   // prima di andare offline: i DDT del giorno si scaricano sul telefono, così si vedono e si firmano anche senza rete
