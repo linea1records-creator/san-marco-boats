@@ -9563,6 +9563,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     nvGpsOn();
     if (!NV.places && tok()) cl('rpc_places_list', {}).then(function (r) { if (r && r.length !== undefined) { NV.places = r; nvDraw(); } });
     if (!VX.d && tok()) vxLoad();
+    ngLoad();
     if (!OR.d && !OR.busy && tok() && (isMgr() || isFullAcc())) orLoad();
     NV.tick = setInterval(nvTick, 1000);
     setTimeout(function () { nvDraw(); nvBot(); }, 30);
@@ -9602,13 +9603,13 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   function nvBeep() { try { var C = window.AudioContext || window.webkitAudioContext; if (!C || LITE) return; var c = nvBeep.c || (nvBeep.c = new C()), o = c.createOscillator(), g = c.createGain(); o.frequency.value = 880; g.gain.value = .15; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + .35); } catch (e) {} }
   // orari di arrivo: tratte conosciute dai tempi reali, altrimenti distanza × 1,3 a 10 km/h, più la sosta tipica
   function nvEtas() {
-    var p = nvPos(), out = [], t = Date.now(), from = p ? { la: p.la, lo: p.lo, name: null } : null, km = 0;
+    var p = nvPos(), out = [], t = Date.now(), from = p ? { la: p.la, lo: p.lo, name: null } : null, km = 0, LG = ngLegs();
     NV.route.forEach(function (z, i) {
       if (!from) { out.push(null); from = z; return; }
-      var d = hav(from.la, from.lo, z.la, z.lo), lg = from.name && typeof orLeg === 'function' && OR.d ? orLeg(from.name, z.name) : null, min = lg && lg.trav != null ? +lg.trav : d * NV_DET / 1000 / NV_SPD * 60;
+      var rl = LG[i], d = rl ? rl.len : hav(from.la, from.lo, z.la, z.lo) * NV_DET, lg = from.name && typeof orLeg === 'function' && OR.d ? orLeg(from.name, z.name) : null, min = lg && lg.trav != null ? +lg.trav : d / 1000 / NV_SPD * 60;
       if (i > 0) { var dw = typeof orDwell === 'function' && OR.d ? orDwell(from.name) : null; t += (dw ? Math.min(20, +dw.dwell) : 5) * 60000; }
-      t += min * 60000; km += d * NV_DET / 1000;
-      out.push({ at: t, km: km, d: d, real: !!lg }); from = z;
+      t += min * 60000; km += d / 1000;
+      out.push({ at: t, km: km, d: d, real: !!lg, usual: !!(rl && rl.usual) }); from = z;
     });
     return out;
   }
@@ -9618,7 +9619,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var h = '<div class="nvsp' + (kmh != null && kmh > NV_LIM ? ' fast' : '') + '"><b>' + (kmh == null ? '–' : Math.round(kmh)) + '</b><small>km/h</small></div>';
     if (NV.route.length) {
       var z = NV.route[0], e = et[0];
-      h += '<div class="nvnx"><small>PROSSIMA TAPPA</small><b>' + esc(z.name) + '</b><span>' + (e ? (e.d < 1000 ? Math.round(e.d) + ' m' : (e.d / 1000).toFixed(1).replace('.', ',') + ' km') + ' · arrivo <b>' + hm(e.at) + '</b>' + (e.real ? ' · tempo reale' : '') : 'In attesa del GPS…') + '</span></div>';
+      h += '<div class="nvnx"><small>PROSSIMA TAPPA</small><b>' + esc(z.name) + '</b><span>' + (e ? (e.d < 1000 ? Math.round(e.d) + ' m' : (e.d / 1000).toFixed(1).replace('.', ',') + ' km') + ' · arrivo <b>' + hm(e.at) + '</b>' + (e.usual ? ' · percorso abituale' : ' · in linea d’aria') + (e.real ? ' · tempo reale' : '') : 'In attesa del GPS…') + '</span></div>';
     } else h += '<div class="nvnx"><small>NAVIGAZIONE LIBERA</small><b>Nessuna tappa</b><span>Cerca un luogo o tieni premuto sulla mappa</span></div>';
     h += '<label class="nvwk"><input type="checkbox" id="nvWork"' + (on ? ' checked' : '') + '><span>Orario di lavoro</span><small>' + (on ? 'turno attivo dalle ' + hm(S.shift.start) : 'spento') + '</small></label>';
     if (NV.route.length > 1 || (NV.route.length && NV.showList)) h += '<ol class="nvrl">' + NV.route.map(function (z, i) { var e = et[i]; return '<li><span class="nvn">' + (i + 1) + '</span><b>' + esc(z.name) + '</b><span>' + (e ? hm(e.at) : '—') + '</span><button data-act="nvup" data-i="' + i + '" aria-label="Sposta prima"' + (i ? '' : ' disabled') + '>↑</button><button data-act="nvrm" data-i="' + i + '" aria-label="Togli ' + esc(z.name) + '">✕</button></li>'; }).join('') + '</ol>';
@@ -9637,8 +9638,12 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     function X(lo) { return (tileX(lo, z) - x0).toFixed(1); } function Y(la) { return (tileY(la, z) - y0).toFixed(1); }
     var g = '';
     // percorso: dalla posizione alle tappe, in ordine
-    var line = (p ? [[p.la, p.lo]] : []).concat(NV.route.map(function (r) { return [r.la, r.lo]; }));
-    if (line.length > 1) { var pts = line.map(function (q) { return X(q[1]) + ',' + Y(q[0]); }).join(' '); g += '<polyline points="' + pts + '" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/><polyline points="' + pts + '" fill="none" stroke="#1a73e8" stroke-width="4" stroke-dasharray="10 7" stroke-linecap="round" stroke-linejoin="round"/>'; }
+    // percorso: sulla strada fatta davvero nei giorni passati (linea piena), in linea d'aria dove non si conosce (tratteggiata)
+    ngLegs().forEach(function (rl, i) {
+      if (!rl) { if (i > 0) rl = ngRoute(NV.route[i - 1], NV.route[i]); else return; }
+      var pts = rl.pts.map(function (q) { return X(q[1]) + ',' + Y(q[0]); }).join(' ');
+      g += '<polyline points="' + pts + '" fill="none" stroke="#fff" stroke-width="' + (rl.usual ? 9 : 7) + '" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/><polyline points="' + pts + '" fill="none" stroke="' + (i ? '#5e97f6' : '#1a73e8') + '" stroke-width="' + (rl.usual ? 6 : 4) + '"' + (rl.usual ? '' : ' stroke-dasharray="10 7"') + ' stroke-linecap="round" stroke-linejoin="round"/>';
+    });
     // velox
     if (z >= 13) ((VX.d && VX.d.marks) || []).forEach(function (m) { var q = PT[m.id]; if (!q) return; var ok = m.state === 'ok'; g += '<g><circle cx="' + X(q[3]) + '" cy="' + Y(q[2]) + '" r="9" fill="' + (ok ? '#d32f2f' : '#9e9e9e') + '" stroke="#fff" stroke-width="2"/><text x="' + X(q[3]) + '" y="' + (+Y(q[2]) + 4) + '" text-anchor="middle" font-size="10" fill="#fff">📸</text><title>Velox ' + esc(q[1]) + (ok ? ' (attivo)' : ' (spento)') + '</title></g>'; });
     // luoghi salvati e tappe del giro (solo con zoom vicino)
@@ -9743,6 +9748,70 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   document.addEventListener('wheel', function (e) { var box = $('nvBox'); if (!box || !box.contains(e.target)) return; e.preventDefault(); var r = box.getBoundingClientRect(); nvZoom(e.deltaY < 0 ? 1 : -1, e.clientX - r.left, e.clientY - r.top); }, { passive: false });
   document.addEventListener('contextmenu', function (e) { var box = $('nvBox'); if (box && box.contains(e.target)) e.preventDefault(); });
   window.addEventListener('resize', function () { if (NV.open) nvDraw(); });
+  /* ---------- Percorso abituale: la rete dei tragitti fatti davvero (GPS dei giorni passati) e il percorso più corto su quella rete ---------- */
+  var NG = { g: null, at: 0, busy: false, cache: {} };
+  function ngLoad() {
+    try { var c = JSON.parse(localStorage.getItem('smb-navnet') || 'null'); if (c && c.segs && !NG.g) { ngBuild(c.segs); NG.at = c.t || 0; } } catch (e) {}
+    if (NG.busy || !tok() || Date.now() - NG.at < 6 * 3600000) return;
+    NG.busy = true;
+    cl('rpc_nav_network', { p_days: 120 }).then(function (r) {
+      NG.busy = false; if (!r || !r.segs) return;
+      NG.at = Date.now(); ngBuild(r.segs); NG.cache = {};
+      try { localStorage.setItem('smb-navnet', JSON.stringify({ segs: r.segs, t: NG.at })); } catch (e) {}
+      if (NV.open) { nvDraw(); nvBot(); }
+    }).catch(function () { NG.busy = false; });
+  }
+  function ngBuild(segs) {
+    var CY = 0.00022, CX = 0.00031, idx = {}, N = [], E = [];
+    function node(la, lo) { var k = Math.round(la / CY) + ':' + Math.round(lo / CX), i = idx[k]; if (i == null) { i = idx[k] = N.length; N.push({ la: la, lo: lo, n: 1, k: k, a: Math.round(la / CY), b: Math.round(lo / CX) }); } else { var q = N[i]; q.la = (q.la * q.n + la) / (q.n + 1); q.lo = (q.lo * q.n + lo) / (q.n + 1); q.n++; } return i; }
+    var adj = {};
+    function link(a, b, f) { if (a === b) return; var k = a < b ? a + '-' + b : b + '-' + a; if (adj[k]) { adj[k].u++; return; } adj[k] = { a: a, b: b, u: 1, f: f || 1 }; }
+    segs.forEach(function (s) { var prev = null; s.forEach(function (p) { var i = node(+p[0], +p[1]); if (prev != null) link(prev, i, 1); prev = i; }); });
+    // tracce vicine di giorni diversi: si uniscono le celle accanto
+    N.forEach(function (q, i) { for (var da = -1; da <= 1; da++) for (var db = -1; db <= 1; db++) { if (!da && !db) continue; var j = idx[(q.a + da) + ':' + (q.b + db)]; if (j != null && j > i && hav(q.la, q.lo, N[j].la, N[j].lo) < 40) link(i, j, 1.25); } });
+    var A = N.map(function () { return []; });
+    Object.keys(adj).forEach(function (k) { var e = adj[k], w = hav(N[e.a].la, N[e.a].lo, N[e.b].la, N[e.b].lo) * e.f * (e.u >= 2 ? 0.92 : 1); A[e.a].push([e.b, w]); A[e.b].push([e.a, w]); });
+    NG.g = { N: N, A: A };
+  }
+  function ngNear(la, lo, max) { var g = NG.g, out = []; if (!g) return out; for (var i = 0; i < g.N.length; i++) { var d = hav(la, lo, g.N[i].la, g.N[i].lo); if (d <= max) out.push([i, d]); } out.sort(function (a, b) { return a[1] - b[1]; }); return out.slice(0, 6); }
+  // percorso da A a B: tratti fuori rete costano di più, così si preferisce la strada già fatta
+  function ngRoute(a, b) {
+    var key = a.la.toFixed(4) + ',' + a.lo.toFixed(4) + '>' + b.la.toFixed(4) + ',' + b.lo.toFixed(4); if (NG.cache[key] !== undefined) return NG.cache[key];
+    var g = NG.g, res = null;
+    if (g && g.N.length) {
+      var S0 = ngNear(a.la, a.lo, 300), T0 = ngNear(b.la, b.lo, 300);
+      if (S0.length && T0.length) {
+        var n = g.N.length, dist = new Float64Array(n), prev = new Int32Array(n), done = new Uint8Array(n), heap = [], i;
+        for (i = 0; i < n; i++) { dist[i] = Infinity; prev[i] = -1; }
+        function push(v, d) { heap.push([d, v]); var c = heap.length - 1; while (c > 0) { var p = (c - 1) >> 1; if (heap[p][0] <= heap[c][0]) break; var t = heap[p]; heap[p] = heap[c]; heap[c] = t; c = p; } }
+        function pop() { var top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; var c = 0; for (;;) { var l = 2 * c + 1, r = l + 1, m = c; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === c) break; var t = heap[m]; heap[m] = heap[c]; heap[c] = t; c = m; } } return top; }
+        S0.forEach(function (s) { var d = s[1] * 1.6; if (d < dist[s[0]]) { dist[s[0]] = d; push(s[0], d); } });
+        var tgt = {}; T0.forEach(function (t) { tgt[t[0]] = t[1] * 1.6; });
+        var best = Infinity, bi = -1, found = 0;
+        while (heap.length) {
+          var it = pop(), u = it[1]; if (done[u]) continue; done[u] = 1;
+          if (it[0] > best) break;
+          if (tgt[u] != null && it[0] + tgt[u] < best) { best = it[0] + tgt[u]; bi = u; if (++found >= T0.length) break; }
+          var L = g.A[u]; for (var k = 0; k < L.length; k++) { var v = L[k][0], nd = it[0] + L[k][1]; if (nd < dist[v]) { dist[v] = nd; prev[v] = u; push(v, nd); } }
+        }
+        var straight = hav(a.la, a.lo, b.la, b.lo);
+        if (bi >= 0 && best < straight * 3.5) {
+          var path = []; for (var x = bi; x >= 0; x = prev[x]) path.push([g.N[x].la, g.N[x].lo]); path.reverse();
+          path.unshift([a.la, a.lo]); path.push([b.la, b.lo]);
+          var len = 0; for (i = 1; i < path.length; i++) len += hav(path[i - 1][0], path[i - 1][1], path[i][0], path[i][1]);
+          res = { pts: path, len: len, usual: true };
+        }
+      }
+    }
+    if (!res) res = { pts: [[a.la, a.lo], [b.la, b.lo]], len: hav(a.la, a.lo, b.la, b.lo) * NV_DET, usual: false };
+    var ks = Object.keys(NG.cache); if (ks.length > 60) NG.cache = {};
+    NG.cache[key] = res; return res;
+  }
+  function ngLegs() {
+    var p = nvPos(), out = [], from = p ? { la: p.la, lo: p.lo } : null;
+    NV.route.forEach(function (z) { out.push(from ? ngRoute(from, z) : null); from = z; });
+    return out;
+  }
   function viewNavi() { setTimeout(nvOpen, 0); return '<div class="wrap"><p class="muted">Apro il navigatore…</p></div>'; }
   function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
