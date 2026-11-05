@@ -1314,6 +1314,54 @@ body.phonev .nav { display: none; }
 .phkcall { width: 76px; height: 76px; border-radius: 50%; background: #34c759; display: flex; align-items: center; justify-content: center; }
 .phkcall svg { width: 32px; height: 32px; } .phkcall.off { opacity: .35; }
 .phkp .phdel { background: none; font-size: 26px; color: var(--muted); }
+body.snapv .nav { display: none; }
+.snw { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 30; display: flex; flex-direction: column; background: #fff; color: #111; background-size: cover; background-position: center; }
+.snhd { display: flex; align-items: center; gap: 10px; padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 10px; background: #FFFC00; color: #111; }
+.snth .snhd { background: rgba(255,255,255,.94); border-bottom: 1px solid rgba(0,0,0,.08); }
+.snhd b { flex: 1; font: 800 20px/1 system-ui, sans-serif; }
+.snb { width: 40px; height: 40px; border-radius: 20px; border: 0; background: rgba(0,0,0,.08); font-size: 20px; color: #111; }
+.snlist { flex: 1; overflow-y: auto; }
+.snrow { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 14px; border: 0; border-bottom: 1px solid #f0f0f0; background: #fff; text-align: left; font: inherit; color: #111; }
+.snav { width: 46px; height: 46px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; color: #fff; font: 700 16px system-ui, sans-serif; }
+.snhd .snav { width: 34px; height: 34px; font-size: 13px; }
+.snrt { flex: 1; min-width: 0; } .snrt b { display: block; font-size: 16px; } .snrt small { display: block; font-size: 13px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.snnp .snrt small { color: #f23c57; font-weight: 700; } .snnc .snrt small { color: #0eadff; font-weight: 700; }
+.sndot { font-style: normal; min-width: 22px; height: 22px; border-radius: 11px; background: #f23c57; color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 6px; }
+.sncam { font-size: 18px; opacity: .45; }
+.snmt { text-align: center; color: #888; padding: 30px 20px; }
+.snth .snmt, .snth .snday { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+.snth:not([style]) .snmt, .snth:not([style]) .snday { color: #888; text-shadow: none; }
+.snmsgs { flex: 1; overflow-y: auto; padding: 10px 12px; -webkit-overflow-scrolling: touch; }
+.snday { text-align: center; font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: .05em; margin: 10px 0 6px; }
+.snm { margin: 6px 0; padding: 4px 10px; border-left: 3px solid #0eadff; background: rgba(255,255,255,.92); border-radius: 0 10px 10px 0; max-width: 88%; }
+.snm.me { border-left-color: #f23c57; }
+.snm small { display: block; font: 800 11px system-ui, sans-serif; color: #0eadff; } .snm.me small { color: #f23c57; }
+.snm small i { font-style: normal; font-weight: 400; color: #999; margin-left: 4px; }
+.snm p { margin: 2px 0; font-size: 16px; line-height: 1.35; word-wrap: break-word; }
+.snrd { display: block; font-size: 10px; color: #999; font-style: normal; }
+.snx { color: #999; font-style: italic; }
+.snph { display: flex; align-items: center; gap: 10px; border: 0; background: none; padding: 6px 0; font: 600 14px system-ui, sans-serif; color: #555; text-align: left; }
+.snsq { width: 18px; height: 18px; border-radius: 4px; border: 2.5px solid #f23c57; flex: none; }
+.snph.new { color: #f23c57; } .snph.new .snsq { background: #f23c57; }
+.snimg { border: 0; padding: 0; background: none; display: block; margin: 4px 0; } .snimg img { max-width: 220px; max-height: 260px; border-radius: 10px; display: block; }
+.sncomp { display: flex; gap: 8px; align-items: center; padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); background: rgba(255,255,255,.96); border-top: 1px solid rgba(0,0,0,.08); }
+.sncomp input { flex: 1; min-width: 0; height: 42px; border-radius: 21px; border: 0; background: #f0f0f0; padding: 0 16px; font-size: 16px; color: #111; }
+.sncamb, .snsend { width: 42px; height: 42px; border-radius: 21px; border: 0; font-size: 20px; flex: none; }
+.sncamb { background: #f0f0f0; } .snsend { background: #0eadff; color: #fff; }
+.snpv img { width: 100%; max-height: 50vh; object-fit: contain; border-radius: 12px; background: #000; display: block; }
+.snopt { margin: 10px 0; } .snsecs { display: flex; gap: 8px; margin-top: 8px; }
+.snsecs button { flex: 1; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 700; }
+.snsecs button[aria-pressed="true"] { background: #f23c57; color: #fff; border-color: #f23c57; }
+.snvw { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 70; background: #000; display: flex; align-items: center; justify-content: center; }
+.snvw img { max-width: 100%; max-height: 100%; object-fit: contain; user-select: none; -webkit-user-drag: none; pointer-events: none; }
+.snring { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: 14px; width: 44px; height: 44px; }
+.snring svg { width: 44px; height: 44px; transform: rotate(-90deg); }
+.snring .bgc { fill: rgba(0,0,0,.4); stroke: rgba(255,255,255,.35); stroke-width: 3; }
+.snring .fgc { fill: none; stroke: #fff; stroke-width: 3; stroke-dasharray: 94.25; stroke-dashoffset: 0; stroke-linecap: round; }
+.snring b { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; color: #fff; font: 700 15px system-ui, sans-serif; }
+.snvh { position: absolute; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: 0; right: 0; text-align: center; color: rgba(255,255,255,.75); font-size: 13px; }
+.plst { flex-wrap: wrap; }
+.plst button { flex: 1 0 22%; padding: 7px 2px; }
 .huc .huh { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .huh b { display: flex; align-items: center; gap: 8px; font-size: 17px; }
 .huh b i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
@@ -1816,6 +1864,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     listini: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/>',
     allergeni: '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
     foodcost: '<path d="M4 3v8a2 2 0 0 0 2 2v8M8 3v8M6 3v5"/><path d="M14 21V13h4a2 2 0 0 0 2-2V7a4 4 0 0 0-4-4h-2z"/>',
+    snap: '<path d="M12 3c3 0 5 2.2 5 5.2v2.3l1.6.5c.5.2.5.8 0 1l-1.8.7c.4 1.6 1.8 2.8 3.2 3.2.4.1.4.6 0 .8-.9.4-1.9.5-2.4.7-.2.6-.3 1.3-1 1.3-.9 0-1.7-.5-3-.5-1.5 0-2.4 1.3-3.6 1.3S8.4 19.2 7 19.2c-.7 0-.8-.7-1-1.3-.5-.2-1.5-.3-2.4-.7-.4-.2-.4-.7 0-.8 1.4-.4 2.8-1.6 3.2-3.2l-1.8-.7c-.5-.2-.5-.8 0-1l1.6-.5V8.2C7 5.2 9 3 12 3z"/>',
     navi: '<path d="M12 2 L20 21 L12 17 L4 21 Z"/>',
     orari: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/>',
     percorsi: '<circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.5"/>',
@@ -8352,7 +8401,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     h += '<section class="plas" aria-label="Assistente"><button class="plbig k-' + k + '" data-act="plgo"><span class="plic" aria-hidden="true">' + A[0] + '</span><span class="pltx"><b>' + A[1] + '</b><small>' + A[2] + '</small></span></button>' +
       (p.shift && s ? '<div class="plsub"><button data-act="problem">⚠ Problema</button><button data-act="plopen">Apri la tappa</button></div>' : '') + '</section>';
     // STRUMENTI
-    h += '<nav class="plst" aria-label="Strumenti"><button data-act="plcam"><span>📷</span>Fotocamera</button><button data-act="nav" data-v="contatti"><span>📞</span>Telefono</button><button data-act="nav" data-v="mio"><span>➕</span>Nuova consegna</button><button data-act="nav" data-v="programma"><span>📅</span>Calendario</button><button data-act="nav" data-v="navi"><span>🧭</span>Navigatore</button>' + (p.shift ? '<button data-act="swopen"><span>🔁</span>Cambio barca</button>' : '') + '<button data-act="nav" data-v="impost" aria-label="Opzioni"><span>⚙️</span>Opzioni</button></nav>';
+    h += '<nav class="plst" aria-label="Strumenti"><button data-act="plcam"><span>📷</span>Fotocamera</button><button data-act="nav" data-v="contatti"><span>📞</span>Telefono</button><button data-act="nav" data-v="mio"><span>➕</span>Nuova consegna</button><button data-act="nav" data-v="programma"><span>📅</span>Calendario</button><button data-act="nav" data-v="navi"><span>🧭</span>Navigatore</button><button data-act="nav" data-v="snap"><span>👻</span>Snap</button>' + (p.shift ? '<button data-act="swopen"><span>🔁</span>Cambio barca</button>' : '') + '<button data-act="nav" data-v="impost" aria-label="Opzioni"><span>⚙️</span>Opzioni</button></nav>';
     return h + '</div>';
   }
   function plFire(act, attrs) { var b = document.createElement('button'); b.setAttribute('data-act', act); Object.keys(attrs || {}).forEach(function (k) { b.setAttribute(k, attrs[k]); }); b.style.display = 'none'; document.body.appendChild(b); b.click(); b.remove(); }
@@ -10059,6 +10108,113 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     Array.prototype.forEach.call(document.querySelectorAll('.phw .phl'), function (u) { var s = u.previousElementSibling, vis = u.querySelector('.phr:not([hidden])'); u.hidden = !vis; if (s && s.classList.contains('phsec')) s.hidden = !vis; });
     var n = $('phNone'); if (n) n.hidden = any;
   });
+  /* ---------- Snap: chat stile Snapchat, messaggi e foto bomba (si vedono una volta sola), sfondo personalizzato ---------- */
+  var SN = { peer: null, pname: '', list: null, th: null, busy: false, unread: 0, bomb: true, secs: 5, draft: '', pend: null, sig: '' };
+  function snImg(f, max, q) {
+    return loadImg(f).then(function (img) { var sc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight)), cv = document.createElement('canvas'); cv.width = Math.round(img.naturalWidth * sc); cv.height = Math.round(img.naturalHeight * sc); cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); return cv.toDataURL('image/jpeg', q); });
+  }
+  function snAgo(t) { if (!t) return ''; var m = Math.round((Date.now() - Date.parse(t)) / 60000); return m < 1 ? 'adesso' : m < 60 ? m + ' min' : m < 1440 ? Math.round(m / 60) + ' h' : Math.round(m / 1440) + ' g'; }
+  function snLoadList() { if (!tok()) return Promise.resolve(); return cl('rpc_snap_people', {}).then(function (r) { if (r && r.length !== undefined) { var sg = JSON.stringify(r); if (sg !== SN.sig || !SN.list) { SN.list = r; SN.sig = sg; if (view === 'snap' && !SN.peer) snPaint(); } SN.unread = r.reduce(function (s, x) { return s + (+x.unread || 0); }, 0); snBadge(); } }).catch(function () {}); }
+  function snLoadThread() {
+    if (!SN.peer || !tok()) return Promise.resolve(); var pid = SN.peer;
+    return cl('rpc_snap_thread', { p_peer: pid }).then(function (r) { if (!r || !r.msgs || SN.peer !== pid) return; var sg = JSON.stringify(r.msgs) + (r.bg ? r.bg.length : 0); if (sg !== SN.sig || !SN.th) { var first = !SN.th; SN.th = r; SN.sig = sg; if (view === 'snap') snPaint(first); } }).catch(function () {});
+  }
+  function snBadge() { Array.prototype.forEach.call(document.querySelectorAll('.apptile[data-v="snap"], .plst [data-v="snap"]'), function (b) { var e = b.querySelector('.dbadge'); if (e) e.remove(); if (SN.unread > 0) { var x = document.createElement('b'); x.className = 'dbadge'; x.textContent = SN.unread > 9 ? '9+' : SN.unread; b.appendChild(x); } }); }
+  setInterval(function () { if (document.hidden || !tok()) return; if (view === 'snap') { if (SN.peer) snLoadThread(); else snLoadList(); } else if (Date.now() - (SN.lu || 0) > 60000) { SN.lu = Date.now(); cl('rpc_snap_unread', {}).then(function (n) { if (typeof n === 'number') { SN.unread = n; snBadge(); } }).catch(function () {}); } }, 4000);
+  function snPaint(scroll) { var m = $('snBox'); if (!m) { render(); return; } m.outerHTML = snInner(); if (scroll || SN.peer) { var l = $('snMsgs'); if (l) l.scrollTop = l.scrollHeight; } }
+  function viewSnap() { if (!SN.list && !SN.busy) { SN.busy = true; snLoadList().then(function () { SN.busy = false; }); } if (SN.peer && !SN.th) snLoadThread(); setTimeout(function () { var l = $('snMsgs'); if (l) l.scrollTop = l.scrollHeight; snBadge(); }, 0); return snInner(); }
+  function snAv(n) { return '<span class="snav" style="background:' + phCol(n) + '">' + esc(phIni(n)) + '</span>'; }
+  function snInner() {
+    if (!SN.peer) {
+      var L = SN.list;
+      return '<div class="snw" id="snBox"><header class="snhd"><button class="snb" data-act="nav" data-v="home" aria-label="Home">‹</button><b>Chat</b><button class="snb" data-act="snbg" data-p="" aria-label="Sfondo per tutte le chat">🖼</button></header>' +
+        '<div class="snlist">' + (!L ? '<p class="snmt">Carico…</p>' : !L.length ? '<p class="snmt">Nessun collega.</p>' : L.map(function (x) {
+          var st, cls = '';
+          if (x.unread > 0) { st = x.last_kind === 'photo' ? (x.last_bomb ? '💣 Nuova foto bomba' : '📷 Nuova foto') : '💬 Nuova chat'; cls = x.last_kind === 'photo' ? ' snnp' : ' snnc'; }
+          else if (!x.last_at) st = 'Tocca per scrivere';
+          else if (x.last_mine) st = (x.last_kind === 'photo' ? (x.last_bomb ? '💣 Inviata' : '📷 Inviata') : '➤ Inviato') + (x.last_seen ? ' · aperto' : '');
+          else st = x.last_kind === 'photo' ? (x.last_bomb ? '💣 Aperta' : '📷 Ricevuta') : '💬 ' + (x.last_body || 'Ricevuto');
+          return '<button class="snrow' + cls + '" data-act="snopen" data-id="' + esc(x.id) + '" data-n="' + esc(x.name) + '">' + snAv(x.name) + '<span class="snrt"><b>' + esc(x.name) + '</b><small>' + esc(st) + (x.last_at ? ' · ' + snAgo(x.last_at) : '') + '</small></span>' + (x.unread > 0 ? '<i class="sndot">' + x.unread + '</i>' : '<span class="sncam" aria-hidden="true">📷</span>') + '</button>';
+        }).join('')) + '</div></div>';
+    }
+    var T = SN.th, bg = T && T.bg, last = null;
+    var h = '<div class="snw snth" id="snBox"' + (bg ? ' style="background-image:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.35)),url(' + bg + ')"' : '') + '><header class="snhd"><button class="snb" data-act="snback" aria-label="Indietro">‹</button>' + snAv(SN.pname) + '<b>' + esc(SN.pname) + '</b><button class="snb" data-act="snbg" data-p="' + esc(SN.peer) + '" aria-label="Sfondo della chat">🖼</button></header><div class="snmsgs" id="snMsgs">';
+    if (!T) h += '<p class="snmt">Carico…</p>';
+    else if (!T.msgs.length) h += '<p class="snmt">Inizia la chat con ' + esc(SN.pname) + '. Le foto bomba si vedono una volta sola e poi si distruggono.</p>';
+    else T.msgs.forEach(function (m) {
+      var who = m.mine ? 'me' : 'lui', day = new Date(m.at).toDateString();
+      if (day !== last) { last = day; h += '<div class="snday">' + esc(new Date(m.at).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })) + '</div>'; }
+      h += '<div class="snm ' + who + '"><small>' + (m.mine ? 'IO' : esc(SN.pname.split(' ')[0].toUpperCase())) + ' <i>' + hm(m.at) + '</i></small>';
+      if (m.kind === 'text') h += '<p>' + esc(m.body).replace(/\n/g, '<br>') + '</p>';
+      else if (m.bomb) {
+        var can = !m.mine && !m.gone && !m.opened;
+        h += '<button class="snph bomb' + (can ? ' new' : '') + '" ' + (can ? 'data-act="snview" data-id="' + esc(m.id) + '"' : 'disabled') + '><span class="snsq"></span>' + (m.mine ? (m.opened ? 'Foto bomba aperta · distrutta' : 'Foto bomba inviata · non ancora aperta') : (can ? 'Foto bomba · tocca per vedere (' + m.secs + ' s)' : 'Foto bomba vista · distrutta')) + '</button>';
+      } else h += m.gone ? '<p class="snx">Foto non più disponibile</p>' : '<button class="snimg" data-act="snview" data-id="' + esc(m.id) + '"><img src="' + m.thumb + '" alt="Foto"></button>';
+      if (m.mine && m.kind === 'text' && m.read) h += '<em class="snrd">Letto</em>';
+      h += '</div>';
+    });
+    h += '</div><div class="sncomp"><button class="sncamb" data-act="snshot" aria-label="Foto">📷</button><input id="snIn" placeholder="Invia una chat" autocomplete="off" value="' + esc(SN.draft) + '" enterkeyhint="send"><button class="snsend" data-act="snsend" aria-label="Invia">➤</button></div></div>';
+    return h;
+  }
+  function snSendText() {
+    var i = $('snIn'), t = String(i ? i.value : '').trim(); if (!t || !SN.peer) return; SN.draft = ''; if (i) i.value = '';
+    var pid = SN.peer; if (SN.th) { SN.th.msgs.push({ id: 'tmp', mine: true, kind: 'text', body: t, at: new Date().toISOString() }); snPaint(true); }
+    cl('rpc_snap_send', { p_peer: pid, p_kind: 'text', p_body: t, p_photo: null, p_bomb: false, p_secs: null }).then(function (r) { if (!r || !r.ok) toast('Messaggio non inviato'); SN.sig = ''; snLoadThread(); }).catch(function () { toast('Messaggio non inviato: controlla la connessione'); });
+  }
+  function snShot() {
+    var inp = $('snFile'); if (!inp) { inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.setAttribute('capture', 'environment'); inp.id = 'snFile'; inp.hidden = true; document.body.appendChild(inp); }
+    inp.onchange = function () { var f = inp.files && inp.files[0]; inp.value = ''; if (!f) return; snImg(f, 1280, .74).then(function (d) { SN.pend = d; snPhSheet(); }).catch(function () { toast('Non riesco a leggere la foto'); }); };
+    inp.click();
+  }
+  function snPhSheet() {
+    if (!SN.pend) return;
+    openSheet('<div class="snpv"><img src="' + SN.pend + '" alt="Anteprima"></div><div class="snopt"><button class="check" data-act="snbomb" aria-pressed="' + SN.bomb + '"><i>✓</i><span>💣 Foto bomba: si vede una volta sola</span></button>' +
+      (SN.bomb ? '<div class="snsecs">' + [3, 5, 10].map(function (s) { return '<button data-act="snsecs" data-s="' + s + '" aria-pressed="' + (SN.secs === s) + '">' + s + ' s</button>'; }).join('') + '</div>' : '') + '</div>' +
+      '<div class="btns"><button class="btn primary" data-act="snphgo">Invia a ' + esc(SN.pname) + ' ➤</button><button class="btn quiet" data-act="snphno">Annulla</button></div>');
+  }
+  function snView(id) {
+    toast('Apro…');
+    cl('rpc_snap_open', { p_id: id }).then(function (r) {
+      if (!r || !r.photo) { toast(r && r.error === 'distrutta' ? 'Questa foto è già stata distrutta' : 'Foto non disponibile'); SN.sig = ''; snLoadThread(); return; }
+      var v = document.createElement('div'); v.className = 'snvw'; v.setAttribute('role', 'dialog');
+      v.innerHTML = '<img src="' + r.photo + '" alt="Foto">' + (r.bomb ? '<div class="snring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" class="bgc"/><circle cx="18" cy="18" r="15" class="fgc" id="snRing"/></svg><b id="snSec">' + r.secs + '</b></div><p class="snvh">💣 Si distrugge quando finisce il tempo · tocca per chiudere</p>' : '<p class="snvh">Tocca per chiudere</p>');
+      document.body.appendChild(v); r.photo = null;
+      var t0 = Date.now(), dur = (r.secs || 5) * 1000, done = false;
+      function close() { if (done) return; done = true; v.remove(); SN.sig = ''; snLoadThread(); }
+      v.addEventListener('click', close);
+      if (r.bomb) (function tick() { if (done) return; var left = dur - (Date.now() - t0), ring = $('snRing'), sec = $('snSec'); if (ring) ring.style.strokeDashoffset = String(94.25 * (1 - Math.max(0, left) / dur)); if (sec) sec.textContent = Math.max(0, Math.ceil(left / 1000)); if (left <= 0) close(); else requestAnimationFrame(tick); })();
+    }).catch(function () { toast('Non riesco ad aprire la foto: controlla la connessione'); });
+  }
+  function snBg(peer) {
+    openSheet('<h2>🖼 Sfondo</h2><p class="muted">' + (peer ? 'Per la chat con ' + esc(SN.pname) : 'Per tutte le chat') + '. Lo vedi solo tu.</p><div class="btns"><button class="btn primary" data-act="snbgup" data-p="' + esc(peer || '') + '">Scegli una foto</button>' +
+      (peer ? '<button class="btn" data-act="snbgup" data-p="">Usa per tutte le chat</button>' : '') + '<button class="btn quiet" data-act="snbgdel" data-p="' + esc(peer || '') + '">Togli lo sfondo</button><button class="btn quiet" data-act="close">Annulla</button></div>');
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (!/^sn/.test(a)) return;
+    if (a === 'snopen') { SN.peer = el.getAttribute('data-id'); SN.pname = el.getAttribute('data-n'); SN.th = null; SN.sig = ''; render(); snLoadThread(); }
+    else if (a === 'snback') { SN.peer = null; SN.th = null; SN.sig = ''; render(); snLoadList(); }
+    else if (a === 'snsend') snSendText();
+    else if (a === 'snshot') snShot();
+    else if (a === 'snbomb') { SN.bomb = !SN.bomb; snPhSheet(); }
+    else if (a === 'snsecs') { SN.secs = +el.getAttribute('data-s'); snPhSheet(); }
+    else if (a === 'snphno') { SN.pend = null; closeSheet(); }
+    else if (a === 'snphgo') {
+      var d = SN.pend, pid = SN.peer; if (!d || !pid) return; SN.pend = null; closeSheet(); toast('Invio la foto…');
+      cl('rpc_snap_send', { p_peer: pid, p_kind: 'photo', p_body: null, p_photo: d, p_bomb: SN.bomb, p_secs: SN.bomb ? SN.secs : null }).then(function (r) { toast(r && r.ok ? (SN.bomb ? '💣 Foto bomba inviata' : '📷 Foto inviata') : 'Foto non inviata'); SN.sig = ''; snLoadThread(); }).catch(function () { toast('Foto non inviata: controlla la connessione'); });
+    }
+    else if (a === 'snview') snView(el.getAttribute('data-id'));
+    else if (a === 'snbg') snBg(el.getAttribute('data-p'));
+    else if (a === 'snbgdel') { closeSheet(); cl('rpc_snap_bg_set', { p_peer: el.getAttribute('data-p') || '', p_img: null }).then(function () { toast('Sfondo tolto'); SN.sig = ''; if (SN.peer) snLoadThread(); }); }
+    else if (a === 'snbgup') {
+      var pp = el.getAttribute('data-p') || ''; closeSheet();
+      var inp = $('snBgIn'); if (!inp) { inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.id = 'snBgIn'; inp.hidden = true; document.body.appendChild(inp); }
+      inp.onchange = function () { var f = inp.files && inp.files[0]; inp.value = ''; if (!f) return; toast('Carico lo sfondo…'); snImg(f, 1080, .7).then(function (dd) { return cl('rpc_snap_bg_set', { p_peer: pp, p_img: dd }); }).then(function (r) { toast(r && r.ok ? '🖼 Sfondo salvato' : 'Sfondo non salvato'); SN.sig = ''; if (SN.peer) snLoadThread(); }).catch(function () { toast('Sfondo non salvato'); }); };
+      inp.click();
+    }
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target && e.target.id === 'snIn') { e.preventDefault(); snSendText(); } });
+  document.addEventListener('input', function (e) { if (e.target && e.target.id === 'snIn') SN.draft = e.target.value; });
   function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
   /* ---------- render ---------- */
@@ -10076,9 +10232,9 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (GHOST && !document.getElementById('ghostBar')) { var gb = document.createElement('div'); gb.id = 'ghostBar'; gb.setAttribute('role', 'status'); gb.textContent = '👻 MODALITÀ PROVA · nessuno ti vede · niente viene salvato'; gb.style.cssText = 'position:sticky;top:0;left:0;right:0;z-index:99999;background:#7c3aed;color:#fff;font:600 12px/1.2 system-ui,sans-serif;text-align:center;padding:calc(4px + env(safe-area-inset-top)) 10px 4px;pointer-events:none'; document.body.insertBefore(gb, document.body.firstChild); }
     if (S.shift && view === 'guida' && !document.hidden) wakeOn(); else wakeOff();
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
-    if (isOff() && ['home', 'presenze', 'ddt', 'contatti', 'impost', 'programma', 'cucina', 'notifiche'].indexOf(view) < 0) view = 'home';
+    if (isOff() && ['home', 'presenze', 'ddt', 'contatti', 'impost', 'programma', 'cucina', 'notifiche', 'snap'].indexOf(view) < 0) view = 'home';
     if (view === 'presenze' && !isOff() && !isMgr() && !isFullAcc()) view = 'home';
-    if (isVan() && ['home', 'polybox', 'tracking', 'contatti', 'impost', 'programma', 'navi'].indexOf(view) < 0) view = 'home';
+    if (isVan() && ['home', 'polybox', 'tracking', 'contatti', 'impost', 'programma', 'navi', 'snap'].indexOf(view) < 0) view = 'home';
     if (view === 'tracking' && isOff()) view = 'ddt';
     if (view === 'spedizioni' && (isOff() || isVan())) view = 'home';
     if (view === 'turni' && !isMgr() && !isFullAcc()) view = 'home';
@@ -10101,7 +10257,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var g = $('gear'); g.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS.gear + '</svg>'; if (view === 'impost') g.setAttribute('aria-current', 'page'); else g.removeAttribute('aria-current');
     var cur = view === 'guida' ? 'turno' : view;
     if (view === 'pin' && !isFullAcc()) { view = 'impost'; cur = 'impost'; }
-    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'velox', 'oggi', 'foodcost', 'allergeni', 'listini', 'porzione', 'menu', 'fatturato', 'carena', 'percorsi', 'orari', 'navi', 'mio', 'polybox', 'benzina', 'tracking'].indexOf(cur) >= 0) cur = 'altro';
+    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'velox', 'oggi', 'foodcost', 'allergeni', 'listini', 'porzione', 'menu', 'fatturato', 'carena', 'percorsi', 'orari', 'navi', 'snap', 'mio', 'polybox', 'benzina', 'tracking'].indexOf(cur) >= 0) cur = 'altro';
     if (!isFull && !isAdm && cur === 'benzina') cur = 'barca';
     if (!isFull && !isAdm && !isVan() && cur === 'tracking') cur = 'barca';
     if (isAdm && cur === 'polybox') cur = 'logistica';
@@ -10123,10 +10279,11 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     drawHomeNav();
     document.body.classList.toggle('fspl', view === 'home' && isMioUser());
     document.body.classList.toggle('phonev', view === 'contatti' && !(CTE && CTE.on));
+    document.body.classList.toggle('snapv', view === 'snap');
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi, orari: viewOrari, navi: viewNavi }[view] || viewTurno;
+    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi, orari: viewOrari, navi: viewNavi, snap: viewSnap }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     diag('disegno ' + view); var _t0 = Date.now(), m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); if (view === 'percorsi') setTimeout(rtDraw, 0); m.scrollTop = (view === 'guida') ? 0 : sc; diag('fatto ' + view + ' ' + (Date.now() - _t0) + 'ms');
     if (LITE && Date.now() - _t0 > 2500 && window.__smbErr) window.__smbErr('Pagina lenta: ' + view + ' ' + (Date.now() - _t0) + ' ms');
@@ -10217,7 +10374,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     ['Flotta', 'Barche, documenti, benzina, carena e velox', ['barca', 'benzina', 'carena', 'velox']],
     ['Oggetti', 'Polybox, ceste e cose in viaggio', ['polybox', 'tracking', 'spedizioni']],
     ['Archivio', 'Percorsi, statistiche, turni, presenze e DDT', ['percorsi', 'stat', 'turni', 'presenze', 'ddtgiro', 'fatturato']],
-    ['Persone', 'Messaggi, contatti e opzioni', ['notifiche', 'contatti', 'impost']]
+    ['Persone', 'Messaggi, Snap, telefono e opzioni', ['notifiche', 'snap', 'contatti', 'impost']]
   ];
   function homeTile(k) {
     var a = APPS[k] || [k, '#475569'], ic = ICONS[k === 'impost' ? 'gear' : k] || ICONS.altro;
@@ -10242,17 +10399,17 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   var APPS = {
     logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
     barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], notifiche: ['Notifiche', '#db2777'],
-    oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], listini: ['Listini', '#0e7490'], porzione: ['Costo porzione', '#7c2d12'], menu: ['Menu', '#9d174d'], fatturato: ['Fatturato', '#047857'], carena: ['Carena', '#0e7490'], percorsi: ['Percorsi', '#0f766e'], orari: ['Orari reali', '#6d28d9'], navi: ['Navigatore', '#1a73e8'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Telefono', '#34c759'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
+    oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], listini: ['Listini', '#0e7490'], porzione: ['Costo porzione', '#7c2d12'], menu: ['Menu', '#9d174d'], fatturato: ['Fatturato', '#047857'], carena: ['Carena', '#0e7490'], percorsi: ['Percorsi', '#0f766e'], orari: ['Orari reali', '#6d28d9'], navi: ['Navigatore', '#1a73e8'], snap: ['Snap', '#e6c300'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Telefono', '#34c759'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
   };
   function homeApps() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
-    if (isVan()) return ['polybox', 'tracking', 'programma', 'navi', 'contatti', 'impost'];
+    if (isVan()) return ['polybox', 'tracking', 'programma', 'navi', 'snap', 'contatti', 'impost'];
     if (isBill()) return ['fatturato', 'contatti', 'impost'];
-    if (isOff()) return ['presenze', 'ddt', 'cucina', 'programma', 'notifiche', 'contatti', 'impost'];
-    if (isAdm) return ['logistica', 'notifiche', 'turni', 'presenze'].concat(canMoney() ? ['fatturato'] : [], ['spedizioni', 'tracking', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'barca', 'benzina', 'programma', 'contatti', 'impost']);
-    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'fatturato', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'cucina', 'menu', 'foodcost', 'porzione', 'allergeni', 'listini', 'contatti', 'impost'];
-    if (isMgr()) return ['logistica', 'turno', 'turni', 'programma', 'notifiche', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'contatti', 'impost'];
-    return ['turno', 'navi', 'programma', 'ddtgiro', 'barca', 'notifiche', 'tracking', 'benzina', 'impost'];
+    if (isOff()) return ['presenze', 'ddt', 'cucina', 'programma', 'notifiche', 'snap', 'contatti', 'impost'];
+    if (isAdm) return ['logistica', 'notifiche', 'snap', 'turni', 'presenze'].concat(canMoney() ? ['fatturato'] : [], ['spedizioni', 'tracking', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'barca', 'benzina', 'programma', 'contatti', 'impost']);
+    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'fatturato', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'snap', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'cucina', 'menu', 'foodcost', 'porzione', 'allergeni', 'listini', 'contatti', 'impost'];
+    if (isMgr()) return ['logistica', 'turno', 'turni', 'programma', 'notifiche', 'snap', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'contatti', 'impost'];
+    return ['turno', 'navi', 'programma', 'ddtgiro', 'barca', 'notifiche', 'snap', 'tracking', 'benzina', 'impost'];
   }
   function viewHome() {
     if (isMioUser()) return viewPlancia();
