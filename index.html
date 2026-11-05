@@ -1250,6 +1250,17 @@ body.nvopen { overflow: hidden; }
 .nvrl li small { color: #666; font-size: 11px; }
 .pew { max-height: 60vh; overflow-y: auto; }
 .nvattr { position: absolute; left: 14px; top: calc(62px + env(safe-area-inset-top, 0px)); font-size: 10px; color: #333; background: rgba(255,255,255,.75); padding: 1px 5px; border-radius: 4px; z-index: 2; pointer-events: none; }
+.hmedh { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 10px 0 4px; }
+.hmedh span { display: flex; gap: 6px; }
+.hmedg .hmed { touch-action: none; position: relative; cursor: grab; animation: hmwig .35s ease-in-out infinite alternate; }
+.hmedg .hmed:nth-child(2n) { animation-delay: .17s; }
+@keyframes hmwig { from { transform: rotate(-1.2deg); } to { transform: rotate(1.2deg); } }
+@media (prefers-reduced-motion: reduce) { .hmedg .hmed { animation: none; } }
+.lite .hmedg .hmed { animation: none; }
+.hmed.hmhole { opacity: .25; animation: none; }
+.hmghost { position: fixed; z-index: 60; pointer-events: none; opacity: .92; transform: scale(1.08); list-style: none; }
+.hmren { position: absolute; top: -4px; right: -4px; width: 26px; height: 26px; border-radius: 13px; background: var(--ink); color: var(--bg); font-size: 13px; display: flex; align-items: center; justify-content: center; }
+.hmcus { display: block; margin: 18px auto 6px; }
 .huc .huh { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .huh b { display: flex; align-items: center; gap: 8px; font-size: 17px; }
 .huh b i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
@@ -2044,8 +2055,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   function fuelCfg(c) { return FUEL_CFG[c] || { type: 'q' }; }
   function fuelHtml(sh) {
     var cf = fuelCfg(physOf(sh)), e = sh.end || {}, v = e.fuel;
-    if (cf.type === 'l') return '<div class="card fuelc"><h3>⛽ Benzina rimasta nel serbatoio</h3><div class="fuell"><input type="range" id="fuelR" min="0" max="' + cf.max + '" step="1" value="' + (v ? v.n : Math.round(cf.max / 2)) + '"><input type="number" id="fuelN" min="0" max="' + cf.max + '" inputmode="numeric" value="' + (v ? v.n : '') + '" placeholder="litri"><span>L su ' + cf.max + '</span></div>' + (v ? '' : '<div class="hint">Sposta la barra o scrivi i litri.</div>') + '</div>';
-    return '<div class="card fuelc"><h3>⛽ Benzina rimasta nel serbatoio</h3><div class="seg2 fuelq">' + FUEL_Q.map(function (q) { return '<button data-act="fuelq" data-l="' + q[0] + '" data-p="' + q[1] + '"' + (v && v.l === q[0] ? ' aria-pressed="true"' : '') + '>' + q[0] + '</button>'; }).join('') + '</div></div>';
+    if (cf.type === 'l') return '<div class="card fuelc"><h3>⛽ Benzina rimasta nel serbatoio' + (setOn('end_fuel_required') ? '' : ' <span class="req">facoltativa</span>') + '</h3><div class="fuell"><input type="range" id="fuelR" min="0" max="' + cf.max + '" step="1" value="' + (v ? v.n : Math.round(cf.max / 2)) + '"><input type="number" id="fuelN" min="0" max="' + cf.max + '" inputmode="numeric" value="' + (v ? v.n : '') + '" placeholder="litri"><span>L su ' + cf.max + '</span></div>' + (v ? '' : '<div class="hint">Sposta la barra o scrivi i litri.</div>') + '</div>';
+    return '<div class="card fuelc"><h3>⛽ Benzina rimasta nel serbatoio' + (setOn('end_fuel_required') ? '' : ' <span class="req">facoltativa</span>') + '</h3><div class="seg2 fuelq">' + FUEL_Q.map(function (q) { return '<button data-act="fuelq" data-l="' + q[0] + '" data-p="' + q[1] + '"' + (v && v.l === q[0] ? ' aria-pressed="true"' : '') + '>' + q[0] + '</button>'; }).join('') + '</div></div>';
   }
   document.addEventListener('change', function (e) { var t = e.target; if (!t || t.id !== 'cartCk' || !S.shift) return; S.shift.end = S.shift.end || { photo: null }; S.shift.end.cart = !!t.checked; save(); });
   // foto di fine turno: se manca la rete resta in coda e riparte appena torna
@@ -2117,7 +2128,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       '<div class="row"><span>Percorso</span><b class="mono">' + fmt1(sh.km || 0) + ' km</b></div>' +
       '<div class="row"><span>Durata</span><b class="mono">' + dur(Date.now() - sh.start) + '</b></div>' +
       (left ? '<div class="note"><b>Tappe ancora da fare: ' + left + '.</b> Se chiudi adesso restano non fatte.</div>' : '') + '</div>' +
-      '<div class="card endph"><h3>📷 Foto della barca <span class="req">obbligatoria</span></h3>' + (e.photo
+      '<div class="card endph"><h3>📷 Foto della barca <span class="req">' + (setOn('end_photo_required') ? 'obbligatoria' : 'facoltativa') + '</span></h3>' + (e.photo
         ? '<div class="photo"><img src="' + e.photo + '" alt="Foto della barca a fine turno"><button class="btn" data-act="endphoto">Rifai la foto</button></div>'
         : '<div class="photo"><button class="btn primary" data-act="endphoto">Scatta la foto della barca</button></div><p class="hint">Fotografa la barca ormeggiata, com’è stata lasciata.</p>') +
       '<label class="cartck"><input type="checkbox" id="cartCk"' + (e.cart ? ' checked' : '') + '> 🛒 Il carrello è in barca</label></div>' +
@@ -4246,6 +4257,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     return '<div class="wrap"><h2>⚙️ Impostazioni</h2>' +
       '<div class="card"><h3>Accesso</h3><p class="muted">Sei entrato come <b>' + esc(SESSION ? SESSION.name : '') + '</b>' + (SESSION && SESSION.role === 'admin' ? ' (admin)' : '') + '.</p><button class="btn" data-act="logout">Esci</button></div>' +
       '<div class="card"><h3>Colore dello sfondo</h3><p class="muted">Scegli il colore che ti piace di più. Il testo si adatta da solo per restare leggibile. La schermata GPS resta sempre nera.</p><div class="swatches">' + BGS.map(function (c) { return '<button class="sw" data-act="bg" data-c="' + c[0] + '" aria-pressed="' + ((S.bg || '#FFFFFF').toUpperCase() === c[0] ? 'true' : 'false') + '"><i style="background:' + c[0] + '"></i>' + c[1] + '</button>'; }).join('') + '</div><label class="hint" for="bgIn">Oppure scegli un colore a piacere</label><input id="bgIn" type="color" value="' + esc((S.bg || '#FFFFFF').toLowerCase()) + '" style="width:100%;height:48px;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:4px"></div>' +
+      appSetCard() + homeCard() +
       (isFullAcc() && !(SESSION && SESSION.offline) ? offCodeCard() : '') +
       (isFullAcc() ? secCard('<p class="muted">Scegli un PIN tuo, da 4 a 8 cifre. Non dirlo a nessuno.</p>' +
       '<label class="muted" for="pnOld">PIN attuale</label><input class="field" id="pnOld" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="current-password">' +
@@ -9842,6 +9854,80 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     return out;
   }
   function viewNavi() { setTimeout(nvOpen, 0); return '<div class="wrap"><p class="muted">Apro il navigatore…</p></div>'; }
+  /* ---------- Impostazioni dell'app (Pietro) e Home personalizzata (ognuno la sua) ---------- */
+  var APPSET = { s: { end_photo_required: true, end_fuel_required: true }, home: null, can: false };
+  try { var _as = JSON.parse(localStorage.getItem('smb-appset') || 'null'); if (_as && _as.s) { APPSET.s = Object.assign(APPSET.s, _as.s); APPSET.home = _as.home || null; APPSET.can = !!_as.can; } } catch (e) {}
+  function setOn(k) { return APPSET.s[k] !== false; }
+  function appSetSave() { try { localStorage.setItem('smb-appset', JSON.stringify(APPSET)); } catch (e) {} }
+  function appSetLoad() {
+    if (!tok()) return;
+    cl('rpc_settings_get', {}).then(function (r) {
+      if (!r || !r.settings) return; var before = JSON.stringify(APPSET);
+      APPSET.s = Object.assign({ end_photo_required: true, end_fuel_required: true }, r.settings); APPSET.home = r.home || null; APPSET.can = !!r.can_edit; appSetSave();
+      if (before !== JSON.stringify(APPSET) && (view === 'home' || view === 'impost') && !HM.edit) render();
+    }).catch(function () {});
+  }
+  var APPSET_LAB = [['end_photo_required', '📷 Foto della barca obbligatoria a fine turno', 'Se la spegni, il turno si chiude anche senza foto (la foto resta possibile).'], ['end_fuel_required', '⛽ Benzina rimasta obbligatoria a fine turno', 'Se la spegni, il livello del serbatoio diventa facoltativo.']];
+  function appSetCard() {
+    if (!(isFullAcc() || (isMgr() && APPSET.can))) return '';
+    return '<div class="card"><h3>🛠 Impostazioni dell’app</h3><p class="muted">Valgono per tutti i trasportatori.</p>' + APPSET_LAB.map(function (x) {
+      return '<button class="check" data-act="apset" data-k="' + x[0] + '" aria-pressed="' + (setOn(x[0]) ? 'true' : 'false') + '"><i>✓</i><span>' + x[1] + '<small class="muted" style="display:block;font-weight:400">' + x[2] + '</small></span></button>';
+    }).join('') + '</div>';
+  }
+  function homeCard() { return isMioUser() || isBill() ? '' : '<div class="card"><h3>🏠 Home</h3><p class="muted">Sposta le icone trascinandole e cambia il nome alle app. Vale solo per te.</p><button class="btn" data-act="hmedit">✎ Personalizza la Home</button></div>'; }
+  // Home personalizzata: ordine e nomi
+  var HM = { edit: false, order: null, names: null, drag: null };
+  function appName(k) { var n = APPSET.home && APPSET.home.names && APPSET.home.names[k]; if (HM.edit && HM.names) n = HM.names[k]; return n || null; }
+  function homeOrdered(apps) {
+    var o = HM.edit && HM.order ? HM.order : APPSET.home && APPSET.home.order; if (!o || !o.length) return null;
+    var pos = {}; o.forEach(function (k, i) { pos[k] = i; });
+    return apps.slice().sort(function (a, b) { var pa = pos[a] == null ? 999 : pos[a], pb = pos[b] == null ? 999 : pos[b]; return pa - pb; });
+  }
+  function homeEditView(apps) {
+    var list = homeOrdered(apps) || apps;
+    return '<div class="hmedh"><b>Personalizza la Home</b><span><button class="btn sm quiet" data-act="hmreset">Ripristina</button><button class="btn sm primary" data-act="hmdone">Fatto</button></span></div><p class="muted">Tieni premuto e trascina un’icona per spostarla. Tocca ✎ per cambiare il nome.</p>' +
+      '<div class="hmgrid hmg2 hmedg" id="hmEd" role="list">' + list.map(function (k) { return homeTile(k).replace('class="apptile"', 'class="apptile hmed" data-k="' + k + '"').replace(' data-act="nav" data-v="' + k + '"', '').replace('</button>', '<span class="hmren" data-act="hmren" data-k="' + k + '" role="button" aria-label="Rinomina">✎</span></button>'); }).join('') + '</div>';
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'apset') {
+      var k = el.getAttribute('data-k'), v = !setOn(k); APPSET.s[k] = v; appSetSave(); el.setAttribute('aria-pressed', v ? 'true' : 'false');
+      cl('rpc_settings_set', { p_key: k, p_value: v }).then(function (r) { toast(r && r.ok ? (v ? 'Attivata' : 'Disattivata') + ' per tutti' : 'Non salvato: controlla la connessione'); if (!r || !r.ok) { APPSET.s[k] = !v; appSetSave(); render(); } }).catch(function () { toast('Non salvato: controlla la connessione'); });
+    } else if (a === 'hmedit') { HM.edit = true; HM.order = (APPSET.home && APPSET.home.order) ? APPSET.home.order.slice() : null; HM.names = Object.assign({}, (APPSET.home && APPSET.home.names) || {}); view = 'home'; render(); window.scrollTo(0, 0); }
+    else if (a === 'hmdone') {
+      var g = $('hmEd'); if (g) HM.order = Array.prototype.map.call(g.querySelectorAll('.hmed'), function (t) { return t.getAttribute('data-k'); });
+      var home = { order: HM.order, names: HM.names }; APPSET.home = home; appSetSave(); HM.edit = false; render();
+      cl('rpc_home_set', { p_home: home }).then(function (r) { toast(r && r.ok ? 'Home salvata' : 'Salvata solo su questo telefono'); }).catch(function () { toast('Salvata solo su questo telefono'); });
+    } else if (a === 'hmreset') { HM.order = null; HM.names = {}; APPSET.home = null; appSetSave(); HM.edit = false; render(); cl('rpc_home_set', { p_home: null }); toast('Home come all’inizio'); }
+    else if (a === 'hmren') {
+      e.stopPropagation(); var k2 = el.getAttribute('data-k'), cur = (HM.names && HM.names[k2]) || (APPS[k2] || [k2])[0];
+      openSheet('<h2>Nome dell’app</h2><input class="field txt" id="hmNm" maxlength="18" value="' + esc(cur) + '" autocomplete="off"><div class="btns"><button class="btn primary" data-act="hmnmok" data-k="' + k2 + '">Salva</button><button class="btn quiet" data-act="hmnmdef" data-k="' + k2 + '">Nome originale</button><button class="btn quiet" data-act="close">Annulla</button></div>');
+      setTimeout(function () { var i = $('hmNm'); if (i) { i.focus(); i.select(); } }, 60);
+    } else if (a === 'hmnmok' || a === 'hmnmdef') {
+      var k3 = el.getAttribute('data-k'), g2 = $('hmEd'); if (g2) HM.order = Array.prototype.map.call(g2.querySelectorAll('.hmed'), function (t) { return t.getAttribute('data-k'); });
+      HM.names = HM.names || {}; var nv = String(($('hmNm') || {}).value || '').trim();
+      if (a === 'hmnmdef' || !nv) delete HM.names[k3]; else HM.names[k3] = nv.slice(0, 18);
+      closeSheet(); render();
+    }
+  }, true);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target && e.target.id === 'hmNm') { var b = document.querySelector('[data-act="hmnmok"]'); if (b) b.click(); } });
+  // trascinare le icone: una copia segue il dito, l'icona vera si sposta nella griglia
+  document.addEventListener('pointerdown', function (e) {
+    if (!HM.edit) return; var t = e.target.closest ? e.target.closest('.hmed') : null; if (!t || (e.target.closest && e.target.closest('.hmren'))) return;
+    var r = t.getBoundingClientRect(); HM.drag = { el: t, x: e.clientX, y: e.clientY, dx: e.clientX - r.left, dy: e.clientY - r.top, on: false, ghost: null, w: r.width, h: r.height };
+    try { t.setPointerCapture && t.setPointerCapture(e.pointerId); } catch (x) {}
+  });
+  document.addEventListener('pointermove', function (e) {
+    var D = HM.drag; if (!D) return;
+    if (!D.on) { if (Math.abs(e.clientX - D.x) + Math.abs(e.clientY - D.y) < 6) return; D.on = true; var gh = D.el.cloneNode(true); gh.className += ' hmghost'; gh.style.width = D.w + 'px'; gh.style.height = D.h + 'px'; document.body.appendChild(gh); D.ghost = gh; D.el.classList.add('hmhole'); }
+    e.preventDefault();
+    D.ghost.style.left = (e.clientX - D.dx) + 'px'; D.ghost.style.top = (e.clientY - D.dy) + 'px';
+    D.ghost.style.display = 'none'; var under = document.elementFromPoint(e.clientX, e.clientY); D.ghost.style.display = '';
+    var tg = under && under.closest ? under.closest('.hmed') : null;
+    if (tg && tg !== D.el) { var rr = tg.getBoundingClientRect(), after = e.clientX > rr.left + rr.width / 2; tg.parentNode.insertBefore(D.el, after ? tg.nextSibling : tg); }
+  }, { passive: false });
+  function hmUp() { var D = HM.drag; if (!D) return; if (D.ghost) D.ghost.remove(); D.el.classList.remove('hmhole'); HM.drag = null; var g = $('hmEd'); if (g) HM.order = Array.prototype.map.call(g.querySelectorAll('.hmed'), function (t) { return t.getAttribute('data-k'); }); }
+  document.addEventListener('pointerup', hmUp); document.addEventListener('pointercancel', hmUp);
   function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
   /* ---------- render ---------- */
@@ -10004,6 +10090,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   function homeTile(k) {
     var a = APPS[k] || [k, '#475569'], ic = ICONS[k === 'impost' ? 'gear' : k] || ICONS.altro;
     if (k === 'notifiche' && (isCrewOnly() || isOff())) a = ['Chat', a[1]];
+    var cn = appName(k); if (cn) a = [cn, a[1]];
     return '<button class="apptile" role="listitem" data-act="nav" data-v="' + k + '"><span class="ic" style="background:linear-gradient(160deg,' + a[1] + 'dd,' + a[1] + ')"><svg viewBox="0 0 24 24" aria-hidden="true">' + ic + '</svg></span><span class="lb">' + esc(a[0]) + '</span></button>';
   }
   function homeMgr(apps) {
@@ -10044,9 +10131,11 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if ((navigator.onLine === false || (SESSION && SESSION.offline)) && !isVan() && !isOff()) h += '<button class="hmshift" data-act="emopen" style="background:#7f1d1d;color:#fff"><span style="font-size:28px" aria-hidden="true">🆘</span><span><b>' + (SESSION && SESSION.offline ? 'Modalità offline · niente va nel database' : 'Sei offline') + '</b>Apri il turno d’emergenza: le tappe si segnano dal programma</span></button>';
     if (OUT.n) h += '<div class="card" role="status" style="border-color:#E65100"><b>📤 ' + OUT.n + (OUT.n === 1 ? ' dato del turno offline' : ' dati del turno offline') + ' sul telefono</b><span class="muted">' + (isOffSess() ? 'Si inviano da soli quando entri con il tuo PIN e c’è internet.' : OUT.err ? 'Non inviati: chiudi prima il turno aperto sul server, poi riapri l’app.' : 'Li sto inviando al database…') + '</span></div>';
     h += turniHomeBanner() + shipHomeBanner();
-    var _apps = homeApps();
-    if ((isMgr() || isFullAcc()) && !isVan() && !isOff()) h += homeMgr(_apps) + '</div>';
-    else h += '<div class="hmgrid" role="list">' + _apps.map(homeTile).join('') + '</div></div>';
+    var _apps = homeApps(), _ord = homeOrdered(_apps);
+    if (HM.edit) h += homeEditView(_apps) + '</div>';
+    else if (_ord && (isMgr() || isFullAcc()) && !isVan() && !isOff()) { ogLoad(false); h += homeMgr([]).replace(/<section class="hmarea[\s\S]*$/, '') + '<div class="hmgrid hmg2" role="list">' + _ord.map(homeTile).join('') + '</div><button class="aslink hmcus" data-act="hmedit">✎ Personalizza la Home</button></div>'; }
+    else if ((isMgr() || isFullAcc()) && !isVan() && !isOff()) h += homeMgr(_apps) + '<button class="aslink hmcus" data-act="hmedit">✎ Personalizza la Home</button></div>';
+    else h += '<div class="hmgrid" role="list">' + (_ord || _apps).map(homeTile).join('') + '</div><button class="aslink hmcus" data-act="hmedit">✎ Personalizza la Home</button></div>';
     setTimeout(function () { ntBadge(); ddtBadge(); }, 0);
     return h;
   }
@@ -10796,10 +10885,10 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (a === 'endphoto') { $('endPhotoIn').click(); return; }
     if (a === 'endok') {
       var sh0 = S.shift, pb0 = physOf(sh0), needF = sh0 && BOATS[pb0] && !BOATS[pb0].test && pb0 !== 'TULLIO';
-      if (needF && !(sh0.end && sh0.end.fuel)) { toast('Indica quanta benzina è rimasta nel serbatoio'); var fc = document.querySelector('.fuelc'); if (fc) { fc.scrollIntoView({ behavior: 'smooth', block: 'center' }); fc.classList.add('need'); } return; }
-      if (!(sh0.end && sh0.end.photo)) { toast('Scatta la foto della barca per chiudere il turno'); var pc = document.querySelector('.endph'); if (pc) { pc.scrollIntoView({ behavior: 'smooth', block: 'center' }); pc.classList.add('need'); } return; }
-      if (needF) cl('rpc_fuel_log', { p_boat: pb0, p_level: sh0.end.fuel.l, p_pct: sh0.end.fuel.p });
-      endPhotoSend(pb0, sh0.end.photo, !!sh0.end.cart);
+      if (needF && setOn('end_fuel_required') && !(sh0.end && sh0.end.fuel)) { toast('Indica quanta benzina è rimasta nel serbatoio'); var fc = document.querySelector('.fuelc'); if (fc) { fc.scrollIntoView({ behavior: 'smooth', block: 'center' }); fc.classList.add('need'); } return; }
+      if (setOn('end_photo_required') && !(sh0.end && sh0.end.photo)) { toast('Scatta la foto della barca per chiudere il turno'); var pc = document.querySelector('.endph'); if (pc) { pc.scrollIntoView({ behavior: 'smooth', block: 'center' }); pc.classList.add('need'); } return; }
+      if (needF && sh0.end && sh0.end.fuel) cl('rpc_fuel_log', { p_boat: pb0, p_level: sh0.end.fuel.l, p_pct: sh0.end.fuel.p });
+      if (sh0.end && sh0.end.photo) endPhotoSend(pb0, sh0.end.photo, !!sh0.end.cart);
       endShift(); return;
     }
     if (a === 'pre') { var k = +el.getAttribute('data-i'); sh.pre[k] = !sh.pre[k]; save(); render(); return; }
@@ -11392,7 +11481,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     SESSION = { role: role, name: name, t: Date.now(), token: token || null, offline: !!offline };
     try { localStorage.setItem(SKEY, JSON.stringify(SESSION)); } catch (e) {}
     loginStep = 'pin'; pinBuf = ''; loginErr = ''; loginNames = []; view = S.shift ? 'turno' : 'home';
-    drawLogin(); render(); gpsApply(); loadContacts(); loadAdmin(); loadMyTasks(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); Promise.all([loadProgram(), loadAsg()]).then(briefMaybe); sendPendingReqs(); pushInit(); loadDdt(); if (isOff()) loadXT().then(render); }); MG.opts = null; MG.list = null; MG.draft = null; MG.fleet = null;
+    drawLogin(); render(); gpsApply(); loadContacts(); loadAdmin(); loadMyTasks(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); Promise.all([loadProgram(), loadAsg()]).then(briefMaybe); sendPendingReqs(); pushInit(); loadDdt(); appSetLoad(); if (isOff()) loadXT().then(render); }); MG.opts = null; MG.list = null; MG.draft = null; MG.fleet = null;
   }
   function logout() {
     if (S.shift && !confirm('Hai un turno ancora aperto. Vuoi uscire dal profilo lo stesso?')) return;
@@ -11417,7 +11506,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   if (SESSION && SESSION.role === 'office') view = 'home';
   if (SESSION) gpsApply();
   render();
-  if (SESSION) { loadContacts(); loadAdmin(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); Promise.all([loadProgram(), loadAsg()]).then(briefMaybe); sendPendingReqs(); pushInit(); loadDdt(); if (isOff()) loadXT().then(render); }); }
+  if (SESSION) { loadContacts(); loadAdmin(); loadBoatInfo(); loadMe().then(function (ch) { if (ch) { render(); loadAdmin(); } loadNotif(); Promise.all([loadProgram(), loadAsg()]).then(briefMaybe); sendPendingReqs(); pushInit(); loadDdt(); appSetLoad(); if (isOff()) loadXT().then(render); }); }
   if (SESSION && view === 'logistica' && isMgr()) setTimeout(function () { loadMgr(false); }, 400);
   updCheck(); setTimeout(midnightCheck, 1500); setTimeout(briefMaybe, 1200);
 })();
