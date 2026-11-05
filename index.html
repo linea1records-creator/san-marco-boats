@@ -1166,6 +1166,17 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .rtleg .rtd { width: 2px; height: 22px; border: 0; background: transparent; }
 .rtleg small { color: var(--muted); font-size: 12px; font-style: italic; padding-top: 3px; }
 .rtk { margin-top: 6px; }
+.orst { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.orw2 { color: #b45309; font-size: 14px; margin: 8px 0 0; }
+.orst b { font-size: 18px; font-variant-numeric: tabular-nums; }
+.orst small { color: var(--muted); font-weight: 400; font-size: 12px; }
+.orsel { display: flex; align-items: center; gap: 10px; }
+.orsel select { margin: 0; flex: 1; }
+.ortb td { white-space: normal; vertical-align: top; }
+.ortb td small { display: block; color: var(--muted); font-size: 11px; font-weight: 400; }
+.ortb td:first-child { min-width: 130px; }
+.ortb small.orw { color: #b45309; }
+.ortb b.orup { color: #b45309; } .ortb b.ordn { color: #15803d; }
 .rted { width: 36px; height: 32px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 18px; line-height: 1; align-self: center; }
 .cgc .cgh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .cgsvg { width: 100%; height: auto; display: block; margin: 4px 0; }
@@ -1695,6 +1706,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     listini: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/>',
     allergeni: '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
     foodcost: '<path d="M4 3v8a2 2 0 0 0 2 2v8M8 3v8M6 3v5"/><path d="M14 21V13h4a2 2 0 0 0 2-2V7a4 4 0 0 0-4-4h-2z"/>',
+    orari: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/>',
     percorsi: '<circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.5"/>',
     carena: '<path d="M3 13h18l-2.5 5h-13z"/><path d="M7 13V8h7l3 5"/><path d="M4 21c1.5 0 1.5-1 3-1s1.5 1 3 1 1.5-1 3-1 1.5 1 3 1 1.5-1 3-1"/>',
     velox: '<path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/>',
@@ -9339,6 +9351,105 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     }
     else if (a === 'rtdel') rtDel(el.getAttribute('data-m'), el.hasAttribute('data-p') ? +el.getAttribute('data-p') : -1);
   }, true);
+  /* ---------- Orari realistici: tempi veri delle tratte dal GPS e proposta di orari per il programma ---------- */
+  var OR = { d: null, busy: false, err: false, day: null, boat: null, pru: true, fix: true, open: {}, off: 0 };
+  function orLoad() {
+    if (!tok() || OR.busy) return Promise.resolve();
+    OR.busy = true;
+    return cl('rpc_leg_stats', { p_days: 90 }).then(function (r) { OR.busy = false; if (r && r.legs) { OR.d = r; OR.err = false; } else OR.err = true; if (view === 'orari') render(); })
+      .catch(function () { OR.busy = false; OR.err = true; if (view === 'orari') render(); });
+  }
+  function orLeg(f, t) { var L = (OR.d && OR.d.legs) || []; for (var i = 0; i < L.length; i++) if (L[i].f === f && L[i].t === t) return L[i]; return null; }
+  function orDwell(n) { var L = (OR.d && OR.d.stops) || []; for (var i = 0; i < L.length; i++) if (L[i].name === n) return L[i]; return null; }
+  function orArr(b, n, t) { var L = (OR.d && OR.d.arrivals) || []; for (var i = 0; i < L.length; i++) if (L[i].boat === b && L[i].name === n && L[i].plan === t) return L[i]; return null; }
+  function orFixed(n) { return /seminario|^pane\b/i.test(n || ''); }
+  function orUp5(m) { return Math.ceil(m / 5) * 5; }
+  // proposta: si parte dall'orario della prima tappa; ogni tappa = arrivo alla precedente + sosta lì + viaggio
+  function orPlan(k, b) {
+    var bd = PROGRAM[k] && PROGRAM[k].boats[b], st = (bd && !bd.off && bd.stops) || [], out = [], cur = null, prevT = null;
+    st.forEach(function (z, i) {
+      var pm = t2m(z.t), row = { i: i, name: z.name, t: z.t || '', ind: !!z.ind, prop: null, src: '', warn: '' };
+      if (i === 0 || cur == null) { cur = pm == null ? null : pm + (i === 0 ? OR.off : 0); row.prop = cur; row.src = i === 0 && OR.off ? 'partenza ' + (OR.off > 0 ? '+' : '') + OR.off + ' min' : 'partenza'; }
+      else {
+        var pz = st[i - 1], lg = orLeg(pz.name, z.name), dw = orDwell(pz.name), tv = null;
+        if (lg && lg.ng) tv = +lg.trav;
+        // a Seminario e Pane la sosta lunga è spesso attesa della merce: si usa il carico normale (mediana, max 15 min)
+        var dwm = dw ? (orFixed(pz.name) ? Math.min(15, +dw.dwell) : +dw.dwell) : null;
+        if (tv != null) { row.src = 'GPS · ' + lg.ng + (lg.ng === 1 ? ' viaggio' : ' viaggi'); }
+        else if (lg && lg.a2a != null) { tv = +lg.a2a - (dwm || 0); if (tv < 2) tv = 2; dwm = dwm || 0; row.src = 'stima · ' + lg.n + (lg.n === 1 ? ' viaggio' : ' viaggi'); }
+        if (tv == null) { var d0 = pm != null && prevT != null ? pm - prevT : null; row.prop = d0 != null ? cur + d0 : pm; row.src = 'senza dati: resta il tempo del programma'; }
+        else row.prop = cur + (dwm || 0) + tv + (OR.pru ? 2 : 0);
+        if (OR.fix && orFixed(z.name) && pm != null) {
+          if (Math.round(row.prop / 5) * 5 > pm) { row.late = Math.round(row.prop - pm); for (var q = out.length - 1; q >= 0; q--) if (out[q].wait) { row.anchor = out[q]; break; } row.warn = 'Non ci si arriva per le ' + z.t + ': servono ' + row.late + ' min in più'; }
+          else { row.prop = pm; row.src = 'orario fisso (cucina o pane)'; row.wait = 1; }
+        }
+      }
+      if (row.prop != null) { cur = row.prop; row.prop = Math.round(row.prop / 5) * 5; } prevT = pm != null ? pm : prevT;
+      var ar = orArr(b, z.name, z.t); if (ar) { row.real = ar.med; row.dly = ar.dly; row.rn = ar.n; }
+      out.push(row);
+    });
+    return out;
+  }
+  function orDays() { var t = todayISO(); return DAYKEYS.filter(function (k) { return k >= t && PROGRAM[k]; }); }
+  function viewOrari() {
+    if (!OR.d && !OR.busy && !OR.err) orLoad();
+    var h = '<div class="wrap"><button class="aslink" data-act="nav" data-v="home">‹ Home</button><h2>⏱ Orari realistici</h2><p class="muted">L’app misura con il GPS quanto ci vuole davvero tra una tappa e l’altra e quanto si resta fermi a ogni tappa, poi propone gli orari del programma.</p>';
+    if (OR.err && !OR.d) return h + '<div class="note">Non riesco a caricare i tempi: serve la connessione.</div></div>';
+    if (!OR.d) return h + '<div class="card"><p class="muted">Calcolo i tempi delle tratte…</p></div></div>';
+    var days = orDays(); if (!OR.day || days.indexOf(OR.day) < 0) OR.day = days.filter(function (k) { return k > todayISO(); })[0] || days[0] || todayISO();
+    var bs = boatCodes().filter(function (c) { var bd = PROGRAM[OR.day] && PROGRAM[OR.day].boats[c]; return bd && !bd.off && (bd.stops || []).length > 1 && c !== 'TULLIO'; });
+    if (!OR.boat || bs.indexOf(OR.boat) < 0) OR.boat = bs[0];
+    h += '<div class="card orc"><div class="orsel"><label class="muted" for="orDay">Giorno</label><select class="field txt" id="orDay">' + days.map(function (k) { return '<option value="' + k + '"' + (k === OR.day ? ' selected' : '') + '>' + esc(pgDateLabel(k)) + '</option>'; }).join('') + '</select></div>' +
+      '<div class="rtch"><span>Barca</span>' + bs.map(function (c) { return '<button class="sw" data-act="orb" data-b="' + c + '" aria-pressed="' + (c === OR.boat) + '"><i style="background:' + bcol(c) + '"></i>' + esc(BOATS[c].name) + '</button>'; }).join('') + '</div>' +
+      '<label class="swck"><input type="checkbox" id="orPru"' + (OR.pru ? ' checked' : '') + '> Con 2 minuti di margine per ogni tratta</label>' +
+      '<label class="swck"><input type="checkbox" id="orFix"' + (OR.fix ? ' checked' : '') + '> Tieni fissi gli orari di Seminario e Pane</label></div>';
+    if (!OR.boat) return h + '<div class="card"><p class="muted">Nessuna barca con un giro in programma in questo giorno.</p></div>' + orLegsCard() + '</div>';
+    var rows = orPlan(OR.day, OR.boat), ch = rows.filter(function (r) { return r.prop != null && t2m(r.t) !== r.prop; }).length, fl = rows.filter(function (r) { return r.late; })[0];
+    h += '<div class="card"><div class="orst"><span>Partenza</span><button class="btn sm" data-act="oroff" data-d="-5">−5</button><b>' + (rows[0] && rows[0].prop != null ? m2t(rows[0].prop) : '—') + (OR.off ? ' <small>(' + (OR.off > 0 ? '+' : '') + OR.off + ' min)</small>' : '') + '</b><button class="btn sm" data-act="oroff" data-d="5">+5</button>' +
+      (fl && !fl.anchor ? '<button class="btn sm primary" data-act="oroff" data-d="' + (-orUp5(fl.late)) + '">Parti ' + orUp5(fl.late) + ' min prima: ' + esc(fl.name) + ' alle ' + esc(fl.t) + '</button>' : '') + '</div>' +
+      (fl && fl.anchor ? '<p class="orw2">⚠ Da ' + esc(fl.anchor.name) + ' (' + esc(fl.anchor.t) + ') a ' + esc(fl.name) + ' servono ' + (t2m(fl.t) + fl.late - t2m(fl.anchor.t)) + ' min, nel programma ce ne sono ' + (t2m(fl.t) - t2m(fl.anchor.t)) + ': anticipa ' + esc(fl.anchor.name) + ' di ' + orUp5(fl.late) + ' min oppure metti ' + esc(fl.name) + ' alle ' + m2t(orUp5(t2m(fl.t) + fl.late)) + '.</p>' : '') + '</div>';
+    h += '<section class="card"><h3>' + esc(BOATS[OR.boat].name) + ' · ' + esc(pgDateLabel(OR.day)) + '</h3><div class="tblw"><table class="tbl ortb"><thead><tr><th>Tappa</th><th>Programma</th><th>Proposto</th><th>Arrivo reale</th></tr></thead><tbody>' +
+      rows.map(function (r) {
+        var pm = t2m(r.t), d = r.prop != null && pm != null ? r.prop - pm : null;
+        return '<tr><td><b>' + esc(r.name) + '</b><small>' + esc(r.src) + '</small>' + (r.warn ? '<small class="orw">⚠ ' + esc(r.warn) + '</small>' : '') + '</td><td>' + esc(r.t || '—') + '</td>' +
+          '<td><b' + (d ? ' class="' + (d > 0 ? 'orup' : 'ordn') + '"' : '') + '>' + (r.prop != null ? m2t(r.prop) : '—') + '</b>' + (d ? '<small>' + (d > 0 ? '+' : '') + d + ' min</small>' : '') + '</td>' +
+          '<td>' + (r.real ? esc(r.real) + '<small>' + (r.dly > 0 ? '+' : '') + r.dly + ' min · ' + r.rn + (r.rn === 1 ? ' volta' : ' volte') + '</small>' : '<span class="muted">—</span>') + '</td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      (ch ? '<div class="btns"><button class="btn primary" data-act="orapply" data-all="0">Applica a ' + esc(pgDateLabel(OR.day)) + ' (' + ch + (ch === 1 ? ' orario' : ' orari') + ')</button><button class="btn" data-act="orapply" data-all="1">Applica a tutti i giorni in programma della ' + esc(BOATS[OR.boat].name) + '</button></div>' : '<p class="muted">Il programma è già in linea con i tempi misurati.</p>') + '</section>';
+    h += orLegsCard();
+    return h + '<p class="muted">Dati di ' + OR.d.days + (OR.d.days === 1 ? ' giorno' : ' giorni') + ' di lavoro: più giorni passano, più gli orari diventano precisi. Le tratte senza GPS usano il tempo da tappa a tappa. Prima di applicare si può sempre annullare.</p></div>';
+  }
+  function orLegsCard() {
+    var L = (OR.d.legs || []).filter(function (l) { return l.ng || l.n; }).slice().sort(function (a, b) { return (b.n - a.n) || (a.f < b.f ? -1 : 1); });
+    var S2 = (OR.d.stops || []).slice().sort(function (a, b) { return b.n - a.n; });
+    return '<details class="card mgdet"><summary><span>Tratte misurate (' + L.length + ')</span><span class="secc">›</span></summary><div class="tblw"><table class="tbl ortb"><thead><tr><th>Tratta</th><th>Viaggio</th><th>Con margine</th><th>Viaggi</th></tr></thead><tbody>' +
+      L.map(function (l) { return '<tr><td>' + esc(l.f) + ' → ' + esc(l.t) + '</td><td>' + (l.trav != null ? Math.round(l.trav) + ' min' : '<span class="muted">~' + Math.round(l.a2a) + ' min tappa-tappa</span>') + '</td><td>' + (l.trav80 != null ? Math.round(l.trav80) + ' min' : '—') + '</td><td>' + l.n + '</td></tr>'; }).join('') + '</tbody></table></div></details>' +
+      '<details class="card mgdet"><summary><span>Soste alle tappe (' + S2.length + ')</span><span class="secc">›</span></summary><div class="tblw"><table class="tbl ortb"><thead><tr><th>Tappa</th><th>Sosta media</th><th>Con margine</th><th>Volte</th></tr></thead><tbody>' +
+      S2.map(function (s) { return '<tr><td>' + esc(s.name) + '</td><td>' + Math.round(s.dwell) + ' min</td><td>' + Math.round(s.dwell80) + ' min</td><td>' + s.n + '</td></tr>'; }).join('') + '</tbody></table></div></details>';
+  }
+  function orApply(all) {
+    var ks = all ? orDays() : [OR.day], b = OR.boat, days = [], n = 0;
+    ks.forEach(function (k) {
+      var rows = orPlan(k, b), day = asDayFromProgram(k), st = day.boats[b] && day.boats[b].stops; if (!st || !st.length) return; var ch = 0;
+      rows.forEach(function (r) { var z = st[r.i]; if (!z || r.prop == null || z.name !== r.name) return; var nt = m2t(r.prop); if (z.t !== nt) { if (z.end && z.t) z.end = m2t(t2m(z.end) + r.prop - t2m(z.t)); z.t = nt; ch++; } });
+      if (ch) { days.push(day); n += ch; }
+    });
+    if (!days.length) { toast('Niente da cambiare'); return; }
+    var what = BOATS[b].name + (all ? ' · ' + days.length + ' giorni' : ' ' + pgFmt(OR.day));
+    progPublish(days, 'Orari realistici · ' + what).then(function (u) { toast(n + (n === 1 ? ' orario aggiornato' : ' orari aggiornati')); render(); undoBar('Orari realistici applicati', function () { progUndo(u.prev, what); }); })
+      .catch(function () { toast('Non riesco a salvare: controlla la connessione'); });
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'orb') { OR.boat = el.getAttribute('data-b'); OR.off = 0; render(); }
+    else if (a === 'oroff') { OR.off += +el.getAttribute('data-d'); render(); }
+    else if (a === 'orapply') orApply(el.getAttribute('data-all') === '1');
+    else if (a === 'nav' && el.getAttribute('data-v') === 'orari') { OR.d = null; OR.err = false; orLoad(); }
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target; if (!t) return;
+    if (t.id === 'orDay') { OR.day = t.value; OR.off = 0; render(); } else if (t.id === 'orPru') { OR.pru = t.checked; render(); } else if (t.id === 'orFix') { OR.fix = t.checked; render(); }
+  });
   function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
   /* ---------- render ---------- */
@@ -9381,7 +9492,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var g = $('gear'); g.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS.gear + '</svg>'; if (view === 'impost') g.setAttribute('aria-current', 'page'); else g.removeAttribute('aria-current');
     var cur = view === 'guida' ? 'turno' : view;
     if (view === 'pin' && !isFullAcc()) { view = 'impost'; cur = 'impost'; }
-    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'velox', 'oggi', 'foodcost', 'allergeni', 'listini', 'porzione', 'menu', 'fatturato', 'carena', 'percorsi', 'mio', 'polybox', 'benzina', 'tracking'].indexOf(cur) >= 0) cur = 'altro';
+    if (isFull && ['ore', 'impost', 'pin', 'admin', 'cucina', 'stat', 'velox', 'oggi', 'foodcost', 'allergeni', 'listini', 'porzione', 'menu', 'fatturato', 'carena', 'percorsi', 'orari', 'mio', 'polybox', 'benzina', 'tracking'].indexOf(cur) >= 0) cur = 'altro';
     if (!isFull && !isAdm && cur === 'benzina') cur = 'barca';
     if (!isFull && !isAdm && !isVan() && cur === 'tracking') cur = 'barca';
     if (isAdm && cur === 'polybox') cur = 'logistica';
@@ -9390,6 +9501,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (view === 'velox' && !isMgr() && !isFullAcc()) view = 'home';
     if (view === 'carena' && !isMgr() && !isFullAcc()) view = 'home';
     if (view === 'percorsi' && !isMgr() && !isFullAcc()) view = 'home';
+    if (view === 'orari' && !isMgr() && !isFullAcc()) view = 'home';
     if (view === 'oggi' && !isMgr() && !isFullAcc()) view = 'home';
     if ((view === 'foodcost' || view === 'allergeni' || view === 'listini' || view === 'porzione' || view === 'menu') && !isFullAcc() && !(SESSION && SESSION.role === 'admin')) view = 'home';
     // Elia, Daffa…: la plancia sostituisce navigatore e schermata del turno
@@ -9404,7 +9516,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi }[view] || viewTurno;
+    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi, orari: viewOrari }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     diag('disegno ' + view); var _t0 = Date.now(), m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); if (view === 'percorsi') setTimeout(rtDraw, 0); m.scrollTop = (view === 'guida') ? 0 : sc; diag('fatto ' + view + ' ' + (Date.now() - _t0) + 'ms');
     if (LITE && Date.now() - _t0 > 2500 && window.__smbErr) window.__smbErr('Pagina lenta: ' + view + ' ' + (Date.now() - _t0) + ' ms');
@@ -9490,7 +9602,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   });
   // Home dei responsabili: gli strumenti divisi in aree, con il riassunto di oggi in cima
   var HOME_AREAS = [
-    ['Pianifica', 'Programmi, nuovi turni e consegne, cucina', ['logistica', 'programma', 'turno', 'cucina']],
+    ['Pianifica', 'Programmi, orari, nuovi turni e consegne, cucina', ['logistica', 'programma', 'orari', 'turno', 'cucina']],
     ['Cucina e costi', 'Food cost, allergeni e listini dei fornitori', ['menu', 'foodcost', 'porzione', 'allergeni', 'listini']],
     ['Flotta', 'Barche, documenti, benzina, carena e velox', ['barca', 'benzina', 'carena', 'velox']],
     ['Oggetti', 'Polybox, ceste e cose in viaggio', ['polybox', 'tracking', 'spedizioni']],
@@ -9519,16 +9631,16 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   var APPS = {
     logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
     barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], notifiche: ['Notifiche', '#db2777'],
-    oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], listini: ['Listini', '#0e7490'], porzione: ['Costo porzione', '#7c2d12'], menu: ['Menu', '#9d174d'], fatturato: ['Fatturato', '#047857'], carena: ['Carena', '#0e7490'], percorsi: ['Percorsi', '#0f766e'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
+    oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], listini: ['Listini', '#0e7490'], porzione: ['Costo porzione', '#7c2d12'], menu: ['Menu', '#9d174d'], fatturato: ['Fatturato', '#047857'], carena: ['Carena', '#0e7490'], percorsi: ['Percorsi', '#0f766e'], orari: ['Orari reali', '#6d28d9'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
   };
   function homeApps() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isVan()) return ['polybox', 'tracking', 'programma', 'contatti', 'impost'];
     if (isBill()) return ['fatturato', 'contatti', 'impost'];
     if (isOff()) return ['presenze', 'ddt', 'cucina', 'programma', 'notifiche', 'contatti', 'impost'];
-    if (isAdm) return ['logistica', 'notifiche', 'turni', 'presenze'].concat(canMoney() ? ['fatturato'] : [], ['spedizioni', 'tracking', 'stat', 'percorsi', 'velox', 'carena', 'barca', 'benzina', 'programma', 'contatti', 'impost']);
-    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'fatturato', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'percorsi', 'velox', 'carena', 'cucina', 'menu', 'foodcost', 'porzione', 'allergeni', 'listini', 'contatti', 'impost'];
-    if (isMgr()) return ['logistica', 'turno', 'turni', 'programma', 'notifiche', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'percorsi', 'velox', 'carena', 'contatti', 'impost'];
+    if (isAdm) return ['logistica', 'notifiche', 'turni', 'presenze'].concat(canMoney() ? ['fatturato'] : [], ['spedizioni', 'tracking', 'stat', 'percorsi', 'orari', 'velox', 'carena', 'barca', 'benzina', 'programma', 'contatti', 'impost']);
+    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'fatturato', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'stat', 'percorsi', 'orari', 'velox', 'carena', 'cucina', 'menu', 'foodcost', 'porzione', 'allergeni', 'listini', 'contatti', 'impost'];
+    if (isMgr()) return ['logistica', 'turno', 'turni', 'programma', 'notifiche', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'percorsi', 'orari', 'velox', 'carena', 'contatti', 'impost'];
     return ['turno', 'programma', 'ddtgiro', 'barca', 'notifiche', 'tracking', 'benzina', 'impost'];
   }
   function viewHome() {
