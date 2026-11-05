@@ -1261,6 +1261,59 @@ body.nvopen { overflow: hidden; }
 .hmghost { position: fixed; z-index: 60; pointer-events: none; opacity: .92; transform: scale(1.08); list-style: none; }
 .hmren { position: absolute; top: -4px; right: -4px; width: 26px; height: 26px; border-radius: 13px; background: var(--ink); color: var(--bg); font-size: 13px; display: flex; align-items: center; justify-content: center; }
 .hmcus { display: block; margin: 18px auto 6px; }
+body.phonev .nav { display: none; }
+.phw { max-width: 640px; margin: 0 auto; padding: 0 16px calc(90px + env(safe-area-inset-bottom, 0px)); position: relative; }
+.phtop { display: flex; justify-content: space-between; align-items: center; padding: 8px 0 0; min-height: 36px; }
+.phh { font: 800 32px/1.1 -apple-system, system-ui, sans-serif; margin: 4px 0 8px; letter-spacing: -.02em; }
+.phhr { display: flex; justify-content: space-between; align-items: baseline; }
+.phsr input { width: 100%; height: 38px; border: 0; border-radius: 10px; padding: 0 12px 0 34px; font-size: 16px; background: rgba(118,118,128,.14) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238e8e93' stroke-width='2.4'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-4-4'/%3E%3C/svg%3E") 10px center / 16px no-repeat; color: var(--ink); }
+.phch { display: flex; gap: 6px; overflow-x: auto; padding: 10px 0 4px; scrollbar-width: none; }
+.phch::-webkit-scrollbar { display: none; }
+.phch button { flex: none; border: 0; border-radius: 16px; padding: 6px 12px; font: 600 13px system-ui, sans-serif; background: rgba(118,118,128,.14); color: var(--ink); }
+.phch button[aria-pressed="true"] { background: var(--primary); color: #fff; }
+.phch button.sos[aria-pressed="true"] { background: #d32f2f; }
+.phsec { position: sticky; top: 0; z-index: 1; background: var(--bg); font: 700 13px system-ui, sans-serif; color: var(--muted); padding: 10px 0 2px; border-bottom: .5px solid var(--line); }
+.phsec.sos { color: #d32f2f; }
+.phl { list-style: none; margin: 0; padding: 0; }
+.phr { display: flex; align-items: center; gap: 6px; border-bottom: .5px solid var(--line); }
+.phr:last-child { border-bottom: 0; }
+.phrb { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 7px 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; }
+.phav { width: 40px; height: 40px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; color: #fff; font: 600 15px system-ui, sans-serif; }
+.phav.big { width: 88px; height: 88px; font-size: 34px; margin: 0 auto 8px; }
+.phn { min-width: 0; } .phn b { display: block; font-size: 17px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.phn small { display: block; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.phr.sos .phn b { color: #d32f2f; font-weight: 600; }
+.phcall { width: 40px; height: 40px; border-radius: 50%; background: #34c759; display: flex; align-items: center; justify-content: center; flex: none; margin-right: 18px; }
+.phcall svg, .phkcall svg { width: 20px; height: 20px; fill: #fff; }
+.phnone { font-size: 11px; color: var(--muted); margin-right: 18px; }
+.phidx { position: fixed; right: max(2px, calc(50% - 320px)); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; z-index: 2; }
+.phidx button { border: 0; background: none; color: var(--primary); font: 700 11px system-ui, sans-serif; padding: 1px 4px; }
+.phmt { text-align: center; padding: 30px 10px; }
+.phcnt { text-align: center; color: var(--muted); font-size: 13px; padding: 12px 0; }
+.phtabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; background: var(--surface); border-top: .5px solid var(--line); padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px)); backdrop-filter: blur(12px); }
+.phtabs button { flex: 1; border: 0; background: none; color: var(--muted); font: 500 11px system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.phtabs button span { font-size: 22px; line-height: 1; }
+.phtabs button[aria-current="page"] { color: var(--primary); }
+.phcd { text-align: center; }
+.phcd h2 { margin: 4px 0 2px; font-size: 26px; }
+.phcg { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+.phacts { display: flex; gap: 8px; justify-content: center; align-items: flex-start; margin: 8px 0 14px; }
+.phacts a { flex: 1 1 0; max-width: 110px; height: 62px; box-sizing: border-box; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px; border-radius: 12px; background: rgba(118,118,128,.12); color: var(--primary); text-decoration: none; font-size: 12px; }
+.phacts a span { font-size: 20px; } .phacts a.phmain { background: #34c759; color: #fff; }
+.phinf { text-align: left; border-radius: 12px; background: rgba(118,118,128,.08); padding: 4px 14px; margin-bottom: 10px; }
+.phinf div { padding: 8px 0; border-bottom: .5px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.phinf div:last-child { border-bottom: 0; } .phinf small { width: 100%; color: var(--muted); font-size: 12px; }
+.phinf a { font-size: 17px; color: var(--primary); text-decoration: none; }
+.phdial { padding-top: 10px; text-align: center; }
+.phdn { font: 300 36px/1.2 system-ui, sans-serif; min-height: 44px; letter-spacing: .02em; word-break: break-all; }
+.phdm { color: var(--primary); font-size: 14px; min-height: 20px; margin-bottom: 14px; }
+.phkp { display: grid; grid-template-columns: repeat(3, 76px); gap: 16px 26px; justify-content: center; }
+.phkp > button { width: 76px; height: 76px; border-radius: 50%; border: 0; background: rgba(118,118,128,.16); color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.phkp > button b { font: 400 32px/1 system-ui, sans-serif; } .phkp > button small { font: 700 9px system-ui, sans-serif; letter-spacing: .15em; color: var(--muted); min-height: 10px; }
+.phkp > button:active { background: rgba(118,118,128,.35); }
+.phkcall { width: 76px; height: 76px; border-radius: 50%; background: #34c759; display: flex; align-items: center; justify-content: center; }
+.phkcall svg { width: 32px; height: 32px; } .phkcall.off { opacity: .35; }
+.phkp .phdel { background: none; font-size: 26px; color: var(--muted); }
 .huc .huh { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .huh b { display: flex; align-items: center; gap: 8px; font-size: 17px; }
 .huh b i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
@@ -1779,7 +1832,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     ddt: '<path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"/>', ddtgiro: '<path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"/>', stat: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>', cucina: '<path d="M6 3v8a3 3 0 0 0 6 0V3M9 3v18M17 3c-2 2-2 6 0 8v10"/>', murano: '<path d="M4 7h11M4 7v12h11V7M7 7V4h11v12h-3M7 11h5M7 15h5"/><path d="M16 20l2-2 3 3"/>',
     programma: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
     richieste: '<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9zM12 11v6M9 14h6"/>',
-    contatti: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6 7-6s7 2 7 6"/>',
+    contatti: '<path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/>',
     ore: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
     logistica: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6M12 9v7M8.5 12.5h7"/>',
     altro: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
@@ -4072,6 +4125,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   var CTE = { on: false, edit: null, groups: null };
   function viewContatti() {
     var ced = tok() && (isEditor() || isFullAcc() || isOff()), ed = ced && CTE.on;
+    if (!ed) return viewTelefono();
     var groups = CTE.groups || CONTACTS.map(function (g) { return { name: g.g, sos: g.sos }; });
     var by = {}; CONTACTS.forEach(function (g) { by[g.g] = g; });
     var h = '<div class="wrap">' + (isMgr() ? '<button class="aslink" data-act="nav" data-v="notifiche">‹ Notifiche</button>' : '') + '<div class="row"><h2>Rubrica</h2>' + (ced ? '<button class="btn sm' + (ed ? ' primary' : '') + '" data-act="ctedit">' + (ed ? 'Fatto' : '✎ Modifica') + '</button>' : '') + '</div>' +
@@ -8298,7 +8352,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     h += '<section class="plas" aria-label="Assistente"><button class="plbig k-' + k + '" data-act="plgo"><span class="plic" aria-hidden="true">' + A[0] + '</span><span class="pltx"><b>' + A[1] + '</b><small>' + A[2] + '</small></span></button>' +
       (p.shift && s ? '<div class="plsub"><button data-act="problem">⚠ Problema</button><button data-act="plopen">Apri la tappa</button></div>' : '') + '</section>';
     // STRUMENTI
-    h += '<nav class="plst" aria-label="Strumenti"><button data-act="plcam"><span>📷</span>Fotocamera</button><button data-act="nav" data-v="contatti"><span>📒</span>Rubrica</button><button data-act="nav" data-v="mio"><span>➕</span>Nuova consegna</button><button data-act="nav" data-v="programma"><span>📅</span>Calendario</button><button data-act="nav" data-v="navi"><span>🧭</span>Navigatore</button>' + (p.shift ? '<button data-act="swopen"><span>🔁</span>Cambio barca</button>' : '') + '<button data-act="nav" data-v="impost" aria-label="Opzioni"><span>⚙️</span>Opzioni</button></nav>';
+    h += '<nav class="plst" aria-label="Strumenti"><button data-act="plcam"><span>📷</span>Fotocamera</button><button data-act="nav" data-v="contatti"><span>📞</span>Telefono</button><button data-act="nav" data-v="mio"><span>➕</span>Nuova consegna</button><button data-act="nav" data-v="programma"><span>📅</span>Calendario</button><button data-act="nav" data-v="navi"><span>🧭</span>Navigatore</button>' + (p.shift ? '<button data-act="swopen"><span>🔁</span>Cambio barca</button>' : '') + '<button data-act="nav" data-v="impost" aria-label="Opzioni"><span>⚙️</span>Opzioni</button></nav>';
     return h + '</div>';
   }
   function plFire(act, attrs) { var b = document.createElement('button'); b.setAttribute('data-act', act); Object.keys(attrs || {}).forEach(function (k) { b.setAttribute(k, attrs[k]); }); b.style.display = 'none'; document.body.appendChild(b); b.click(); b.remove(); }
@@ -9928,6 +9982,83 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   }, { passive: false });
   function hmUp() { var D = HM.drag; if (!D) return; if (D.ghost) D.ghost.remove(); D.el.classList.remove('hmhole'); HM.drag = null; var g = $('hmEd'); if (g) HM.order = Array.prototype.map.call(g.querySelectorAll('.hmed'), function (t) { return t.getAttribute('data-k'); }); }
   document.addEventListener('pointerup', hmUp); document.addEventListener('pointercancel', hmUp);
+  /* ---------- Telefono: contatti come sul telefono (preferiti, recenti, contatti, tastierino) ---------- */
+  var PH = { tab: 'contatti', q: '', g: '', dial: '' };
+  try { var _pt = localStorage.getItem('smb-ph-tab'); if (_pt) PH.tab = _pt; } catch (e) {}
+  function phKey(c) { return c.id || (c.n + '|' + c.t); }
+  function phFavs() { try { return JSON.parse(localStorage.getItem('smb-ph-fav') || '[]'); } catch (e) { return []; } }
+  function phRec() { try { return JSON.parse(localStorage.getItem('smb-ph-rec') || '[]'); } catch (e) { return []; } }
+  function phAll() { var a = []; CONTACTS.forEach(function (g) { g.list.forEach(function (c) { a.push({ c: c, g: g.g, sos: !!g.sos, k: phKey(c) }); }); }); return a; }
+  function phTel(t) { return String(t || '').replace(/[^\d+]/g, ''); }
+  function phIni(n) { var p = String(n || '?').trim().split(/\s+/); return ((p[0] || '?')[0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase(); }
+  var PH_COL = ['#5e81ac', '#bf616a', '#a3be8c', '#d08770', '#b48ead', '#88c0d0', '#ebcb8b', '#8fbcbb'];
+  function phCol(n) { var h = 0; String(n).split('').forEach(function (ch) { h = (h * 31 + ch.charCodeAt(0)) >>> 0; }); return PH_COL[h % PH_COL.length]; }
+  function phAv(n, big) { return '<span class="phav' + (big ? ' big' : '') + '" style="background:' + phCol(n) + '">' + esc(phIni(n)) + '</span>'; }
+  function phCallBtn(x) { return x.c.t ? '<a class="phcall" href="tel:' + esc(phTel(x.c.t)) + '" data-ph="' + esc(x.k) + '" aria-label="Chiama ' + esc(x.c.n) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg></a>' : '<span class="phnone">senza numero</span>'; }
+  function phRow(x, sub) { return '<li class="phr' + (x.sos ? ' sos' : '') + '" data-s="' + esc((x.c.n + ' ' + (x.c.r || '') + ' ' + (x.c.t || '') + ' ' + x.g).toLowerCase()) + '"><button class="phrb" data-act="phcard" data-k="' + esc(x.k) + '">' + phAv(x.c.n) + '<span class="phn"><b>' + esc(x.c.n) + '</b><small>' + esc(sub != null ? sub : (x.c.r || x.g)) + '</small></span></button>' + phCallBtn(x) + '</li>'; }
+  function viewTelefono() {
+    var all = phAll(), ced = tok() && (isEditor() || isFullAcc() || isOff()), t = PH.tab, h = '<div class="phw">';
+    h += '<div class="phtop"><button class="aslink" data-act="nav" data-v="home">‹ Home</button>' + (ced ? '<button class="aslink" data-act="ctedit">Modifica</button>' : '') + '</div>';
+    if (t === 'contatti') {
+      h += '<h1 class="phh">Contatti</h1><div class="phsr"><input id="phQ" type="search" placeholder="Cerca" value="' + esc(PH.q) + '" autocomplete="off" aria-label="Cerca un contatto"></div>';
+      var gs = CONTACTS.filter(function (g) { return g.list.length; });
+      if (gs.length > 1) h += '<div class="phch"><button data-act="phg" data-g=""' + (!PH.g ? ' aria-pressed="true"' : '') + '>Tutti</button>' + gs.map(function (g) { return '<button data-act="phg" data-g="' + esc(g.g) + '"' + (PH.g === g.g ? ' aria-pressed="true"' : '') + (g.sos ? ' class="sos"' : '') + '>' + esc(g.g) + '</button>'; }).join('') + '</div>';
+      var sos = all.filter(function (x) { return x.sos && (!PH.g || PH.g === x.g); }), rest = all.filter(function (x) { return !x.sos && (!PH.g || PH.g === x.g); }).sort(function (a, b) { return a.c.n.localeCompare(b.c.n, 'it'); });
+      if (sos.length) h += '<div class="phsec sos">Emergenze</div><ul class="phl">' + sos.map(function (x) { return phRow(x); }).join('') + '</ul>';
+      var letters = [], cur = null, body = '';
+      rest.forEach(function (x) { var L = (x.c.n[0] || '#').toUpperCase().normalize ? (x.c.n[0] || '#').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '') : (x.c.n[0] || '#').toUpperCase(); if (!/[A-Z]/.test(L)) L = '#'; if (L !== cur) { if (cur != null) body += '</ul>'; cur = L; letters.push(L); body += '<div class="phsec" id="phL' + L + '">' + L + '</div><ul class="phl">'; } body += phRow(x); });
+      if (cur != null) body += '</ul>';
+      h += body + (all.length ? '' : '<p class="muted phmt">Nessun contatto.</p>') + '<p class="muted phmt" id="phNone" hidden>Nessun contatto trovato.</p><p class="phcnt">' + all.length + (all.length === 1 ? ' contatto' : ' contatti') + '</p>';
+      if (letters.length > 4) h += '<nav class="phidx" aria-label="Indice">' + letters.map(function (L) { return '<button data-act="phjump" data-l="' + L + '">' + L + '</button>'; }).join('') + '</nav>';
+    } else if (t === 'preferiti') {
+      var fv = phFavs(), fl = fv.map(function (k) { return all.filter(function (x) { return x.k === k; })[0]; }).filter(Boolean);
+      h += '<h1 class="phh">Preferiti</h1>' + (fl.length ? '<ul class="phl">' + fl.map(function (x) { return phRow(x, x.c.t || 'senza numero'); }).join('') + '</ul>' : '<p class="muted phmt">Nessun preferito. Apri un contatto e tocca ☆ per aggiungerlo qui.</p>');
+    } else if (t === 'recenti') {
+      var rc = phRec();
+      h += '<div class="phhr"><h1 class="phh">Recenti</h1>' + (rc.length ? '<button class="aslink" data-act="phrecclr">Cancella</button>' : '') + '</div>' + (rc.length ? '<ul class="phl">' + rc.map(function (r) {
+        var x = all.filter(function (y) { return y.k === r.k; })[0] || { c: { n: r.n || r.t, t: r.t, r: '' }, g: '', k: r.k || r.t };
+        var d = new Date(r.at), today = new Date().toDateString() === d.toDateString();
+        return phRow(x, (today ? hm(r.at) : d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' }) + ' ' + hm(r.at)) + (x.c.r ? ' · ' + x.c.r : ''));
+      }).join('') + '</ul>' : '<p class="muted phmt">Le chiamate fatte da qui compaiono in questa lista.</p>');
+    } else {
+      var dv = PH.dial, mt = dv.length >= 3 ? all.filter(function (x) { return x.c.t && phTel(x.c.t).indexOf(dv) >= 0; })[0] : null;
+      h += '<div class="phdial"><div class="phdn">' + (esc(dv) || '&nbsp;') + '</div><div class="phdm">' + (mt ? esc(mt.c.n) : '&nbsp;') + '</div><div class="phkp">' +
+        [['1', ''], ['2', 'ABC'], ['3', 'DEF'], ['4', 'GHI'], ['5', 'JKL'], ['6', 'MNO'], ['7', 'PQRS'], ['8', 'TUV'], ['9', 'WXYZ'], ['*', ''], ['0', '+'], ['#', '']].map(function (k) { return '<button data-act="phk" data-k="' + k[0] + '"><b>' + k[0] + '</b><small>' + k[1] + '</small></button>'; }).join('') +
+        '<span></span>' + (dv ? '<a class="phkcall" href="tel:' + esc(dv) + '" data-ph="' + esc(mt ? mt.k : '') + '" data-dial="' + esc(dv) + '" aria-label="Chiama"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg></a>' : '<span class="phkcall off"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg></span>') +
+        (dv ? '<button class="phdel" data-act="phk" data-k="del" aria-label="Cancella">⌫</button>' : '<span></span>') + '</div></div>';
+    }
+    var tabs = [['preferiti', '★', 'Preferiti'], ['recenti', '🕘', 'Recenti'], ['contatti', '👤', 'Contatti'], ['tastierino', '⠿', 'Tastierino']];
+    h += '<nav class="phtabs">' + tabs.map(function (x) { return '<button data-act="phtab" data-t="' + x[0] + '"' + (t === x[0] ? ' aria-current="page"' : '') + '><span>' + x[1] + '</span>' + x[2] + '</button>'; }).join('') + '</nav>';
+    return h + '</div>';
+  }
+  function phCard(k) {
+    var x = phAll().filter(function (y) { return y.k === k; })[0]; if (!x) return;
+    var c = x.c, fav = phFavs().indexOf(k) >= 0, ced = tok() && (isEditor() || isFullAcc() || isOff()), tl = phTel(c.t), wa = tl.replace(/^\+/, ''); if (wa && wa.length >= 9 && wa.indexOf('39') !== 0 && wa[0] === '3') wa = '39' + wa;
+    openSheet('<div class="phcd">' + phAv(c.n, true) + '<h2>' + esc(c.n) + '</h2>' + (c.r ? '<p class="muted">' + esc(c.r) + '</p>' : '') + '<p class="phcg">' + esc(x.g) + '</p>' +
+      '<div class="phacts">' + (c.t ? '<a href="sms:' + esc(tl) + '"><span>💬</span>messaggio</a><a href="tel:' + esc(tl) + '" data-ph="' + esc(k) + '" class="phmain"><span>📞</span>chiama</a>' + (wa.length >= 9 ? '<a href="https://wa.me/' + esc(wa) + '" target="_blank" rel="noopener"><span>🟢</span>WhatsApp</a>' : '') : '') +
+      (c.e ? '<a href="mailto:' + esc(c.e) + '"><span>✉️</span>e-mail</a>' : '') + '</div>' +
+      '<div class="phinf">' + (c.t ? '<div><small>telefono</small><a href="tel:' + esc(tl) + '" data-ph="' + esc(k) + '">' + esc(c.t) + '</a><button class="aslink" data-act="copy" data-t="' + esc(c.t) + '">Copia</button></div>' : '<div><small>telefono</small><span class="muted">numero da inserire</span></div>') + (c.e ? '<div><small>e-mail</small><a href="mailto:' + esc(c.e) + '">' + esc(c.e) + '</a></div>' : '') + '</div>' +
+      '<div class="btns"><button class="btn" data-act="phfav" data-k="' + esc(k) + '">' + (fav ? '★ Togli dai preferiti' : '☆ Aggiungi ai preferiti') + '</button>' + (ced && c.id ? '<button class="btn quiet" data-act="ctopen" data-id="' + esc(c.id) + '">Modifica contatto</button>' : '') + '<button class="btn quiet" data-act="close">Chiudi</button></div></div>');
+  }
+  function phLog(k, t) { var r = phRec(), x = phAll().filter(function (y) { return y.k === k; })[0]; r.unshift({ k: k || t, n: x ? x.c.n : '', t: x ? x.c.t : t, at: Date.now() }); try { localStorage.setItem('smb-ph-rec', JSON.stringify(r.slice(0, 40))); } catch (e) {} }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act],[data-ph]') : null; if (!el) return;
+    if (el.hasAttribute('data-ph') && el.tagName === 'A') { phLog(el.getAttribute('data-ph'), el.getAttribute('data-dial') || ''); return; }
+    var a = el.getAttribute('data-act');
+    if (a === 'phtab') { PH.tab = el.getAttribute('data-t'); try { localStorage.setItem('smb-ph-tab', PH.tab); } catch (x) {} render(); window.scrollTo(0, 0); }
+    else if (a === 'phcard') phCard(el.getAttribute('data-k'));
+    else if (a === 'phg') { PH.g = el.getAttribute('data-g'); render(); }
+    else if (a === 'phjump') { var s = $('phL' + el.getAttribute('data-l')); if (s) s.scrollIntoView({ block: 'start' }); }
+    else if (a === 'phfav') { var k = el.getAttribute('data-k'), f = phFavs(), i = f.indexOf(k); if (i >= 0) f.splice(i, 1); else f.push(k); try { localStorage.setItem('smb-ph-fav', JSON.stringify(f)); } catch (x) {} closeSheet(); toast(i >= 0 ? 'Tolto dai preferiti' : '★ Aggiunto ai preferiti'); render(); }
+    else if (a === 'phrecclr') { try { localStorage.removeItem('smb-ph-rec'); } catch (x) {} render(); }
+    else if (a === 'phk') { var kk = el.getAttribute('data-k'); if (kk === 'del') PH.dial = PH.dial.slice(0, -1); else if (PH.dial.length < 16) PH.dial += kk; render(); }
+  });
+  document.addEventListener('input', function (e) {
+    if (!e.target || e.target.id !== 'phQ') return; PH.q = e.target.value; var q = PH.q.toLowerCase().trim(), any = false;
+    Array.prototype.forEach.call(document.querySelectorAll('.phw .phr'), function (r) { var ok = !q || r.getAttribute('data-s').indexOf(q) >= 0; r.hidden = !ok; if (ok) any = true; });
+    Array.prototype.forEach.call(document.querySelectorAll('.phw .phl'), function (u) { var s = u.previousElementSibling, vis = u.querySelector('.phr:not([hidden])'); u.hidden = !vis; if (s && s.classList.contains('phsec')) s.hidden = !vis; });
+    var n = $('phNone'); if (n) n.hidden = any;
+  });
   function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
   /* ---------- render ---------- */
@@ -9991,6 +10122,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var NV = isVan() ? NAV_VAN : isOff() ? NAV_OFF : isAdm ? NAV_ADMIN : isFull ? NAV_FULL : (isMgr() ? NAV_MGR : NAV);
     drawHomeNav();
     document.body.classList.toggle('fspl', view === 'home' && isMioUser());
+    document.body.classList.toggle('phonev', view === 'contatti' && !(CTE && CTE.on));
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
@@ -10110,7 +10242,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   var APPS = {
     logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
     barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], notifiche: ['Notifiche', '#db2777'],
-    oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], listini: ['Listini', '#0e7490'], porzione: ['Costo porzione', '#7c2d12'], menu: ['Menu', '#9d174d'], fatturato: ['Fatturato', '#047857'], carena: ['Carena', '#0e7490'], percorsi: ['Percorsi', '#0f766e'], orari: ['Orari reali', '#6d28d9'], navi: ['Navigatore', '#1a73e8'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Contatti', '#0891b2'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
+    oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], listini: ['Listini', '#0e7490'], porzione: ['Costo porzione', '#7c2d12'], menu: ['Menu', '#9d174d'], fatturato: ['Fatturato', '#047857'], carena: ['Carena', '#0e7490'], percorsi: ['Percorsi', '#0f766e'], orari: ['Orari reali', '#6d28d9'], navi: ['Navigatore', '#1a73e8'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Telefono', '#34c759'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
   };
   function homeApps() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
