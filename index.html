@@ -1164,6 +1164,31 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .rtleg .rtd { width: 2px; height: 22px; border: 0; background: transparent; }
 .rtleg small { color: var(--muted); font-size: 12px; font-style: italic; padding-top: 3px; }
 .rtk { margin-top: 6px; }
+.cgc .cgh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.cgsvg { width: 100%; height: auto; display: block; margin: 4px 0; }
+.cgboat { animation: cgbob 4s ease-in-out infinite; transform-origin: 180px 90px; }
+.cgwake { animation: cgwake 2.2s ease-in-out infinite; }
+@keyframes cgbob { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(2px) rotate(-.6deg); } }
+@keyframes cgwake { 0%, 100% { opacity: .2; } 50% { opacity: .7; } }
+.cgit.new { animation: cgdrop .55s cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes cgdrop { from { transform: translateY(-46px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .cgboat, .cgwake, .cgit.new { animation: none; } }
+.lite .cgboat, .lite .cgwake, .lite .cgit.new { animation: none; }
+.cgon { font-size: 14px; margin: 2px 0 8px; }
+.cgl { display: flex; flex-direction: column; }
+.cgr { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+.cgi { font-size: 22px; width: 30px; text-align: center; }
+.cgn { flex: 1; min-width: 0; }
+.cgn b { display: block; font-size: 15px; }
+.cgn small { color: var(--muted); font-size: 12px; }
+.cgn i { font-style: normal; font-weight: 700; } .cgn i.up { color: #15803d; } .cgn i.dn { color: #b45309; }
+.cgst { display: flex; align-items: center; gap: 8px; }
+.cgst button { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 20px; line-height: 1; }
+.cgst button:disabled { opacity: .35; }
+.cgst b { min-width: 26px; text-align: center; font-size: 18px; font-variant-numeric: tabular-nums; }
+.cgadd { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.cgadd input { flex: 1 1 160px; margin: 0; }
+.cgmore { margin-top: 8px; }
 .huc .huh { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .huh b { display: flex; align-items: center; gap: 8px; font-size: 17px; }
 .huh b i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
@@ -2997,7 +3022,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var code = BF.sel || (S.shift && S.shift.boat) || myBoatCode() || boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO'; })[0];
     if (!BF.files[code] && tok() && !BF.loading) { BF.loading = true; setTimeout(function () { BF.loading = false; loadFiles(code); }, 0); }
     var files = BF.files[code], labels = DOCS.slice();
-    var h = '<div class="wrap"><h2>Barche</h2><h3>Documenti per i controlli</h3>' +
+    var h = '<div class="wrap"><h2>Barche</h2>' + cargoCard() + '<h3>Documenti per i controlli</h3>' +
       '<div class="chips" role="group" aria-label="Barca">' + boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO'; }).map(function (k) { return '<button class="chip" data-act="bselc" data-c="' + k + '" aria-pressed="' + (k === code ? 'true' : 'false') + '">' + esc(BOATS[k].name) + '</button>'; }).join('') + '</div>';
     if (!tok()) h += '<p class="hint">Serve la connessione per vedere i documenti.</p>';
     else if (!files) h += '<p class="muted">Carico i documenti…</p>';
@@ -5486,7 +5511,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var b = BOATS[code], mine = S.shift && S.shift.boat === code, E = BF.edit && BF.edit.code === code ? BF.edit : null, none = '<span class="muted">Da inserire</span>';
     if (isMgr() && !BF.dati) {
       var nrq = S.requests.filter(function (r) { return !r.closed; }).length;
-      return '<div class="wrap"><h2>Barche</h2>' + fleetBlock() + fuelBlock() + refuelBlock() + endPhBlock() + proofBlock() +
+      return '<div class="wrap"><h2>Barche</h2>' + cargoCard() + fleetBlock() + fuelBlock() + refuelBlock() + endPhBlock() + proofBlock() +
         '<button class="btn rqbtn dd2" data-act="bdati">📋 DATI E DOCUMENTI <span>scheda, motore e documenti di ogni barca ›</span></button>' +
         '<button class="btn rqbtn" data-act="nav" data-v="richieste">🧰 Richieste per le barche' + (nrq ? ' <b>' + nrq + '</b>' : '') + ' ›</button></div>';
     }
@@ -9102,6 +9127,99 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   document.addEventListener('pointercancel', function () { RT.drag = null; });
   document.addEventListener('wheel', function (e) { var box = $('rtBox'); if (!box || !box.contains(e.target) || !RT.view) return; e.preventDefault(); var r = box.getBoundingClientRect(); rtZoom(e.deltaY < 0 ? 1 : -1, e.clientX - r.left, e.clientY - r.top); }, { passive: false });
   window.addEventListener('resize', function () { if (view === 'percorsi') { RT.view = null; rtDraw(); } });
+  /* ---------- Carico della barca: la barca vista dall'alto si riempie con quello che c'è nel programma; il trasportatore aggiunge e toglie ---------- */
+  var CG_K = [
+    ['polybox', '📦', 'Polybox pieni', 'leg'], ['vuoti', '🔄', 'Polybox vuoti', 'leg'], ['pane', '🥖', 'Casse del pane', 'leg'],
+    ['sacco', '🛍️', 'Sacchi e borse', 'shift'], ['carrello', '🛒', 'Carrello', 'shift']
+  ];
+  var CG = { prev: {}, sel: null, adding: false };
+  function cgState() {
+    var sh = S.shift; if (!sh) return null;
+    var st = stops(), i = curIdx(), s0 = -1, loading = false;
+    if (i >= 0 && isSem(st[i].name)) { s0 = i; loading = true; }
+    else { var lim = i >= 0 ? i : st.length; for (var k = lim - 1; k >= 0; k--) if (isSem(st[k].name) && sh.done[k]) { s0 = k; break; } }
+    var leg = s0 >= 0 ? legAfter(s0) : [], onb = [], pb = 0, vu = 0, pn = 0;
+    leg.forEach(function (j) {
+      var z = st[j];
+      if (!sh.done[j]) { var v = colliGet(j); if (v == null) { var m = /(\d+)\s*polybox/i.exec((z.cargo || '') + ' ' + (z.note || '')); v = m ? +m[1] : null; } if (v) { pb += v; onb.push([z.name, v]); } }
+      else { var o = PBR[pbrK(j)]; if (o && o.done && o.val) vu += +o.val; }
+    });
+    // casse del pane: a bordo da Pane fino al Seminario successivo
+    for (var p = 0; p < st.length; p++) if (isPane(st[p].name) && sh.done[p]) { var sem = -1; for (var q = p + 1; q < st.length; q++) if (isSem(st[q].name)) { sem = q; break; } if (sem < 0 || !sh.done[sem]) { var c = sh.casse && sh.casse[sh.day + ':' + sh.boat]; if (c) pn = +c; } }
+    var key = sh.day + ':L' + s0;
+    sh.cargo = sh.cargo || {}; if (sh.cargo.leg !== key) { sh.cargo.leg = key; sh.cargo.l = {}; } sh.cargo.l = sh.cargo.l || {}; sh.cargo.s = sh.cargo.s || {}; sh.cargo.x = sh.cargo.x || {};
+    var plan = { polybox: pb, vuoti: vu, pane: pn, sacco: 0, carrello: 0 }, tot = {};
+    CG_K.forEach(function (k) { var a = (k[3] === 'leg' ? sh.cargo.l : sh.cargo.s)[k[0]] || 0; tot[k[0]] = Math.max(0, plan[k[0]] + a); });
+    return { plan: plan, tot: tot, x: sh.cargo.x, onb: onb, loading: loading, next: loading ? st[i] : null, legName: s0 >= 0 ? 'giro partito dal Seminario delle ' + (st[s0].t || '') : '' };
+  }
+  function cgBoatSvg(c, code) {
+    var items = [];
+    CG_K.forEach(function (k) { for (var n = 0; n < c.tot[k[0]]; n++) items.push(k[0]); });
+    Object.keys(c.x).forEach(function (lb) { for (var n = 0; n < c.x[lb]; n++) items.push('x:' + lb); });
+    // posti sul ponte: 3 file da 9, il carrello occupa due posti a poppa
+    var cols = 9, rows = 3, cap, out = '', idx = {}, cnt = {}, slot = 0, more = 0;
+    var cart = items.filter(function (x) { return x === 'carrello'; }).length; items = items.filter(function (x) { return x !== 'carrello'; }); if (cart) cols = 8; cap = cols * rows;
+    for (var ci = 0; ci < Math.min(cart, 2); ci++) { var cy = 58 + ci * 36; out += '<g class="cgit' + ((CG.prev.carrello || 0) <= ci ? ' new' : '') + '"><rect x="24" y="' + cy + '" width="30" height="30" rx="4" fill="#64748b"/><path d="M28 ' + (cy + 9) + 'h22M28 ' + (cy + 15) + 'h22M28 ' + (cy + 21) + 'h22" stroke="#cbd5e1" stroke-width="1.5"/><title>Carrello</title></g>'; }
+    var x0 = cart ? 62 : 26;
+    items.forEach(function (t) {
+      cnt[t] = (cnt[t] || 0) + 1;
+      if (slot >= cap) { more++; return; }
+      var r = Math.floor(slot / cols), col = slot % cols, x = x0 + col * 23, y = 56 + r * 24; slot++;
+      var isNew = (CG.prev[t] || 0) < cnt[t], cls = 'cgit' + (isNew ? ' new' : ''), d = 'style="animation-delay:' + (isNew ? Math.min(0.6, ((idx[t] = (idx[t] || 0) + 1) - 1) * 0.07).toFixed(2) : 0) + 's"';
+      if (t === 'polybox') out += '<g class="' + cls + '" ' + d + '><rect x="' + x + '" y="' + y + '" width="20" height="20" rx="3" fill="#2563eb" stroke="#1e3a8a" stroke-width="1"/><path d="M' + (x + 2) + ' ' + (y + 6) + 'h16" stroke="#93c5fd" stroke-width="1.5"/><title>Polybox pieno</title></g>';
+      else if (t === 'vuoti') out += '<g class="' + cls + '" ' + d + '><rect x="' + (x + 1) + '" y="' + (y + 1) + '" width="18" height="18" rx="3" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3 2"/><title>Polybox vuoto</title></g>';
+      else if (t === 'pane') out += '<g class="' + cls + '" ' + d + '><rect x="' + x + '" y="' + (y + 3) + '" width="20" height="15" rx="2" fill="#d97706" stroke="#92400e" stroke-width="1"/><path d="M' + (x + 3) + ' ' + (y + 7) + 'v8M' + (x + 8) + ' ' + (y + 7) + 'v8M' + (x + 13) + ' ' + (y + 7) + 'v8M' + (x + 17) + ' ' + (y + 7) + 'v8" stroke="#fde68a" stroke-width="1.2"/><title>Cassa del pane</title></g>';
+      else if (t === 'sacco') out += '<g class="' + cls + '" ' + d + '><path d="M' + (x + 4) + ' ' + (y + 6) + 'h12l2 13h-16z" fill="#0f766e"/><path d="M' + (x + 7) + ' ' + (y + 6) + 'q3 -5 6 0" fill="none" stroke="#0f766e" stroke-width="1.5"/><title>Sacco</title></g>';
+      else out += '<g class="' + cls + '" ' + d + '><rect x="' + (x + 1) + '" y="' + (y + 1) + '" width="18" height="18" rx="9" fill="#7c3aed"/><text x="' + (x + 10) + '" y="' + (y + 14) + '" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">' + esc(t.slice(2, 3).toUpperCase()) + '</text><title>' + esc(t.slice(2)) + '</title></g>';
+    });
+    var prev = {}; CG_K.forEach(function (k) { prev[k[0]] = c.tot[k[0]]; }); Object.keys(c.x).forEach(function (lb) { prev['x:' + lb] = c.x[lb]; }); setTimeout(function () { CG.prev = prev; }, 0);
+    var col = bcol(code);
+    return '<svg class="cgsvg" viewBox="0 28 360 124" role="img" aria-label="Carico della barca: ' + esc(cgSummary(c)) + '"><g class="cgboat">' +
+      '<path d="M300 110 q20 0 40 -6 M300 70 q20 0 40 6" stroke="#93c5fd" stroke-width="2" fill="none" opacity=".6" class="cgwake"/>' +
+      '<path d="M18 40 H252 Q336 66 348 90 Q336 114 252 140 H18 Q6 140 6 128 V52 Q6 40 18 40 Z" fill="' + col + '" opacity=".9"/>' +
+      '<path d="M22 48 H250 Q322 70 332 90 Q322 110 250 132 H22 Q14 132 14 124 V56 Q14 48 22 48 Z" fill="#f8fafc" stroke="#cbd5e1"/>' +
+      '<rect x="284" y="78" width="26" height="24" rx="4" fill="#cbd5e1"/><circle cx="297" cy="90" r="5" fill="#64748b"/>' + out +
+      (more ? '<g><rect x="236" y="110" width="40" height="18" rx="9" fill="#0f172a"/><text x="256" y="123" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">+' + more + '</text></g>' : '') +
+      (!slot && !cart ? '<text x="150" y="95" text-anchor="middle" font-size="13" fill="#64748b">Barca vuota</text>' : '') + '</g></svg>';
+  }
+  function cgSummary(c) { var a = []; CG_K.forEach(function (k) { if (c.tot[k[0]]) a.push(c.tot[k[0]] + ' ' + k[2].toLowerCase()); }); Object.keys(c.x).forEach(function (lb) { if (c.x[lb]) a.push(c.x[lb] + ' ' + lb); }); return a.join(', ') || 'vuota'; }
+  function cargoCard() {
+    var sh = S.shift, code = sh ? physOf(sh) : null;
+    if (!sh) return '<section class="card cgc"><h3>🚤 Carico della barca</h3>' + cgBoatSvg({ tot: { polybox: 0, vuoti: 0, pane: 0, sacco: 0, carrello: 0 }, x: {} }, myBoatCode() || 'PATANA') + '<p class="muted">Inizia il turno: la barca si riempie da sola con quello che c’è nel programma.</p></section>';
+    var c = cgState();
+    var h = '<section class="card cgc"><div class="cgh"><h3>🚤 Carico · ' + esc(physName(sh)) + '</h3><span class="muted">' + esc(c.loading ? 'al Seminario: da caricare' : c.legName) + '</span></div>' + cgBoatSvg(c, code);
+    h += c.onb.length ? '<p class="cgon">A bordo per: ' + c.onb.map(function (o) { return '<b>' + esc(o[0]) + '</b> ' + o[1]; }).join(' · ') + '</p>' : (c.loading ? '<p class="cgon muted">Segna i polybox al Seminario e la barca si riempie.</p>' : '');
+    h += '<div class="cgl">' + CG_K.map(function (k) {
+      var n = c.tot[k[0]], p = c.plan[k[0]], d = n - p;
+      return '<div class="cgr"><span class="cgi" aria-hidden="true">' + k[1] + '</span><span class="cgn"><b>' + k[2] + '</b><small>' + (p ? 'dal programma ' + p : 'non previsto') + (d ? ' · <i class="' + (d > 0 ? 'up' : 'dn') + '">' + (d > 0 ? '+' : '') + d + ' a mano</i>' : '') + '</small></span>' +
+        '<span class="cgst"><button data-act="cgm" data-k="' + k[0] + '" aria-label="Togli ' + k[2] + '"' + (n ? '' : ' disabled') + '>−</button><b>' + n + '</b><button data-act="cgp" data-k="' + k[0] + '" aria-label="Aggiungi ' + k[2] + '">+</button></span></div>';
+    }).join('') + Object.keys(c.x).filter(function (lb) { return c.x[lb] > 0; }).map(function (lb) {
+      return '<div class="cgr"><span class="cgi" aria-hidden="true">📎</span><span class="cgn"><b>' + esc(lb) + '</b><small>aggiunto a mano</small></span><span class="cgst"><button data-act="cgxm" data-l="' + esc(lb) + '" aria-label="Togli ' + esc(lb) + '">−</button><b>' + c.x[lb] + '</b><button data-act="cgxp" data-l="' + esc(lb) + '" aria-label="Aggiungi ' + esc(lb) + '">+</button></span></div>';
+    }).join('') + '</div>' +
+      (CG.adding ? '<div class="cgadd"><input class="field txt" id="cgNew" placeholder="Cosa carichi? es. cassa acqua, pacco…" maxlength="40" autocomplete="off"><button class="btn sm primary" data-act="cgxadd">Aggiungi</button><button class="btn sm quiet" data-act="cgxno">Annulla</button></div>' : '<button class="btn sm cgmore" data-act="cgxnew">＋ Aggiungi altro</button>') + '</section>';
+    return h;
+  }
+  function cgSend(kind, label, delta) { cl('rpc_cargo_add', { p_kind: kind, p_label: label || '', p_delta: delta }).catch(function () {}); }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act'), sh = S.shift;
+    if (!/^cg/.test(a)) return;
+    if (a === 'cgxnew') { CG.adding = true; render(); setTimeout(function () { var i = $('cgNew'); if (i) i.focus(); }, 30); return; }
+    if (a === 'cgxno') { CG.adding = false; render(); return; }
+    if (!sh) { toast('Inizia il turno per caricare la barca'); return; }
+    var c = cgState();
+    if (a === 'cgp' || a === 'cgm') {
+      var k = el.getAttribute('data-k'), def = CG_K.filter(function (x) { return x[0] === k; })[0]; if (!def) return;
+      var bag = def[3] === 'leg' ? sh.cargo.l : sh.cargo.s, dl = a === 'cgp' ? 1 : -1;
+      if (dl < 0 && c.tot[k] <= 0) return;
+      bag[k] = (bag[k] || 0) + dl; save(); cgSend(k, '', dl); render();
+    } else if (a === 'cgxp' || a === 'cgxm') {
+      var lb = el.getAttribute('data-l'), d2 = a === 'cgxp' ? 1 : -1; sh.cargo.x[lb] = Math.max(0, (sh.cargo.x[lb] || 0) + d2); if (!sh.cargo.x[lb]) delete sh.cargo.x[lb]; save(); cgSend('altro', lb, d2); render();
+    } else if (a === 'cgxadd') {
+      var v = String(($('cgNew') || {}).value || '').trim().slice(0, 40); if (!v) { toast('Scrivi cosa carichi'); return; }
+      sh.cargo.x[v] = (sh.cargo.x[v] || 0) + 1; CG.adding = false; save(); cgSend('altro', v, 1); render();
+    }
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target && e.target.id === 'cgNew') { e.preventDefault(); var b = document.querySelector('[data-act="cgxadd"]'); if (b) b.click(); } });
   function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
   /* ---------- render ---------- */
@@ -10138,7 +10256,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
      In modalità offline (codice di sblocco o tasto 🆘) ogni dato del turno (tappe, problemi, colli/polybox, casse del pane,
      foto, DDT firmati, benzina, foto finale) si salva sul telefono in ordine. Quando la stessa persona entra con il PIN
      e c'è internet, l'app li rimanda al server uno per uno; a fine turno gli orari si sistemano come da programma. */
-  var OUT_FNS = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_stop_event2', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_delivery_proof_photo', 'rpc_colli_set', 'rpc_murano_colli_set', 'rpc_shift_gps_mode', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_refuel_add2', 'rpc_refuel_photo', 'rpc_refuel_photo2', 'rpc_refuel_void', 'rpc_fuel_set', 'rpc_track_move', 'rpc_ddt_edit_file', 'rpc_ddt_place_sig', 'rpc_bread_crates_set', 'rpc_pb_return_set', 'rpc_task_update', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_polybox_set', 'rpc_self_stop_add', 'rpc_self_stop_remove'];
+  var OUT_FNS = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_stop_event2', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_delivery_proof_photo', 'rpc_colli_set', 'rpc_murano_colli_set', 'rpc_shift_gps_mode', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_refuel_add2', 'rpc_refuel_photo', 'rpc_refuel_photo2', 'rpc_refuel_void', 'rpc_fuel_set', 'rpc_track_move', 'rpc_ddt_edit_file', 'rpc_ddt_place_sig', 'rpc_bread_crates_set', 'rpc_pb_return_set', 'rpc_task_update', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_polybox_set', 'rpc_self_stop_add', 'rpc_self_stop_remove', 'rpc_cargo_add'];
   // letture che servono durante il turno: l'ultima risposta resta sul telefono per quando non c'è rete
   var OUT_READ = ['rpc_ddt_list', 'rpc_ddt_file', 'rpc_ddt_signature', 'rpc_my_tasks', 'rpc_boat_info', 'rpc_contacts2', 'rpc_program_active', 'rpc_cancels_active', 'rpc_pb_expected', 'rpc_murano_colli_last', 'rpc_polybox_status', 'rpc_fuel_status', 'rpc_assign_list', 'rpc_end_photo_status', 'rpc_delivery_proof_list', 'rpc_task_day'];
   var OUT_SKIP = ['rpc_log_gps', 'rpc_pos_share']; // GPS: in offline non serve
