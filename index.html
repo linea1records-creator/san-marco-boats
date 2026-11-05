@@ -1189,6 +1189,7 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .cgadd { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
 .cgadd input { flex: 1 1 160px; margin: 0; }
 .cgmore { margin-top: 8px; }
+.hmshift.rsm { background: #0f766e; color: #fff; }
 .huc .huh { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .huh b { display: flex; align-items: center; gap: 8px; font-size: 17px; }
 .huh b i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
@@ -1898,7 +1899,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       toast('Turno iniziato su ' + BOATS[code].name);
       gpsApply(); render(); setTimeout(loadMyTasks, 600); setTimeout(function () { gpsModeAsk(true); }, 400);
     };
-    if (tok() || isOffSess()) { cl('rpc_start_shift', { p_boat: code }).then(function (r) { if (r && r.error) { scanMsg(startErr(r.error), true); return; } go(); if (r && r.shift_id && S.shift) { S.shift.sid = r.shift_id; save(); } cl('rpc_set_plan', { p_plan: stops().map(function (z) { return { name: z.name, t: z.ind ? '' : (z.t || '') }; }) }); }); } else go();
+    if (tok() || isOffSess()) { cl('rpc_start_shift', { p_boat: code }).then(function (r) { if (r && (r.resumed || r.error === 'turno_aperto_su_altra_barca')) { closeSheet(); if (r.error) toast('Hai già un turno aperto: lo riprendo. Per cambiare barca usa “Cambio barca”.'); resumeShift(); return; } if (r && r.error) { scanMsg(startErr(r.error), true); return; } go(); if (r && r.shift_id && S.shift) { S.shift.sid = r.shift_id; save(); } cl('rpc_set_plan', { p_plan: stops().map(function (z) { return { name: z.name, t: z.ind ? '' : (z.t || '') }; }) }); }); } else go();
   }
   function makeThumb(url) {
     return new Promise(function (res) {
@@ -2533,7 +2534,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target && e.target.id === 'freeIn') { e.preventDefault(); freeGo(); } });
   function viewTurno() {
     if (!S.shift) {
-      return '<div class="wrap">' + briefCard() + myTasksCard() + '<section class="hero">' +
+      return '<div class="wrap">' + resumeBtn() + briefCard() + myTasksCard() + '<section class="hero">' +
         '<button class="startbtn" data-act="scan" aria-label="Inizia turno">' + logo(120) + '</button>' +
         '<h1>Inizia turno</h1><p>Scegli la tua barca e parti. L’app ti guida in ogni tappa; anche senza consegne puoi navigare verso una meta.</p></section>' +
         '<button class="btn primary" data-act="scan">Inizia turno</button>' +
@@ -5478,6 +5479,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       var w = !!r.works; if (!!SESSION.works !== w) { SESSION.works = w; ch = true; }
       var fu = !!r.full; if (!!SESSION.full !== fu) { SESSION.full = fu; ch = true; }
       if (S.shift && r.shift_open && r.cur_boat && BOATS[r.cur_boat]) { var _ph = r.cur_boat === S.shift.boat ? null : r.cur_boat; if ((S.shift.phys || null) !== _ph) { S.shift.phys = _ph; save(); ch = true; setTimeout(function () { toast('Adesso sei sulla ' + BOATS[r.cur_boat].name); }, 60); } }
+      var _op = r.shift_open && r.shift_id && !(S.shift && (!S.shift.sid || S.shift.sid === r.shift_id)) ? { id: r.shift_id, boat: r.shift_boat, start: r.shift_start } : null;
+      if (JSON.stringify(SESSION.open || null) !== JSON.stringify(_op)) { SESSION.open = _op; ch = true; }
       if (!!SESSION.money !== !!r.money) { SESSION.money = !!r.money; ch = true; }
       if (r.bill && SESSION.role !== 'billing') { SESSION.role = 'billing'; ch = true; }
       if (!!SESSION.locator !== !!r.locator) { SESSION.locator = !!r.locator; ch = true; }
@@ -8203,6 +8206,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   };
   function viewPlancia() {
     var p = plStep(), k = plKind(p), A = PL_ACT[k], pb = plPolybox(p), s = p.s;
+    if (k === 'start' && openInfo()) A = ['⏯', 'Riprendi turno', 'Turno aperto ' + resumeLabel(openInfo()) + ': non è stato terminato'];
     var tz = s && s.t ? s.t : '––:––', late = '';
     if (p.shift && s && s.t && !s.ind) { var now = new Date(), dm = now.getHours() * 60 + now.getMinutes() - t2m(s.t); if (dm > 5) late = '<span class="plate bad">+' + dm + ' min</span>'; else if (dm < -5) late = '<span class="plate">tra ' + (-dm) + ' min</span>'; else late = '<span class="plate ok">in orario</span>'; }
     var boatN = p.shift ? physName(S.shift) : (p.boat && BOATS[p.boat] ? BOATS[p.boat].name : '');
@@ -8228,7 +8232,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var a = el.getAttribute('data-act'), p = plStep(), k = plKind(p);
     if (a === 'plcam') { if (!S.shift || p.i < 0) { toast('Inizia il turno: le foto si salvano sulla tappa in corso'); return; } plPhoto(function (u) { plProof(p.i, u).then(function () { toast('Foto salvata su ' + p.s.name); }); }); return; }
     if (a === 'plopen') { if (S.shift && p.i >= 0) { if (isSem(p.s.name)) semSheet(p.i, false); else if (isDel(p.s)) cnsSheet(p.i, false); else plFire('next'); } return; }
-    if (k === 'start') { if (S.shift) return; scanSheet(); return; }
+    if (k === 'start') { if (S.shift) return; if (openInfo()) { resumeShift(); return; } scanSheet(); return; }
     if (k === 'end' || k === 'endphoto') { plFire('endsheet'); return; }
     if (k === 'sem') { PLA.sem[S.shift.day + ':' + p.i] = 1; semSheet(p.i, false); return; }
     if (k === 'photo') { plPhoto(function (u) { plProof(p.i, u).then(function () { toast('Foto della barca salvata'); plFire('next'); setTimeout(render, 600); }); }); return; }
@@ -9220,6 +9224,38 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     }
   });
   document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target && e.target.id === 'cgNew') { e.preventDefault(); var b = document.querySelector('[data-act="cgxadd"]'); if (b) b.click(); } });
+  /* ---------- Riprendi turno: se il turno non è stato terminato, si riprende sempre (anche da un altro telefono o dopo aver svuotato l'app) ---------- */
+  function openInfo() { return SESSION && SESSION.open && !S.shift && !isOffSess() ? SESSION.open : null; }
+  function resumeLabel(o) { return (BOATS[o.boat] ? BOATS[o.boat].name : o.boat) + (o.start ? ' · dalle ' + hm(Date.parse(o.start)) : ''); }
+  function resumeShift() {
+    if (!tok()) { toast('Per riprendere il turno serve internet'); return; }
+    if (resumeShift.busy) return; resumeShift.busy = true; toast('Riprendo il turno…');
+    cl('rpc_my_open_shift', {}).then(function (r) {
+      resumeShift.busy = false;
+      if (!r || r.error) { toast('Non riesco a riprendere il turno: controlla la connessione'); return; }
+      if (!r.open) { if (SESSION) SESSION.open = null; toast('Non c’è un turno aperto da riprendere'); render(); return; }
+      var day = String(r.day).slice(0, 10), code = r.boat; if (!BOATS[code]) { toast('Barca del turno non trovata'); return; }
+      var pd = ensureDay(day), bd = pd.boats[code]; if (!bd || bd.off) pd.boats[code] = { stops: [], onCall: false, off: false, extraOnly: true };
+      S.shift = { boat: code, day: day, start: Date.parse(r.start) || Date.now(), done: {}, step: 0, pre: [], km: +r.km || 0, trip: 0, end: null, who: SESSION ? SESSION.name : '', sid: r.id, gmSync: 1, resumed: Date.now() };
+      if (r.cur_boat && r.cur_boat !== code && BOATS[r.cur_boat]) S.shift.phys = r.cur_boat;
+      if (r.no_gps) S.shift.noGps = true;
+      // le tappe già segnate sul server tornano fatte, nello stesso ordine
+      var st = stops(), n = 0;
+      (r.events || []).forEach(function (ev) {
+        var best = -1;
+        for (var i = 0; i < st.length; i++) { if (S.shift.done[i] || st[i].name !== ev.name) continue; var pt = st[i].ind ? null : (st[i].t || null); if ((ev.planned || null) === pt) { best = i; break; } if (best < 0) best = i; }
+        if (best >= 0) { S.shift.done[best] = { status: ev.status === 'problem' ? 'problem' : 'ok', reason: ev.reason || null, t: Date.parse(ev.at) || Date.now(), gps: false }; n++; }
+      });
+      S.shift.colli = {};
+      (r.colli || []).forEach(function (c) { for (var i = 0; i < st.length; i++) if (st[i].name === c.name && (st[i].t || '') === (c.planned || '')) { S.shift.colli[day + ':' + i] = c.n; break; } });
+      if (SESSION) { SESSION.open = null; try { localStorage.setItem(SKEY, JSON.stringify(SESSION)); } catch (x) {} }
+      save(); closeSheet(); view = isMioUser() ? 'home' : 'guida'; spoken = '';
+      wakeOn(); gpsApply(); render(); setTimeout(loadMyTasks, 600);
+      toast('Turno ripreso su ' + BOATS[code].name + (n ? ' · ' + n + (n === 1 ? ' tappa già fatta' : ' tappe già fatte') : ''));
+    }).catch(function () { resumeShift.busy = false; toast('Non riesco a riprendere il turno: controlla la connessione'); });
+  }
+  function resumeBtn(cls) { var o = openInfo(); return o ? '<button class="' + (cls || 'hmshift rsm') + '" data-act="resume"><span style="font-size:28px" aria-hidden="true">⏯</span><span><b>Riprendi turno</b>' + esc(resumeLabel(o)) + ' · non è stato terminato</span></button>' : ''; }
+  document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="resume"]') : null; if (el) resumeShift(); });
   function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
   /* ---------- render ---------- */
@@ -9416,6 +9452,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (isMioUser()) return viewPlancia();
     var nm = SESSION && SESSION.name ? String(SESSION.name).split(' ')[0] : '', hr = new Date().getHours();
     var h = '<div class="wrap hmwrap"><div class="hmhi">' + (hr < 13 ? 'Buongiorno' : hr < 18 ? 'Buon pomeriggio' : 'Buonasera') + (nm ? ', ' + esc(nm) : '') + '</div><div class="muted">' + esc(new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })) + '</div>';
+    if (!S.shift && !isVan() && !isOff()) h += resumeBtn();
     if (S.shift && !isVan() && !isOff()) h += '<button class="hmshift" data-act="nav" data-v="turno"><span style="font-size:28px" aria-hidden="true">🚤</span><span><b>Turno in corso</b>' + esc(BOATS[S.shift.boat] ? BOATS[S.shift.boat].name : '') + ' · tocca per riprendere</span></button>';
     if ((navigator.onLine === false || (SESSION && SESSION.offline)) && !isVan() && !isOff()) h += '<button class="hmshift" data-act="emopen" style="background:#7f1d1d;color:#fff"><span style="font-size:28px" aria-hidden="true">🆘</span><span><b>' + (SESSION && SESSION.offline ? 'Modalità offline · niente va nel database' : 'Sei offline') + '</b>Apri il turno d’emergenza: le tappe si segnano dal programma</span></button>';
     if (OUT.n) h += '<div class="card" role="status" style="border-color:#E65100"><b>📤 ' + OUT.n + (OUT.n === 1 ? ' dato del turno offline' : ' dati del turno offline') + ' sul telefono</b><span class="muted">' + (isOffSess() ? 'Si inviano da soli quando entri con il tuo PIN e c’è internet.' : OUT.err ? 'Non inviati: chiudi prima il turno aperto sul server, poi riapri l’app.' : 'Li sto inviando al database…') + '</span></div>';
