@@ -1144,7 +1144,7 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .rtlg i.g { background: #2E7D32; } .rtlg i.y { background: #E65100; } .rtlg i.r { background: #C62828; }
 .rtl { list-style: none; margin: 0; padding: 0; position: relative; }
 .rtl::before { content: ''; position: absolute; left: 61px; top: 6px; bottom: 6px; width: 2px; background: var(--line); }
-.rti, .rtleg { display: grid; grid-template-columns: 44px 36px 1fr; align-items: start; padding: 6px 0; position: relative; }
+.rti, .rtleg { display: grid; grid-template-columns: 44px 36px 1fr auto; align-items: start; padding: 6px 0; position: relative; }
 .rti[data-act] { cursor: pointer; border-radius: 10px; }
 .rti[data-act]:hover, .rti.on { background: rgba(37,99,235,.08); }
 .rtt { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; padding-top: 3px; text-align: right; padding-right: 4px; }
@@ -1166,6 +1166,7 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .rtleg .rtd { width: 2px; height: 22px; border: 0; background: transparent; }
 .rtleg small { color: var(--muted); font-size: 12px; font-style: italic; padding-top: 3px; }
 .rtk { margin-top: 6px; }
+.rted { width: 36px; height: 32px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 18px; line-height: 1; align-self: center; }
 .cgc .cgh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .cgsvg { width: 100%; height: auto; display: block; margin: 4px 0; }
 .cgboat { animation: cgbob 4s ease-in-out infinite; transform-origin: 180px 90px; }
@@ -2601,14 +2602,14 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   }
   function progUndo(prev, what) {
     cl('rpc_program_save', { p_id: null, p_title: 'Annullato: ' + what, p_notes: '', p_days: asDaysForSave(prev), p_publish: true })
-      .then(function () { return loadProgram(); }).then(function () { toast('Modifica annullata'); render(); })
+      .then(function () { return loadProgram(); }).then(function () { toast('Modifica annullata'); if (view === 'percorsi') rtReload(); render(); })
       .catch(function () { toast('Non riesco ad annullare: controlla la connessione'); });
   }
   function progDelStop(k, b, i) {
     var day = asDayFromProgram(k), st = day.boats[b] && day.boats[b].stops[i]; if (!st) return;
     day.boats[b].stops.splice(i, 1);
     var what = (st.t ? st.t + ' ' : '') + st.name + ' · ' + BOATS[b].name + ' ' + pgFmt(k);
-    progPublish([day], 'Eliminata ' + what).then(function (u) { render(); undoBar('Eliminata: ' + st.name, function () { progUndo(u.prev, what); }); })
+    progPublish([day], 'Eliminata ' + what).then(function (u) { if (view === 'percorsi') rtReload(); render(); undoBar('Eliminata: ' + st.name, function () { progUndo(u.prev, what); }); })
       .catch(function () { toast('Non riesco a eliminare: controlla la connessione'); render(); });
   }
   function m2t(m) { m = ((m % 1440) + 1440) % 1440; return pad(Math.floor(m / 60)) + ':' + pad(m % 60); }
@@ -2644,7 +2645,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (T.shift && d) stops.slice(T.i + 1).forEach(function (z) { if (z.t) z.t = m2t(t2m(z.t) + d); if (z.end) z.end = m2t(t2m(z.end) + d); });
     var what = T.name + ' ' + (T.t0 || '—') + '→' + nt + ' · ' + BOATS[T.b].name + ' ' + pgFmt(T.k);
     TS = null; tsDraw();
-    progPublish([day], 'Orario ' + what).then(function (u) { render(); undoBar(T.name + ' alle ' + nt + (T.shift && d ? ' (e tappe dopo)' : ''), function () { progUndo(u.prev, what); }); })
+    progPublish([day], 'Orario ' + what).then(function (u) { if (view === 'percorsi') rtReload(); render(); undoBar(T.name + ' alle ' + nt + (T.shift && d ? ' (e tappe dopo)' : ''), function () { progUndo(u.prev, what); }); })
       .catch(function () { toast('Non riesco a salvare: controlla la connessione'); });
   }
   function taskDelRun(run) {
@@ -9027,14 +9028,14 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   function rtKm(v) { return (Math.round(v * 10) / 10).toFixed(1).replace('.', ',') + ' km'; }
   var RT_BOATNAME = function (c) { return BOATS[c] ? BOATS[c].name : c; };
   function rtTimeline(pk) {
-    var h = '', lastStop = null, ev = pk.ev, i = 0, kit = rtKitchen(pk);
+    var h = '', lastStop = null, ev = pk.ev, i = 0, kit = rtKitchen(pk), canEd = rtCanEdit(); RT.pk = pk;
     while (i < ev.length) {
       var e = ev[i], x = e.x || {};
       // i polybox segnati tutti insieme (al Seminario) diventano un solo passo
       if (e.k === 'colli' || e.k === 'colli_eff') {
         var grp = {}, j = i; while (j < ev.length && (ev[j].k === 'colli' || ev[j].k === 'colli_eff') && ev[j].at - e.at < 90000) { grp[ev[j].x.name] = ev[j].x.n; j++; }
         var ks = Object.keys(grp), tot = ks.reduce(function (s, k) { return s + (+grp[k] || 0); }, 0);
-        h += '<li class="rti k-load"><span class="rtt">' + rtHm(e.at) + '</span><span class="rtd" aria-hidden="true">📦</span><div><b>Polybox caricati: ' + tot + '</b><small>' + ks.map(function (k) { return esc(k) + ' ' + grp[k]; }).join(' · ') + '</small></div></li>';
+        h += '<li class="rti k-load"><span class="rtt">' + rtHm(e.at) + '</span><span class="rtd" aria-hidden="true">📦</span><div><b>Polybox caricati: ' + tot + '</b><small>' + ks.map(function (k) { return esc(k) + ' ' + grp[k]; }).join(' · ') + '</small></div>' + (canEd ? '<button class="rted" data-act="rtcolli" data-a="' + i + '" data-b="' + j + '" aria-label="Modifica polybox caricati">⋯</button>' : '') + '</li>';
         i = j; continue;
       }
       if (e.k === 'stop' && lastStop != null) {
@@ -9060,7 +9061,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       else if (e.k === 'edit') { ic = '✎'; cls = 'k-sub'; tt = 'Orari del turno corretti'; sub = (x.ns ? 'inizio ' + rtHm(x.ns) : '') + (x.ne ? ' · fine ' + rtHm(x.ne) : ''); }
       else { i++; continue; }
       var loc = e.k === 'stop' && x.lat != null ? ' data-act="rthl" data-la="' + x.lat + '" data-lo="' + x.lng + '" role="button" tabindex="0"' : rtPosAt(pk, e.at) ? ' data-act="rthl" data-t="' + e.at + '" role="button" tabindex="0"' : '';
-      h += '<li class="rti ' + cls + '"' + loc + '><span class="rtt">' + rtHm(e.at) + '</span><span class="rtd" aria-hidden="true">' + ic + '</span><div><b>' + tt + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div></li>';
+      h += '<li class="rti ' + cls + '"' + loc + '><span class="rtt">' + rtHm(e.at) + '</span><span class="rtd" aria-hidden="true">' + ic + '</span><div><b>' + tt + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>' + (canEd && e.x && e.k !== 'start' && e.k !== 'end' ? '<button class="rted" data-act="rted" data-i="' + i + '" aria-label="Modifica o elimina">⋯</button>' : '') + '</li>';
       i++;
     }
     return h ? '<ol class="rtl">' + h + '</ol>' : '<p class="muted">Niente da mostrare.</p>';
@@ -9284,6 +9285,60 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   }
   function resumeBtn(cls) { var o = openInfo(); return o ? '<button class="' + (cls || 'hmshift rsm') + '" data-act="resume"><span style="font-size:28px" aria-hidden="true">⏯</span><span><b>Riprendi turno</b>' + esc(resumeLabel(o)) + ' · non è stato terminato</span></button>' : ''; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="resume"]') : null; if (el) resumeShift(); });
+  /* ---------- Percorsi: Pietro corregge programma e giro direttamente dalla linea del tempo ---------- */
+  function rtCanEdit() { return !!(tok() && (isMgr() || isFullAcc())); }
+  function rtReload() { RT.d = null; RT.err = false; RT.hl = null; rtLoad(); }
+  function rtProgIdx(k, b, x) {
+    var bd = PROGRAM[k] && PROGRAM[k].boats[b], st = (bd && bd.stops) || [], first = -1;
+    for (var i = 0; i < st.length; i++) { if (st[i].name !== x.name) continue; if ((st[i].t || '') === (x.plan || '')) return i; if (first < 0) first = i; }
+    return first;
+  }
+  var RT_KLAB = { stop: 'la tappa', problem: 'il problema', colli: 'i polybox segnati', colli_eff: 'i polybox segnati', pbret: 'i vuoti ritirati', proof: 'la foto di consegna', fuel: 'il rifornimento', fuellvl: 'il livello della benzina', endphoto: 'la foto della barca', cargo: 'la modifica del carico', swap: 'il cambio barca' };
+  function rtEdSheet(i) {
+    var pk = RT.pk, e = pk && pk.ev[i]; if (!e || !e.x) return;
+    var x = e.x, k = RT.day, b = e.s.boat, h = '<h2>' + esc(x.name || RT_KLAB[e.k] || 'Passo') + '</h2><p class="muted">' + esc(e.s.who) + ' · ' + rtHm(e.at) + '</p>';
+    RT.ed = { i: i };
+    if (e.k === 'ddt') h += '<div class="note">I DDT firmati non si cancellano da qui: sono documenti per il cliente. Si gestiscono dalla sezione DDT.</div><div class="btns"><button class="btn quiet" data-act="close">Chiudi</button></div>';
+    else if (e.k === 'stop') {
+      var pi = rtProgIdx(k, b, x), pt = pi >= 0 ? (PROGRAM[k].boats[b].stops[pi].t || '') : '';
+      h += '<div class="card"><div class="row"><span>Orario previsto</span><b>' + esc(pt || x.plan || '—') + '</b></div><div class="row"><span>Arrivato</span><b>' + rtHm(e.at) + '</b></div>' + (x.delay != null ? '<div class="row"><span>Differenza</span><b>' + (x.delay > 0 ? '+' : '') + x.delay + ' min</b></div>' : '') + '</div>' +
+        '<div class="btns">' + (pi >= 0 ? '<button class="btn primary" data-act="rtedt" data-p="' + pi + '">🕒 Cambia l’orario previsto</button>' : '<p class="muted">Questa tappa non è nel programma del giorno: si può solo cancellare.</p>') +
+        (pi >= 0 ? '<button class="btn" data-act="rtdel" data-m="both" data-p="' + pi + '">🗑 Elimina la tappa (dal giro e dal programma)</button>' : '') +
+        '<button class="btn' + (pi >= 0 ? ' quiet' : '') + '" data-act="rtdel" data-m="ev">Cancella solo “fatta” (resta nel programma)</button><button class="btn quiet" data-act="close">Annulla</button></div>' +
+        '<p class="hint">Cambiando l’orario si corregge il programma di quel giorno: ritardi e puntualità si ricalcolano da soli.</p>';
+    } else if (e.k === 'edit') h += '<p class="muted">La correzione degli orari del turno si cambia dalla sezione Turni.</p><div class="btns"><button class="btn quiet" data-act="close">Chiudi</button></div>';
+    else h += '<p>Vuoi eliminare ' + esc(RT_KLAB[e.k] || 'questo passo') + '?' + (e.k === 'swap' ? ' Il GPS torna sulla barca di prima e le velocità della carena si ricalcolano.' : '') + '</p><div class="btns"><button class="btn danger" data-act="rtdel" data-m="ev">Elimina</button><button class="btn quiet" data-act="close">Annulla</button></div>';
+    openSheet(h);
+  }
+  function rtDel(mode, pi) {
+    var pk = RT.pk, e = pk && RT.ed && pk.ev[RT.ed.i]; if (!e || !e.x) return;
+    var x = e.x, sid = e.s.id, k = RT.day, b = e.s.boat;
+    closeSheet();
+    cl('rpc_route_event_del', { p_shift: sid, p_kind: e.k, p_id: String(x.id), p_day: x.day ? String(x.day).slice(0, 10) : null }).then(function (r) {
+      if (!r || !r.ok) { toast('Non riesco a eliminare: controlla la connessione'); return; }
+      if (mode === 'both' && pi >= 0) { progDelStop(k, b, pi); return; }
+      toast('Eliminato dal percorso');
+      if (e.k === 'stop') undoBar('Cancellata: ' + x.name, function () { cl('rpc_route_event_del', { p_shift: sid, p_kind: 'stop', p_id: String(x.id), p_restore: true }).then(function () { toast('Tappa rimessa'); rtReload(); }); });
+      rtReload();
+    }).catch(function () { toast('Non riesco a eliminare: controlla la connessione'); });
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'rted') { e.stopPropagation(); rtEdSheet(+el.getAttribute('data-i')); }
+    else if (a === 'rtedt') { var pk = RT.pk, ev = pk && RT.ed && pk.ev[RT.ed.i]; if (!ev) return; closeSheet(); tsOpen(RT.day, ev.s.boat, +el.getAttribute('data-p')); }
+    else if (a === 'rtcolli') {
+      e.stopPropagation(); var pk2 = RT.pk; if (!pk2) return; var a0 = +el.getAttribute('data-a'), b0 = +el.getAttribute('data-b'), byN = {};
+      for (var q = a0; q < b0; q++) { var z = pk2.ev[q]; if (z && (z.k === 'colli' || z.k === 'colli_eff')) { (byN[z.x.name] = byN[z.x.name] || []).push(q); } }
+      RT.cg = byN;
+      openSheet('<h2>📦 Polybox caricati</h2><p class="muted">Togli una riga se è stata segnata per sbaglio.</p><div class="card">' + Object.keys(byN).map(function (nm) { var z = pk2.ev[byN[nm][0]]; return '<div class="row"><span>' + esc(nm) + ' · <b>' + z.x.n + '</b></span><button class="btn sm quiet" data-act="rtcdel" data-n="' + esc(nm) + '">Elimina</button></div>'; }).join('') + '</div><div class="btns"><button class="btn quiet" data-act="close">Chiudi</button></div>');
+    }
+    else if (a === 'rtcdel') {
+      var nm2 = el.getAttribute('data-n'), lst = (RT.cg || {})[nm2] || [], pk3 = RT.pk; if (!lst.length || !pk3) return;
+      closeSheet();
+      Promise.all(lst.map(function (q) { var z = pk3.ev[q]; return cl('rpc_route_event_del', { p_shift: z.s.id, p_kind: z.k, p_id: String(z.x.id) }); })).then(function () { toast('Polybox di ' + nm2 + ' eliminati'); rtReload(); }).catch(function () { toast('Non riesco a eliminare: controlla la connessione'); });
+    }
+    else if (a === 'rtdel') rtDel(el.getAttribute('data-m'), el.hasAttribute('data-p') ? +el.getAttribute('data-p') : -1);
+  }, true);
   function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
   /* ---------- render ---------- */
