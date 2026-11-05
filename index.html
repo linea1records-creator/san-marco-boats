@@ -1170,6 +1170,9 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .orw2 { color: #b45309; font-size: 14px; margin: 8px 0 0; }
 .orst b { font-size: 18px; font-variant-numeric: tabular-nums; }
 .orst small { color: var(--muted); font-weight: 400; font-size: 12px; }
+.ltseg { margin: 8px 0; }
+.ltd .field { margin: 0 0 8px; }
+.ltb th .lnk { color: var(--muted); font-size: 12px; text-decoration: none; }
 .orsel { display: flex; align-items: center; gap: 10px; }
 .orsel select { margin: 0; flex: 1; }
 .ortb td { white-space: normal; vertical-align: top; }
@@ -4881,6 +4884,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       '<div class="row"><button class="btn sm quiet" data-act="ldtoday"' + (k === todayKey() ? ' hidden' : '') + '>Torna a oggi</button><button class="btn sm" data-act="nav" data-v="programma">Programma dettagliato ›</button></div></section>';
     if (isMgr()) { if (!ASG && !LD.asgL) { LD.asgL = 1; loadAsg(); } h += '<details class="card lddet asgd"' + (LD.asgOpen ? ' open' : '') + '><summary><b>Chi vede il programma di ogni barca</b><span class="secc">›</span></summary>' + asgCard() + '</details>'; }
     if (!isFullAcc() && isMgr()) h += '<details class="card lddet"><summary><b>Clienti: account con PIN</b></summary>' + custCard() + '</details>';
+    if (isMgr() || isFullAcc()) h += ltCard();
     h += '<button class="aslink" data-act="pgopenview">Bozze e programmi salvati</button>';
     return h + '</div>';
   }
@@ -9356,7 +9360,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   function orLoad() {
     if (!tok() || OR.busy) return Promise.resolve();
     OR.busy = true;
-    return cl('rpc_leg_stats', { p_days: 90 }).then(function (r) { OR.busy = false; if (r && r.legs) { OR.d = r; OR.err = false; } else OR.err = true; if (view === 'orari') render(); })
+    return cl('rpc_leg_stats', { p_days: 90 }).then(function (r) { OR.busy = false; if (r && r.legs) { OR.d = r; OR.err = false; } else OR.err = true; if (view === 'orari' || (view === 'logistica' && !document.querySelector('#layer .sheet') && !(document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)))) render(); })
       .catch(function () { OR.busy = false; OR.err = true; if (view === 'orari') render(); });
   }
   function orLeg(f, t) { var L = (OR.d && OR.d.legs) || []; for (var i = 0; i < L.length; i++) if (L[i].f === f && L[i].t === t) return L[i]; return null; }
@@ -9441,6 +9445,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   }
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'nav' && el.getAttribute('data-v') === 'logistica' && !OR.busy) { OR.d = null; OR.err = false; }
     if (a === 'orb') { OR.boat = el.getAttribute('data-b'); OR.off = 0; render(); }
     else if (a === 'oroff') { OR.off += +el.getAttribute('data-d'); render(); }
     else if (a === 'orapply') orApply(el.getAttribute('data-all') === '1');
@@ -9449,6 +9454,44 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   document.addEventListener('change', function (e) {
     var t = e.target; if (!t) return;
     if (t.id === 'orDay') { OR.day = t.value; OR.off = 0; render(); } else if (t.id === 'orPru') { OR.pru = t.checked; render(); } else if (t.id === 'orFix') { OR.fix = t.checked; render(); }
+  });
+  /* ---------- Logistica: tabella dei tempi reali tra le tappe e delle soste (dal GPS) ---------- */
+  var LT = { tab: 'tratte', q: '', sort: 'n' };
+  function ltMin(v) { return v == null ? '—' : (Math.round(v * 10) / 10 >= 10 ? String(Math.round(v)) : String(Math.round(v * 10) / 10).replace('.', ',')) + ' min'; }
+  function ltCard() {
+    if (!OR.d && !OR.busy && !OR.err) orLoad();
+    var h = '<details class="card lddet ltd"' + (LT.open ? ' open' : '') + ' id="ltDet"><summary><b>⏱ Tempi reali tra le tappe e soste</b><span class="secc">›</span></summary>';
+    if (!OR.d) return h + '<p class="muted">' + (OR.err ? 'Non riesco a caricare i tempi.' : 'Calcolo i tempi…') + '</p></details>';
+    var q = ddtNorm(LT.q);
+    h += '<div class="seg2 ltseg"><button data-act="ltt" data-t="tratte"' + (LT.tab === 'tratte' ? ' aria-pressed="true"' : '') + '>Da tappa a tappa</button><button data-act="ltt" data-t="soste"' + (LT.tab === 'soste' ? ' aria-pressed="true"' : '') + '>Sosta per fermata</button></div>' +
+      '<input class="field txt" id="ltQ" placeholder="Cerca una tappa…" value="' + esc(LT.q) + '" autocomplete="off">';
+    if (LT.tab === 'tratte') {
+      var L = (OR.d.legs || []).filter(function (l) { return !q || ddtNorm(l.f + ' ' + l.t).indexOf(q) >= 0; }).slice();
+      L.sort(function (a, b) { return LT.sort === 'tempo' ? ((b.trav || b.a2a || 0) - (a.trav || a.a2a || 0)) : LT.sort === 'nome' ? (a.f + a.t < b.f + b.t ? -1 : 1) : ((b.ng - a.ng) || (b.n - a.n)); });
+      h += '<div class="tblw"><table class="tbl ortb ltb"><thead><tr><th><button class="lnk" data-act="lts" data-s="nome">Tratta</button></th><th><button class="lnk" data-act="lts" data-s="tempo">Viaggio tipico</button></th><th>Min – max</th><th><button class="lnk" data-act="lts" data-s="n">Viaggi GPS</button></th></tr></thead><tbody>' +
+        (L.length ? L.map(function (l) {
+          return '<tr><td>' + esc(l.f) + ' <span class="muted">→</span> ' + esc(l.t) + (l.last ? '<small>ultimo ' + esc(pgFmt(String(l.last).slice(0, 10))) + '</small>' : '') + '</td>' +
+            '<td><b>' + (l.trav != null ? ltMin(l.trav) : '—') + '</b>' + (l.trav == null && l.a2a != null ? '<small>~' + ltMin(l.a2a) + ' da tappa a tappa, senza GPS buono</small>' : '') + '</td>' +
+            '<td>' + (l.tmin != null ? ltMin(l.tmin) + (l.tmax != null && l.tmax !== l.tmin ? ' – ' + ltMin(l.tmax) : '') : '—') + '</td><td>' + (l.ng || 0) + (l.n > (l.ng || 0) ? '<small>' + l.n + ' passaggi</small>' : '') + '</td></tr>';
+        }).join('') : '<tr><td colspan="4" class="muted">Nessuna tratta trovata.</td></tr>') + '</tbody></table></div>' +
+        '<p class="hint">Viaggio = da quando la barca esce dalla tappa a quando entra nella successiva, tolte le soste di 3 minuti o più lungo la strada. I viaggi con buchi del GPS oltre 5 minuti non contano.</p>';
+    } else {
+      var S2 = (OR.d.stops || []).filter(function (s) { return !q || ddtNorm(s.name).indexOf(q) >= 0; }).slice().sort(function (a, b) { return LT.sort === 'tempo' ? b.dwell - a.dwell : LT.sort === 'nome' ? (a.name < b.name ? -1 : 1) : b.n - a.n; });
+      h += '<div class="tblw"><table class="tbl ortb ltb"><thead><tr><th><button class="lnk" data-act="lts" data-s="nome">Fermata</button></th><th><button class="lnk" data-act="lts" data-s="tempo">Sosta tipica</button></th><th>Min – max</th><th><button class="lnk" data-act="lts" data-s="n">Volte</button></th></tr></thead><tbody>' +
+        (S2.length ? S2.map(function (s) { return '<tr><td>' + esc(s.name) + '</td><td><b>' + ltMin(s.dwell) + '</b></td><td>' + ltMin(s.dmin) + (s.dmax != null && s.dmax !== s.dmin ? ' – ' + ltMin(s.dmax) : '') + '</td><td>' + s.n + '</td></tr>'; }).join('') : '<tr><td colspan="4" class="muted">Nessuna fermata trovata.</td></tr>') + '</tbody></table></div>' +
+        '<p class="hint">Sosta = da quando la barca entra nel raggio della fermata a quando ne esce, misurata dal GPS. Al Seminario comprende carico e attesa della merce.</p>';
+    }
+    return h + '<p class="muted">Ultimi 90 giorni · ' + OR.d.days + (OR.d.days === 1 ? ' giorno' : ' giorni') + ' di lavoro. <button class="aslink" data-act="nav" data-v="orari">Proponi orari realistici ›</button></p></details>';
+  }
+  document.addEventListener('toggle', function (e) { if (e.target && e.target.id === 'ltDet') LT.open = e.target.open; }, true);
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'ltt') { LT.tab = el.getAttribute('data-t'); render(); }
+    else if (a === 'lts') { LT.sort = el.getAttribute('data-s'); render(); }
+  });
+  document.addEventListener('input', function (e) {
+    if (!e.target || e.target.id !== 'ltQ') return; LT.q = e.target.value; var q = ddtNorm(LT.q);
+    Array.prototype.forEach.call(document.querySelectorAll('.ltb tbody tr'), function (tr) { tr.style.display = !q || ddtNorm(tr.textContent).indexOf(q) >= 0 ? '' : 'none'; });
   });
   function viewVelox() { setTimeout(vxOpen, 0); return '<div class="wrap"><h2>📷 Velox</h2><p class="muted">Mappa aperta a schermo intero.</p><button class="btn primary" data-act="vxreopen">Apri la mappa</button></div>'; }
   document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="vxreopen"]') : null; if (el) vxOpen(); });
