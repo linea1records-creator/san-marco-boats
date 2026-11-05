@@ -1140,6 +1140,7 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .rtzm button { width: 38px; height: 38px; border-radius: 10px; border: 0; background: rgba(15,23,42,.85); color: #fff; font-size: 20px; line-height: 1; }
 .rtlg { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); margin: 6px 2px 10px; }
 .rtlg i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.rtlg i.k { background: #fff; border: 2px solid #E65100; box-sizing: border-box; }
 .rtlg i.g { background: #2E7D32; } .rtlg i.y { background: #E65100; } .rtlg i.r { background: #C62828; }
 .rtl { list-style: none; margin: 0; padding: 0; position: relative; }
 .rtl::before { content: ''; position: absolute; left: 61px; top: 6px; bottom: 6px; width: 2px; background: var(--line); }
@@ -1153,6 +1154,7 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .k-stop .rtd { color: #fff; font-size: 0; }
 .k-stop.ok .rtd { background: #2E7D32; border-color: #2E7D32; }
 .k-stop.late .rtd { background: #E65100; border-color: #E65100; }
+.k-stop.late.kit .rtd { background: #fff; border: 3px solid #E65100; }
 .k-stop.bad .rtd { background: #C62828; border-color: #C62828; font-size: 13px; font-weight: 800; }
 .k-start .rtd, .k-end .rtd { background: #0f172a; border-color: #0f172a; color: #fff; }
 .k-sub { padding: 2px 0; }
@@ -2267,14 +2269,16 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     h += hoursCard(key);
     if ((ST2.dept || 'barche') !== 'barche') return h + '</div>';
     if (!d) return h + '<p class="muted">Carico…</p></div>';
-    var totMin = d.hours.reduce(function (s, x) { return s + x.min; }, 0), dl = d.delay || {}, pct = dl.n ? Math.round(dl.ontime / dl.n * 100) : null;
+    var totMin = d.hours.reduce(function (s, x) { return s + x.min; }, 0), dl = d.delay || {}, pct = dl.n ? Math.round(dl.ontime / dl.n * 100) : null, dc = d.delay_carrier || dl, pctc = dc.n ? Math.round(dc.ontime / dc.n * 100) : null;
     h += stSec('riep', 'Riepilogo', d.deliveries.ok + ' consegne · ' + hmin(totMin) + (pct == null ? '' : ' · ' + pct + '% in orario'), '<div class="stk"><div><b>' + d.deliveries.ok + '</b><span>consegne fatte</span>' + (d.deliveries.extra ? '<small>di cui ' + d.deliveries.extra + ' straordinarie</small>' : '') + '</div>' +
       '<div><b>' + hmin(totMin) + '</b><span>ore lavorate</span></div>' +
       '<div class="' + dlCls(dl.avg) + '"><b>' + dlTxt(dl.avg) + '</b><span>media sulle consegne</span></div>' +
-      '<div><b>' + (pct == null ? '—' : pct + '%') + '</b><span>in orario</span>' + (d.deliveries.problems ? '<small class="bad">' + d.deliveries.problems + ' problemi</small>' : '') + '</div></div>');
+      '<div><b>' + (pct == null ? '—' : pct + '%') + '</b><span>puntualità del giro</span>' + (d.deliveries.problems ? '<small class="bad">' + d.deliveries.problems + ' problemi</small>' : '') + '</div>' +
+      '<div><b>' + (pctc == null ? '—' : pctc + '%') + '</b><span>puntualità dei trasportatori</span>' + (dl.kitchen_late ? '<small>' + dl.kitchen_late + (dl.kitchen_late === 1 ? ' ritardo' : ' ritardi') + ' per merce non pronta</small>' : '') + '</div></div>' +
+      '<p class="hint">Giro: tutte le consegne con orario. Trasportatori: senza i ritardi causati dalla merce o dai polybox non pronti, quando il trasportatore era arrivato in orario al Seminario.</p>');
     h += stSec('ritardo', 'Anticipo / ritardo medio', dl.n ? dlTxt(dl.avg) + ' · ' + dl.n + ' consegne' : 'Nessun dato', (dl.n ? dlBar(dl.avg) + '<p class="hint">' + dl.n + ' consegne con orario · ' + dl.ontime + ' in orario (±5 min) · ' + dl.late + ' in ritardo · ' + dl.early + ' in anticipo</p>' : '<p class="muted">Ancora nessuna consegna con orario in questo periodo.</p>'), dl.n ? dlCls(dl.avg) : '');
     h += stSec('trasp', 'Puntualità di ogni trasportatore', d.delay_by.length + (d.delay_by.length === 1 ? ' trasportatore' : ' trasportatori'), (d.delay_by.length ? d.delay_by.map(function (x) {
-      return '<div class="str"><div class="strh"><b>' + esc(x.who) + '</b><span class="' + dlCls(x.avg) + '">' + dlTxt(x.avg) + '</span></div>' + dlBar(x.avg) + '<small>' + x.n + ' consegne · ' + Math.round(x.ontime / x.n * 100) + '% in orario · ' + x.late + ' in ritardo</small></div>';
+      return '<div class="str"><div class="strh"><b>' + esc(x.who) + '</b><span class="' + dlCls(x.avg) + '">' + dlTxt(x.avg) + '</span></div>' + dlBar(x.avg) + '<small>' + x.n + ' consegne · ' + (x.n ? Math.round(x.ontime / x.n * 100) : 0) + '% in orario · ' + x.late + ' in ritardo' + (x.kitchen ? ' · ' + x.kitchen + ' ritardi per merce non pronta non contati' : '') + '</small></div>';
     }).join('') : '<p class="muted">Nessun dato.</p>'));
     // ultime 10 consegne con l'esito
     var L10 = d.last || [];
@@ -8975,17 +8979,40 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var mx = 0; pts.forEach(function (p) { if (p[3] > mx) mx = p[3]; });
     return { min: Math.round((tb - ta) / 60000), km: rtDist(pts), mx: mx, n: pts.length };
   }
+  // ritardo della cucina: il trasportatore era in orario al Seminario ma merce o polybox non erano pronti
+  var RT_KIT = /pront|merce|polib|polyb/i;
+  function rtKitchen(pk) {
+    var ev = pk.ev, out = {};
+    ev.forEach(function (e, i) {
+      if (e.k !== 'stop' || /^(seminario|pane)/i.test(e.x.name || '')) return;
+      var sem = null, prev = null;
+      for (var j = i - 1; j >= 0; j--) { var z = ev[j]; if (z.s !== e.s || z.k !== 'stop' || !/seminario/i.test(z.x.name || '')) continue; if (!sem) sem = z; else { prev = z; break; } }
+      var from = Math.max(prev ? prev.at : rtT(e.s.start) - 60000, (sem ? sem.at : rtT(e.s.start)) - 45 * 60000);
+      ev.forEach(function (q) {
+        if (out[i] || q.s !== e.s || q.k !== 'problem' || !RT_KIT.test(q.x.reason || '') || q.at <= from || q.at > e.at) return;
+        var ok = !sem || sem.x.delay == null || /^pane/i.test(q.x.name || '') || Math.min(q.at, sem.at) <= sem.at - sem.x.delay * 60000 + 10 * 60000;
+        if (ok) out[i] = 1;
+      });
+    });
+    return out;
+  }
+  function rtMaxHeld(pts) {
+    // velocità più alta tenuta per almeno 3 punti GPS di fila (i salti di un solo punto non contano)
+    var mx = null;
+    for (var i = 2; i < pts.length; i++) { if (pts[i][2] - pts[i - 2][2] > 60) continue; var m = Math.min(pts[i][3], pts[i - 1][3], pts[i - 2][3]); if (mx == null || m > mx) mx = m; }
+    return mx;
+  }
   function rtStat(pk) {
     var st = { km: 0, mov: 0, stop: 0, mx: null, avg: null, gap: 0, stops: 0, ok: 0, late: 0, plan: 0, prob: 0, ddt: 0, pax: 0, pbIn: 0, pbOut: 0, dur: 0, fuel: 0, swaps: 0 };
     var av = [], avn = 0;
     pk.shifts.forEach(function (s) { var x = s.stats || {}; if (RT.sel.k === 'who') { st.km += +x.km || 0; st.mov += +x.moving_min || 0; st.stop += +x.stopped_min || 0; if (x.max_kmh != null) st.mx = Math.max(st.mx || 0, +x.max_kmh); if (x.avg_kmh != null) { av.push(+x.avg_kmh); } st.gap = Math.max(st.gap, +x.max_gap_min || 0); } });
-    if (RT.sel.k === 'boat') { pk.track.forEach(function (o) { st.km += rtDist(o.p); o.p.forEach(function (p) { if (p[3] > (st.mx || 0)) st.mx = p[3]; if (p[3] >= 5.4) { avn++; st.avg = (st.avg || 0) + p[3]; } }); }); if (avn) st.avg = st.avg / avn; st.mxRaw = true; }
+    if (RT.sel.k === 'boat') { pk.track.forEach(function (o) { st.km += rtDist(o.p); var mh = rtMaxHeld(o.p); if (mh != null && mh > (st.mx || 0)) st.mx = mh; o.p.forEach(function (p) { if (p[3] >= 5.4) { avn++; st.avg = (st.avg || 0) + p[3]; } }); }); if (avn) st.avg = st.avg / avn; }
     else if (av.length) st.avg = av.reduce(function (a, b) { return a + b; }, 0) / av.length;
-    var t0 = null, t1 = null;
-    pk.ev.forEach(function (e) {
+    var t0 = null, t1 = null, kit = rtKitchen(pk); st.kit = 0; st.cplan = 0; st.cok = 0;
+    pk.ev.forEach(function (e, ei) {
       if (e.k === 'start') t0 = e.at; if (e.k === 'end' && t0 != null) { st.dur += e.at - t0; t0 = null; }
       var x = e.x || {};
-      if (e.k === 'stop') { st.stops++; if (x.status === 'problem') st.prob++; if (x.delay != null) { st.plan++; if (x.delay <= 10) st.ok++; else st.late++; } }
+      if (e.k === 'stop') { st.stops++; if (x.status === 'problem') st.prob++; if (x.delay != null) { st.plan++; if (x.delay <= 10) st.ok++; else st.late++; if (kit[ei] && x.delay > 10) st.kit++; else { st.cplan++; if (x.delay <= 10) st.cok++; } } }
       if (e.k === 'problem') st.prob++;
       if (e.k === 'ddt') { st.ddt++; st.pax += +x.pax || 0; }
       if (e.k === 'pbret') st.pbIn += +x.n || 0;
@@ -9000,7 +9027,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   function rtKm(v) { return (Math.round(v * 10) / 10).toFixed(1).replace('.', ',') + ' km'; }
   var RT_BOATNAME = function (c) { return BOATS[c] ? BOATS[c].name : c; };
   function rtTimeline(pk) {
-    var h = '', lastStop = null, ev = pk.ev, i = 0;
+    var h = '', lastStop = null, ev = pk.ev, i = 0, kit = rtKitchen(pk);
     while (i < ev.length) {
       var e = ev[i], x = e.x || {};
       // i polybox segnati tutti insieme (al Seminario) diventano un solo passo
@@ -9019,8 +9046,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       else if (e.k === 'end') { ic = e.open ? '…' : '■'; cls = 'k-end'; tt = e.last ? 'Fine turno' : e.open ? 'Turno ancora aperto' : 'Lascia la ' + esc(RT_BOATNAME(RT.sel.v)); sub = e.last ? 'Tappe ' + (e.s.ok || 0) + '/' + (e.s.total || 0) : ''; }
       else if (e.k === 'stop') {
         lastStop = e.at; var late = x.delay != null && x.delay > 10, early = x.delay != null && x.delay < -10, bad = x.status === 'problem';
-        ic = bad ? '!' : '●'; cls = 'k-stop' + (bad ? ' bad' : late ? ' late' : ' ok'); tt = esc(x.name);
-        sub = (x.plan && x.plan !== '00:00' ? 'previsto ' + esc(x.plan) : 'senza orario') + (x.delay != null ? ' · ' + (x.delay > 0 ? '+' + x.delay + ' min' : x.delay < 0 ? x.delay + ' min' : 'puntuale') : '') + (early ? ' (in anticipo)' : '') + (x.reason ? ' · ' + esc(x.reason) : '');
+        ic = bad ? '!' : '●'; cls = 'k-stop' + (bad ? ' bad' : late ? ' late' : ' ok') + (late && kit[i] ? ' kit' : ''); tt = esc(x.name);
+        sub = (x.plan && x.plan !== '00:00' ? 'previsto ' + esc(x.plan) : 'senza orario') + (x.delay != null ? ' · ' + (x.delay > 0 ? '+' + x.delay + ' min' : x.delay < 0 ? x.delay + ' min' : 'puntuale') : '') + (early ? ' (in anticipo)' : '') + (late && kit[i] ? ' · per merce non pronta: non conta per il trasportatore' : '') + (x.reason ? ' · ' + esc(x.reason) : '');
       }
       else if (e.k === 'problem') { ic = '⚠'; cls = 'k-prob'; tt = 'Problema' + (x.name ? ' a ' + esc(x.name) : ''); sub = esc(x.reason || ''); }
       else if (e.k === 'pbret') { ic = '↩'; cls = 'k-sub'; tt = 'Polybox vuoti ritirati: ' + x.n + (x.exp != null ? ' su ' + x.exp + ' attesi' : ''); sub = esc(x.name) + (x.exp != null && x.n < x.exp ? ' · ne mancano ' + (x.exp - x.n) : ''); }
@@ -9050,13 +9077,14 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (!op.length) return h + '<div class="card"><p class="muted">Nessun turno il ' + esc(pgDateLabel(k)) + '.</p></div></div>';
     var sw = function (k2, lab) { var l = op.filter(function (o) { return o.k === k2; }); return l.length ? '<div class="rtch"><span>' + lab + '</span>' + l.map(function (o) { return '<button class="sw" data-act="rtsel" data-k="' + o.k + '" data-v="' + esc(o.v) + '" aria-pressed="' + (RT.sel && RT.sel.k === o.k && RT.sel.v === o.v) + '">' + (o.k === 'boat' ? '<i style="background:' + bcol(o.v) + '"></i>' : '') + esc(o.n) + '</button>'; }).join('') + '</div>' : ''; };
     h += sw('who', 'Persona') + sw('boat', 'Barca');
-    var pk = rtPick(), st = rtStat(pk), punct = st.plan ? Math.round(st.ok / st.plan * 100) : null;
+    var pk = rtPick(), st = rtStat(pk), punct = st.plan ? Math.round(st.ok / st.plan * 100) : null, punctc = st.cplan ? Math.round(st.cok / st.cplan * 100) : null;
     h += '<div class="fleetbox rtmap" id="rtBox"><div class="mtiles" id="rtTiles"></div><svg class="msvg" id="rtSvg" aria-hidden="true"></svg><div class="rtzm"><button data-act="rtz" data-z="1" aria-label="Avvicina">+</button><button data-act="rtz" data-z="-1" aria-label="Allontana">−</button><button data-act="rtz" data-z="0" aria-label="Mostra tutto il giro">⤢</button></div><div class="mhud" id="rtHud"></div><div class="mattr">© OpenStreetMap · OpenSeaMap</div></div>' +
-      '<div class="rtlg"><span><i class="g"></i>puntuale</span><span><i class="y"></i>ritardo oltre 10 min</span><span><i class="r"></i>problema</span>' + (RT.sel.k === 'who' && pk.shifts.some(function (s) { return (s.seg || []).length > 1; }) ? '<span>il colore della linea è la barca</span>' : '') + '</div>';
+      '<div class="rtlg"><span><i class="g"></i>puntuale</span><span><i class="y"></i>ritardo oltre 10 min</span><span><i class="k"></i>ritardo per merce non pronta</span><span><i class="r"></i>problema</span>' + (RT.sel.k === 'who' && pk.shifts.some(function (s) { return (s.seg || []).length > 1; }) ? '<span>il colore della linea è la barca</span>' : '') + '</div>';
     h += '<div class="blk rtk"><div><small>Durata</small><b>' + rtFmtMin(st.dur / 60000) + '</b></div><div><small>Km (GPS)</small><b>' + rtKm(st.km) + '</b></div>' +
       '<div><small>Velocità max</small><b>' + (st.mx != null ? String(Math.round(st.mx)) + ' km/h' : '—') + '</b></div><div><small>Media in moto</small><b>' + (st.avg != null ? String(Math.round(st.avg)) + ' km/h' : '—') + '</b></div>' +
       (RT.sel.k === 'who' ? '<div><small>In movimento</small><b>' + rtFmtMin(st.mov) + '</b></div><div><small>Fermo</small><b>' + rtFmtMin(st.stop) + '</b></div>' : '') +
-      '<div><small>Tappe</small><b>' + st.stops + '</b></div><div' + (punct != null && punct < 80 ? ' class="warn"' : '') + '><small>Puntualità</small><b>' + (punct == null ? '—' : punct + '%') + '</b></div>' +
+      '<div><small>Tappe</small><b>' + st.stops + '</b></div><div' + (punct != null && punct < 80 ? ' class="warn"' : '') + '><small>Puntualità del giro</small><b>' + (punct == null ? '—' : punct + '%') + '</b></div>' +
+      '<div' + (punctc != null && punctc < 80 ? ' class="warn"' : '') + '><small>Puntualità trasportatore</small><b>' + (punctc == null ? '—' : punctc + '%') + '</b>' + (st.kit ? '<small>' + st.kit + (st.kit === 1 ? ' ritardo' : ' ritardi') + ' per merce non pronta esclusi</small>' : '') + '</div>' +
       '<div><small>Polybox caricati / ritirati</small><b>' + st.pbOut + ' / ' + st.pbIn + '</b></div><div><small>DDT firmati</small><b>' + st.ddt + (st.pax ? ' · ' + st.pax + ' pax' : '') + '</b></div>' +
       '<div' + (st.prob ? ' class="warn"' : '') + '><small>Problemi</small><b>' + st.prob + '</b></div>' + (st.swaps ? '<div><small>Cambi barca</small><b>' + st.swaps + '</b></div>' : '') +
       (RT.sel.k === 'who' && st.gap >= 10 ? '<div class="warn"><small>Buco GPS più lungo</small><b>' + st.gap + ' min</b></div>' : '') + '</div>';
@@ -10465,7 +10493,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   setInterval(function () { if (view === 'admin' && !document.hidden) loadAdmin(); }, 30000);
 
   /* ---------- dashboard admin ---------- */
-  var COORDS = { 'Venini / Barovier': [45.4515439, 12.3497734], 'Promovetro · F3 · YALOS': [45.4541898, 12.3556733], 'Nason Moretti': [45.4555415, 12.3489010], 'Pane': [45.4370, 12.3192], 'Seminario': [45.4308, 12.3353], 'Piazza': [45.4455, 12.3338], 'Darsena': [45.4452, 12.3356], 'Convitto': [45.4276, 12.3658], 'Caritas': [45.4357, 12.3487], 'Giustinian': [45.4360, 12.3182], 'Scalo': [45.4413, 12.3143], 'Scalo fluviale': [45.4413, 12.3143], 'Murano': [45.4590, 12.3523], 'Lido': [45.4279, 12.3806], 'Cristo Re': [45.4381, 12.3491], 'Miracoli': [45.4394, 12.3392], 'Ponte Storto': [45.4382, 12.3318], 'Cavanis': [45.4302, 12.3282], 'Sant’Alvise': [45.4348, 12.3579], 'Santa Marta': [45.4341, 12.3166] };
+  var COORDS = { 'Venini / Barovier': [45.4515439, 12.3497734], 'Promovetro · F3 · YALOS': [45.4541898, 12.3556733], 'Nason Moretti': [45.4555415, 12.3489010], 'Pane': [45.4370, 12.3192], 'Seminario': [45.4308, 12.3353], 'Piazza': [45.4455, 12.3338], 'Darsena': [45.4452, 12.3356], 'Convitto': [45.4276, 12.3658], 'Caritas': [45.4357, 12.3487], 'Giustinian': [45.4360, 12.3182], 'Scalo': [45.4413, 12.3143], 'Scalo fluviale': [45.4413, 12.3143], 'Murano': [45.4590, 12.3523], 'Lido': [45.4279, 12.3806], 'Cristo Re': [45.4381, 12.3491], 'Miracoli': [45.4394, 12.3392], 'Ponte Storto': [45.4382, 12.3318], 'Cavanis': [45.4302, 12.3282], 'Sant’Alvise': [45.4348, 12.3579], 'Certosa': [45.43739, 12.37487], 'Santa Marta': [45.4341, 12.3166] };
   Object.keys(PCO).forEach(function (k) { if (!COORDS[k]) COORDS[k] = PCO[k]; });
   try { (S.shift && S.shift.extra || []).forEach(function (x) { if (x.lat != null && x.lng != null && !COORDS[x.name]) COORDS[x.name] = [x.lat, x.lng]; }); } catch (e) {}
   var BCOL = { PATANA: '#1E88E5', TOPPETTA: '#E65100', ARDEMAR: '#8E24AA', TULLIO: '#00897B' }; applyBoatInfo();
