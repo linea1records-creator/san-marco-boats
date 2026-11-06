@@ -2093,16 +2093,20 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
      persona: si fa il programma della barca affidata a te oggi, anche se sei su un'altra barca;
      la barca scelta diventa quella "fisica" (GPS, benzina, foto, statistiche), come con il Cambio barca. */
   var PL_FORCE = false;
-  function progLink() { try { return localStorage.getItem('smb-prog-link') === 'persona' ? 'persona' : 'barca'; } catch (e) { return 'barca'; } }
-  function progFor(code) {
-    if (PL_FORCE) { PL_FORCE = false; return code; }
-    if (progLink() !== 'persona' || !SESSION || !SESSION.name) return code;
+  function progLink() { try { return localStorage.getItem('smb-prog-link') === 'barca' ? 'barca' : 'persona'; } catch (e) { return 'persona'; } }
+  function progMine() {
+    if (!SESSION || !SESSION.name) return [];
     var P = PROGRAM[todayKey()], me = ddtNorm(SESSION.name), first = me.split(' ')[0];
-    var mine = boatCodes().filter(function (c) {
+    return boatCodes().filter(function (c) {
       if (c === 'TULLIO' || BOATS[c].test) return false;
       var a = asgOf(c), byP = !!(a.me || (a.name && ddtNorm(a.name) === me)), cr = ddtNorm(BOATS[c].crew).split(' ')[0];
       return byP || (a.mode !== 'persona' && !!cr && cr === first);
     }).filter(function (c) { var bd = P && P.boats[c]; return bd && !bd.off && bd.stops && bd.stops.length; });
+  }
+  function progFor(code) {
+    if (PL_FORCE) { PL_FORCE = false; return code; }
+    if (progLink() !== 'persona') return code;
+    var mine = progMine();
     return mine.indexOf(code) >= 0 || !mine.length ? code : mine[0];
   }
   function progLinkCard() {
@@ -2191,14 +2195,15 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   function openSheet(html) { $('layer').innerHTML = '<div class="veil" data-act="veil"><div class="sheet" role="dialog" aria-modal="true">' + html + '</div></div>'; }
   function closeSheet() { $('layer').innerHTML = ''; }
   function scanSheet() {
-    var day = pickDay();
+    var day = pickDay(), pers = progLink() === 'persona', mine = pers ? progMine() : [], my = mine[0];
     var list = boatCodes().map(function (k) {
-      var bd = PROGRAM[day].boats[k], off = !bd || bd.off;
-      return '<button class="btn boatpick" data-act="demo" data-code="' + k + '"><b>' + esc(BOATS[k].name) + '</b><span class="muted">' + (off ? 'Nessun servizio oggi' : esc(BOATS[k].crew) + (BOATS[k].giro ? ' · ' + esc(BOATS[k].giro) : '')) + '</span></button>';
+      var bd = PROGRAM[day].boats[k], off = !bd || bd.off, pr = pers && my && my !== k && mine.indexOf(k) < 0;
+      return '<button class="btn boatpick" data-act="demo" data-code="' + k + '"><b>' + esc(BOATS[k].name) + '</b><span class="muted">' + (pr ? '📋 con il tuo programma della ' + esc(BOATS[my].name) : off ? 'Nessun servizio oggi' : esc(BOATS[k].crew) + (BOATS[k].giro ? ' · ' + esc(BOATS[k].giro) : '')) + '</span></button>';
     }).join('');
     openSheet(
-      '<h2>Che barca stai usando?</h2>' +
-      '<p class="muted">Tocca la tua barca: il turno parte e si attiva il GPS. Se il telefono lo chiede, consenti la posizione.</p>' +
+      '<h2>Su che barca sali davvero?</h2>' +
+      (my ? '<div class="note" style="margin-bottom:8px">📋 Il tuo programma di oggi è quello della <b>' + esc(BOATS[my].name) + '</b>: lo fai su qualsiasi barca scegli. Tocca la barca su cui sei fisicamente (GPS, benzina, foto e statistiche vanno su quella).</div>' : '') +
+      '<p class="muted">Tocca la barca: il turno parte e si attiva il GPS. Se il telefono lo chiede, consenti la posizione.</p>' +
       '<div class="btns">' + list + '</div>' +
       '<p id="scanMsg" class="hint" role="status"></p>' +
       '<button class="btn quiet" data-act="close">Annulla</button>'
