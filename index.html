@@ -436,6 +436,20 @@ body.tbfs .tb{position:fixed;top:0;right:0;bottom:0;left:0;z-index:40;border-rad
 .cnss .cnsd{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid #E3E8EC}.cnss .cnsd .tx{flex:1;min-width:0}.cnss .cnsd b{display:block;color:var(--ink);font-size:16px}.cnss .cnsd small{color:var(--muted)}.cnss .cnsd .ok{color:#1E8E4E;font-weight:700}
 .cnss .cnsph{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.cnss .cnsph img{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid #CDD6DC}
 .cnss .cnsdone{width:100%;min-height:64px;font-size:20px;font-weight:800;border:0;border-radius:16px;background:#2E7D32;color:#fff}
+.calhd{display:flex;align-items:center;justify-content:space-between;margin:4px 0 8px}.calhd b{font-size:18px}
+.calg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.calw{text-align:center;font-size:12px;font-weight:700;color:var(--muted)}
+.cald{aspect-ratio:1/1;min-height:40px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0}
+.cald.tod{border-color:#7c3aed;color:#7c3aed}.cald.sel{background:#7c3aed;color:#fff;border-color:#7c3aed}
+.caldots{display:flex;gap:2px;height:6px}.caldots i,.calleg i{display:inline-block;width:6px;height:6px;border-radius:3px;background:#94a3b8}
+.caldots i.pub,.calleg i.pub,.call li.pub{--cc:#2563eb}.caldots i.me,.calleg i.me,.call li.me{--cc:#7c3aed}.caldots i.exp,.calleg i.exp,.call li.exp{--cc:#b42318}.caldots i.rem,.calleg i.rem,.call li.rem{--cc:#b45309}
+.caldots i,.calleg i{background:var(--cc)}.cald.sel .caldots i{background:#fff}
+.call{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.call li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);border-left:5px solid var(--cc,#94a3b8)}
+.call li>div{flex:1;min-width:0}.call li b{display:block;color:var(--ink)}.call li small{color:var(--muted)}.calt{min-width:42px;font-family:var(--font-mono);font-weight:700;color:var(--ink)}
+.calpub{display:flex;align-items:center;gap:12px;width:100%;margin:14px 0 4px;padding:12px;border-radius:14px;border:2px solid var(--line);background:transparent;color:var(--ink);font:inherit;text-align:left}
+.calpub>span:first-child{font-size:26px}.calpub>span:nth-child(2){flex:1}.calpub small{display:block;color:var(--muted);font-size:12px}
+.calpub i{width:46px;height:28px;border-radius:14px;background:#cbd5e1;position:relative;flex:none}.calpub i:after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:11px;background:#fff;transition:left .15s}
+.calpub[aria-pressed="true"]{border-color:#2563eb}.calpub[aria-pressed="true"] i{background:#2563eb}.calpub[aria-pressed="true"] i:after{left:21px}
 .cfb{border:1px solid var(--line);border-radius:16px;padding:6px 14px 10px;background:var(--surface,transparent);margin-bottom:12px}.cfb h3{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:6px 0 2px}.cfb h3 small{font-size:14px;color:var(--muted);font-weight:600}
 .cfdays{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px}.cfdays button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:8px 14px;font:inherit;font-weight:700}.cfdays button[aria-pressed="true"]{background:#ca8a04;border-color:#ca8a04;color:#fff}
 .cftot{display:flex;justify-content:space-between;font-weight:800;font-size:18px;padding:10px 4px;color:var(--ink)}.cfok{color:#1E8E4E;font-size:12px;font-weight:700;margin-left:6px}
@@ -1902,6 +1916,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     benzina: '<path d="M4 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16M3 21h13M7 8h5M15 9l3 2v7a1.5 1.5 0 0 0 3 0V9l-3-3"/>',
     polybox: '<path d="M3 8l9-4 9 4v9l-9 4-9-4z"/><path d="M3 8l9 4 9-4M12 12v9"/>',
     confeziona: '<path d="M3 8l9-4 9 4v9l-9 4-9-4z"/><path d="M3 8l9 4 9-4M12 12v9"/><path d="M16.5 6.2L7.5 10"/>',
+    calendario: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 14h2M14 14h2M8 17h2"/>',
     nuovo: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/>',
     turno: '<path d="M3 15l2 4h14l2-4zM12 3v8M8 7h8"/>',
     ddt: '<path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"/>', ddtgiro: '<path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"/>', stat: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>', cucina: '<path d="M6 3v8a3 3 0 0 0 6 0V3M9 3v18M17 3c-2 2-2 6 0 8v10"/>', murano: '<path d="M4 7h11M4 7v12h11V7M7 7V4h11v12h-3M7 11h5M7 15h5"/><path d="M16 20l2-2 3 3"/>',
@@ -3252,7 +3267,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   });
   /* ---------- Trasportatori (Elia, Daffa): Barche = documenti per i controlli + richieste ---------- */
   function isVan() { return !!(SESSION && SESSION.role === 'van'); }
-  function isCrewOnly() { return !!SESSION && !isMgr() && !isOff() && !isFullAcc() && !isVan() && !isBill() && !isPack(); }
+  function isCrewOnly() { return !!SESSION && !isMgr() && !isOff() && !isFullAcc() && !isVan() && !isBill() && !isPack() && !isBoatRole(); }
+  function isBoatRole() { return !!(SESSION && SESSION.role === 'boat'); }
   function isPack() { return !!(SESSION && SESSION.role === 'pack'); }
   function viewBarcaCrew() {
     if (draft) return viewRichieste();
@@ -3265,7 +3281,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (!files) h += '<p class="muted">Carico i documenti…</p>';
     else h += '<ul class="doclist">' + labels.map(function (l) {
       var f = files.filter(function (x) { return x.doc === l; })[0];
-      return '<li' + (f ? '' : ' class="dmiss"') + '><span class="dico">' + (f ? '📄' : '—') + '</span><span class="dtx"><b>' + esc(l) + '</b><small>' + (f ? 'aggiornato il ' + dmy(Date.parse(f.at)) : 'non ancora caricato') + '</small></span>' +
+      return '<li' + (f ? '' : ' class="dmiss"') + '><span class="dico">' + (f ? '📄' : '—') + '</span><span class="dtx"><b>' + esc(l) + '</b><small>' + (f ? 'aggiornato il ' + dmy(Date.parse(f.at)) : 'non ancora caricato') + '</small>' + (f ? expLine(f) : '') + '</span>' +
         (f ? '<button class="btn sm primary" data-act="docopen" data-id="' + esc(f.id) + '">Mostra</button>' : '') + '</li>';
     }).join('') + '</ul>';
     var mine = S.shift && S.shift.boat === code;
@@ -5797,7 +5813,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       return ch;
     });
   }
-  function isEditor() { return !!(SESSION && SESSION.role === 'admin'); }
+  function isEditor() { return !!(SESSION && (SESSION.role === 'admin' || SESSION.role === 'boat')); }
   function curBoatCode() { return isEditor() ? (BF.sel || (S.shift && physOf(S.shift)) || boatCodes()[0]) : (S.shift ? physOf(S.shift) : null); }
   function loadFiles(code) {
     if (!tok() || !code) return;
@@ -5847,12 +5863,13 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (!files) h += '<p class="muted">Carico i documenti…</p>';
     h += '<div class="btns">' + labels.map(function (l) {
       var f = (files || []).filter(function (x) { return x.doc === l; })[0];
-      return '<div class="card" style="display:flex;flex-direction:column;gap:8px"><div class="row"><div><b>' + esc(l) + '</b><div class="muted">' + (f ? esc(f.name) + ' · ' + dmy(Date.parse(f.at)) + ' · ' + fmtKB(f.size) : 'Non ancora caricato') + '</div></div><span class="pill ' + (f ? 'ok' : '') + '">' + (f ? 'Caricato' : 'Da caricare') + '</span></div>' +
+      return '<div class="card" style="display:flex;flex-direction:column;gap:8px"><div class="row"><div><b>' + esc(l) + '</b><div class="muted">' + (f ? esc(f.name) + ' · ' + dmy(Date.parse(f.at)) + ' · ' + fmtKB(f.size) : 'Non ancora caricato') + '</div>' + (f ? expLine(f) : '') + '</div><span class="pill ' + (f ? 'ok' : '') + '">' + (f ? 'Caricato' : 'Da caricare') + '</span></div>' +
+        (f && ed && tok() ? '<label class="muted" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">📅 Scadenza<input class="field" type="date" data-expid="' + esc(f.id) + '" value="' + esc(f.exp || '') + '" style="flex:1;min-width:150px"></label>' : '') +
         '<div class="row" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">' + (f ? '<button class="btn sm" data-act="docopen" data-id="' + esc(f.id) + '">Apri</button>' : '') +
         (ed && tok() ? '<button class="btn sm" data-act="docup" data-doc="' + esc(l) + '">' + (f ? 'Sostituisci' : 'Carica') + '</button>' : '') + (ed && f ? '<button class="btn sm danger" data-act="docrm" data-id="' + esc(f.id) + '">Rimuovi</button>' : '') + '</div></div>';
     }).join('') + '</div>';
     if (ed && tok()) h += '<div class="card" style="display:flex;flex-direction:column;gap:8px"><b>Aggiungi un altro documento</b><input class="field" id="docExtra" type="text" maxlength="80" placeholder="Nome del documento (es. Certificato motore)" value="' + esc(BF.extra) + '" style="text-transform:none"><button class="btn" data-act="docnew">Scegli il file e carica</button></div>';
-    if (ed && tok()) h += '<section class="card" style="display:flex;flex-direction:column;gap:8px"><b>Gestione flotta</b><div class="muted">Le barche aggiunte compaiono a tutti. Una barca rimossa non si può più scegliere, ma i suoi turni restano nella cronologia.</div>' +
+    if (ed && tok() && !isBoatRole()) h += '<section class="card" style="display:flex;flex-direction:column;gap:8px"><b>Gestione flotta</b><div class="muted">Le barche aggiunte compaiono a tutti. Una barca rimossa non si può più scegliere, ma i suoi turni restano nella cronologia.</div>' +
       boatCodes().map(function (k) { return '<div class="row"><span><b>' + esc(BOATS[k].name) + '</b>' + (BOATS[k].crew ? ' <span class="muted">· ' + esc(BOATS[k].crew) + '</span>' : '') + '</span><button class="btn sm danger" data-act="boatrm" data-c="' + esc(k) + '">Rimuovi</button></div>'; }).join('') +
       '<div class="hint">Aggiungi una barca</div><input class="field" id="nbName" type="text" maxlength="40" placeholder="Nome della barca" style="text-transform:none"><input class="field" id="nbCrew" type="text" maxlength="120" placeholder="Chi la guida (facoltativo)" style="text-transform:none"><input class="field" id="nbGiro" type="text" maxlength="120" placeholder="Giro abituale (facoltativo)" style="text-transform:none"><button class="btn primary" data-act="boatadd">Aggiungi barca</button></section>';
     return h + '<p class="hint">' + (ed ? 'Puoi caricare PDF o foto (fino a circa 3 MB). I documenti sostituiti o rimossi restano archiviati nel database.' : 'I documenti compaiono qui quando la logistica li carica.') + '</p></div>';
@@ -8526,7 +8543,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     h += '<section class="plas" aria-label="Assistente"><button class="plbig k-' + k + '" data-act="plgo"><span class="plic" aria-hidden="true">' + A[0] + '</span><span class="pltx"><b>' + A[1] + '</b><small>' + A[2] + '</small></span></button>' +
       (p.shift && s ? '<div class="plsub"><button data-act="problem">⚠ Problema</button><button data-act="plopen">Apri la tappa</button></div>' : '') + '</section>';
     // STRUMENTI
-    h += '<nav class="plst" aria-label="Strumenti"><button data-act="plcam"><span>📷</span>Fotocamera</button><button data-act="nav" data-v="contatti"><span>📞</span>Telefono</button><button data-act="nav" data-v="mio"><span>➕</span>Nuova consegna</button><button data-act="nav" data-v="programma"><span>📅</span>Calendario</button><button data-act="nav" data-v="navi"><span>🧭</span>Navigatore</button><button data-act="nav" data-v="snap"><span>👻</span>Snap</button>' + (p.shift ? '<button data-act="swopen"><span>🔁</span>Cambio barca</button>' : '') + '<button data-act="nav" data-v="impost" aria-label="Opzioni"><span>⚙️</span>Opzioni</button></nav>';
+    h += '<nav class="plst" aria-label="Strumenti"><button data-act="plcam"><span>📷</span>Fotocamera</button><button data-act="nav" data-v="contatti"><span>📞</span>Telefono</button><button data-act="nav" data-v="mio"><span>➕</span>Nuova consegna</button><button data-act="nav" data-v="programma"><span>📋</span>Programma</button><button data-act="nav" data-v="calendario"><span>📅</span>Calendario</button><button data-act="nav" data-v="navi"><span>🧭</span>Navigatore</button><button data-act="nav" data-v="snap"><span>👻</span>Snap</button>' + (p.shift ? '<button data-act="swopen"><span>🔁</span>Cambio barca</button>' : '') + '<button data-act="nav" data-v="impost" aria-label="Opzioni"><span>⚙️</span>Opzioni</button></nav>';
     return h + '</div>';
   }
   function plFire(act, attrs) { var b = document.createElement('button'); b.setAttribute('data-act', act); Object.keys(attrs || {}).forEach(function (k) { b.setAttribute(k, attrs[k]); }); b.style.display = 'none'; document.body.appendChild(b); b.click(); b.remove(); }
@@ -10431,9 +10448,10 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isOff() && ['home', 'presenze', 'ddt', 'contatti', 'impost', 'programma', 'cucina', 'notifiche', 'snap'].indexOf(view) < 0) view = 'home';
     if (view === 'presenze' && !isOff() && !isMgr() && !isFullAcc()) view = 'home';
-    if (isPack() && ['home', 'confeziona', 'programma', 'impost', 'contatti', 'snap'].indexOf(view) < 0) view = 'confeziona';
+    if (isPack() && ['home', 'confeziona', 'programma', 'impost', 'contatti', 'snap', 'calendario'].indexOf(view) < 0) view = 'confeziona';
+    if (isBoatRole() && ['home', 'calendario', 'barca', 'impost', 'contatti', 'snap', 'programma'].indexOf(view) < 0) view = 'calendario';
     if (view === 'confeziona' && !isPack() && !isMgr() && !isFullAcc()) view = 'home';
-    if (isVan() && ['home', 'polybox', 'tracking', 'contatti', 'impost', 'programma', 'navi', 'snap'].indexOf(view) < 0) view = 'home';
+    if (isVan() && ['home', 'polybox', 'tracking', 'contatti', 'impost', 'programma', 'navi', 'snap', 'calendario'].indexOf(view) < 0) view = 'home';
     if (view === 'tracking' && isOff()) view = 'ddt';
     if (view === 'spedizioni' && (isOff() || isVan())) view = 'home';
     if (view === 'turni' && !isMgr() && !isFullAcc()) view = 'home';
@@ -10483,7 +10501,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { confeziona: viewConf, admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi, orari: viewOrari, navi: viewNavi, snap: viewSnap }[view] || viewTurno;
+    var fn = { calendario: viewCal, confeziona: viewConf, admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi, orari: viewOrari, navi: viewNavi, snap: viewSnap }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     diag('disegno ' + view); var _t0 = Date.now(), m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); if (view === 'percorsi') setTimeout(rtDraw, 0); m.scrollTop = (view === 'guida') ? 0 : sc; diag('fatto ' + view + ' ' + (Date.now() - _t0) + 'ms');
     if (LITE && Date.now() - _t0 > 2500 && window.__smbErr) window.__smbErr('Pagina lenta: ' + view + ' ' + (Date.now() - _t0) + ' ms');
@@ -10598,19 +10616,20 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   /* ---------- Home: ogni strumento è un'icona come un'app del telefono ---------- */
   var APPS = {
     logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
-    barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], confeziona: ['Polybox Seminario', '#b45309'], notifiche: ['Notifiche', '#db2777'],
+    barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], confeziona: ['Polybox Seminario', '#b45309'], calendario: ['Calendario', '#7c3aed'], notifiche: ['Notifiche', '#db2777'],
     oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], listini: ['Listini', '#0e7490'], porzione: ['Costo porzione', '#7c2d12'], menu: ['Menu', '#9d174d'], fatturato: ['Fatturato', '#047857'], carena: ['Carena', '#0e7490'], percorsi: ['Percorsi', '#0f766e'], orari: ['Orari reali', '#6d28d9'], navi: ['Navigatore', '#1a73e8'], snap: ['Snap', '#e6c300'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Telefono', '#34c759'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
   };
   function homeApps() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
-    if (isPack()) return ['confeziona', 'programma', 'snap', 'contatti', 'impost'];
-    if (isVan()) return ['polybox', 'tracking', 'programma', 'navi', 'snap', 'contatti', 'impost'];
-    if (isBill()) return ['fatturato', 'contatti', 'impost'];
-    if (isOff()) return ['presenze', 'ddt', 'cucina', 'programma', 'notifiche', 'snap', 'contatti', 'impost'];
-    if (isAdm) return ['logistica', 'notifiche', 'snap', 'turni', 'presenze'].concat(canMoney() ? ['fatturato'] : [], ['spedizioni', 'tracking', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'barca', 'benzina', 'programma', 'contatti', 'impost']);
-    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'fatturato', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'confeziona', 'notifiche', 'snap', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'cucina', 'menu', 'foodcost', 'porzione', 'allergeni', 'listini', 'contatti', 'impost'];
-    if (isMgr()) return ['logistica', 'turno', 'turni', 'programma', 'notifiche', 'snap', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'confeziona', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'contatti', 'impost'];
-    return ['turno', 'navi', 'programma', 'ddtgiro', 'barca', 'notifiche', 'snap', 'tracking', 'benzina', 'impost'];
+    if (isBoatRole()) return ['calendario', 'barca', 'programma', 'snap', 'contatti', 'impost'];
+    if (isPack()) return ['confeziona', 'calendario', 'programma', 'snap', 'contatti', 'impost'];
+    if (isVan()) return ['polybox', 'tracking', 'programma', 'calendario', 'navi', 'snap', 'contatti', 'impost'];
+    if (isBill()) return ['fatturato', 'calendario', 'contatti', 'impost'];
+    if (isOff()) return ['presenze', 'ddt', 'cucina', 'programma', 'calendario', 'notifiche', 'snap', 'contatti', 'impost'];
+    if (isAdm) return ['logistica', 'calendario', 'notifiche', 'snap', 'turni', 'presenze'].concat(canMoney() ? ['fatturato'] : [], ['spedizioni', 'tracking', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'barca', 'benzina', 'programma', 'contatti', 'impost']);
+    if (isFull) return ['logistica', 'turno', 'calendario', 'turni', 'presenze', 'programma', 'ddtgiro', 'fatturato', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'confeziona', 'notifiche', 'snap', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'cucina', 'menu', 'foodcost', 'porzione', 'allergeni', 'listini', 'contatti', 'impost'];
+    if (isMgr()) return ['logistica', 'turno', 'calendario', 'turni', 'programma', 'notifiche', 'snap', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'confeziona', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'contatti', 'impost'];
+    return ['turno', 'navi', 'programma', 'calendario', 'ddtgiro', 'barca', 'notifiche', 'snap', 'tracking', 'benzina', 'impost'];
   }
   function viewHome() {
     if (isMioUser()) return viewPlancia();
@@ -10620,7 +10639,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (S.shift && !isVan() && !isOff()) h += '<button class="hmshift" data-act="nav" data-v="turno"><span style="font-size:28px" aria-hidden="true">🚤</span><span><b>Turno in corso</b>' + esc(BOATS[S.shift.boat] ? BOATS[S.shift.boat].name : '') + ' · tocca per riprendere</span></button>';
     if ((navigator.onLine === false || (SESSION && SESSION.offline)) && !isVan() && !isOff()) h += '<button class="hmshift" data-act="emopen" style="background:#7f1d1d;color:#fff"><span style="font-size:28px" aria-hidden="true">🆘</span><span><b>' + (SESSION && SESSION.offline ? 'Modalità offline · niente va nel database' : 'Sei offline') + '</b>Apri il turno d’emergenza: le tappe si segnano dal programma</span></button>';
     if (OUT.n) h += '<div class="card" role="status" style="border-color:#E65100"><b>📤 ' + OUT.n + (OUT.n === 1 ? ' dato del turno offline' : ' dati del turno offline') + ' sul telefono</b><span class="muted">' + (isOffSess() ? 'Si inviano da soli quando entri con il tuo PIN e c’è internet.' : OUT.err ? 'Non inviati: chiudi prima il turno aperto sul server, poi riapri l’app.' : 'Li sto inviando al database…') + '</span></div>';
-    h += turniHomeBanner() + shipHomeBanner();
+    h += turniHomeBanner() + shipHomeBanner() + expHomeBanner();
     var _apps = homeApps(), _ord = homeOrdered(_apps);
     if (HM.edit) h += homeEditView(_apps) + '</div>';
     else if (_ord && (isMgr() || isFullAcc()) && !isVan() && !isOff()) { ogLoad(false); h += homeMgr([]).replace(/<section class="hmarea[\s\S]*$/, '') + '<div class="hmgrid hmg2" role="list">' + _ord.map(homeTile).join('') + '</div><button class="aslink hmcus" data-act="hmedit">✎ Personalizza la Home</button></div>'; }
@@ -11045,6 +11064,111 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     });
   }
   setInterval(function () { if (S.shift && !document.hidden) colliSync(); }, 120000);
+
+  /* ---------- Scadenze dei documenti delle barche (assicurazioni) ---------- */
+  function expDays(d) { if (!d) return null; var a = new Date(d + 'T12:00:00'), t = new Date(); t.setHours(12, 0, 0, 0); return Math.round((a - t) / 86400000); }
+  function expLine(f) {
+    if (!f || !f.exp) return '';
+    var n = expDays(f.exp), c = n < 0 ? '#b42318' : n <= 30 ? '#b45309' : '#1E8E4E';
+    return '<div style="font-weight:700;color:' + c + ';font-size:13px">' + (n < 0 ? '⚠ Scaduto il ' : n <= 30 ? '⏰ Scade il ' : '📅 Scade il ') + dmy(Date.parse(f.exp + 'T12:00:00')) + (n >= 0 && n <= 60 ? ' · tra ' + n + (n === 1 ? ' giorno' : ' giorni') : '') + '</div>';
+  }
+  document.addEventListener('change', function (e) {
+    var t = e.target; if (!t || !t.getAttribute || !t.getAttribute('data-expid')) return;
+    var id = t.getAttribute('data-expid'), v = t.value || null;
+    cl('rpc_boat_file_expiry', { p_id: id, p_date: v }).then(function (r) {
+      if (r && r.ok) { toast(v ? 'Scadenza salvata: la vedi nel Calendario' : 'Scadenza tolta'); CAL.k = null; Object.keys(BF.files).forEach(function (c) { (BF.files[c] || []).forEach(function (f) { if (f.id === id) f.exp = v; }); }); render(); }
+      else toast('Non riesco a salvare la scadenza');
+    }).catch(function () { toast('Non riesco a salvare la scadenza'); });
+  });
+  function canSeeExp() { return !!(SESSION && (SESSION.role === 'admin' || SESSION.role === 'boat' || SESSION.full)); }
+  function expHomeBanner() {
+    if (!canSeeExp() || !tok()) return '';
+    calLoadExp();
+    var L = (CAL.exp || []).filter(function (x) { var n = expDays(x.day); return n <= 30; });
+    if (!L.length) return '';
+    return L.map(function (x) { var n = expDays(x.day); return '<button class="hmshift" data-act="nav" data-v="calendario" style="background:' + (n < 0 ? '#b42318' : '#b45309') + '"><span style="font-size:28px" aria-hidden="true">🛡️</span><span><b>' + esc(x.doc) + ' · ' + esc(x.bname || x.boat) + '</b>' + (n < 0 ? 'scaduta il ' : n === 0 ? 'scade oggi, ' : 'scade tra ' + n + (n === 1 ? ' giorno, il ' : ' giorni, il ')) + dmy(Date.parse(x.day + 'T12:00:00')) + '</span></button>'; }).join('');
+  }
+  /* ---------- Calendario: cose personali (le vedi solo tu) o pubbliche (le vedono tutti) ---------- */
+  var CAL = { m: null, sel: null, k: null, d: null, busy: false, exp: null, expT: 0 };
+  function calMonthKey(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1); }
+  function calLoadExp() {
+    if (!tok() || Date.now() - CAL.expT < 10 * 60000) return; CAL.expT = Date.now();
+    var t = new Date(); cl('rpc_cal_list', { p_from: isoOf(t), p_to: isoOf(t) }).then(function (r) { if (r && r.expiries) { var ch = JSON.stringify(r.expiries) !== JSON.stringify(CAL.exp); CAL.exp = r.expiries; if (ch && view === 'home') render(); } });
+  }
+  function calLoad(force) {
+    if (!tok() || CAL.busy || (!force && CAL.k === CAL.m)) return;
+    var a = new Date(CAL.m + '-01T12:00:00'), b = new Date(a); a.setDate(a.getDate() - 7); b.setMonth(b.getMonth() + 1); b.setDate(b.getDate() + 7);
+    CAL.busy = true; var k = CAL.m;
+    cl('rpc_cal_list', { p_from: isoOf(a), p_to: isoOf(b) }).then(function (r) { CAL.busy = false; if (!r || !r.events) return; CAL.d = r; CAL.k = k; CAL.exp = r.expiries; CAL.expT = Date.now(); if (view === 'calendario') render(); }).catch(function () { CAL.busy = false; });
+  }
+  // tutto quello che c'è in un giorno: eventi + scadenze + promemoria 30 e 7 giorni prima
+  function calItems(day) {
+    var D = CAL.d || { events: [], expiries: [] }, out = [];
+    (D.events || []).forEach(function (e) { if (e.day === day) out.push({ k: 'ev', e: e, t: e.t || '' }); });
+    (D.expiries || []).forEach(function (x) {
+      if (x.day === day) out.push({ k: 'exp', x: x, t: '' });
+      [30, 7].forEach(function (n) { var r = new Date(x.day + 'T12:00:00'); r.setDate(r.getDate() - n); if (isoOf(r) === day) out.push({ k: 'rem', x: x, n: n, t: '' }); });
+    });
+    return out.sort(function (a, b) { return (a.t || '') < (b.t || '') ? -1 : 1; });
+  }
+  function viewCal() {
+    var today = isoOf(Date.now());
+    if (!CAL.m) CAL.m = today.slice(0, 7); if (!CAL.sel) CAL.sel = today;
+    if (CAL.k !== CAL.m) setTimeout(function () { calLoad(false); }, 0);
+    var first = new Date(CAL.m + '-01T12:00:00'), y = first.getFullYear(), mo = first.getMonth(), start = (first.getDay() + 6) % 7, nd = new Date(y, mo + 1, 0).getDate();
+    var h = '<div class="wrap"><h2>📅 Calendario</h2><div class="calhd"><button class="btn sm" data-act="calm" data-n="-1" aria-label="Mese prima">‹</button><b>' + MONTHS[mo].charAt(0).toUpperCase() + MONTHS[mo].slice(1) + ' ' + y + '</b><button class="btn sm" data-act="calm" data-n="1" aria-label="Mese dopo">›</button></div>';
+    h += '<div class="calg" role="grid">' + ['L', 'M', 'M', 'G', 'V', 'S', 'D'].map(function (d) { return '<span class="calw">' + d + '</span>'; }).join('');
+    for (var i = 0; i < start; i++) h += '<span></span>';
+    for (var dd = 1; dd <= nd; dd++) {
+      var k = y + '-' + pad(mo + 1) + '-' + pad(dd), it = calItems(k), dots = it.slice(0, 3).map(function (x) { return '<i class="' + (x.k === 'ev' ? (x.e.pub ? 'pub' : 'me') : x.k === 'exp' ? 'exp' : 'rem') + '"></i>'; }).join('');
+      h += '<button class="cald' + (k === today ? ' tod' : '') + (k === CAL.sel ? ' sel' : '') + '" data-act="cald" data-k="' + k + '" aria-label="' + dd + ' ' + MONTHS[mo] + (it.length ? ', ' + it.length + ' cose' : '') + '">' + dd + '<span class="caldots">' + dots + '</span></button>';
+    }
+    h += '</div><p class="hint calleg"><i class="me"></i> solo tuo · <i class="pub"></i> pubblico' + (canSeeExp() ? ' · <i class="exp"></i> scadenza · <i class="rem"></i> promemoria' : '') + '</p>';
+    var sd = new Date(CAL.sel + 'T12:00:00'), items = calItems(CAL.sel);
+    h += '<div class="row" style="margin-top:6px"><h3 style="margin:0">' + esc(DNALL[sd.getDay()] + ' ' + sd.getDate() + ' ' + MONTHS[sd.getMonth()]) + '</h3><button class="btn sm primary" data-act="caladd">＋ Aggiungi</button></div>';
+    if (!CAL.d) h += '<p class="muted">Carico…</p>';
+    else if (!items.length) h += '<p class="muted">Niente in questo giorno.</p>';
+    else h += '<ul class="call">' + items.map(function (x) {
+      if (x.k === 'ev') { var e = x.e; return '<li class="' + (e.pub ? 'pub' : 'me') + '"><span class="calt">' + esc(e.t || '') + '</span><div><b>' + esc(e.title) + '</b><small>' + (e.pub ? '🌍 Pubblico' : '🔒 Solo tu') + (e.mine ? '' : ' · di ' + esc(String(e.who).split(' ')[0])) + (e.note ? ' · ' + esc(e.note) : '') + '</small></div>' + (e.mine || isFullAcc() || (SESSION && SESSION.role === 'admin') ? '<button class="btn sm" data-act="caled" data-id="' + esc(e.id) + '" aria-label="Modifica">✎</button>' : '') + '</li>'; }
+      if (x.k === 'exp') return '<li class="exp"><span class="calt">🛡️</span><div><b>Scade: ' + esc(x.x.doc) + '</b><small>' + esc(x.x.bname || x.x.boat) + ' · rinnova il documento e carica quello nuovo in Barche</small></div></li>';
+      return '<li class="rem"><span class="calt">⏰</span><div><b>Promemoria: tra ' + x.n + ' giorni scade ' + esc(x.x.doc) + '</b><small>' + esc(x.x.bname || x.x.boat) + ' · scadenza il ' + dmy(Date.parse(x.x.day + 'T12:00:00')) + '</small></div></li>';
+    }).join('') + '</ul>';
+    if (canSeeExp() && CAL.d && (CAL.d.expiries || []).length) h += '<details class="card"><summary><b>🛡️ Tutte le scadenze delle barche</b></summary><ul class="call">' + CAL.d.expiries.map(function (x) { var n = expDays(x.day); return '<li class="' + (n < 0 ? 'exp' : n <= 30 ? 'rem' : 'me') + '"><span class="calt">' + dmy(Date.parse(x.day + 'T12:00:00')).slice(0, 5) + '</span><div><b>' + esc(x.doc) + ' · ' + esc(x.bname || x.boat) + '</b><small>' + (n < 0 ? 'scaduta' : 'tra ' + n + ' giorni') + ' · ' + dmy(Date.parse(x.day + 'T12:00:00')) + '</small></div></li>'; }).join('') + '</ul></details>';
+    else if (canSeeExp()) h += '<p class="hint">Le scadenze delle assicurazioni compaiono qui quando metti la data in Barche › Dati e documenti.</p>';
+    return h + '</div>';
+  }
+  function calSheet(e) {
+    openSheet('<div class="dfxs"><h2>' + (e ? 'Modifica' : 'Nuova cosa in calendario') + '</h2>' +
+      '<div class="clsec">Cosa</div><input class="field txt" id="calT" maxlength="120" style="text-transform:none" placeholder="es. Tagliando motore Toppetta" value="' + esc(e ? e.title : '') + '">' +
+      '<div class="clsec">Giorno</div><input class="field" type="date" id="calD" value="' + esc(e ? e.day : CAL.sel) + '">' +
+      '<div class="clsec">Ora (facoltativa)</div><input class="field" type="time" id="calH" value="' + esc(e && e.t ? e.t : '') + '">' +
+      '<div class="clsec">Nota (facoltativa)</div><input class="field txt" id="calN" maxlength="600" style="text-transform:none" value="' + esc(e && e.note ? e.note : '') + '">' +
+      '<button class="calpub" data-act="calpub" aria-pressed="' + (e && e.pub ? 'true' : 'false') + '"><span>🌍</span><span><b>Pubblico</b><small>Acceso: lo vedono tutti nel loro calendario. Spento: lo vedi solo tu.</small></span><i></i></button>' +
+      '<div class="btns"><button class="btn primary" data-act="calsave"' + (e ? ' data-id="' + esc(e.id) + '"' : '') + '>Salva</button>' + (e ? '<button class="btn danger" data-act="caldel" data-id="' + esc(e.id) + '">Elimina</button>' : '') + '<button class="btn quiet" data-act="close">Annulla</button></div></div>');
+    if (!e) setTimeout(function () { var x = $('calT'); if (x) x.focus(); }, 60);
+  }
+  document.addEventListener('click', function (ev) {
+    var el = ev.target.closest ? ev.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'calm') { var d = new Date(CAL.m + '-01T12:00:00'); d.setMonth(d.getMonth() + +el.getAttribute('data-n')); CAL.m = calMonthKey(d); CAL.sel = CAL.m + '-01'; if (CAL.m === isoOf(Date.now()).slice(0, 7)) CAL.sel = isoOf(Date.now()); render(); }
+    else if (a === 'cald') { CAL.sel = el.getAttribute('data-k'); render(); }
+    else if (a === 'caladd') calSheet(null);
+    else if (a === 'caled') { var id = el.getAttribute('data-id'), e = ((CAL.d && CAL.d.events) || []).filter(function (x) { return x.id === id; })[0]; if (e) calSheet(e); }
+    else if (a === 'calpub') el.setAttribute('aria-pressed', el.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+    else if (a === 'calsave') {
+      var t = ($('calT') || {}).value || '', day = ($('calD') || {}).value || '', pb = document.querySelector('[data-act="calpub"]');
+      if (!t.trim() || !day) { toast('Scrivi cosa e il giorno'); return; }
+      var pub = !!(pb && pb.getAttribute('aria-pressed') === 'true');
+      closeSheet(); toast('Salvo…');
+      cl('rpc_cal_save', { p_id: el.getAttribute('data-id') || null, p_title: t, p_day: day, p_t: ($('calH') || {}).value || '', p_note: ($('calN') || {}).value || '', p_public: pub }).then(function (r) {
+        if (r && r.ok) { toast(pub ? '🌍 Salvato: lo vedono tutti' : '🔒 Salvato: lo vedi solo tu'); CAL.sel = day; CAL.m = day.slice(0, 7); calLoad(true); } else toast('Non riesco a salvare');
+      }).catch(function () { toast('Non riesco a salvare: controlla la connessione'); });
+    }
+    else if (a === 'caldel') {
+      if (el.getAttribute('data-sure') !== '1') { el.style.width = el.offsetWidth + 'px'; el.setAttribute('data-sure', '1'); el.textContent = 'Conferma'; return; }
+      closeSheet(); cl('rpc_cal_del', { p_id: el.getAttribute('data-id') }).then(function (r) { if (r && r.ok) { toast('Eliminato'); calLoad(true); } else toast('Non riesco a eliminare'); });
+    }
+  });
+  setInterval(function () { if (view === 'calendario' && !document.hidden && !document.querySelector('#layer .sheet')) calLoad(true); }, 120000);
   function semSheet(i, auto) {
     var sh = S.shift; if (!sh) return; var all = stops(), sp = all[i]; if (!sp) return;
     SEM.i = i; var l = semLeg(i), ck = (sh.semck && sh.semck[semKey(i)]) || {}, lv = semLive(i), nDdt = 0;
