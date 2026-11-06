@@ -2501,7 +2501,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       '<div class="' + dlCls(dl.avg) + '"><b>' + dlTxt(dl.avg) + '</b><span>media sulle consegne</span></div>' +
       '<div><b>' + (pct == null ? '—' : pct + '%') + '</b><span>puntualità del giro</span>' + (d.deliveries.problems ? '<small class="bad">' + d.deliveries.problems + ' problemi</small>' : '') + '</div>' +
       '<div><b>' + (pctc == null ? '—' : pctc + '%') + '</b><span>puntualità dei trasportatori</span>' + (dl.kitchen_late ? '<small>' + dl.kitchen_late + (dl.kitchen_late === 1 ? ' ritardo' : ' ritardi') + ' per merce non pronta</small>' : '') + '</div></div>' +
-      '<p class="hint">Giro: tutte le consegne con orario. Trasportatori: senza i ritardi causati dalla merce o dai polybox non pronti, quando il trasportatore era arrivato in orario al Seminario.</p>');
+      '<p class="hint">Giro: tutte le consegne con orario. Trasportatori: senza i ritardi causati dalla cucina o dal fornitore (merce, polybox o pane non pronti), quando il trasportatore era arrivato in orario al Seminario o a Pane.</p>');
     h += stSec('ritardo', 'Anticipo / ritardo medio', dl.n ? dlTxt(dl.avg) + ' · ' + dl.n + ' consegne' : 'Nessun dato', (dl.n ? dlBar(dl.avg) + '<p class="hint">' + dl.n + ' consegne con orario · ' + dl.ontime + ' in orario (±5 min) · ' + dl.late + ' in ritardo · ' + dl.early + ' in anticipo</p>' : '<p class="muted">Ancora nessuna consegna con orario in questo periodo.</p>'), dl.n ? dlCls(dl.avg) : '');
     h += stSec('trasp', 'Puntualità di ogni trasportatore', d.delay_by.length + (d.delay_by.length === 1 ? ' trasportatore' : ' trasportatori'), (d.delay_by.length ? d.delay_by.map(function (x) {
       return '<div class="str"><div class="strh"><b>' + esc(x.who) + '</b><span class="' + dlCls(x.avg) + '">' + dlTxt(x.avg) + '</span></div>' + dlBar(x.avg) + '<small>' + x.n + ' consegne · ' + (x.n ? Math.round(x.ontime / x.n * 100) : 0) + '% in orario · ' + x.late + ' in ritardo' + (x.kitchen ? ' · ' + x.kitchen + ' ritardi per merce non pronta non contati' : '') + '</small></div>';
@@ -9290,6 +9290,20 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
         if (ok) out[i] = 1;
       });
     });
+    // fornitore: pane non pronto segnalato a Pane, con il trasportatore arrivato in orario a Pane.
+    // Scusa il Seminario dopo e le consegne fino al Seminario successivo.
+    ev.forEach(function (q) {
+      if (q.k !== 'problem' || !/^pane/i.test(q.x.name || '') || !/pront|merce|polib|polyb|pane/i.test(q.x.reason || '')) return;
+      var pe = null; ev.forEach(function (z) { if (z.s === q.s && z.k === 'stop' && /^pane/i.test(z.x.name || '') && z.at <= q.at + 5 * 60000 && (!pe || z.at > pe.at)) pe = z; });
+      if (pe && pe.x.delay != null && Math.min(q.at, pe.at) > pe.at - pe.x.delay * 60000 + 10 * 60000) return; // arrivato tardi a Pane: colpa sua
+      var nSem = 0;
+      ev.forEach(function (e, i) {
+        if (e.s !== q.s || e.k !== 'stop' || e.at < q.at) return;
+        var isSem = /seminario/i.test(e.x.name || '');
+        if (!/^pane/i.test(e.x.name || '') && (nSem === 0 || (nSem === 1 && !isSem))) out[i] = 1;
+        if (isSem) nSem++;
+      });
+    });
     return out;
   }
   function rtMaxHeld(pts) {
@@ -9343,7 +9357,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       else if (e.k === 'stop') {
         lastStop = e.at; var late = x.delay != null && x.delay > 10, early = x.delay != null && x.delay < -10, bad = x.status === 'problem';
         ic = bad ? '!' : x.arr ? '📍' : '●'; cls = 'k-stop' + (bad ? ' bad' : late ? ' late' : ' ok') + (late && kit[i] ? ' kit' : ''); tt = esc(x.name) + (x.arr ? ' · arrivato (GPS)' : '');
-        sub = (x.plan && x.plan !== '00:00' ? 'previsto ' + esc(x.plan) : 'senza orario') + (x.delay != null ? ' · ' + (x.delay > 0 ? '+' + x.delay + ' min' : x.delay < 0 ? x.delay + ' min' : 'puntuale') : '') + (early ? ' (in anticipo)' : '') + (late && kit[i] ? ' · per merce non pronta: non conta per il trasportatore' : '') + (x.reason ? ' · ' + esc(x.reason) : '') + (x.arr ? ' · consegna in corso' : '');
+        sub = (x.plan && x.plan !== '00:00' ? 'previsto ' + esc(x.plan) : 'senza orario') + (x.delay != null ? ' · ' + (x.delay > 0 ? '+' + x.delay + ' min' : x.delay < 0 ? x.delay + ' min' : 'puntuale') : '') + (early ? ' (in anticipo)' : '') + (late && kit[i] ? ' · merce non pronta (cucina o fornitore): non conta per il trasportatore' : '') + (x.reason ? ' · ' + esc(x.reason) : '') + (x.arr ? ' · consegna in corso' : '');
       }
       else if (e.k === 'problem') { ic = '⚠'; cls = 'k-prob'; tt = 'Problema' + (x.name ? ' a ' + esc(x.name) : ''); sub = esc(x.reason || ''); }
       else if (e.k === 'pbret') { ic = '↩'; cls = 'k-sub'; tt = 'Polybox vuoti ritirati: ' + x.n + (x.exp != null ? ' su ' + x.exp + ' attesi' : ''); sub = esc(x.name) + (x.exp != null && x.n < x.exp ? ' · ne mancano ' + (x.exp - x.n) : ''); }
