@@ -3638,9 +3638,9 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
 
 
   /* ---------- Invia tracking: Pietro sceglie la destinazione, chi apre il link condivide la sua posizione in tempo reale ---------- */
-  var INV = { d: null, busy: false, f: { label: '', dest: '', hours: 6 }, here: null, keys: {}, made: null, err: '' };
+  var INV = { d: null, busy: false, f: { label: '', dest: '', hours: 6 }, here: null, keys: {}, made: null, err: '', sup: null, sf: null, shere: null };
   function invLink(x) { return location.origin + location.pathname + '?i=' + x.code; }
-  function invLoad() { if (!tok() || INV.busy) return; INV.busy = true; cl('rpc_invite_list', {}).then(function (r) { INV.busy = false; if (Array.isArray(r)) { INV.d = r; if (view === 'invita' && !(document.activeElement && /INPUT|SELECT/.test(document.activeElement.tagName))) render(); } }).catch(function () { INV.busy = false; }); }
+  function invLoad() { if (!tok() || INV.busy) return; cl('rpc_supplier_list', {}).then(function (r) { if (Array.isArray(r)) INV.sup = r; }); INV.busy = true; cl('rpc_invite_list', {}).then(function (r) { INV.busy = false; if (Array.isArray(r)) { INV.d = r; if (view === 'invita' && !(document.activeElement && /INPUT|SELECT/.test(document.activeElement.tagName))) render(); } }).catch(function () { INV.busy = false; }); }
   function invState(x) {
     if (x.status === 'arrivato') return ['ok', '✓ Arrivato' + (x.arrived ? ' alle ' + shHm(x.arrived) : '')];
     if (x.status === 'scaduto') return ['', 'Link scaduto'];
@@ -3660,6 +3660,12 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       '<div class="clsec">Il link vale per</div><div class="seg2">' + [[2, '2 ore'], [6, '6 ore'], [12, '12 ore'], [24, '1 giorno']].map(function (o) { return '<button data-act="invh" data-h="' + o[0] + '"' + (f.hours === o[0] ? ' aria-pressed="true"' : '') + '>' + o[1] + '</button>'; }).join('') + '</div>' +
       (INV.err ? '<p class="hint" style="color:#b42318">' + esc(INV.err) + '</p>' : '') +
       '<button class="btn primary" data-act="invgo" style="margin-top:10px">Crea il link e invialo</button></div>';
+    // fornitori con un link fisso: lo aprono quando vogliono e condividono da soli
+    var SF = INV.sf;
+    h += '<details class="card"' + (SF ? ' open' : '') + '><summary><b>🚚 Fornitori con link fisso</b><span class="muted"> · ' + ((INV.sup || []).length) + '</span></summary><p class="hint">Il fornitore tiene il suo link (anche sulla schermata Home del telefono). Quando parte lo apre, tocca “Sto arrivando” e tu ricevi l’avviso e lo vedi qui sotto.</p>' +
+      (INV.sup || []).map(function (u) { return '<div class="row" style="padding:8px 0;border-top:1px solid var(--line)"><div><b>' + esc(u.name) + '</b><div class="muted">→ ' + esc(u.dest) + (u.last ? ' · ultima volta ' + esc(agoText(u.last)) : '') + '</div></div><span style="display:flex;gap:6px"><button class="btn sm primary" data-act="invsupsh" data-id="' + esc(u.id) + '">📤</button><button class="btn sm danger" data-act="invsupdel" data-id="' + esc(u.id) + '">Togli</button></span></div>'; }).join('') +
+      (SF ? '<div class="colli" style="max-height:none;overflow:visible"><div class="clsec">Nome del fornitore</div><input class="field txt" id="supN" maxlength="80" style="text-transform:none" placeholder="es. Fabio Pane" value="' + esc(SF.name) + '"><div class="clsec">Dove arriva di solito</div><input class="field txt" id="supD" list="invNames" maxlength="120" style="text-transform:none" placeholder="es. Piazzale Roma" value="' + esc(SF.dest) + '"><button class="btn sm" data-act="invsuphere" style="margin-top:6px">📍 Usa la mia posizione di adesso</button>' + (INV.shere ? '<p class="hint">Destinazione: la tua posizione</p>' : '') + (SF.err ? '<p class="hint" style="color:#b42318">' + esc(SF.err) + '</p>' : '') + '<div class="btns"><button class="btn primary" data-act="invsupgo">Crea il link del fornitore</button><button class="btn quiet" data-act="invsupx">Annulla</button></div></div>'
+        : '<button class="btn" data-act="invsupnew" style="margin-top:8px">＋ Aggiungi fornitore</button>') + '</details>';
     var L = INV.d || [];
     if (!INV.d) h += '<p class="muted">Carico…</p>';
     else if (!L.length) h += '<p class="muted">Nessun tracking negli ultimi 3 giorni.</p>';
@@ -3668,7 +3674,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       return '<section class="card invc"><div class="row"><div><b>' + esc(x.label) + '</b><div class="muted">→ ' + esc(x.dest) + ' · creato alle ' + shHm(x.created) + '</div></div><span class="pill ' + st[0] + '">' + esc(st[1]) + '</span></div>' +
         (x.lat != null && x.status !== 'eliminato' ? '<div class="fleetbox" id="invMap_' + esc(x.id) + '" style="height:220px;border-radius:14px;margin:8px 0"><div class="mtiles"></div><svg class="msvg" aria-hidden="true"></svg><div class="mattr">© OpenStreetMap</div></div>' : '') +
         (x.lat != null && x.status !== 'arrivato' ? '<div class="stk" style="margin:4px 0"><div><b>' + (x.dist != null ? fmtDist(x.dist) : '—') + '</b><span>alla destinazione</span></div><div><b>' + (x.eta ? shHm(x.eta) : '—') + '</b><span>' + (x.eta ? 'arrivo stimato' : 'fermo o in attesa') + '</span></div><div><b>' + (x.kmh != null ? x.kmh : '—') + '</b><span>km/h</span></div></div><p class="hint">Ultima posizione ' + esc(agoText(x.at)) + (x.acc ? ' · precisione ±' + Math.round(x.acc) + ' m' : '') + '</p>' : '') +
-        '<div class="row" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">' + (live ? '<button class="btn sm primary" data-act="invshare" data-id="' + esc(x.id) + '">📤 Invia link</button><button class="btn sm" data-act="invcopy" data-id="' + esc(x.id) + '">Copia</button><button class="btn sm" data-act="invset" data-s="chiuso" data-id="' + esc(x.id) + '">Chiudi</button>' : '<button class="btn sm" data-act="invset" data-s="attivo" data-id="' + esc(x.id) + '">Riattiva</button>') + '<button class="btn sm danger" data-act="invset" data-s="eliminato" data-id="' + esc(x.id) + '">Elimina</button></div></section>';
+        (x.sup ? '<p class="hint">🚚 Ha iniziato a condividere dal suo link fisso</p>' : '') + '<div class="row" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">' + (live ? (x.sup ? '' : '<button class="btn sm primary" data-act="invshare" data-id="' + esc(x.id) + '">📤 Invia link</button><button class="btn sm" data-act="invcopy" data-id="' + esc(x.id) + '">Copia</button>') + '<button class="btn sm" data-act="invset" data-s="chiuso" data-id="' + esc(x.id) + '">Chiudi</button>' : '<button class="btn sm" data-act="invset" data-s="attivo" data-id="' + esc(x.id) + '">Riattiva</button>') + '<button class="btn sm danger" data-act="invset" data-s="eliminato" data-id="' + esc(x.id) + '">Elimina</button></div></section>';
     }).join('');
     setTimeout(invMaps, 30);
     return h + '</div>';
@@ -3714,6 +3720,25 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       });
     }
     else if (a === 'invshare') { var x = find(el.getAttribute('data-id')); if (x) invShare(x); }
+    else if (a === 'invsupnew') { INV.sf = { name: '', dest: '', err: '' }; INV.shere = null; render(); }
+    else if (a === 'invsupx') { INV.sf = null; render(); }
+    else if (a === 'invsuphere' || a === 'invsupgo') {
+      var SF = INV.sf; if (!SF) return; SF.name = ($('supN') || {}).value || ''; var dv2 = ($('supD') || {}).value || ''; if (dv2 !== SF.dest) INV.shere = null; SF.dest = dv2;
+      if (a === 'invsuphere') { var p2 = nvPos ? nvPos() : null, use2 = function (la, lo) { INV.shere = [la, lo]; SF.dest = 'La mia posizione'; render(); }; if (p2 && p2.la != null) use2(p2.la, p2.lo); else if (navigator.geolocation) navigator.geolocation.getCurrentPosition(function (q) { use2(q.coords.latitude, q.coords.longitude); }, function () { toast('Posizione non disponibile'); }, { enableHighAccuracy: true, timeout: 10000 }); return; }
+      var nm2 = SF.dest.trim(), c2 = INV.shere && nm2 === 'La mia posizione' ? INV.shere : COORDS[nm2] || null;
+      if (!c2) { c2 = parseCoord(nm2); if (c2) nm2 = 'Punto sulla mappa'; }
+      if (!SF.name.trim()) { SF.err = 'Scrivi il nome del fornitore.'; render(); return; }
+      if (!c2) { SF.err = 'Destinazione non trovata: scegli un posto dalla lista, usa la tua posizione o scrivi le coordinate.'; render(); return; }
+      cl('rpc_supplier_create', { p_name: SF.name.trim(), p_dest: nm2, p_lat: c2[0], p_lng: c2[1] }).then(function (r) {
+        if (!r || !r.ok) { SF.err = 'Non creato: controlla la connessione.'; render(); return; }
+        INV.sf = null; INV.shere = null; (INV.sup = INV.sup || []).push(r.supplier); supShare(r.supplier); invLoad(); render();
+      });
+    }
+    else if (a === 'invsupsh') { var u = (INV.sup || []).filter(function (z) { return z.id === el.getAttribute('data-id'); })[0]; if (u) supShare(u); }
+    else if (a === 'invsupdel') {
+      if (el.getAttribute('data-sure') !== '1') { el.style.width = el.offsetWidth + 'px'; el.setAttribute('data-sure', '1'); el.textContent = 'Conferma'; return; }
+      cl('rpc_supplier_set', { p_id: el.getAttribute('data-id'), p_active: false }).then(function () { toast('Fornitore tolto: il suo link non funziona più'); INV.sup = (INV.sup || []).filter(function (z) { return z.id !== el.getAttribute('data-id'); }); render(); });
+    }
     else if (a === 'invcopy') { var y = find(el.getAttribute('data-id')); if (y) copyText(invLink(y), 'Link copiato'); }
     else if (a === 'invset') {
       var s2 = el.getAttribute('data-s');
@@ -3723,6 +3748,35 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   });
   setInterval(function () { if (view === 'invita' && !document.hidden) invLoad(); }, 10000);
 
+
+  function supLink(u) { return location.origin + location.pathname + '?f=' + u.code; }
+  function supShare(u) {
+    var txt = 'Ciao ' + u.name + '! Questo è il tuo link per la logistica San Marco: quando parti per ' + u.dest + ' aprilo e tocca “Sto arrivando”, così vediamo dove sei. Salvalo (o aggiungilo alla schermata Home) per le prossime volte.';
+    if (navigator.share) navigator.share({ title: 'San Marco · il tuo link', text: txt, url: supLink(u) }).catch(function () {});
+    else copyText(txt + ' ' + supLink(u), 'Link copiato: incollalo in WhatsApp o SMS');
+  }
+  /* pagina fissa del fornitore (link ?f=…): un tasto e parte la condivisione */
+  function supBoot(code) {
+    document.body.classList.add('custmode'); document.title = 'Sto arrivando · San Marco';
+    var el = document.createElement('div'); el.id = 'cust';
+    el.innerHTML = '<div class="cwrap"><header class="chead"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><div><b>San Marco</b><span>Logistica ristorazione · fornitori</span></div></header><div id="supBody"><div class="ccard"><p class="cmut">Carico…</p></div></div></div>';
+    document.body.appendChild(el);
+    var go = function () {
+      var b = $('supGo'); if (b) { b.disabled = true; b.textContent = 'Un attimo…'; }
+      cloud('rpc_supplier_start', { p_code: code }).then(function (r) {
+        if (r && r.ok && r.invite) location.replace(location.pathname + '?i=' + r.invite + '&go=1');
+        else { var bd = $('supBody'); if (bd) bd.innerHTML = '<div class="ccard"><h1>Link non valido</h1><p class="cmut">Chiedi alla logistica un link nuovo.</p></div>'; }
+      }).catch(function () { if (b) { b.disabled = false; b.textContent = 'Riprova: connessione assente'; } });
+    };
+    el.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('#supGo')) go(); });
+    cloud('rpc_supplier_public', { p_code: code }).then(function (r) {
+      var bd = $('supBody'); if (!bd) return;
+      if (!r || r.error) { bd.innerHTML = '<div class="ccard"><h1>Link non valido</h1><p class="cmut">Questo link non è più attivo. Chiedi alla logistica un link nuovo.</p></div>'; return; }
+      bd.innerHTML = '<div class="ccard"><div class="cname">Ciao</div><div style="font-size:26px;font-weight:800">' + esc(r.name) + '</div><p class="cmut">Quando parti per <b>' + esc(r.dest) + '</b> tocca il tasto: Pietro della logistica vede dove sei e quando arrivi. La condivisione si ferma da sola quando arrivi.</p>' +
+        '<button class="btn primary" id="supGo" style="width:100%;min-height:64px;font-size:20px">' + (r.invite ? '📍 Riprendi la condivisione' : '🚚 Sto arrivando: condividi la posizione') + '</button>' +
+        '<p class="cmut">Consiglio: aggiungi questa pagina alla schermata Home del telefono, così la ritrovi subito la prossima volta.</p></div>';
+    }).catch(function () { var bd = $('supBody'); if (bd) bd.innerHTML = '<div class="ccard"><h1>Connessione assente</h1><p class="cmut">Riprova tra poco.</p></div>'; });
+  }
   /* ---------- Pagina pubblica dell'invito (link ?i=…): chi la apre condivide la posizione ---------- */
   var INP = { code: null, d: null, watch: null, last: 0, on: false, err: '', keys: {}, me: null, lock: null };
   function invBoot(code) {
@@ -3731,7 +3785,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     el.innerHTML = '<div class="cwrap"><header class="chead"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><div><b>San Marco</b><span>Logistica ristorazione · posizione</span></div></header><div id="inpBody"><div class="ccard"><p class="cmut">Carico…</p></div></div><div class="cfoot" id="inpFoot" aria-live="polite"></div></div>';
     document.body.appendChild(el);
     el.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-inp]'); if (!b) return; if (b.getAttribute('data-inp') === 'start') invStart(); else invStop(); });
-    cloud('rpc_invite_public', { p_code: code }).then(function (r) { INP.d = r; invPubRender(); }).catch(function () { INP.err = 'Connessione assente'; invPubRender(); });
+    var auto = /[?&]go=1/.test(location.search);
+    cloud('rpc_invite_public', { p_code: code }).then(function (r) { INP.d = r; invPubRender(); if (auto && r && r.status === 'attivo') invStart(); }).catch(function () { INP.err = 'Connessione assente'; invPubRender(); });
     document.addEventListener('visibilitychange', function () { if (!document.hidden && INP.on) { invWake(); if (INP.me) invPing(INP.me, true); } });
     window.addEventListener('resize', function () { invPubMap(); });
   }
@@ -12321,6 +12376,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   if (SHIPTOK && /^[0-9a-f-]{36}$/i.test(SHIPTOK)) { shipBoot(SHIPTOK); return; }
   var INVCODE = null; try { INVCODE = new URLSearchParams(location.search).get('i'); } catch (e) {}
   if (INVCODE && /^[0-9a-f-]{36}$/i.test(INVCODE)) { invBoot(INVCODE); return; }
+  var SUPCODE = null; try { SUPCODE = new URLSearchParams(location.search).get('f'); } catch (e) {}
+  if (SUPCODE && /^[0-9a-f-]{36}$/i.test(SUPCODE)) { supBoot(SUPCODE); return; }
   if (CUSTTOK) { custBoot(); return; }
   drawLogin();
   if (SESSION && !S.shift) view = 'home';
