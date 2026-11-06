@@ -2062,19 +2062,46 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   }
 
   /* ---------- turno ---------- */
+  /* Programma collegato alla persona o alla barca (impostazione di Pietro, salvata sul telefono).
+     barca: si fa il programma della barca scelta (come prima).
+     persona: si fa il programma della barca affidata a te oggi, anche se sei su un'altra barca;
+     la barca scelta diventa quella "fisica" (GPS, benzina, foto, statistiche), come con il Cambio barca. */
+  var PL_FORCE = false;
+  function progLink() { try { return localStorage.getItem('smb-prog-link') === 'persona' ? 'persona' : 'barca'; } catch (e) { return 'barca'; } }
+  function progFor(code) {
+    if (PL_FORCE) { PL_FORCE = false; return code; }
+    if (progLink() !== 'persona' || !SESSION || !SESSION.name) return code;
+    var P = PROGRAM[todayKey()], me = ddtNorm(SESSION.name), first = me.split(' ')[0];
+    var mine = boatCodes().filter(function (c) {
+      if (c === 'TULLIO' || BOATS[c].test) return false;
+      var a = asgOf(c), byP = !!(a.me || (a.name && ddtNorm(a.name) === me)), cr = ddtNorm(BOATS[c].crew).split(' ')[0];
+      return byP || (a.mode !== 'persona' && !!cr && cr === first);
+    }).filter(function (c) { var bd = P && P.boats[c]; return bd && !bd.off && bd.stops && bd.stops.length; });
+    return mine.indexOf(code) >= 0 || !mine.length ? code : mine[0];
+  }
+  function progLinkCard() {
+    var m = progLink();
+    return '<div class="card"><h3>🔗 Programma del turno</h3><p class="muted">Quando inizi un turno, il programma da fare è collegato a:</p>' +
+      '<div class="seg2 asgm">' + [['persona', 'A me (persona)'], ['barca', 'Alla barca']].map(function (x) { return '<button data-act="proglink" data-m="' + x[0] + '"' + (m === x[0] ? ' aria-pressed="true"' : '') + '>' + x[1] + '</button>'; }).join('') + '</div>' +
+      '<p class="hint">' + (m === 'persona' ? 'Fai il programma della barca affidata a te oggi, su qualsiasi barca sali: es. il giro della Patana fatto con l’Ardemar. GPS, benzina, foto e statistiche vanno sulla barca su cui sei davvero.' : 'Fai il programma della barca che scegli a inizio turno.') + '</p>' +
+      (S.shift ? '<p class="hint">Vale dal prossimo turno. Nel turno in corso, per tenere il tuo programma e cambiare solo la barca usa <b>🔁 Cambio barca</b>.</p><button class="btn" data-act="swopen">🔁 Cambio barca</button>' : '') + '</div>';
+  }
+  document.addEventListener('click', function (e) { var el = e.target.closest ? e.target.closest('[data-act="proglink"]') : null; if (!el) return; try { localStorage.setItem('smb-prog-link', el.getAttribute('data-m')); } catch (x) {} toast(el.getAttribute('data-m') === 'persona' ? 'Il programma segue te, su qualsiasi barca' : 'Il programma segue la barca'); render(); });
   function startShift(code) {
     // il turno è sempre di oggi: niente tappe di altri giorni nel navigatore
+    var phys = code; code = progFor(code);
     var day = todayKey(), pd = ensureDay(day), bd = pd.boats[code], hasTasks = !!(X.my && X.my.length);
     // nessun servizio oggi: si parte lo stesso, con le consegne straordinarie o una meta libera
     if (!bd || bd.off) pd.boats[code] = { stops: [], onCall: false, off: false, extraOnly: true };
     var go = function () {
       S.shift = { boat: code, day: day, start: Date.now(), done: {}, step: 0, pre: [], km: 0, trip: 0, end: null, who: SESSION ? SESSION.name : '' };
+      if (phys !== code && BOATS[phys]) S.shift.phys = phys;
       save(); closeSheet(); view = NV.keep && NV.open ? 'navi' : isMioUser() ? 'home' : 'guida'; NV.keep = false; spoken = '';
       wakeOn();
-      toast('Turno iniziato su ' + BOATS[code].name);
+      toast('Turno iniziato su ' + BOATS[phys].name + (phys !== code ? ' · programma della ' + BOATS[code].name : ''));
       gpsApply(); render(); setTimeout(loadMyTasks, 600); setTimeout(function () { gpsModeAsk(true); }, 400);
     };
-    if (tok() || isOffSess()) { cl('rpc_start_shift', { p_boat: code }).then(function (r) { if (r && (r.resumed || r.error === 'turno_aperto_su_altra_barca')) { closeSheet(); if (r.error) toast('Hai già un turno aperto: lo riprendo. Per cambiare barca usa “Cambio barca”.'); resumeShift(); return; } if (r && r.error) { scanMsg(startErr(r.error), true); return; } go(); if (r && r.shift_id && S.shift) { S.shift.sid = r.shift_id; save(); } cl('rpc_set_plan', { p_plan: stops().map(function (z) { return { name: z.name, t: z.ind ? '' : (z.t || '') }; }) }); }); } else go();
+    if (tok() || isOffSess()) { cl('rpc_start_shift', { p_boat: code }).then(function (r) { if (r && (r.resumed || r.error === 'turno_aperto_su_altra_barca')) { closeSheet(); if (r.error) toast('Hai già un turno aperto: lo riprendo. Per cambiare barca usa “Cambio barca”.'); resumeShift(); return; } if (r && r.error === 'barca_in_uso' && phys !== code) { toast('La ' + BOATS[code].name + ' risulta in uso: parto con il programma della ' + BOATS[phys].name); PL_FORCE = true; startShift(phys); return; } if (r && r.error) { scanMsg(startErr(r.error), true); return; } go(); if (r && r.shift_id && S.shift) { S.shift.sid = r.shift_id; save(); } if (phys !== code && tok() && !isOffSess()) cl('rpc_shift_boat_swap', { p_boat: phys, p_partner: false, p_note: 'Programma collegato alla persona' }).then(function (w) { if (!w || !w.ok) toast('Non riesco a segnare la ' + BOATS[phys].name + ' come barca del turno: usa “Cambio barca”'); }); cl('rpc_set_plan', { p_plan: stops().map(function (z) { return { name: z.name, t: z.ind ? '' : (z.t || '') }; }) }); }); } else go();
   }
   function makeThumb(url) {
     return new Promise(function (res) {
@@ -4361,6 +4388,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       '<div class="card"><h3>Accesso</h3><p class="muted">Sei entrato come <b>' + esc(SESSION ? SESSION.name : '') + '</b>' + (SESSION && SESSION.role === 'admin' ? ' (admin)' : '') + '.</p><button class="btn" data-act="logout">Esci</button></div>' +
       '<div class="card"><h3>Colore dello sfondo</h3><p class="muted">Scegli il colore che ti piace di più. Il testo si adatta da solo per restare leggibile. La schermata GPS resta sempre nera.</p><div class="swatches">' + BGS.map(function (c) { return '<button class="sw" data-act="bg" data-c="' + c[0] + '" aria-pressed="' + ((S.bg || '#FFFFFF').toUpperCase() === c[0] ? 'true' : 'false') + '"><i style="background:' + c[0] + '"></i>' + c[1] + '</button>'; }).join('') + '</div><label class="hint" for="bgIn">Oppure scegli un colore a piacere</label><input id="bgIn" type="color" value="' + esc((S.bg || '#FFFFFF').toLowerCase()) + '" style="width:100%;height:48px;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:4px"></div>' +
       appSetCard() + homeCard() +
+      ((isFullAcc() || (SESSION && /avicolli/i.test(SESSION.name || ''))) && !isOff() && !isVan() ? progLinkCard() : '') +
       (isFullAcc() && !(SESSION && SESSION.offline) ? offCodeCard() : '') +
       (isFullAcc() ? secCard('<p class="muted">Scegli un PIN tuo, da 4 a 8 cifre. Non dirlo a nessuno.</p>' +
       '<label class="muted" for="pnOld">PIN attuale</label><input class="field" id="pnOld" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="current-password">' +
@@ -9688,7 +9716,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var w = document.createElement('div'); w.id = 'nvWrap'; w.className = 'nvw' + (NV.sat ? ' nvsat' : '');
     w.innerHTML = '<div class="nvmap" id="nvBox"><div class="mtiles" id="nvTiles"></div><svg class="msvg" id="nvSvg" aria-hidden="true"></svg></div>' +
       '<div class="nvtop"><button class="nvic" data-act="nvclose" aria-label="Chiudi il navigatore">✕</button><div class="nvsrch"><input id="nvQ" type="search" placeholder="Cerca un luogo o aggiungi una tappa" autocomplete="off" enterkeyhint="search"><div class="nvres" id="nvRes"></div></div></div>' +
-      '<div class="nvside"><button class="nvic" data-act="nvsat" aria-label="Mappa satellitare">' + (NV.sat ? '🗺️' : '🛰️') + '</button><button class="nvic" data-act="nvz" data-z="1" aria-label="Avvicina">+</button><button class="nvic" data-act="nvz" data-z="-1" aria-label="Allontana">−</button><button class="nvic" id="nvMe" data-act="nvme" aria-label="Centra sulla mia posizione">◎</button>' + (isFullAcc() || isMgr() ? '<button class="nvic" data-act="nvprog" aria-label="Modifica il programma">📅</button>' : '') + '</div>' +
+      '<div class="nvside"><button class="nvic" data-act="nvsat" aria-label="Mappa satellitare">' + (NV.sat ? '🗺️' : '🛰️') + '</button><button class="nvic" data-act="nvz" data-z="1" aria-label="Avvicina">+</button><button class="nvic" data-act="nvz" data-z="-1" aria-label="Allontana">−</button><button class="nvic" id="nvMe" data-act="nvme" aria-label="Centra sulla mia posizione">◎</button>' + (S.shift && !isMioUser() ? '<button class="nvic" data-act="nvdash" aria-label="Cruscotto del turno con i widget">🎛️</button>' : '') + (isFullAcc() || isMgr() ? '<button class="nvic" data-act="nvprog" aria-label="Modifica il programma">📅</button>' : '') + '</div>' +
       '<div class="nvalert" id="nvAlert" role="alert" hidden></div>' +
       '<div class="nvbot" id="nvBot"></div><div class="nvattr" id="nvAttr"></div>';
     document.body.appendChild(w); document.body.classList.add('nvopen');
@@ -9703,7 +9731,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   function nvClose() {
     NV.open = false; clearInterval(NV.tick); nvGpsOff();
     var w = $('nvWrap'); if (w) w.remove(); document.body.classList.remove('nvopen');
-    if (view === 'navi') { view = S.shift && !isMioUser() ? 'turno' : 'home'; render(); }
+    if (view === 'navi') { view = S.shift && !isMioUser() ? 'guida' : 'home'; spoken = ''; render(); }
   }
   function nvTick() {
     if (!NV.open) return;
@@ -9758,7 +9786,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       var pk = plStep(), kk = plKind(pk), A0 = PL_ACT[kk] || PL_ACT.go, z0 = NV.route[0], e0 = et[0], late = '';
       if (z0 && z0.t && e0) { var pl = new Date(); pl.setHours(+z0.t.slice(0, 2), +z0.t.slice(3, 5), 0, 0); var dm = Math.round((e0.at - pl.getTime()) / 60000); late = dm > 5 ? '<i class="nvl bad">+' + dm + ' min</i>' : dm < -5 ? '<i class="nvl">' + dm + ' min</i>' : '<i class="nvl ok">in orario</i>'; }
       h += '<div class="nvnx"><small>' + (z0 && !z0.prog ? 'META SCELTA AL VOLO' : 'PROSSIMA TAPPA DEL GIRO') + '</small><b>' + esc(z0 ? z0.name : (pk.s ? pk.s.name : 'Giro finito')) + '</b><span>' + (z0 && z0.t ? 'previsto ' + esc(z0.t) + ' · ' : '') + (e0 ? (e0.d < 1000 ? Math.round(e0.d) + ' m' : (e0.d / 1000).toFixed(1).replace('.', ',') + ' km') + ' · arrivo <b>' + hm(e0.at) + '</b> ' + late : (z0 ? 'In attesa del GPS…' : 'Chiudi il turno con la foto della barca')) + '</span></div>' +
-        '<div class="nvact"><button class="nvgo k-' + kk + '" data-act="plgo"><span>' + A0[0] + '</span><b>' + esc(A0[1]) + '</b></button>' + (pk.s ? '<button class="nvsm" data-act="plopen">Apri la tappa</button><button class="nvsm bad" data-act="problem">⚠ Problema</button>' : '') + '</div>';
+        '<div class="nvact"><button class="nvgo k-' + kk + '" data-act="plgo"><span>' + A0[0] + '</span><b>' + esc(A0[1]) + '</b></button>' + (pk.s ? '<button class="nvsm" data-act="plopen">Apri la tappa</button><button class="nvsm bad" data-act="problem">⚠ Problema</button>' : '') + (isMioUser() ? '' : '<button class="nvsm" data-act="nvdash">🎛️ Cruscotto</button>') + '</div>';
     } else if (NV.route.length) {
       var z = NV.route[0], e = et[0];
       h += '<div class="nvnx"><small>PROSSIMA TAPPA</small><b>' + esc(z.name) + '</b><span>' + (e ? (e.d < 1000 ? Math.round(e.d) + ' m' : (e.d / 1000).toFixed(1).replace('.', ',') + ' km') + ' · arrivo <b>' + hm(e.at) + '</b>' + (e.usual ? ' · percorso abituale' : ' · in linea d’aria') + (e.real ? ' · tempo reale' : '') : 'In attesa del GPS…') + '</span></div>';
@@ -9838,6 +9866,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
     if (!/^nv/.test(a)) return;
     if (a === 'nvclose') nvClose();
+    else if (a === 'nvdash') { if (S.shift && !isMioUser()) view = 'navi'; nvClose(); }
     else if (a === 'nvsat') { NV.sat = !NV.sat; nvSave(); var w = $('nvWrap'); if (w) w.classList.toggle('nvsat', NV.sat); el.textContent = NV.sat ? '🗺️' : '🛰️'; var tl = $('nvTiles'); if (tl) tl.innerHTML = ''; NV.keys = {}; nvDraw(); nvBot(); }
     else if (a === 'nvz') nvZoom(+el.getAttribute('data-z'));
     else if (a === 'nvme') { NV.follow = true; var p = nvPos(); if (p) { NV.cx = tileX(p.lo, NV.z); NV.cy = tileY(p.la, NV.z); } else toast('In attesa del GPS…'); nvDraw(); nvBot(); }
