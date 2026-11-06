@@ -1801,7 +1801,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
      quindi nessuno lo vede (né clienti, né Lisa, né la dashboard) e statistiche e ore non cambiano. */
   // modalità prova tolta: si lavora solo con i dati veri (anche offline)
   var GHOST = false; try { localStorage.removeItem('smb-ghost'); } catch (e) {}
-  var GHOST_BLOCK = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_log_gps', 'rpc_stop_event2', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_colli_set', 'rpc_murano_colli_set', 'rpc_shift_gps_mode', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_refuel_add2', 'rpc_refuel_void', 'rpc_fuel_set', 'rpc_track_move', 'rpc_ddt_edit_file', 'rpc_ddt_place_sig', 'rpc_bread_crates_set', 'rpc_pb_return_set', 'rpc_shift_edit', 'rpc_task_update', 'rpc_pos_share', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_shift_void'];
+  var GHOST_BLOCK = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_log_gps', 'rpc_stop_event2', 'rpc_stop_arrived', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_colli_set', 'rpc_murano_colli_set', 'rpc_shift_gps_mode', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_refuel_add2', 'rpc_refuel_void', 'rpc_fuel_set', 'rpc_track_move', 'rpc_ddt_edit_file', 'rpc_ddt_place_sig', 'rpc_bread_crates_set', 'rpc_pb_return_set', 'rpc_shift_edit', 'rpc_task_update', 'rpc_pos_share', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_shift_void'];
   function ghostAllowed() { return false; }
   function ghostSet(on) {
     try {
@@ -9250,8 +9250,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       else if (e.k === 'end') { ic = e.open ? '…' : '■'; cls = 'k-end'; tt = e.last ? 'Fine turno' : e.open ? 'Turno ancora aperto' : 'Lascia la ' + esc(RT_BOATNAME(RT.sel.v)); sub = e.last ? 'Tappe ' + (e.s.ok || 0) + '/' + (e.s.total || 0) : ''; }
       else if (e.k === 'stop') {
         lastStop = e.at; var late = x.delay != null && x.delay > 10, early = x.delay != null && x.delay < -10, bad = x.status === 'problem';
-        ic = bad ? '!' : '●'; cls = 'k-stop' + (bad ? ' bad' : late ? ' late' : ' ok') + (late && kit[i] ? ' kit' : ''); tt = esc(x.name);
-        sub = (x.plan && x.plan !== '00:00' ? 'previsto ' + esc(x.plan) : 'senza orario') + (x.delay != null ? ' · ' + (x.delay > 0 ? '+' + x.delay + ' min' : x.delay < 0 ? x.delay + ' min' : 'puntuale') : '') + (early ? ' (in anticipo)' : '') + (late && kit[i] ? ' · per merce non pronta: non conta per il trasportatore' : '') + (x.reason ? ' · ' + esc(x.reason) : '');
+        ic = bad ? '!' : x.arr ? '📍' : '●'; cls = 'k-stop' + (bad ? ' bad' : late ? ' late' : ' ok') + (late && kit[i] ? ' kit' : ''); tt = esc(x.name) + (x.arr ? ' · arrivato (GPS)' : '');
+        sub = (x.plan && x.plan !== '00:00' ? 'previsto ' + esc(x.plan) : 'senza orario') + (x.delay != null ? ' · ' + (x.delay > 0 ? '+' + x.delay + ' min' : x.delay < 0 ? x.delay + ' min' : 'puntuale') : '') + (early ? ' (in anticipo)' : '') + (late && kit[i] ? ' · per merce non pronta: non conta per il trasportatore' : '') + (x.reason ? ' · ' + esc(x.reason) : '') + (x.arr ? ' · consegna in corso' : '');
       }
       else if (e.k === 'problem') { ic = '⚠'; cls = 'k-prob'; tt = 'Problema' + (x.name ? ' a ' + esc(x.name) : ''); sub = esc(x.reason || ''); }
       else if (e.k === 'pbret') { ic = '↩'; cls = 'k-sub'; tt = 'Polybox vuoti ritirati: ' + x.n + (x.exp != null ? ' su ' + x.exp + ' attesi' : ''); sub = esc(x.name) + (x.exp != null && x.n < x.exp ? ' · ne mancano ' + (x.exp - x.n) : ''); }
@@ -9264,7 +9264,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       else if (e.k === 'edit') { ic = '✎'; cls = 'k-sub'; tt = 'Orari del turno corretti'; sub = (x.ns ? 'inizio ' + rtHm(x.ns) : '') + (x.ne ? ' · fine ' + rtHm(x.ne) : ''); }
       else { i++; continue; }
       var loc = e.k === 'stop' && x.lat != null ? ' data-act="rthl" data-la="' + x.lat + '" data-lo="' + x.lng + '" role="button" tabindex="0"' : rtPosAt(pk, e.at) ? ' data-act="rthl" data-t="' + e.at + '" role="button" tabindex="0"' : '';
-      h += '<li class="rti ' + cls + '"' + loc + '><span class="rtt">' + rtHm(e.at) + '</span><span class="rtd" aria-hidden="true">' + ic + '</span><div><b>' + tt + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>' + (canEd && e.x && e.k !== 'start' && e.k !== 'end' ? '<button class="rted" data-act="rted" data-i="' + i + '" aria-label="Modifica o elimina">⋯</button>' : '') + '</li>';
+      h += '<li class="rti ' + cls + '"' + loc + '><span class="rtt">' + rtHm(e.at) + '</span><span class="rtd" aria-hidden="true">' + ic + '</span><div><b>' + tt + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>' + (canEd && e.x && !e.x.arr && e.k !== 'start' && e.k !== 'end' ? '<button class="rted" data-act="rted" data-i="' + i + '" aria-label="Modifica o elimina">⋯</button>' : '') + '</li>';
       i++;
     }
     return h ? '<ol class="rtl">' + h + '</ol>' : '<p class="muted">Niente da mostrare.</p>';
@@ -9689,7 +9689,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (!S.shift) return null;
     var st = stops(), i0 = curIdx(), out = [];
     if (i0 < 0) return NV.tmp ? [NV.tmp] : [];
-    for (var i = i0; i < st.length; i++) { var z = st[i]; if (S.shift.done[i] || z.cancelled) continue; var c = z.lat != null ? [z.lat, z.lng] : COORDS[z.name]; if (!c) continue; out.push({ name: z.name, la: +c[0], lo: +c[1], t: z.ind ? '' : (z.t || ''), i: i, prog: true }); }
+    for (var i = i0; i < st.length; i++) { var z = st[i]; if (S.shift.done[i] || z.cancelled || (!S.shift.noGps && S.shift.arr && S.shift.arr[arrKey(i)])) continue; var c = z.lat != null ? [z.lat, z.lng] : COORDS[z.name]; if (!c) continue; out.push({ name: z.name, la: +c[0], lo: +c[1], t: z.ind ? '' : (z.t || ''), i: i, prog: true }); }
     return (NV.tmp ? [NV.tmp] : []).concat(out);
   }
   function nvSave() { if (S.shift) return; try { localStorage.setItem('smb-nav-route', JSON.stringify(NV.route)); localStorage.setItem('smb-nav-sat', NV.sat ? '1' : '0'); } catch (e) {} }
@@ -10551,7 +10551,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (sh.arr[k]) return;
     var lk = $('nextLock'); if (lk) lk.textContent = lockTxt(i);
     if (hav(GPS.last.la, GPS.last.lo, tg[0], tg[1]) <= ARR_R) {
-      sh.arr[k] = Date.now(); save();
+      sh.arr[k] = Date.now(); save(); arrSend(i);
       // checkpoint raggiunto: il tasto Consegna fatta si sblocca e si illumina (l'ora di arrivo è questa)
       toast('📍 Arrivato a ' + s.name);
       if (isSem(s.name)) { if (view === 'guida') render(); setTimeout(function () { semSheet(i, true); }, 400); return; }
@@ -10594,6 +10594,12 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   }
   function arrDist(i) { var s = stops()[i], tg = s && COORDS[s.name]; return tg && GPS.last ? hav(GPS.last.la, GPS.last.lo, tg[0], tg[1]) : null; }
   function lockTxt(i) { var d = arrDist(i); return '🔒 si sblocca alla tappa' + (d != null ? ' · ' + fmtDist(d) : ''); }
+  // con il GPS l'arrivo va subito nel percorso (Percorsi, mappa), senza aspettare "Consegna fatta"
+  function arrSend(i) {
+    var sh = S.shift, sp = stops()[i], t = sh && sh.arr && sh.arr[arrKey(i)]; if (!sp || sp.local || sp.maint || !t || sh.noGps) return;
+    var fx = GPS.last && Date.now() - GPS.last.t < 60000 ? GPS.last : null;
+    cl('rpc_stop_arrived', { p_stop: sp.name, p_planned: sp.ind ? null : (sp.t || null), p_lat: fx ? fx.la : null, p_lng: fx ? fx.lo : null, p_at: new Date(t).toISOString() });
+  }
   function arrKey(i) { var z = stops()[i]; return S.shift.day + ':' + i + ':' + (z ? z.name + '@' + (z.t || '') : ''); }
   function arrAt(i) { var sh = S.shift, t = sh && sh.arr && sh.arr[arrKey(i)]; return t && Date.now() - t < 4 * 3600e3 ? new Date(t).toISOString() : null; }
   // Salta questa tappa: per quando il GPS non funziona o la consegna non si fa
@@ -11288,7 +11294,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
      In modalità offline (codice di sblocco o tasto 🆘) ogni dato del turno (tappe, problemi, colli/polybox, casse del pane,
      foto, DDT firmati, benzina, foto finale) si salva sul telefono in ordine. Quando la stessa persona entra con il PIN
      e c'è internet, l'app li rimanda al server uno per uno; a fine turno gli orari si sistemano come da programma. */
-  var OUT_FNS = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_stop_event2', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_delivery_proof_photo', 'rpc_colli_set', 'rpc_murano_colli_set', 'rpc_shift_gps_mode', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_refuel_add2', 'rpc_refuel_photo', 'rpc_refuel_photo2', 'rpc_refuel_void', 'rpc_fuel_set', 'rpc_track_move', 'rpc_ddt_edit_file', 'rpc_ddt_place_sig', 'rpc_bread_crates_set', 'rpc_pb_return_set', 'rpc_task_update', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_polybox_set', 'rpc_self_stop_add', 'rpc_self_stop_remove', 'rpc_cargo_add'];
+  var OUT_FNS = ['rpc_start_shift', 'rpc_set_plan', 'rpc_end_shift', 'rpc_stop_event2', 'rpc_stop_arrived', 'rpc_stop_problem', 'rpc_delivery_proof_add', 'rpc_delivery_proof_photo', 'rpc_colli_set', 'rpc_murano_colli_set', 'rpc_shift_gps_mode', 'rpc_end_photo', 'rpc_fuel_log', 'rpc_refuel_add', 'rpc_refuel_add2', 'rpc_refuel_photo', 'rpc_refuel_photo2', 'rpc_refuel_void', 'rpc_fuel_set', 'rpc_track_move', 'rpc_ddt_edit_file', 'rpc_ddt_place_sig', 'rpc_bread_crates_set', 'rpc_pb_return_set', 'rpc_task_update', 'rpc_request_send', 'rpc_ddt_add_self', 'rpc_ddt_cancel_self', 'rpc_ddt_sign', 'rpc_ddt_resign', 'rpc_ddt_set_box', 'rpc_polybox_set', 'rpc_self_stop_add', 'rpc_self_stop_remove', 'rpc_cargo_add'];
   // letture che servono durante il turno: l'ultima risposta resta sul telefono per quando non c'è rete
   var OUT_READ = ['rpc_ddt_list', 'rpc_ddt_file', 'rpc_ddt_signature', 'rpc_my_tasks', 'rpc_boat_info', 'rpc_contacts2', 'rpc_program_active', 'rpc_cancels_active', 'rpc_pb_expected', 'rpc_murano_colli_last', 'rpc_polybox_status', 'rpc_fuel_status', 'rpc_assign_list', 'rpc_end_photo_status', 'rpc_delivery_proof_list', 'rpc_task_day'];
   var OUT_SKIP = ['rpc_log_gps', 'rpc_pos_share']; // GPS: in offline non serve
