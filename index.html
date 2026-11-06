@@ -406,17 +406,18 @@ body.tbfs .tb{position:fixed;top:0;right:0;bottom:0;left:0;z-index:40;border-rad
 
 .ddwup{display:flex;flex-direction:column;gap:6px}.ddwub{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.ddwub b{flex:1;min-width:90px;color:#F2F7F5;font-size:14px}.ddwub button{border:0;border-radius:9px;padding:7px 10px;background:#1655C8;color:#fff;font:inherit;font-weight:700;font-size:13px}.ddwup.more .ddwub button{background:#1D2C33;color:#DCE7E4}
 
-.colli .clsec{margin-top:14px;padding:6px 0 2px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#5B6870;font-weight:700}.colli{max-height:78vh;overflow:auto}.clbtns{position:sticky;bottom:0;background:#fff;padding-top:8px}.clchip{display:block;width:100%;text-align:left;border:0;border-radius:10px;padding:7px 10px;margin-bottom:6px;background:#12384F;color:#BFE6FF;font:inherit;font-weight:700;font-size:14px}.clchip.no{background:#3D2E00;color:#FFD54F}
-.colli .clr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid #E3E8EC}.colli .clr b{display:block;font-size:17px;color:#11181C}.colli .clr small{color:#5B6870}
-.sems .semlive{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin:-4px 0 10px;color:#5B6870;font-size:14px}.sems .semlive b{color:#11181C;font-family:var(--font-mono)}
+.colli .clsec{margin-top:14px;padding:6px 0 2px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}.colli{max-height:78vh;overflow:auto}.clbtns{position:sticky;bottom:0;background:var(--bg);padding-top:8px}.clchip{display:block;width:100%;text-align:left;border:0;border-radius:10px;padding:7px 10px;margin-bottom:6px;background:#12384F;color:#BFE6FF;font:inherit;font-weight:700;font-size:14px}.clchip.no{background:#3D2E00;color:#FFD54F}
+.colli .clr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.colli .clr>div:first-child{min-width:0;flex:1}.colli .clr b{display:block;font-size:17px;color:var(--ink);overflow-wrap:anywhere}.colli .clr small{color:var(--muted)}
+.sems .clr b,.mus .clr b{color:var(--ink)}.sems .clr small,.mus .clr small{color:var(--muted)}
+.sems .semlive{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin:-4px 0 10px;color:var(--muted);font-size:14px}.sems .semlive b{color:var(--ink);font-family:var(--font-mono)}
 .sems .semgo{border-radius:14px;padding:12px 14px;background:#EAF6EC;color:#1B5E20;font-weight:700;font-size:16px;margin-bottom:10px}.sems .semgo.late{background:#FDECEA;color:#B71C1C}.sems .semgo.soon{background:#FFF6DC;color:#7A5300}.sems .semgo small{display:block;font-weight:500;font-size:13px;opacity:.85;margin-top:2px}
 .sems .semnote{border-left:4px solid #F9A825;background:#FFF8E1;color:#5D4300;border-radius:10px;padding:10px 12px;font-weight:600;margin-bottom:10px}
 .sems .semtip{background:#EEF4F8;color:#24404F;border-radius:10px;padding:9px 12px;font-size:14px;margin-top:8px}
 .sems .clr .semn{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#12384F;color:#BFE6FF;font-size:13px;font-weight:800;margin-right:6px;vertical-align:2px}
 .sems .clr .semx{display:block;color:#7A5300;font-size:13px;margin-top:2px}.sems .clr .semd{display:inline-block;background:#E3F2FD;color:#0D47A1;border-radius:999px;padding:1px 8px;font-size:12px;font-weight:700;margin-top:3px}
-.sems .semtot{display:flex;justify-content:space-between;align-items:center;padding:10px 0 2px;border-top:2px solid #11181C;font-weight:800;font-size:17px;color:#11181C}
+.sems .semtot{display:flex;justify-content:space-between;align-items:center;padding:10px 0 2px;border-top:2px solid var(--ink);font-weight:800;font-size:17px;color:var(--ink)}
 .sems .semck{display:flex;gap:10px;align-items:center;width:100%;text-align:left;border:1px solid #CDD6DC;background:#fff;border-radius:12px;padding:11px 12px;margin-bottom:6px;font:inherit;font-size:15px;color:#11181C}.sems .semck i{flex:none;width:24px;height:24px;border-radius:7px;border:2px solid #90A4AE;display:grid;place-items:center;font-style:normal;font-weight:800;color:#fff}.sems .semck[aria-pressed=true]{background:#EAF6EC;border-color:#81C784}.sems .semck[aria-pressed=true] i{background:#2E7D32;border-color:#2E7D32}
-.sems .semmu{flex:none;color:#5B6870;font-size:13.5px;font-weight:700;text-align:right;max-width:40%}
+.sems .semmu{flex:none;color:var(--muted);font-size:13.5px;font-weight:700;text-align:right;max-width:40%}
 .mus .must{border:1px solid #DCE3E8;border-radius:14px;padding:10px 12px;margin-bottom:10px;background:#fff}
 .mus .musth{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;margin-bottom:4px}.mus .musth b{font-size:16px;color:#11181C}.mus .musth small{color:#5B6870;font-family:var(--font-mono)}
 .mus .mucl{padding:8px 0;border-top:1px solid #EEF1F3}.mus .mucl:first-of-type{border-top:0}
@@ -428,13 +429,16 @@ body.tbfs .tb{position:fixed;top:0;right:0;bottom:0;left:0;z-index:40;border-rad
 .cnss .mucns{border:1px solid #BBDEFB;background:#F2F8FE;border-radius:12px;padding:6px 12px;margin-bottom:6px}.cnss .mucns div{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:15px}.cnss .mucns div+div{border-top:1px solid #DCEBF8}.cnss .mucns b{color:#0D47A1}
 .pbcl li small{display:block;color:#7A5300;font-size:12.5px;font-weight:600}
 .trav{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#2563eb;color:#fff;font-size:12px;font-weight:800}.trav.st{background:#64748b}
-.trsec{font-size:12.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5B6870;margin:12px 0 4px}
-.cnss .cnsh{color:#5B6870;font-size:14px;margin:-4px 0 10px}.cnss .cnsh b{color:#11181C;font-family:var(--font-mono)}
+.trsec{font-size:12.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:12px 0 4px}
+.cnss .cnsh{color:var(--muted);font-size:14px;margin:-4px 0 10px}.cnss .cnsh b{color:var(--ink);font-family:var(--font-mono)}
 .cnss .cnsnote{border-left:4px solid #F9A825;background:#FFF8E1;color:#5D4300;border-radius:10px;padding:10px 12px;font-weight:600;margin-bottom:6px}
 .cnss .cnspb{display:inline-block;background:#E3F2FD;color:#0D47A1;border-radius:999px;padding:3px 10px;font-size:14px;font-weight:700;margin-bottom:4px}
-.cnss .cnsd{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid #E3E8EC}.cnss .cnsd .tx{flex:1;min-width:0}.cnss .cnsd b{display:block;color:#11181C;font-size:16px}.cnss .cnsd small{color:#5B6870}.cnss .cnsd .ok{color:#1E8E4E;font-weight:700}
+.cnss .cnsd{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid #E3E8EC}.cnss .cnsd .tx{flex:1;min-width:0}.cnss .cnsd b{display:block;color:var(--ink);font-size:16px}.cnss .cnsd small{color:var(--muted)}.cnss .cnsd .ok{color:#1E8E4E;font-weight:700}
 .cnss .cnsph{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.cnss .cnsph img{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid #CDD6DC}
 .cnss .cnsdone{width:100%;min-height:64px;font-size:20px;font-weight:800;border:0;border-radius:16px;background:#2E7D32;color:#fff}
+.cfb{border:1px solid var(--line);border-radius:16px;padding:6px 14px 10px;background:var(--surface,transparent);margin-bottom:12px}.cfb h3{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:6px 0 2px}.cfb h3 small{font-size:14px;color:var(--muted);font-weight:600}
+.cfdays{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px}.cfdays button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:8px 14px;font:inherit;font-weight:700}.cfdays button[aria-pressed="true"]{background:#ca8a04;border-color:#ca8a04;color:#fff}
+.cftot{display:flex;justify-content:space-between;font-weight:800;font-size:18px;padding:10px 4px;color:var(--ink)}.cfok{color:#1E8E4E;font-size:12px;font-weight:700;margin-left:6px}
 .clst{display:flex;align-items:center;gap:6px}.clst button{width:44px;height:44px;border-radius:12px;border:1px solid #CDD6DC;background:#F1F4F6;font-size:24px;font-weight:700;color:#11181C}.clst input{width:64px;height:44px;text-align:center;font-size:22px;font-weight:800;border:1px solid #CDD6DC;border-radius:12px;color:#11181C;background:#fff}
 
 .probb{background:#5A3A00;color:#FFE3A3;font-weight:700;font-size:13px;border-radius:10px;padding:6px 10px;margin-bottom:6px}
@@ -1886,6 +1890,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     tracking: '<path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z"/><circle cx="12" cy="10" r="2.3"/>',
     benzina: '<path d="M4 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16M3 21h13M7 8h5M15 9l3 2v7a1.5 1.5 0 0 0 3 0V9l-3-3"/>',
     polybox: '<path d="M3 8l9-4 9 4v9l-9 4-9-4z"/><path d="M3 8l9 4 9-4M12 12v9"/>',
+    confeziona: '<path d="M3 8l9-4 9 4v9l-9 4-9-4z"/><path d="M3 8l9 4 9-4M12 12v9"/><path d="M16.5 6.2L7.5 10"/>',
     nuovo: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/>',
     turno: '<path d="M3 15l2 4h14l2-4zM12 3v8M8 7h8"/>',
     ddt: '<path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"/>', ddtgiro: '<path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"/>', stat: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>', cucina: '<path d="M6 3v8a3 3 0 0 0 6 0V3M9 3v18M17 3c-2 2-2 6 0 8v10"/>', murano: '<path d="M4 7h11M4 7v12h11V7M7 7V4h11v12h-3M7 11h5M7 15h5"/><path d="M16 20l2-2 3 3"/>',
@@ -2109,7 +2114,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       save(); closeSheet(); view = NV.keep && NV.open ? 'navi' : isMioUser() ? 'home' : 'guida'; NV.keep = false; spoken = '';
       wakeOn();
       toast('Turno iniziato su ' + BOATS[phys].name + (phys !== code ? ' · programma della ' + BOATS[code].name : ''));
-      gpsApply(); render(); setTimeout(loadMyTasks, 600); setTimeout(function () { gpsModeAsk(true); }, 400);
+      gpsApply(); render(); setTimeout(loadMyTasks, 600); setTimeout(colliSync, 1500); setTimeout(function () { gpsModeAsk(true); }, 400);
     };
     if (tok() || isOffSess()) { cl('rpc_start_shift', { p_boat: code }).then(function (r) { if (r && (r.resumed || r.error === 'turno_aperto_su_altra_barca')) { closeSheet(); if (r.error) toast('Hai già un turno aperto: lo riprendo. Per cambiare barca usa “Cambio barca”.'); resumeShift(); return; } if (r && r.error === 'barca_in_uso' && phys !== code) { toast('La ' + BOATS[code].name + ' risulta in uso: parto con il programma della ' + BOATS[phys].name); PL_FORCE = true; startShift(phys); return; } if (r && r.error) { scanMsg(startErr(r.error), true); return; } go(); if (r && r.shift_id && S.shift) { S.shift.sid = r.shift_id; save(); } if (phys !== code && tok() && !isOffSess()) cl('rpc_shift_boat_swap', { p_boat: phys, p_partner: false, p_note: 'Programma collegato alla persona' }).then(function (w) { if (!w || !w.ok) toast('Non riesco a segnare la ' + BOATS[phys].name + ' come barca del turno: usa “Cambio barca”'); }); cl('rpc_set_plan', { p_plan: stops().map(function (z) { return { name: z.name, t: z.ind ? '' : (z.t || '') }; }) }); }); } else go();
   }
@@ -3231,7 +3236,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   });
   /* ---------- Trasportatori (Elia, Daffa): Barche = documenti per i controlli + richieste ---------- */
   function isVan() { return !!(SESSION && SESSION.role === 'van'); }
-  function isCrewOnly() { return !!SESSION && !isMgr() && !isOff() && !isFullAcc() && !isVan() && !isBill(); }
+  function isCrewOnly() { return !!SESSION && !isMgr() && !isOff() && !isFullAcc() && !isVan() && !isBill() && !isPack(); }
+  function isPack() { return !!(SESSION && SESSION.role === 'pack'); }
   function viewBarcaCrew() {
     if (draft) return viewRichieste();
     var code = BF.sel || (S.shift && S.shift.boat) || myBoatCode() || boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO'; })[0];
@@ -10328,6 +10334,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isOff() && ['home', 'presenze', 'ddt', 'contatti', 'impost', 'programma', 'cucina', 'notifiche', 'snap'].indexOf(view) < 0) view = 'home';
     if (view === 'presenze' && !isOff() && !isMgr() && !isFullAcc()) view = 'home';
+    if (isPack() && ['home', 'confeziona', 'programma', 'impost', 'contatti', 'snap'].indexOf(view) < 0) view = 'confeziona';
+    if (view === 'confeziona' && !isPack() && !isMgr() && !isFullAcc()) view = 'home';
     if (isVan() && ['home', 'polybox', 'tracking', 'contatti', 'impost', 'programma', 'navi', 'snap'].indexOf(view) < 0) view = 'home';
     if (view === 'tracking' && isOff()) view = 'ddt';
     if (view === 'spedizioni' && (isOff() || isVan())) view = 'home';
@@ -10369,6 +10377,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (isMgr() && !isOff() && ['programma', 'ddt', 'murano'].indexOf(cur) >= 0) cur = 'logistica';
     if (isMgr() && cur === 'richieste') cur = 'barca';
     if (isCrewOnly() && ['richieste', 'contatti', 'ddt'].indexOf(cur) >= 0) cur = 'barca';
+    if (isFull && cur === 'confeziona') cur = 'altro';
     var NV = isVan() ? NAV_VAN : isOff() ? NAV_OFF : isAdm ? NAV_ADMIN : isFull ? NAV_FULL : (isMgr() ? NAV_MGR : NAV);
     drawHomeNav();
     document.body.classList.toggle('fspl', view === 'home' && isMioUser());
@@ -10377,7 +10386,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi, orari: viewOrari, navi: viewNavi, snap: viewSnap }[view] || viewTurno;
+    var fn = { confeziona: viewConf, admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi, orari: viewOrari, navi: viewNavi, snap: viewSnap }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     diag('disegno ' + view); var _t0 = Date.now(), m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); if (view === 'percorsi') setTimeout(rtDraw, 0); m.scrollTop = (view === 'guida') ? 0 : sc; diag('fatto ' + view + ' ' + (Date.now() - _t0) + 'ms');
     if (LITE && Date.now() - _t0 > 2500 && window.__smbErr) window.__smbErr('Pagina lenta: ' + view + ' ' + (Date.now() - _t0) + ' ms');
@@ -10492,17 +10501,18 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   /* ---------- Home: ogni strumento è un'icona come un'app del telefono ---------- */
   var APPS = {
     logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
-    barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], notifiche: ['Notifiche', '#db2777'],
+    barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], confeziona: ['Polybox Seminario', '#b45309'], notifiche: ['Notifiche', '#db2777'],
     oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], listini: ['Listini', '#0e7490'], porzione: ['Costo porzione', '#7c2d12'], menu: ['Menu', '#9d174d'], fatturato: ['Fatturato', '#047857'], carena: ['Carena', '#0e7490'], percorsi: ['Percorsi', '#0f766e'], orari: ['Orari reali', '#6d28d9'], navi: ['Navigatore', '#1a73e8'], snap: ['Snap', '#e6c300'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Telefono', '#34c759'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
   };
   function homeApps() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
+    if (isPack()) return ['confeziona', 'programma', 'snap', 'contatti', 'impost'];
     if (isVan()) return ['polybox', 'tracking', 'programma', 'navi', 'snap', 'contatti', 'impost'];
     if (isBill()) return ['fatturato', 'contatti', 'impost'];
     if (isOff()) return ['presenze', 'ddt', 'cucina', 'programma', 'notifiche', 'snap', 'contatti', 'impost'];
     if (isAdm) return ['logistica', 'notifiche', 'snap', 'turni', 'presenze'].concat(canMoney() ? ['fatturato'] : [], ['spedizioni', 'tracking', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'barca', 'benzina', 'programma', 'contatti', 'impost']);
-    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'fatturato', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'notifiche', 'snap', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'cucina', 'menu', 'foodcost', 'porzione', 'allergeni', 'listini', 'contatti', 'impost'];
-    if (isMgr()) return ['logistica', 'turno', 'turni', 'programma', 'notifiche', 'snap', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'contatti', 'impost'];
+    if (isFull) return ['logistica', 'turno', 'turni', 'presenze', 'programma', 'ddtgiro', 'fatturato', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'confeziona', 'notifiche', 'snap', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'cucina', 'menu', 'foodcost', 'porzione', 'allergeni', 'listini', 'contatti', 'impost'];
+    if (isMgr()) return ['logistica', 'turno', 'turni', 'programma', 'notifiche', 'snap', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'confeziona', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'contatti', 'impost'];
     return ['turno', 'navi', 'programma', 'ddtgiro', 'barca', 'notifiche', 'snap', 'tracking', 'benzina', 'impost'];
   }
   function viewHome() {
@@ -10875,6 +10885,69 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     return { live: live, go: h };
   }
   function semTot() { var n = 0, any = false; Array.prototype.forEach.call(document.querySelectorAll('.sems .clst input'), function (x) { if (x.value !== '') { any = true; n += Math.max(0, +x.value || 0); } }); var e = $('semTot'); if (e) e.textContent = any ? n + ' polybox' : '–'; }
+
+  /* ---------- Polybox Seminario (Riccardo): quanti polybox confezionare per ogni consegna, per tutte le barche.
+     Salva in stop_colli (rpc_colli_set): il trasportatore li trova già scritti quando parte dal Seminario. ---------- */
+  var CF = { day: null, d: {}, ok: {}, busy: false, t: {}, k: null };
+  function cfSkip(z) { return !z || z.cancelled || z.maint || isSem(z.name) || isBenz(z.name) || isPane(z.name) || /^(darsena|scalo)\b/i.test(String(z.name).trim()); }
+  function cfDays() { var t = todayKey(); return DAYKEYS.filter(function (k) { return k >= t && PROGRAM[k] && !PROGRAM[k].virt; }).slice(0, 4); }
+  function cfKey(b, n, t) { return b + '|' + n + '|' + (t || ''); }
+  function cfLoad(force) {
+    var k = CF.day; if (!k || !tok() || CF.busy || (!force && CF.k === k)) return;
+    CF.busy = true;
+    cl('rpc_colli_day', { p_day: k }).then(function (r) { CF.busy = false; if (!Array.isArray(r)) return; var m = {}; r.forEach(function (x) { m[cfKey(x.boat, x.stop, x.t)] = x.n; }); CF.d = m; CF.k = k; if (view === 'confeziona' && !(document.activeElement && document.activeElement.tagName === 'INPUT')) render(); }).catch(function () { CF.busy = false; });
+  }
+  function viewConf() {
+    var ds = cfDays(); if (!CF.day || ds.indexOf(CF.day) < 0) CF.day = ds[0] || todayKey();
+    if (CF.k !== CF.day) setTimeout(function () { cfLoad(false); }, 0);
+    var P = PROGRAM[CF.day], h = '<div class="wrap"><h2>📦 Polybox Seminario</h2><p class="muted">Scrivi quanti polybox prepari per ogni consegna. Si salva da solo e il trasportatore li trova già scritti quando parte dal Seminario.</p>';
+    h += '<div class="cfdays">' + ds.map(function (k) { return '<button data-act="cfday" data-k="' + k + '"' + (k === CF.day ? ' aria-pressed="true"' : '') + '>' + (k === todayKey() ? 'Oggi' : esc(PROGRAM[k].short || k)) + '</button>'; }).join('') + '</div>';
+    if (!P) return h + '<div class="card"><p class="muted">Nessun programma per questo giorno.</p></div></div>';
+    var tot = 0, any = false, idx = 0;
+    Object.keys(P.boats).forEach(function (b) {
+      var bd = P.boats[b]; if (!bd || bd.off || !BOATS[b] || BOATS[b].test || b === 'TULLIO') return;
+      var rows = (bd.stops || []).filter(function (z) { return !cfSkip(z); }); if (!rows.length) return;
+      any = true; var bt = 0;
+      var rh = rows.map(function (z) {
+        var key = cfKey(b, z.name, z.t), v = CF.d[key]; if (v != null) bt += +v; idx++;
+        return '<div class="clr"><div><b>' + esc(z.name) + '</b>' + (z.t ? '<small>' + esc(stopTime(z)) + '</small>' : '') + (CF.ok[key] ? '<span class="cfok">✓ salvato</span>' : '') + '</div><div class="clst"><button data-act="cfm" data-i="' + idx + '" aria-label="Meno">−</button><input type="number" inputmode="numeric" min="0" max="200" id="cf' + idx + '" data-cf="' + esc(key) + '" data-b="' + esc(b) + '" data-n="' + esc(z.name) + '" data-t="' + esc(z.t || '') + '" value="' + (v == null ? '' : v) + '" placeholder="0" aria-label="Polybox per ' + esc(z.name) + '"><button data-act="cfp" data-i="' + idx + '" aria-label="Più">+</button></div></div>';
+      }).join('');
+      tot += bt;
+      h += '<section class="cfb colli" style="max-height:none;overflow:visible"><h3><span style="color:' + bcol(b) + '">● ' + esc(BOATS[b].name) + '</span><small>' + bt + ' polybox</small></h3>' + rh + '</section>';
+    });
+    if (!any) h += '<div class="card"><p class="muted">Nessuna consegna con polybox in questo giorno.</p></div>';
+    else h += '<div class="cftot"><span>Totale da confezionare</span><span id="cfTot">' + tot + '</span></div>';
+    return h + '</div>';
+  }
+  function cfSave(inp) {
+    var key = inp.getAttribute('data-cf'); if (inp.value === '') return;
+    var n = Math.max(0, Math.min(200, Math.round(+inp.value || 0))); inp.value = n; CF.d[key] = n;
+    var t0 = 0; Array.prototype.forEach.call(document.querySelectorAll('input[data-cf]'), function (x) { t0 += Math.max(0, +x.value || 0); }); var te = $('cfTot'); if (te) te.textContent = t0;
+    clearTimeout(CF.t[key]);
+    CF.t[key] = setTimeout(function () {
+      cl('rpc_colli_set', { p_day: CF.day, p_boat: inp.getAttribute('data-b'), p_stop: inp.getAttribute('data-n'), p_planned: inp.getAttribute('data-t'), p_n: n }).then(function (r) {
+        if (r && r.ok) { CF.ok[key] = 1; var lb = inp.closest('.clr'); if (lb && !lb.querySelector('.cfok')) { var s = document.createElement('span'); s.className = 'cfok'; s.textContent = '✓ salvato'; lb.firstChild.appendChild(s); } }
+        else toast('Non salvato: controlla la connessione');
+      }).catch(function () { toast('Non salvato: controlla la connessione'); });
+    }, 700);
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'cfday') { CF.day = el.getAttribute('data-k'); CF.d = {}; CF.ok = {}; CF.k = null; render(); }
+    else if (a === 'cfm' || a === 'cfp') { var inp = $('cf' + el.getAttribute('data-i')); if (!inp) return; inp.value = Math.max(0, Math.min(200, (+inp.value || 0) + (a === 'cfp' ? 1 : -1))); cfSave(inp); }
+  });
+  document.addEventListener('input', function (e) { var t = e.target; if (t && t.getAttribute && t.getAttribute('data-cf')) cfSave(t); });
+  setInterval(function () { if (view === 'confeziona' && !document.hidden && !(document.activeElement && document.activeElement.tagName === 'INPUT')) cfLoad(true); }, 60000);
+  // trasportatore: i polybox preparati da Riccardo arrivano nel turno (solo dove non li ha già scritti lui)
+  function colliSync() {
+    var sh = S.shift; if (!sh || !tok() || isOffSess()) return;
+    cl('rpc_colli_day', { p_day: sh.day }).then(function (r) {
+      if (!Array.isArray(r) || !S.shift || S.shift !== sh) return; var all = stops(), ch = false; sh.colli = sh.colli || {};
+      r.forEach(function (x) { if (x.boat !== sh.boat) return; for (var i = 0; i < all.length; i++) if (all[i].name === x.stop && (all[i].t || '') === (x.t || '')) { var k = sh.day + ':' + i; if (sh.colli[k] == null) { sh.colli[k] = x.n; ch = true; } break; } });
+      if (ch) { save(); if (view === 'guida') render(); }
+    });
+  }
+  setInterval(function () { if (S.shift && !document.hidden) colliSync(); }, 120000);
   function semSheet(i, auto) {
     var sh = S.shift; if (!sh) return; var all = stops(), sp = all[i]; if (!sp) return;
     SEM.i = i; var l = semLeg(i), ck = (sh.semck && sh.semck[semKey(i)]) || {}, lv = semLive(i), nDdt = 0;
