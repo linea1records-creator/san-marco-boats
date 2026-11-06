@@ -4830,7 +4830,17 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (a === 'peedit') peSheet(+el.getAttribute('data-i'));
     else if (a === 'peadd') peSheet(null);
     else if (a === 'pesave') peSave(false);
-    else if (a === 'pedel') { if (!el.getAttribute('data-sure')) { el.setAttribute('data-sure', '1'); el.textContent = 'Tocca ancora per eliminare'; return; } peSave(true); }
+    else if (a === 'pedel') {
+      // conferma senza spostare i tasti (prima il testo lungo spostava "Salva" sotto il dito)
+      if (!el.getAttribute('data-sure')) {
+        el.style.width = el.offsetWidth + 'px'; el.style.height = el.offsetHeight + 'px'; el.setAttribute('data-sure', '1'); el.textContent = 'Conferma';
+        Array.prototype.forEach.call(el.parentNode.querySelectorAll('[data-act="pesave"]'), function (b) { b.style.visibility = 'hidden'; b.disabled = true; });
+        var w = $('peW'); if (w) w.textContent = '⚠ Tocca di nuovo “Conferma” per eliminare la tappa.';
+        setTimeout(function () { if (el.isConnected && el.getAttribute('data-sure')) { el.removeAttribute('data-sure'); el.textContent = 'Elimina tappa'; Array.prototype.forEach.call(el.parentNode.querySelectorAll('[data-act="pesave"]'), function (b) { b.style.visibility = ''; b.disabled = false; }); peWarn(); } }, 6000);
+        return;
+      }
+      peSave(true);
+    }
   });
   document.addEventListener('input', function (e) { if (e.target && e.target.id === 'peN') peWarn(); });
 
@@ -9894,7 +9904,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       var pk = plStep(), kk = plKind(pk), A0 = PL_ACT[kk] || PL_ACT.go, z0 = NV.route[0], e0 = et[0], late = '';
       if (z0 && z0.t && e0) { var pl = new Date(); pl.setHours(+z0.t.slice(0, 2), +z0.t.slice(3, 5), 0, 0); var dm = Math.round((e0.at - pl.getTime()) / 60000); late = dm > 5 ? '<i class="nvl bad">+' + dm + ' min</i>' : dm < -5 ? '<i class="nvl">' + dm + ' min</i>' : '<i class="nvl ok">in orario</i>'; }
       h += '<div class="nvnx"><small>' + (z0 && !z0.prog ? 'META SCELTA AL VOLO' : 'PROSSIMA TAPPA DEL GIRO') + '</small><b>' + esc(z0 ? z0.name : (pk.s ? pk.s.name : 'Giro finito')) + '</b><span>' + (z0 && z0.t ? 'previsto ' + esc(z0.t) + ' · ' : '') + (e0 ? (e0.d < 1000 ? Math.round(e0.d) + ' m' : (e0.d / 1000).toFixed(1).replace('.', ',') + ' km') + ' · arrivo <b>' + hm(e0.at) + '</b> ' + late : (z0 ? 'In attesa del GPS…' : 'Chiudi il turno con la foto della barca')) + '</span></div>' +
-        nvVeniniBtn() + '<div class="nvact"><button class="nvgo k-' + kk + '" data-act="plgo"><span>' + A0[0] + '</span><b>' + esc(A0[1]) + '</b></button>' + (pk.s ? '<button class="nvsm" data-act="plopen">Apri la tappa</button><button class="nvsm bad" data-act="problem">⚠ Problema</button>' : '') + (isMioUser() ? '' : '<button class="nvsm" data-act="nvdash">🎛️ Cruscotto</button>') + '</div>';
+        nvVeniniBtn() + '<div class="nvact"><button class="nvgo k-' + kk + '" data-act="plgo"><span>' + A0[0] + '</span><b>' + esc(A0[1]) + '</b></button>' + (pk.s ? '<button class="nvsm" data-act="plopen">Apri la tappa</button><button class="nvsm" data-act="skipask">⏭ Salta</button><button class="nvsm bad" data-act="problem">⚠ Problema</button>' : '') + (isMioUser() ? '' : '<button class="nvsm" data-act="nvdash">🎛️ Cruscotto</button>') + '</div>';
     } else if (NV.route.length) {
       var z = NV.route[0], e = et[0];
       h += '<div class="nvnx"><small>PROSSIMA TAPPA</small><b>' + esc(z.name) + '</b><span>' + (e ? (e.d < 1000 ? Math.round(e.d) + ' m' : (e.d / 1000).toFixed(1).replace('.', ',') + ' km') + ' · arrivo <b>' + hm(e.at) + '</b>' + (e.usual ? ' · percorso abituale' : ' · in linea d’aria') + (e.real ? ' · tempo reale' : '') : 'In attesa del GPS…') + '</span></div>';
