@@ -6416,7 +6416,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   /* ---------- Notifiche come chat (stile WhatsApp): una conversazione per trasportatore ---------- */
   var NTC = { open: null };
   function ntKind(x) { return /^DDT/.test(x.title || '') ? 'ddt' : x.kind; }
-  function ntWho(x) { return x.who || String(x.title || '').replace(/ ha (iniziato|chiuso).*$/, '').replace(/^Richiesta da /, '') || 'Logistica'; }
+  function ntWho(x) { if (x.kind === 'loc') return String(x.title || '').replace(/^📍\s*/, '').replace(/ condivide.*$/, ''); return x.who || String(x.title || '').replace(/ ha (iniziato|chiuso).*$/, '').replace(/^Richiesta da /, '') || 'Logistica'; }
   function ntBoatName(x) { return x.boat && BOATS[x.boat] ? BOATS[x.boat].name : ((/Barca: ([^·]+)/.exec(x.body || '') || [0, ''])[1] || '').trim(); }
   function ntMsg(x) {
     var k = ntKind(x), b = ntBoatName(x), t = x.title || '', body = x.body || '';
@@ -6425,6 +6425,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (k === 'stop' || k === 'stop_late') return { ic: '✓', cls: k === 'stop_late' ? 'late' : 'ok', t: t, s: body };
     if (k === 'stop_problem') return { ic: '⚠', cls: 'bad', t: t, s: body };
     if (k === 'ddt') return { ic: '✍', cls: 'ddt', t: t, s: body };
+    if (k === 'loc') return { ic: '📍', cls: 'go', t: 'Sto arrivando: condivido la posizione', s: body };
+    if (k === 'swap') return { ic: '🔁', cls: 'req', t: t, s: body };
     return { ic: '✉', cls: 'req', t: t.replace(/^Richiesta da [^:]*:?\s*/, 'Richiesta: '), s: body };
   }
   function ntDayLbl(ts) { var d = new Date(ts), n = new Date(); if (d.toDateString() === n.toDateString()) return 'Oggi'; var y = new Date(n.getTime() - 864e5); if (d.toDateString() === y.toDateString()) return 'Ieri'; return d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }); }
