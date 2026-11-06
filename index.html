@@ -4368,7 +4368,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (S.shift && S.shift.day === k) ids.sort(function (a, b) { return (b === S.shift.boat) - (a === S.shift.boat); });
     var h = '<div class="wrap">' + (isMgr() && !isOff() ? '<button class="aslink" data-act="nav" data-v="logistica">‹ Logistica</button>' : '') + '<h2>Programma dettagliato</h2><p class="muted">Logistica Ristorazione San Marco · dal ' + pgFmt(DAYKEYS[0]) + ' al ' + pgFmt(DAYKEYS[DAYKEYS.length - 1]) + '</p>' + (VX[todayISO()] ? '' : dayNote()) +
       '<div class="chips" role="group" aria-label="Giorno">' + keys.map(function (d) { return '<button class="chip" data-act="day" data-k="' + d + '" aria-pressed="' + (d === k ? 'true' : 'false') + '">' + esc((PROGRAM[d] || VX[d]).short) + '</button>'; }).join('') + '</div>' +
-      (isMgr() && tok() ? '<button class="btn" data-act="nav" data-v="logistica">+ Nuovo turno o consegna</button>' : '') + '<h3>' + esc(day.label) + '</h3>' + (day.halloween ? '<div class="note">🎃 <b>Buon Halloween!</b> Occhio alla nebbia in laguna: dolcetto o scherzetto a fine giro.</div>' : '');
+      (isMgr() && tok() ? pgDraftBanner() + '<button class="btn" data-act="nav" data-v="logistica">+ Nuovo turno o consegna</button>' : '') + '<h3>' + esc(day.label) + '</h3>' + (day.halloween ? '<div class="note">🎃 <b>Buon Halloween!</b> Occhio alla nebbia in laguna: dolcetto o scherzetto a fine giro.</div>' : '');
     if (canDdt) h += '<p class="hint">Tocca <b>📎 DDT</b> su una consegna per collegare il suo DDT' + (isWide() ? ', oppure trascina il file sulla riga' : '') + '. Il trasportatore lo trova nel navigatore quando arriva lì.</p>';
     if (isOff() && tok()) h += '<input type="file" id="ddAttIn" accept="application/pdf,image/*" style="display:none">';
     if (canEdit && ids.some(function (id) { return (day.boats[id].stops || []).length; })) h += '<p class="hint">Tocca un orario per cambiarlo · scorri a sinistra per eliminare · tieni premuta una tappa e trascinala per cambiare l’ordine.</p>';
@@ -7433,6 +7433,12 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       if (before !== JSON.stringify(DAYKEYS) + JSON.stringify(PROGRAM) && !PG.d) render();
     });
   }
+  function pgDraftBanner() {
+    if (!PG.list) { if (!PG.ldb) { PG.ldb = 1; loadPgList().then(function () { if (view === 'programma') render(); }); } return ''; }
+    return PG.list.filter(function (x) { return x.status !== 'published' && x.status !== 'archived'; }).map(function (x) {
+      return '<button class="hmshift" data-act="pgedit" data-id="' + esc(x.id) + '" style="background:#7c3aed;color:#fff;margin:8px 0"><span style="font-size:26px" aria-hidden="true">📝</span><span><b>Bozza: ' + esc(x.title || 'Senza titolo') + '</b>' + (x.from ? esc(pgFmt(x.from) + ' – ' + pgFmt(x.to)) + ' · ' : '') + 'tocca per vederla, spostare le consegne tra i giri e pubblicarla</span></button>';
+    }).join('');
+  }
   function loadPgList() { return cl('rpc_program_list', {}).then(function (r) { if (r && r.length !== undefined) { PG.list = r; if (view === 'programmi' && !PG.busy) render(); } }); }
   function pgStops() { return Object.keys(COORDS).concat(['Ca’ Foscari', 'Verifica e manutenzione']); }
   function pgDateLabel(k) { var d = dateParts(k); return DNALL[d.dow] + ' ' + d.n + ' ' + MONTHS[d.m]; }
@@ -7449,8 +7455,9 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
         h += '<div class="pgs' + (z._new ? ' pgnew' : '') + '"><input class="field txt" style="max-width:92px" inputmode="numeric" placeholder="Ora" aria-label="Ora" data-pg="' + pre + 't" value="' + esc(z.t || '') + '">' +
           '<input class="field txt" list="pgNames" placeholder="Tappa" aria-label="Tappa" data-pg="' + pre + 'name" value="' + esc(z.name || '') + '">' +
           '<input class="field txt" placeholder="Nota" aria-label="Nota" data-pg="' + pre + 'note" value="' + esc(z.note || '') + '">' +
+          '<button class="btn quiet sm" data-act="pgmv" data-d="' + di + '" data-b="' + code + '" data-i="' + i + '" aria-label="Sposta in un altro giro">⇄</button>' +
           '<button class="btn quiet sm" data-act="pgdel" data-d="' + di + '" data-b="' + code + '" data-i="' + i + '" aria-label="Togli tappa">✕</button>' +
-          (z.name && !known[z.name] && !/^Verifica e manutenzione/i.test(z.name) && z.name !== 'Ca’ Foscari' ? '<div class="pgw">Posizione non nota: la guida non potrà portarlo qui.</div>' : '') + '</div>';
+          (z.name && z.lat == null && !known[z.name] && !/^Verifica e manutenzione/i.test(z.name) && z.name !== 'Ca’ Foscari' ? '<div class="pgw">Posizione non nota: la guida non potrà portarlo qui.</div>' : '') + '</div>';
       });
       h += '<button class="btn quiet sm" data-act="pgadd" data-d="' + di + '" data-b="' + code + '">+ Aggiungi tappa</button>';
     }
@@ -11694,6 +11701,21 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (a === 'pgsave') { pgSave(false); return; }
     if (a === 'pgpub') { if (!PG.confirm) { PG.confirm = true; render(); return; } pgSave(true); return; }
     if (a === 'pgadd') { var bb = PG.d.days[+el.getAttribute('data-d')].boats[el.getAttribute('data-b')]; (bb.stops = bb.stops || []).push({ t: '', name: '', note: '' }); render(); return; }
+    if (a === 'pgmv') {
+      var mdi = +el.getAttribute('data-d'), mb = el.getAttribute('data-b'), mi = +el.getAttribute('data-i'), mz = PG.d.days[mdi].boats[mb].stops[mi];
+      openSheet('<h2>Sposta “' + esc(mz.name || 'tappa') + (mz.t ? ' · ' + esc(mz.t) : '') + '”</h2><p class="muted">In quale giro la metto? Va al suo posto in base all’orario.</p><div class="btns">' +
+        ['PATANA', 'TOPPETTA', 'ARDEMAR'].filter(function (c) { return c !== mb; }).map(function (c) { return '<button class="btn" data-act="pgmvto" data-d="' + mdi + '" data-b="' + mb + '" data-i="' + mi + '" data-to="' + c + '">' + esc(BOATS[c].name) + ' · ' + esc(BOATS[c].crew) + '</button>'; }).join('') +
+        '<button class="btn quiet" data-act="close">Annulla</button></div>');
+      return;
+    }
+    if (a === 'pgmvto') {
+      var tdi = +el.getAttribute('data-d'), fb = PG.d.days[tdi].boats[el.getAttribute('data-b')], to = el.getAttribute('data-to'), tz = fb.stops.splice(+el.getAttribute('data-i'), 1)[0];
+      var tb = PG.d.days[tdi].boats[to] = PG.d.days[tdi].boats[to] || { off: false, stops: [] }; tb.off = false; tb.stops = tb.stops || [];
+      var tm = function (x) { return /^\d{1,2}:\d{2}$/.test(x || '') ? +x.split(':')[0] * 60 + +x.split(':')[1] : null; }, at = tb.stops.length, mt = tm(tz.t);
+      if (mt != null) for (var q = 0; q < tb.stops.length; q++) { var qt = tm(tb.stops[q].t); if (qt != null && qt > mt) { at = q; break; } }
+      tz._new = true; tb.stops.splice(at, 0, tz); closeSheet(); toast('Spostata nel giro ' + BOATS[to].name + ': controlla gli orari intorno'); render(); return;
+    }
+    if (a === 'pgedit') { view = 'programmi'; PG.err = ''; loadPgList(); cl('rpc_program_get', { p_id: el.getAttribute('data-id') }).then(function (r) { if (r && r.days) { PG.d = { id: r.id, title: r.title, summary: '', warnings: [], days: r.days, notes: r.notes }; PG.notes = r.notes || ''; PG.confirm = false; render(); $('main').scrollTop = 0; } }); render(); return; }
     if (a === 'pgdel') { PG.d.days[+el.getAttribute('data-d')].boats[el.getAttribute('data-b')].stops.splice(+el.getAttribute('data-i'), 1); render(); return; }
     if (a === 'pgmode') { var pb = PG.d.days[+el.getAttribute('data-d')].boats[el.getAttribute('data-b')], m = el.getAttribute('data-m'); pb.off = m === 'off'; pb.onCall = m === 'call'; render(); return; }
     if (a === 'pgopen') { cl('rpc_program_get', { p_id: el.getAttribute('data-id') }).then(function (r) { if (r && r.days) { PG.d = { id: r.id, title: r.title, summary: '', warnings: [], days: r.days, notes: r.notes }; PG.notes = r.notes || ''; PG.confirm = false; render(); $('main').scrollTop = 0; } }); return; }
@@ -12027,7 +12049,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   setInterval(function () { if (view === 'admin' && !document.hidden) loadAdmin(); }, 30000);
 
   /* ---------- dashboard admin ---------- */
-  var COORDS = { 'Venini / Barovier': [45.4515439, 12.3497734], 'Promovetro · F3 · YALOS': [45.4541898, 12.3556733], 'Nason Moretti': [45.4555415, 12.3489010], 'Pane': [45.4370, 12.3192], 'Seminario': [45.4308, 12.3353], 'Piazza': [45.4455, 12.3338], 'Darsena': [45.4452, 12.3356], 'Convitto': [45.4276, 12.3658], 'Caritas': [45.4357, 12.3487], 'Giustinian': [45.4360, 12.3182], 'Scalo': [45.4413, 12.3143], 'Scalo fluviale': [45.4413, 12.3143], 'Murano': [45.4590, 12.3523], 'Lido': [45.4279, 12.3806], 'Cristo Re': [45.4381, 12.3491], 'Miracoli': [45.4394, 12.3392], 'Ponte Storto': [45.4382, 12.3318], 'Cavanis': [45.4302, 12.3282], 'Sant’Alvise': [45.4348, 12.3579], 'Certosa': [45.43739, 12.37487], 'Santa Marta': [45.4341, 12.3166] };
+  var COORDS = { 'Venini / Barovier': [45.4515439, 12.3497734], 'Promovetro · F3 · YALOS': [45.4541898, 12.3556733], 'Nason Moretti': [45.4555415, 12.3489010], 'Pane': [45.4370, 12.3192], 'Seminario': [45.4308, 12.3353], 'Piazza': [45.4455, 12.3338], 'Darsena': [45.4452, 12.3356], 'Convitto': [45.4276, 12.3658], 'Caritas': [45.4357, 12.3487], 'Giustinian': [45.4360, 12.3182], 'Scalo': [45.4413, 12.3143], 'Scalo fluviale': [45.4413, 12.3143], 'Murano': [45.4590, 12.3523], 'Lido': [45.4279, 12.3806], 'Cristo Re': [45.4381, 12.3491], 'Miracoli': [45.4394, 12.3392], 'Ponte Storto': [45.4382, 12.3318], 'Cavanis': [45.4302, 12.3282], 'Sant’Alvise': [45.4348, 12.3579], 'Certosa': [45.43739, 12.37487], 'Santa Marta': [45.4341, 12.3166], 'San Basilio': [45.4296, 12.3197], 'Zattere': [45.4297, 12.3240], 'Ca’ Bernardo': [45.4335, 12.3253], 'Santa Margherita': [45.4339, 12.3234], 'Rettorato Ca’ Foscari': [45.4344, 12.3266] };
   Object.keys(PCO).forEach(function (k) { if (!COORDS[k]) COORDS[k] = PCO[k]; });
   try { (S.shift && S.shift.extra || []).forEach(function (x) { if (x.lat != null && x.lng != null && !COORDS[x.name]) COORDS[x.name] = [x.lat, x.lng]; }); } catch (e) {}
   var BCOL = { PATANA: '#1E88E5', TOPPETTA: '#E65100', ARDEMAR: '#8E24AA', TULLIO: '#00897B' }; applyBoatInfo();
