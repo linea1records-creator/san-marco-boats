@@ -9597,7 +9597,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (e.k === 'stop') {
       var pi = rtProgIdx(k, b, x), pt = pi >= 0 ? (PROGRAM[k].boats[b].stops[pi].t || '') : '';
       h += '<div class="card"><div class="row"><span>Orario previsto</span><b>' + esc(pt || x.plan || '—') + '</b></div><div class="row"><span>Arrivato</span><b>' + rtHm(e.at) + '</b></div>' + (x.delay != null ? '<div class="row"><span>Differenza</span><b>' + (x.delay > 0 ? '+' : '') + x.delay + ' min</b></div>' : '') + '</div>' +
-        '<div class="btns">' + (pi >= 0 ? '<button class="btn primary" data-act="rtedt" data-p="' + pi + '">🕒 Cambia l’orario previsto</button>' : '<p class="muted">Questa tappa non è nel programma del giorno: si può solo cancellare.</p>') +
+        '<div class="clsec">Orario di arrivo vero</div><div style="display:flex;gap:8px;align-items:center"><input class="field" type="time" id="rtArr" value="' + rtHm(e.at) + '" style="flex:1"><button class="btn primary" data-act="rtarr" style="flex:none">Salva arrivo</button></div><p class="hint" style="margin-top:4px">Se hai premuto “Consegna fatta” in ritardo: metti l’ora in cui sei arrivato davvero.</p>' +
+        '<div class="btns">' + (pi >= 0 ? '<button class="btn" data-act="rtedt" data-p="' + pi + '">🕒 Cambia l’orario previsto</button>' : '<p class="muted">Questa tappa non è nel programma del giorno: si può solo cancellare.</p>') +
         (pi >= 0 ? '<button class="btn" data-act="rtdel" data-m="both" data-p="' + pi + '">🗑 Elimina la tappa (dal giro e dal programma)</button>' : '') +
         '<button class="btn' + (pi >= 0 ? ' quiet' : '') + '" data-act="rtdel" data-m="ev">Cancella solo “fatta” (resta nel programma)</button><button class="btn quiet" data-act="close">Annulla</button></div>' +
         '<p class="hint">Cambiando l’orario si corregge il programma di quel giorno: ritardi e puntualità si ricalcolano da soli.</p>';
@@ -9631,6 +9632,15 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       var nm2 = el.getAttribute('data-n'), lst = (RT.cg || {})[nm2] || [], pk3 = RT.pk; if (!lst.length || !pk3) return;
       closeSheet();
       Promise.all(lst.map(function (q) { var z = pk3.ev[q]; return cl('rpc_route_event_del', { p_shift: z.s.id, p_kind: z.k, p_id: String(z.x.id) }); })).then(function () { toast('Polybox di ' + nm2 + ' eliminati'); rtReload(); }).catch(function () { toast('Non riesco a eliminare: controlla la connessione'); });
+    }
+    else if (a === 'rtarr') {
+      var pk4 = RT.pk, ev4 = pk4 && RT.ed && pk4.ev[RT.ed.i], v4 = ($('rtArr') || {}).value; if (!ev4 || !ev4.x || !/^\d{1,2}:\d{2}$/.test(v4 || '')) { toast('Scrivi l’ora'); return; }
+      var d4 = new Date(RT.day + 'T00:00:00'); d4.setHours(+v4.split(':')[0], +v4.split(':')[1], 0, 0);
+      closeSheet(); toast('Salvo…');
+      cl('rpc_route_event_time', { p_id: String(ev4.x.id), p_at: d4.toISOString() }).then(function (r) {
+        if (r && r.ok) { toast('Arrivo alle ' + v4 + ': ritardi ricalcolati'); rtReload(); }
+        else toast(r && r.error === 'orario_fuori_turno' ? 'Quell’ora è fuori dal turno' : 'Non riesco a salvare: controlla la connessione');
+      }).catch(function () { toast('Non riesco a salvare: controlla la connessione'); });
     }
     else if (a === 'rtdel') rtDel(el.getAttribute('data-m'), el.hasAttribute('data-p') ? +el.getAttribute('data-p') : -1);
   }, true);
