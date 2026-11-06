@@ -920,6 +920,16 @@ body.drive-open .main { padding-bottom: 176px; }
 .clk .ckt { font-family: var(--font-mono); font-weight: 600; font-size:24cqw;font-size:min(24cqw, 66cqh); line-height: 1; font-variant-numeric: tabular-nums; }
 .clk .ckt small { font-size: .5em; color: #8FA6AE; }
 .clk .ckd { font-size: clamp(10px, 14cqh, 16px); color: #8FA6AE; text-transform: capitalize; }
+.wd .etaw { container-type: size; width: 100%; height: 100%; border-radius: 12px; background: #0E1A20; border-left: 4px solid #FFB74D; box-shadow: inset 0 0 0 1px #24343B; display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 8px 12px; color: #F2F7F5; overflow: hidden; }
+.etaw .etn { font-size: clamp(11px, 9cqh, 15px); color: #8FA6AE; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.etaw .etn b { color: #F2F7F5; text-transform: none; letter-spacing: 0; }
+.etaw .etr { display: flex; gap: 10px; align-items: stretch; }
+.etaw .etc { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.etaw .etc small { font-size: clamp(10px, 8cqh, 13px); color: #8FA6AE; white-space: nowrap; }
+.etaw .etv { font-family: var(--font-mono); font-weight: 700; font-size: min(13cqw, 30cqh); line-height: 1.05; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.etaw .etv.dw { color: #FFD54F; }
+.etaw .ets { font-size: clamp(10px, 8cqh, 13px); color: #8FA6AE; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.etaw .ets .bad { color: #FF8A80; font-weight: 700; } .etaw .ets .ok { color: #9CE59F; font-weight: 700; }
 .wd .payw { container-type: size; width: 100%; height: 100%; border-radius: 12px; background: #0E1A20; border-left: 4px solid #66BB6A; box-shadow: inset 0 0 0 1px #24343B; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: #F2F7F5; overflow: hidden; }
 .payw .pyv { font-family: var(--font-mono); font-weight: 700; font-size:17cqw;font-size:min(17cqw, 52cqh); line-height: 1; font-variant-numeric: tabular-nums; color: #9CE59F; white-space: nowrap; }
 .payw .pyv small { font-size: .45em; color: #8FA6AE; }
@@ -4490,6 +4500,58 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     return '<b class="pyv">' + p[0] + '<small>,' + p[1] + ' €</small></b><span class="pys">' + dur(ms) + ' · ' + fmt2(PAY_CMIN) + ' ¢/min</span>';
   }
   setInterval(function () { if (document.hidden) return; var c = $('payF'); if (c) c.innerHTML = payInner(); }, 1000);
+
+  /* ---------- Widget "Arrivo e sosta": orario reale previsto di arrivo alla prossima tappa e minuti di sosta previsti lì.
+     Sosta e tempi di viaggio tipici vengono dallo storico GPS (rpc_eta_stats, ultimi 90 giorni). ---------- */
+  var ETA = { d: null, t: 0, busy: false };
+  try { ETA.d = JSON.parse(localStorage.getItem('smb-eta') || 'null'); } catch (e) {}
+  function etaLoad() {
+    if (ETA.busy || !tok() || isOffSess() || Date.now() - ETA.t < 30 * 60000) return;
+    ETA.busy = true; ETA.t = Date.now();
+    cl('rpc_eta_stats', {}).then(function (r) { ETA.busy = false; if (r && r.stops) { ETA.d = r; try { localStorage.setItem('smb-eta', JSON.stringify(r)); } catch (e) {} } }).catch(function () { ETA.busy = false; });
+  }
+  function etaData() { return (typeof OR === 'object' && OR && OR.d && OR.d.stops) ? OR.d : ETA.d; }
+  function etaDwell(n) {
+    var D = etaData(), L = (D && D.stops) || [], hit = null, all = [];
+    L.forEach(function (x) { if (x.dwell != null) all.push(+x.dwell); if (x.name === n) hit = x; });
+    if (hit && hit.dwell != null && hit.n >= 2) return { m: Math.max(1, Math.round(+hit.dwell)), m80: hit.dwell80 != null ? Math.round(+hit.dwell80) : null, n: hit.n };
+    if (all.length) { all.sort(function (a, b) { return a - b; }); return { m: Math.max(1, Math.round(all[Math.floor(all.length / 2)])), n: 0 }; }
+    return { m: 5, n: 0 };
+  }
+  function etaLeg(f, t) { var D = etaData(), L = (D && D.legs) || []; for (var i = 0; i < L.length; i++) if (L[i].f === f && L[i].t === t) return L[i]; return null; }
+  function etaCalc() {
+    var sh = S.shift; if (!sh) return null;
+    var all = stops(), i = curIdx(); if (i < 0) return null;
+    var s = all[i], now = Date.now(), arrT = sh.arr && sh.arr[arrKey(i)], dw = etaDwell(s.name), out = { s: s, i: i, dw: dw };
+    if (arrT) { out.here = true; out.at = arrT; out.leave = arrT + dw.m * 60000; return out; }
+    var tg = s.lat != null ? [s.lat, s.lng] : COORDS[s.name], fx = GPS.last && now - GPS.last.t < 120000 ? GPS.last : null;
+    // tappa precedente fatta: tempo tipico di viaggio dall'ultima tappa
+    var pj = -1, pt = 0; Object.keys(sh.done || {}).forEach(function (k) { var d = sh.done[k]; if (d && d.t > pt) { pt = d.t; pj = +k; } });
+    var lg = pj >= 0 && all[pj] ? etaLeg(all[pj].name, s.name) : null;
+    if (tg && fx) {
+      var d = hav(fx.la, fx.lo, tg[0], tg[1]) * 1.3, k = GPS.speed != null ? GPS.speed * 3.6 : 0, v = k >= 5 ? Math.min(Math.max(k, 6), 30) : 10;
+      out.dist = d; out.at = now + d / 1000 / v * 60 * 60000;
+      // ancora fermo all'ultima tappa: non prima del tempo tipico di viaggio
+      if (k < 3 && lg && lg.trav != null) out.at = Math.max(out.at, now + (+lg.trav) * 60000);
+    } else if (lg && (lg.trav != null || lg.a2a != null) && pt) {
+      out.at = Math.max(now, pt + (+(lg.trav != null ? lg.trav : lg.a2a)) * 60000); out.typ = true;
+    } else return out;
+    out.leave = out.at + dw.m * 60000;
+    if (s.t && !s.ind) { var pl = new Date(); pl.setHours(+s.t.slice(0, 2), +s.t.slice(3, 5), 0, 0); out.dly = Math.round((out.at - pl.getTime()) / 60000); }
+    return out;
+  }
+  function etaInner() {
+    etaLoad();
+    var e = etaCalc();
+    if (!e) return '<div class="etn">Prossima tappa</div><div class="etv">—</div><div class="ets">' + (S.shift ? 'Giro finito' : 'Nessun turno') + '</div>';
+    var dl = e.dly == null ? '' : e.dly > 5 ? ' · <span class="bad">+' + e.dly + ' min</span>' : e.dly < -5 ? ' · <span class="ok">' + e.dly + ' min</span>' : ' · <span class="ok">in orario</span>';
+    var dwTxt = '~' + e.dw.m + ' min', dwSub = e.dw.n ? 'da ' + e.dw.n + ' soste' + (e.dw.m80 && e.dw.m80 > e.dw.m ? ' · fino a ' + e.dw.m80 : '') : 'stima';
+    return '<div class="etn">' + (e.here ? 'Sei a ' : 'Prossima: ') + '<b>' + esc(e.s.name) + '</b>' + (e.s.t && !e.s.ind ? ' · prev. ' + esc(e.s.t) : '') + '</div>' +
+      '<div class="etr"><div class="etc"><small>' + (e.here ? 'Arrivato' : 'Arrivo previsto') + '</small><b class="etv">' + (e.at ? hm(e.at) : '—') + '</b></div>' +
+      '<div class="etc"><small>Sosta prevista</small><b class="etv dw">' + dwTxt + '</b></div></div>' +
+      '<div class="ets">' + (e.here ? 'Ripartenza verso le ' + hm(e.leave) : e.at ? (e.dist != null ? fmtDist(e.dist) + ' · ' : e.typ ? 'tempo tipico · ' : '') + 'riparti ~' + hm(e.leave) + dl : 'In attesa del GPS…') + ' · ' + dwSub + '</div>';
+  }
+  setInterval(function () { if (document.hidden) return; var c = $('etaF'); if (c) c.innerHTML = etaInner(); }, 5000);
   function delayInfo(t) {
     if (!t || !S.shift || S.shift.day !== todayKey()) return null;
     var d = new Date(), n = d.getHours() * 60 + d.getMinutes() - mins(t);
@@ -4666,6 +4728,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       map: mapHtml(),
       speed: gwVar('speed') === 0 ? '<div class="gz sm" id="spFace">' + speedInner() + '</div>' : '<div class="spv sp' + gwVar('speed') + '" id="spFace">' + speedInner() + '</div>',
       clock: '<div class="clk" id="clkF">' + clockInner() + '</div>',
+      eta: '<div class="etaw" id="etaF">' + etaInner() + '</div>',
       pay: '<div class="payw" id="payF">' + payInner() + '</div>',
       prog: '<div class="pew" id="peF">' + peInner() + '</div>',
       weather: '<div id="wxFace" class="wxv wx' + gwVar('weather') + '">' + wxInner() + '</div>',
@@ -4766,11 +4829,12 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     km: { n: 'Km e nodi', sizes: { S: [1, 1], M: [2, 1] }, d: 'S' },
     clock: { n: 'Orario', sizes: { S: [1, 1], M: [2, 1], L: [2, 2] }, d: 'S' },
     prog: { n: 'Modifica programma', sizes: { S: [2, 3], M: [2, 4], L: [2, 6] }, d: 'M' },
+    eta: { n: 'Arrivo e sosta', sizes: { S: [2, 1], M: [2, 2] }, d: 'M' },
     pay: { n: 'Guadagno del turno', sizes: { S: [1, 1], M: [2, 1], L: [2, 2] }, d: 'M' },
     ddt: { n: 'DDT da firmare', sizes: { S: [1, 1], M: [2, 1] }, d: 'M' },
     next: { n: 'Consegna fatta', sizes: { S: [2, 2], M: [2, 3] }, d: 'M', fixed: true }
   };
-  var GW_ORDER = ['stop', 'prog', 'ddt', 'bebe', 'pay', 'map', 'speed', 'weather', 'km', 'clock', 'tide', 'mimmo', 'next'];
+  var GW_ORDER = ['stop', 'eta', 'prog', 'ddt', 'bebe', 'pay', 'map', 'speed', 'weather', 'km', 'clock', 'tide', 'mimmo', 'next'];
   var MAP_STYLES = [['dark', 'Scuro'], ['blue', 'Blu notte'], ['green', 'Verde radar'], ['light', 'Chiaro']];
   var MAP_COLS = [['#FF8A3D', 'Arancione'], ['#FFD54F', 'Giallo'], ['#66BB6A', 'Verde'], ['#F06292', 'Rosa'], ['#FFFFFF', 'Bianco'], ['#4FC3F7', 'Azzurro']];
   var GWE = { on: false, drag: null };
@@ -4782,6 +4846,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (o.length && o.indexOf('ddt') < 0) { var si = o.indexOf('stop'); o.splice(si >= 0 ? si + 1 : 0, 0, 'ddt'); }
     if (o.length && o.indexOf('bebe') < 0) { var bi = o.indexOf('ddt'); o.splice(bi >= 0 ? bi + 1 : 0, 0, 'bebe'); }
     if (o.length && o.indexOf('prog') < 0) { var qi = o.indexOf('stop'); o.splice(qi >= 0 ? qi + 1 : 0, 0, 'prog'); }
+    if (o.length && o.indexOf('eta') < 0) { var ei = o.indexOf('stop'); o.splice(ei >= 0 ? ei + 1 : 0, 0, 'eta'); }
     if (o.length && o.indexOf('pay') < 0) { var pi = o.indexOf('bebe'); o.splice(pi >= 0 ? pi + 1 : 0, 0, 'pay'); }
     GW_ORDER.forEach(function (k) { if (o.indexOf(k) < 0) o.push(k); });
     g.order = o; g.hidden.next = false; return g;
