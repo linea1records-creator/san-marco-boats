@@ -1261,7 +1261,14 @@ body.nvopen { overflow: hidden; }
 .nvsm { flex: 1; padding: 10px; border-radius: 12px; border: 1px solid #ddd; background: #fff; color: #111; font: inherit; }
 .nvsm.bad { color: #c62828; border-color: #f4c7c3; }
 .nvcall { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin: 8px 0 2px; padding: 12px; border-radius: 14px; background: #1E8E4E; color: #fff; font-weight: 800; font-size: 17px; text-decoration: none; }
-.nvw.fp .nvmap { left: -50%; top: -42%; width: 200%; height: 200%; transform-origin: 50% 50%; transition: transform .9s linear; }
+.nvbot.mini { display: flex; align-items: center; gap: 10px; padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); border-radius: 16px 16px 0 0; background: rgba(255,255,255,.94); }
+.nvbot.mini .nvnx { flex: 1; min-width: 0; } .nvbot.mini .nvnx > b { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .nvbot.mini .nvnx span { font-size: 13px; white-space: nowrap; }
+.nvsp.sm { width: 46px; height: 46px; border-width: 3px; flex: none; } .nvsp.sm b { font-size: 17px; } .nvsp.sm small { font-size: 8px; }
+.nvgo.mini { flex: none; width: 52px; height: 52px; padding: 0; justify-content: center; border-radius: 14px; } .nvgo.mini span { font-size: 24px; }
+.nvcall.mini { flex: none; width: 52px; height: 52px; margin: 0; padding: 0; font-size: 24px; }
+.nvexp { flex: none; width: 40px; height: 52px; border: 0; border-radius: 12px; background: #eef2f6; color: #111; font-size: 22px; font-weight: 800; }
+.nvcol { grid-column: 1 / -1; justify-self: center; border: 0; background: #eef2f6; color: #333; border-radius: 999px; padding: 4px 16px; font: inherit; font-size: 13px; font-weight: 700; margin: -4px 0 2px; }
+.nvw.fp .nvmap { left: -50%; top: -36%; width: 200%; height: 200%; transform-origin: 50% 50%; transition: transform .9s linear; }
 .nvw.fp { background: #1b2a33; }
 .nvic.on { background: #1a73e8; color: #fff; }
 .nvl { font-style: normal; font-weight: 700; color: #1e8e3e; } .nvl.bad { color: #c62828; } .nvl.ok { color: #1e8e3e; }
@@ -9865,9 +9872,23 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     (CONTACTS || []).forEach(function (g) { (g.list || []).forEach(function (c) { if (/venini/i.test(c.n) && c.t) tel = c.t; }); });
     return '<a class="nvcall" href="tel:' + esc(String(tel).replace(/[^0-9+]/g, '')) + '">📞 Chiama Venini</a>';
   }
+  // pannello in basso: ridotto (una riga, si vede la mappa) oppure completo; la scelta resta sul telefono
+  try { NV.full = localStorage.getItem('smb-nav-full') === '1'; } catch (e) {}
+  function nvMini(b, p, kmh, et) {
+    var z0 = NV.route[0], e0 = et[0], h = '<div class="nvsp sm' + (kmh != null && kmh > NV_LIM ? ' fast' : '') + '"><b>' + (kmh == null ? '–' : Math.round(kmh)) + '</b><small>km/h</small></div>', late = '', act = '';
+    if (z0 && z0.t && e0) { var pl = new Date(); pl.setHours(+z0.t.slice(0, 2), +z0.t.slice(3, 5), 0, 0); var dm = Math.round((e0.at - pl.getTime()) / 60000); late = dm > 5 ? ' <i class="nvl bad">+' + dm + '</i>' : dm < -5 ? ' <i class="nvl">' + dm + '</i>' : ' <i class="nvl ok">✓</i>'; }
+    var nm = z0 ? z0.name : '', sub = e0 ? (e0.d < 1000 ? Math.round(e0.d) + ' m' : (e0.d / 1000).toFixed(1).replace('.', ',') + ' km') + ' · <b>' + hm(e0.at) + '</b>' + late : z0 ? 'Attendo GPS…' : '';
+    if (S.shift) { var pk = plStep(), kk = plKind(pk), A0 = PL_ACT[kk] || PL_ACT.go; if (!nm) nm = pk.s ? pk.s.name : 'Giro finito'; act = '<button class="nvgo mini k-' + kk + '" data-act="plgo" aria-label="' + esc(A0[1]) + '"><span>' + A0[0] + '</span></button>'; }
+    else if (!nm) { nm = 'Navigazione libera'; sub = 'Cerca un luogo in alto'; }
+    var vb = nvVeniniBtn(); if (vb) vb = vb.replace('class="nvcall"', 'class="nvcall mini" aria-label="Chiama Venini"').replace('📞 Chiama Venini', '📞');
+    b.className = 'nvbot mini';
+    b.innerHTML = h + '<div class="nvnx"><b>' + esc(nm) + '</b><span>' + sub + '</span></div>' + vb + act + '<button class="nvexp" data-act="nvfull" aria-label="Mostra tutte le istruzioni">⌃</button>';
+  }
   function nvBot() {
     var b = $('nvBot'); if (!b) return;
     var p = nvPos(), kmh = p && p.v != null ? p.v * 3.6 : null, et = nvEtas(), on = !!S.shift;
+    if (!NV.full) { var ae0 = document.activeElement; if (ae0 && ae0.id === 'nvWork') return; nvMini(b, p, kmh, et); var me0 = $('nvMe'); if (me0) me0.classList.toggle('off', !NV.follow); return; }
+    b.className = 'nvbot';
     var h = '<div class="nvsp' + (kmh != null && kmh > NV_LIM ? ' fast' : '') + '"><b>' + (kmh == null ? '–' : Math.round(kmh)) + '</b><small>km/h</small></div>';
     if (S.shift) {
       var pk = plStep(), kk = plKind(pk), A0 = PL_ACT[kk] || PL_ACT.go, z0 = NV.route[0], e0 = et[0], late = '';
@@ -9883,7 +9904,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (NV.route.length > 1 || (NV.route.length && NV.showList)) h += '<ol class="nvrl">' + NV.route.map(function (z, i) { var e = et[i]; return '<li><span class="nvn">' + (i + 1) + '</span><b>' + esc(z.name) + '</b><span>' + (e ? hm(e.at) : '—') + '</span><button data-act="nvup" data-i="' + i + '" aria-label="Sposta prima"' + (i ? '' : ' disabled') + '>↑</button><button data-act="nvrm" data-i="' + i + '" aria-label="Togli ' + esc(z.name) + '">✕</button></li>'; }).join('') + '</ol>';
     else if (NV.route.length && !S.shift) h += '<div class="nvrl1"><button class="btn sm quiet" data-act="nvrm" data-i="0">Togli la tappa</button></div>';
     var ae = document.activeElement; if (ae && ae.id === 'nvWork') return;
-    b.innerHTML = h;
+    b.innerHTML = '<button class="nvcol" data-act="nvfull" aria-label="Riduci le istruzioni">⌄ Riduci</button>' + h;
     var at = $('nvAttr'); if (at) at.textContent = NV.sat ? '© Esri World Imagery' : '© OpenStreetMap · OpenSeaMap';
     var me = $('nvMe'); if (me) me.classList.toggle('off', !NV.follow);
   }
@@ -9974,6 +9995,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (a === 'nvdash') { if (S.shift && !isMioUser()) view = 'navi'; nvClose(); }
     else if (a === 'nvsat') { NV.sat = !NV.sat; nvSave(); var w = $('nvWrap'); if (w) w.classList.toggle('nvsat', NV.sat); el.textContent = NV.sat ? '🗺️' : '🛰️'; var tl = $('nvTiles'); if (tl) tl.innerHTML = ''; NV.keys = {}; nvDraw(); nvBot(); }
     else if (a === 'nvz') nvZoom(+el.getAttribute('data-z'));
+    else if (a === 'nvfull') { NV.full = !NV.full; try { localStorage.setItem('smb-nav-full', NV.full ? '1' : '0'); } catch (x) {} nvBot(); }
     else if (a === 'nvfp') { nvFpSet(!NV.fp); toast(NV.fp ? '🧭 Vista in prima persona' : 'Vista dall’alto'); }
     else if (a === 'nvme') { NV.follow = true; var p = nvPos(); if (p) { NV.cx = tileX(p.lo, NV.z); NV.cy = tileY(p.la, NV.z); } else toast('In attesa del GPS…'); nvDraw(); nvBot(); }
     else if (a === 'nvpick') { var r = NV.res[+el.getAttribute('data-i')]; if (!r) return; nvAdd(r); var q = $('nvQ'); if (q) { q.value = ''; q.blur(); } nvSearch(''); NV.follow = false; NV.cx = tileX(r.lo, NV.z); NV.cy = tileY(r.la, NV.z); nvDraw(); }
