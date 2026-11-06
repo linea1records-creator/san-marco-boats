@@ -1260,6 +1260,10 @@ body.nvopen { overflow: hidden; }
 .nvgo span { font-size: 24px; } .nvgo.k-sem, .nvgo.k-semgo { background: #b45309; } .nvgo.k-sign { background: #1a73e8; } .nvgo.k-photo, .nvgo.k-endphoto, .nvgo.k-end { background: #334155; }
 .nvsm { flex: 1; padding: 10px; border-radius: 12px; border: 1px solid #ddd; background: #fff; color: #111; font: inherit; }
 .nvsm.bad { color: #c62828; border-color: #f4c7c3; }
+.nvcall { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin: 8px 0 2px; padding: 12px; border-radius: 14px; background: #1E8E4E; color: #fff; font-weight: 800; font-size: 17px; text-decoration: none; }
+.nvw.fp .nvmap { left: -50%; top: -42%; width: 200%; height: 200%; transform-origin: 50% 50%; transition: transform .9s linear; }
+.nvw.fp { background: #1b2a33; }
+.nvic.on { background: #1a73e8; color: #fff; }
 .nvl { font-style: normal; font-weight: 700; color: #1e8e3e; } .nvl.bad { color: #c62828; } .nvl.ok { color: #1e8e3e; }
 .nvrl li small { color: #666; font-size: 11px; }
 .pew { max-height: 60vh; overflow-y: auto; }
@@ -9784,10 +9788,10 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   function nvOpen() {
     if (NV.open) return; NV.open = true;
     if (S.shift) { if (!NV.inShift) { NV.manual = NV.route.slice(); NV.inShift = true; } NV.route = nvShiftRoute() || []; } else if (NV.inShift) { NV.inShift = false; NV.tmp = null; try { NV.route = JSON.parse(localStorage.getItem('smb-nav-route') || '[]'); } catch (e) { NV.route = []; } }
-    var w = document.createElement('div'); w.id = 'nvWrap'; w.className = 'nvw' + (NV.sat ? ' nvsat' : '');
+    var w = document.createElement('div'); w.id = 'nvWrap'; w.className = 'nvw' + (NV.sat ? ' nvsat' : '') + (NV.fp ? ' fp' : '');
     w.innerHTML = '<div class="nvmap" id="nvBox"><div class="mtiles" id="nvTiles"></div><svg class="msvg" id="nvSvg" aria-hidden="true"></svg></div>' +
       '<div class="nvtop"><button class="nvic" data-act="nvclose" aria-label="Chiudi il navigatore">✕</button><div class="nvsrch"><input id="nvQ" type="search" placeholder="Cerca un luogo o aggiungi una tappa" autocomplete="off" enterkeyhint="search"><div class="nvres" id="nvRes"></div></div></div>' +
-      '<div class="nvside"><button class="nvic" data-act="nvsat" aria-label="Mappa satellitare">' + (NV.sat ? '🗺️' : '🛰️') + '</button><button class="nvic" data-act="nvz" data-z="1" aria-label="Avvicina">+</button><button class="nvic" data-act="nvz" data-z="-1" aria-label="Allontana">−</button><button class="nvic" id="nvMe" data-act="nvme" aria-label="Centra sulla mia posizione">◎</button>' + (S.shift && !isMioUser() ? '<button class="nvic" data-act="nvdash" aria-label="Cruscotto del turno con i widget">🎛️</button>' : '') + (isFullAcc() || isMgr() ? '<button class="nvic" data-act="nvprog" aria-label="Modifica il programma">📅</button>' : '') + '</div>' +
+      '<div class="nvside"><button class="nvic" data-act="nvsat" aria-label="Mappa satellitare">' + (NV.sat ? '🗺️' : '🛰️') + '</button><button class="nvic" data-act="nvz" data-z="1" aria-label="Avvicina">+</button><button class="nvic" data-act="nvz" data-z="-1" aria-label="Allontana">−</button><button class="nvic" id="nvMe" data-act="nvme" aria-label="Centra sulla mia posizione">◎</button><button class="nvic' + (NV.fp ? ' on' : '') + '" id="nvFp" data-act="nvfp" aria-label="Vista in prima persona" aria-pressed="' + (NV.fp ? 'true' : 'false') + '">🧭</button>' + (S.shift && !isMioUser() ? '<button class="nvic" data-act="nvdash" aria-label="Cruscotto del turno con i widget">🎛️</button>' : '') + (isFullAcc() || isMgr() ? '<button class="nvic" data-act="nvprog" aria-label="Modifica il programma">📅</button>' : '') + '</div>' +
       '<div class="nvalert" id="nvAlert" role="alert" hidden></div>' +
       '<div class="nvbot" id="nvBot"></div><div class="nvattr" id="nvAttr"></div>';
     document.body.appendChild(w); document.body.classList.add('nvopen');
@@ -9849,6 +9853,18 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     });
     return out;
   }
+  // allo Scalo, con Murano ancora da fare nel giro: scorciatoia per chiamare Venini
+  function nvVeniniBtn() {
+    var sh = S.shift; if (!sh) return '';
+    var all = stops(), i0 = curIdx(); if (i0 < 0) return '';
+    var mu = false; for (var j = i0; j < all.length; j++) { var z = all[j]; if (!sh.done[j] && !z.cancelled && isMurano(z.name, z.note)) { mu = true; break; } }
+    if (!mu) return '';
+    var sc = COORDS['Scalo'] || COORDS['Scalo fluviale'], p = nvPos(), atScalo = !!(sc && p && hav(p.la, p.lo, sc[0], sc[1]) <= 200);
+    var cur = all[i0]; if (!atScalo && !(cur && /^\s*scalo\b/i.test(cur.name) && sh.arr && sh.arr[arrKey(i0)])) return '';
+    var tel = '0412737244';
+    (CONTACTS || []).forEach(function (g) { (g.list || []).forEach(function (c) { if (/venini/i.test(c.n) && c.t) tel = c.t; }); });
+    return '<a class="nvcall" href="tel:' + esc(String(tel).replace(/[^0-9+]/g, '')) + '">📞 Chiama Venini</a>';
+  }
   function nvBot() {
     var b = $('nvBot'); if (!b) return;
     var p = nvPos(), kmh = p && p.v != null ? p.v * 3.6 : null, et = nvEtas(), on = !!S.shift;
@@ -9857,7 +9873,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       var pk = plStep(), kk = plKind(pk), A0 = PL_ACT[kk] || PL_ACT.go, z0 = NV.route[0], e0 = et[0], late = '';
       if (z0 && z0.t && e0) { var pl = new Date(); pl.setHours(+z0.t.slice(0, 2), +z0.t.slice(3, 5), 0, 0); var dm = Math.round((e0.at - pl.getTime()) / 60000); late = dm > 5 ? '<i class="nvl bad">+' + dm + ' min</i>' : dm < -5 ? '<i class="nvl">' + dm + ' min</i>' : '<i class="nvl ok">in orario</i>'; }
       h += '<div class="nvnx"><small>' + (z0 && !z0.prog ? 'META SCELTA AL VOLO' : 'PROSSIMA TAPPA DEL GIRO') + '</small><b>' + esc(z0 ? z0.name : (pk.s ? pk.s.name : 'Giro finito')) + '</b><span>' + (z0 && z0.t ? 'previsto ' + esc(z0.t) + ' · ' : '') + (e0 ? (e0.d < 1000 ? Math.round(e0.d) + ' m' : (e0.d / 1000).toFixed(1).replace('.', ',') + ' km') + ' · arrivo <b>' + hm(e0.at) + '</b> ' + late : (z0 ? 'In attesa del GPS…' : 'Chiudi il turno con la foto della barca')) + '</span></div>' +
-        '<div class="nvact"><button class="nvgo k-' + kk + '" data-act="plgo"><span>' + A0[0] + '</span><b>' + esc(A0[1]) + '</b></button>' + (pk.s ? '<button class="nvsm" data-act="plopen">Apri la tappa</button><button class="nvsm bad" data-act="problem">⚠ Problema</button>' : '') + (isMioUser() ? '' : '<button class="nvsm" data-act="nvdash">🎛️ Cruscotto</button>') + '</div>';
+        nvVeniniBtn() + '<div class="nvact"><button class="nvgo k-' + kk + '" data-act="plgo"><span>' + A0[0] + '</span><b>' + esc(A0[1]) + '</b></button>' + (pk.s ? '<button class="nvsm" data-act="plopen">Apri la tappa</button><button class="nvsm bad" data-act="problem">⚠ Problema</button>' : '') + (isMioUser() ? '' : '<button class="nvsm" data-act="nvdash">🎛️ Cruscotto</button>') + '</div>';
     } else if (NV.route.length) {
       var z = NV.route[0], e = et[0];
       h += '<div class="nvnx"><small>PROSSIMA TAPPA</small><b>' + esc(z.name) + '</b><span>' + (e ? (e.d < 1000 ? Math.round(e.d) + ' m' : (e.d / 1000).toFixed(1).replace('.', ',') + ' km') + ' · arrivo <b>' + hm(e.at) + '</b>' + (e.usual ? ' · percorso abituale' : ' · in linea d’aria') + (e.real ? ' · tempo reale' : '') : 'In attesa del GPS…') + '</span></div>';
@@ -9897,6 +9913,24 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (NV.lp) g += '<circle cx="' + X(NV.lp[1]) + '" cy="' + Y(NV.lp[0]) + '" r="10" fill="#ea4335" stroke="#fff" stroke-width="3"/>';
     if (p) { var mx = X(p.lo), my = Y(p.la), rot = NV.head == null ? 0 : NV.head; g += '<circle cx="' + mx + '" cy="' + my + '" r="22" fill="#1a73e8" opacity=".18"/><g transform="translate(' + mx + ' ' + my + ') rotate(' + rot.toFixed(0) + ')"><circle r="11" fill="#1a73e8" stroke="#fff" stroke-width="3"/>' + (NV.head != null ? '<path d="M0 -8 L5 4 L0 1 L-5 4 Z" fill="#fff"/>' : '') + '</g>'; }
     var svg = $('nvSvg'); svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.innerHTML = g;
+    nvFpApply();
+  }
+  // vista in prima persona (come i navigatori da macchina): mappa inclinata, girata nella direzione della barca, barca in basso al centro
+  try { NV.fp = localStorage.getItem('smb-nav-fp') === '1'; } catch (e) {}
+  function nvFpApply() {
+    var box = $('nvBox'), w = $('nvWrap'); if (!box || !w) return;
+    w.classList.toggle('fp', !!NV.fp);
+    if (!NV.fp) { box.style.transform = ''; return; }
+    var h = NV.head == null ? 0 : NV.head, prev = NV.fpRot == null ? -h : NV.fpRot, tgt = -h;
+    tgt = prev + ((tgt - prev) % 360 + 540) % 360 - 180; NV.fpRot = tgt; // giro più corto, niente piroette
+    box.style.transform = 'perspective(1200px) rotateX(52deg) rotate(' + tgt.toFixed(1) + 'deg)';
+  }
+  function nvFpSet(on) {
+    NV.fp = !!on; try { localStorage.setItem('smb-nav-fp', NV.fp ? '1' : '0'); } catch (e) {}
+    var b = $('nvFp'); if (b) { b.classList.toggle('on', NV.fp); b.setAttribute('aria-pressed', NV.fp ? 'true' : 'false'); }
+    if (NV.fp) { NV.follow = true; if (NV.z < 17) NV.z = 17; var p = nvPos(); if (p) { NV.cx = tileX(p.lo, NV.z); NV.cy = tileY(p.la, NV.z); } }
+    NV.keys = {}; var tl = $('nvTiles'); if (tl) tl.innerHTML = '';
+    setTimeout(function () { nvDraw(); nvBot(); }, 30);
   }
   function nvZoom(dz, fx, fy) {
     var box = $('nvBox'); if (!box) return; var W = box.clientWidth, H = box.clientHeight; if (fx == null) { fx = W / 2; fy = H / 2; }
@@ -9940,6 +9974,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (a === 'nvdash') { if (S.shift && !isMioUser()) view = 'navi'; nvClose(); }
     else if (a === 'nvsat') { NV.sat = !NV.sat; nvSave(); var w = $('nvWrap'); if (w) w.classList.toggle('nvsat', NV.sat); el.textContent = NV.sat ? '🗺️' : '🛰️'; var tl = $('nvTiles'); if (tl) tl.innerHTML = ''; NV.keys = {}; nvDraw(); nvBot(); }
     else if (a === 'nvz') nvZoom(+el.getAttribute('data-z'));
+    else if (a === 'nvfp') { nvFpSet(!NV.fp); toast(NV.fp ? '🧭 Vista in prima persona' : 'Vista dall’alto'); }
     else if (a === 'nvme') { NV.follow = true; var p = nvPos(); if (p) { NV.cx = tileX(p.lo, NV.z); NV.cy = tileY(p.la, NV.z); } else toast('In attesa del GPS…'); nvDraw(); nvBot(); }
     else if (a === 'nvpick') { var r = NV.res[+el.getAttribute('data-i')]; if (!r) return; nvAdd(r); var q = $('nvQ'); if (q) { q.value = ''; q.blur(); } nvSearch(''); NV.follow = false; NV.cx = tileX(r.lo, NV.z); NV.cy = tileY(r.la, NV.z); nvDraw(); }
     else if (a === 'nvrm') { if (S.shift) { NV.tmp = null; NV.route = nvShiftRoute() || []; } else { NV.route.splice(+el.getAttribute('data-i'), 1); nvSave(); } nvDraw(); nvBot(); }
@@ -9983,6 +10018,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     }
     if (!NV.drag) return; var dx = e.clientX - NV.drag.x, dy = e.clientY - NV.drag.y;
     if (!NV.drag.moved && Math.abs(dx) + Math.abs(dy) < 8) return;
+    if (!NV.drag.moved && NV.fp) nvFpSet(false);
     NV.drag.moved = true; NV.follow = false; clearTimeout(NV.lpt);
     NV.cx = NV.drag.cx - dx; NV.cy = NV.drag.cy - dy;
     if (!NV.raf) NV.raf = requestAnimationFrame(function () { NV.raf = 0; nvDraw(); var me = $('nvMe'); if (me) me.classList.add('off'); });
