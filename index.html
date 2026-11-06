@@ -1916,6 +1916,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     benzina: '<path d="M4 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16M3 21h13M7 8h5M15 9l3 2v7a1.5 1.5 0 0 0 3 0V9l-3-3"/>',
     polybox: '<path d="M3 8l9-4 9 4v9l-9 4-9-4z"/><path d="M3 8l9 4 9-4M12 12v9"/>',
     confeziona: '<path d="M3 8l9-4 9 4v9l-9 4-9-4z"/><path d="M3 8l9 4 9-4M12 12v9"/><path d="M16.5 6.2L7.5 10"/>',
+    invita: '<circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><path d="M17 3l4 0 0 4M21 3l-5 5"/>',
     calendario: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 14h2M14 14h2M8 17h2"/>',
     nuovo: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/>',
     turno: '<path d="M3 15l2 4h14l2-4zM12 3v8M8 7h8"/>',
@@ -3634,6 +3635,140 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (a === 'shset') { var st = el.getAttribute('data-s'); if (st === 'annullato' && !confirm('Annullare questo tracking? Il link smette di mostrare la barca.')) return; cl('rpc_ship_set', { p_id: el.getAttribute('data-id'), p_status: st }).then(function (r) { if (r && r.ok) { toast(st === 'consegnato' ? 'Segnato come arrivato' : st === 'annullato' ? 'Tracking annullato' : 'Tracking riattivato'); shLoad(); } else toast('Non salvato'); }); }
   });
   document.addEventListener('change', function (e) { var t = e.target; if (!SH.f || !t) return; if (t.id === 'shTo') { shKeep(); SH.f.planned = shDefT(SH.f.boat, SH.f.to); render(); } });
+
+
+  /* ---------- Invia tracking: Pietro sceglie la destinazione, chi apre il link condivide la sua posizione in tempo reale ---------- */
+  var INV = { d: null, busy: false, f: { label: '', dest: '', hours: 6 }, here: null, keys: {}, made: null, err: '' };
+  function invLink(x) { return location.origin + location.pathname + '?i=' + x.code; }
+  function invLoad() { if (!tok() || INV.busy) return; INV.busy = true; cl('rpc_invite_list', {}).then(function (r) { INV.busy = false; if (Array.isArray(r)) { INV.d = r; if (view === 'invita' && !(document.activeElement && /INPUT|SELECT/.test(document.activeElement.tagName))) render(); } }).catch(function () { INV.busy = false; }); }
+  function invState(x) {
+    if (x.status === 'arrivato') return ['ok', '✓ Arrivato' + (x.arrived ? ' alle ' + shHm(x.arrived) : '')];
+    if (x.status === 'scaduto') return ['', 'Link scaduto'];
+    if (x.status === 'chiuso') return ['', 'Chiuso'];
+    if (!x.at) return ['wait', '⏳ Link non ancora aperto'];
+    var ago = (Date.parse(x.now) - Date.parse(x.at)) / 1000;
+    if (ago > 120) return ['bad', '⚠ Posizione ferma da ' + Math.round(ago / 60) + ' min (pagina chiusa?)'];
+    return ['go', '🟢 In tempo reale'];
+  }
+  function viewInv() {
+    if (!INV.d) setTimeout(invLoad, 0);
+    var f = INV.f, names = Object.keys(COORDS).filter(function (n) { return !/^Verifica/i.test(n); }).sort();
+    var h = '<div class="wrap"><h2>📍 Invia tracking</h2><p class="muted">Scegli dove deve arrivare e manda il link. Chi lo apre condivide la sua posizione in tempo reale e qui vedi dov’è e quando arriva.</p>';
+    h += '<div class="card colli" style="max-height:none;overflow:visible"><div class="clsec">Chi o cosa arriva</div><input class="field txt" id="invL" maxlength="80" style="text-transform:none" placeholder="es. Fornitore pane, Sergio, tecnico motore" value="' + esc(f.label) + '">' +
+      '<div class="clsec">Destinazione</div><input class="field txt" id="invD" list="invNames" maxlength="120" style="text-transform:none" placeholder="es. Piazzale Roma, Seminario, o coordinate" value="' + esc(f.dest) + '"><datalist id="invNames">' + names.map(function (n) { return '<option value="' + esc(n) + '">'; }).join('') + '</datalist>' +
+      '<button class="btn sm" data-act="invhere" style="margin-top:6px">📍 Usa la mia posizione di adesso</button>' + (INV.here ? '<p class="hint">Destinazione: la tua posizione (' + INV.here[0].toFixed(5) + ', ' + INV.here[1].toFixed(5) + ')</p>' : '') +
+      '<div class="clsec">Il link vale per</div><div class="seg2">' + [[2, '2 ore'], [6, '6 ore'], [12, '12 ore'], [24, '1 giorno']].map(function (o) { return '<button data-act="invh" data-h="' + o[0] + '"' + (f.hours === o[0] ? ' aria-pressed="true"' : '') + '>' + o[1] + '</button>'; }).join('') + '</div>' +
+      (INV.err ? '<p class="hint" style="color:#b42318">' + esc(INV.err) + '</p>' : '') +
+      '<button class="btn primary" data-act="invgo" style="margin-top:10px">Crea il link e invialo</button></div>';
+    var L = INV.d || [];
+    if (!INV.d) h += '<p class="muted">Carico…</p>';
+    else if (!L.length) h += '<p class="muted">Nessun tracking negli ultimi 3 giorni.</p>';
+    else h += L.map(function (x) {
+      var st = invState(x), live = x.status === 'attivo';
+      return '<section class="card invc"><div class="row"><div><b>' + esc(x.label) + '</b><div class="muted">→ ' + esc(x.dest) + ' · creato alle ' + shHm(x.created) + '</div></div><span class="pill ' + st[0] + '">' + esc(st[1]) + '</span></div>' +
+        (x.lat != null && x.status !== 'eliminato' ? '<div class="fleetbox" id="invMap_' + esc(x.id) + '" style="height:220px;border-radius:14px;margin:8px 0"><div class="mtiles"></div><svg class="msvg" aria-hidden="true"></svg><div class="mattr">© OpenStreetMap</div></div>' : '') +
+        (x.lat != null && x.status !== 'arrivato' ? '<div class="stk" style="margin:4px 0"><div><b>' + (x.dist != null ? fmtDist(x.dist) : '—') + '</b><span>alla destinazione</span></div><div><b>' + (x.eta ? shHm(x.eta) : '—') + '</b><span>' + (x.eta ? 'arrivo stimato' : 'fermo o in attesa') + '</span></div><div><b>' + (x.kmh != null ? x.kmh : '—') + '</b><span>km/h</span></div></div><p class="hint">Ultima posizione ' + esc(agoText(x.at)) + (x.acc ? ' · precisione ±' + Math.round(x.acc) + ' m' : '') + '</p>' : '') +
+        '<div class="row" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">' + (live ? '<button class="btn sm primary" data-act="invshare" data-id="' + esc(x.id) + '">📤 Invia link</button><button class="btn sm" data-act="invcopy" data-id="' + esc(x.id) + '">Copia</button><button class="btn sm" data-act="invset" data-s="chiuso" data-id="' + esc(x.id) + '">Chiudi</button>' : '<button class="btn sm" data-act="invset" data-s="attivo" data-id="' + esc(x.id) + '">Riattiva</button>') + '<button class="btn sm danger" data-act="invset" data-s="eliminato" data-id="' + esc(x.id) + '">Elimina</button></div></section>';
+    }).join('');
+    setTimeout(invMaps, 30);
+    return h + '</div>';
+  }
+  function invMapDraw(box, keys, dest, me, track, label) {
+    if (!box) return; var W = box.clientWidth, H = box.clientHeight; if (!W || !H) return;
+    var pts = [{ la: dest[0], lo: dest[1] }]; if (me) pts.push({ la: me[0], lo: me[1] });
+    var z; for (z = 17; z >= 10; z--) { var xs = pts.map(function (p) { return tileX(p.lo, z); }), ys = pts.map(function (p) { return tileY(p.la, z); }); if (Math.max.apply(null, xs) - Math.min.apply(null, xs) <= W - 80 && Math.max.apply(null, ys) - Math.min.apply(null, ys) <= H - 80) break; }
+    var xs2 = pts.map(function (p) { return tileX(p.lo, z); }), ys2 = pts.map(function (p) { return tileY(p.la, z); }), x0 = (Math.max.apply(null, xs2) + Math.min.apply(null, xs2)) / 2 - W / 2, y0 = (Math.max.apply(null, ys2) + Math.min.apply(null, ys2)) / 2 - H / 2;
+    paintTiles(box.querySelector('.mtiles'), keys, z, x0, y0, W, H, true);
+    var P = function (la, lo) { return [(tileX(lo, z) - x0).toFixed(1), (tileY(la, z) - y0).toFixed(1)]; }, g = '';
+    if (track && track.length > 1) g += '<polyline fill="none" stroke="#db2777" stroke-width="3" stroke-linejoin="round" opacity=".7" points="' + track.map(function (t) { return P(t[0], t[1]).join(','); }).join(' ') + '"/>';
+    var d = P(dest[0], dest[1]); g += '<circle cx="' + d[0] + '" cy="' + d[1] + '" r="9" fill="#16a34a" stroke="#fff" stroke-width="3"/>';
+    if (me) { var m = P(me[0], me[1]); g += '<circle cx="' + m[0] + '" cy="' + m[1] + '" r="16" fill="#db2777" opacity=".25"/><circle cx="' + m[0] + '" cy="' + m[1] + '" r="9" fill="#db2777" stroke="#fff" stroke-width="3"/>' + (label ? '<text x="' + m[0] + '" y="' + (m[1] - 15) + '" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">' + esc(label) + '</text>' : ''); }
+    var svg = box.querySelector('svg'); svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.innerHTML = g;
+  }
+  function invMaps() { (INV.d || []).forEach(function (x) { if (x.lat == null) return; INV.keys[x.id] = INV.keys[x.id] || {}; invMapDraw($('invMap_' + x.id), INV.keys[x.id], [x.dlat, x.dlng], [x.lat, x.lng], x.track, String(x.label).split(' ')[0]); }); }
+  function invShare(x) {
+    var txt = 'Ciao! Apri questo link e tocca “Condividi la mia posizione”: così vediamo quando arrivi a ' + x.dest + '.';
+    if (navigator.share) navigator.share({ title: 'San Marco · condividi la posizione', text: txt, url: invLink(x) }).catch(function () {});
+    else copyText(txt + ' ' + invLink(x), 'Link copiato: incollalo in WhatsApp o SMS');
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act'); if (a.indexOf('inv') !== 0) return;
+    var keep = function () { INV.f.label = ($('invL') || {}).value || INV.f.label; var dv = ($('invD') || {}).value; if (dv != null) { if (dv !== INV.f.dest) INV.here = null; INV.f.dest = dv; } };
+    var find = function (id) { return (INV.d || []).filter(function (x) { return x.id === id; })[0]; };
+    if (a === 'invh') { keep(); INV.f.hours = +el.getAttribute('data-h'); render(); }
+    else if (a === 'invhere') {
+      keep(); var p = nvPos ? nvPos() : null;
+      var use = function (la, lo) { INV.here = [la, lo]; INV.f.dest = 'La mia posizione'; render(); };
+      if (p && p.la != null) use(p.la, p.lo);
+      else if (navigator.geolocation) navigator.geolocation.getCurrentPosition(function (q) { use(q.coords.latitude, q.coords.longitude); }, function () { toast('Posizione non disponibile'); }, { enableHighAccuracy: true, timeout: 10000 });
+    }
+    else if (a === 'invgo') {
+      keep(); var f = INV.f, c = null, nm = String(f.dest || '').trim();
+      if (!String(f.label).trim()) { INV.err = 'Scrivi chi o cosa arriva.'; render(); return; }
+      if (INV.here && nm === 'La mia posizione') c = INV.here; else if (COORDS[nm]) c = COORDS[nm]; else { c = parseCoord(nm); if (c) nm = 'Punto sulla mappa'; }
+      if (!c) { INV.err = 'Destinazione non trovata: scegli un posto dalla lista, usa la tua posizione o scrivi le coordinate.'; render(); return; }
+      INV.err = ''; toast('Creo il link…');
+      cl('rpc_invite_create', { p_label: f.label.trim(), p_dest: nm, p_lat: c[0], p_lng: c[1], p_hours: f.hours }).then(function (r) {
+        if (!r || !r.ok) { INV.err = 'Non creato: controlla la connessione.'; render(); return; }
+        INV.f = { label: '', dest: '', hours: f.hours }; INV.here = null; INV.d = null; invShare(r.invite); invLoad(); render();
+      });
+    }
+    else if (a === 'invshare') { var x = find(el.getAttribute('data-id')); if (x) invShare(x); }
+    else if (a === 'invcopy') { var y = find(el.getAttribute('data-id')); if (y) copyText(invLink(y), 'Link copiato'); }
+    else if (a === 'invset') {
+      var s2 = el.getAttribute('data-s');
+      if (s2 === 'eliminato' && el.getAttribute('data-sure') !== '1') { el.style.width = el.offsetWidth + 'px'; el.setAttribute('data-sure', '1'); el.textContent = 'Conferma'; return; }
+      cl('rpc_invite_set', { p_id: el.getAttribute('data-id'), p_status: s2 }).then(function (r) { if (r && r.ok) { toast(s2 === 'chiuso' ? 'Tracking chiuso: il link smette di condividere' : s2 === 'attivo' ? 'Riattivato per altre 6 ore' : 'Eliminato'); invLoad(); } });
+    }
+  });
+  setInterval(function () { if (view === 'invita' && !document.hidden) invLoad(); }, 10000);
+
+  /* ---------- Pagina pubblica dell'invito (link ?i=…): chi la apre condivide la posizione ---------- */
+  var INP = { code: null, d: null, watch: null, last: 0, on: false, err: '', keys: {}, me: null, lock: null };
+  function invBoot(code) {
+    INP.code = code; document.body.classList.add('custmode'); document.title = 'Condividi la posizione · San Marco';
+    var el = document.createElement('div'); el.id = 'cust';
+    el.innerHTML = '<div class="cwrap"><header class="chead"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><div><b>San Marco</b><span>Logistica ristorazione · posizione</span></div></header><div id="inpBody"><div class="ccard"><p class="cmut">Carico…</p></div></div><div class="cfoot" id="inpFoot" aria-live="polite"></div></div>';
+    document.body.appendChild(el);
+    el.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-inp]'); if (!b) return; if (b.getAttribute('data-inp') === 'start') invStart(); else invStop(); });
+    cloud('rpc_invite_public', { p_code: code }).then(function (r) { INP.d = r; invPubRender(); }).catch(function () { INP.err = 'Connessione assente'; invPubRender(); });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && INP.on) { invWake(); if (INP.me) invPing(INP.me, true); } });
+    window.addEventListener('resize', function () { invPubMap(); });
+  }
+  function invWake() { try { if (navigator.wakeLock && !INP.lock) navigator.wakeLock.request('screen').then(function (l) { INP.lock = l; l.addEventListener('release', function () { INP.lock = null; }); }).catch(function () {}); } catch (e) {} }
+  function invStart() {
+    if (!navigator.geolocation) { INP.err = 'Questo telefono non permette di condividere la posizione.'; invPubRender(); return; }
+    INP.on = true; INP.err = ''; invWake(); invPubRender();
+    INP.watch = navigator.geolocation.watchPosition(function (p) {
+      INP.me = { la: p.coords.latitude, lo: p.coords.longitude, acc: p.coords.accuracy, v: p.coords.speed };
+      invPing(INP.me, false);
+    }, function (err) { INP.err = err && err.code === 1 ? 'Hai negato la posizione: consentila nelle impostazioni del browser e riprova.' : 'Posizione non disponibile: prova all’aperto.'; INP.on = false; invPubRender(); }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 20000 });
+  }
+  function invStop() { if (INP.watch != null) navigator.geolocation.clearWatch(INP.watch); INP.watch = null; INP.on = false; try { if (INP.lock) INP.lock.release(); } catch (e) {} invPubRender(); }
+  function invPing(m, force) {
+    if (!force && Date.now() - INP.last < 5000) return; INP.last = Date.now();
+    cloud('rpc_invite_ping', { p_code: INP.code, p_lat: m.la, p_lng: m.lo, p_acc: m.acc, p_speed: m.v }).then(function (r) {
+      if (!r) return; if (r.ok === false) { INP.d = Object.assign(INP.d || {}, { status: r.status }); invStop(); return; }
+      if (r.error) return; INP.d = r; if (r.status === 'arrivato') invStop(); invPubRender();
+    }).catch(function () { var f = $('inpFoot'); if (f) f.textContent = 'Connessione assente: riprovo…'; });
+  }
+  function invPubRender() {
+    var d = INP.d, b = $('inpBody'); if (!b) return;
+    if (!d) { b.innerHTML = '<div class="ccard"><h1>' + esc(INP.err || 'Carico…') + '</h1></div>'; return; }
+    if (d.error) { b.innerHTML = '<div class="ccard"><h1>Link non valido</h1><p class="cmut">Questo link non esiste più.</p></div>'; return; }
+    var dest = '<div class="cname">Destinazione</div><div style="font-size:24px;font-weight:800">📍 ' + esc(d.dest) + '</div>';
+    if (d.status === 'arrivato') { b.innerHTML = '<div class="ccard">' + dest + '<div class="cdone" aria-hidden="true">✓</div><h1>Sei arrivato</h1><p class="cmut">Grazie! La posizione non viene più condivisa.</p></div>'; return; }
+    if (d.status !== 'attivo') { b.innerHTML = '<div class="ccard">' + dest + '<h1>Condivisione finita</h1><p class="cmut">Il link è ' + (d.status === 'scaduto' ? 'scaduto' : 'stato chiuso dalla logistica') + '. Non serve fare altro.</p></div>'; return; }
+    var info = INP.on && d.dist != null ? '<div class="stk" style="width:100%"><div><b>' + fmtDist(d.dist) + '</b><span>alla destinazione</span></div><div><b>' + (d.eta ? shHm(d.eta) : '—') + '</b><span>arrivo stimato</span></div></div>' : '';
+    b.innerHTML = '<div class="ccard">' + dest + '<p class="cmut">La logistica di San Marco ti chiede di condividere la posizione finché arrivi, così sa quando aspettarti.</p>' +
+      (INP.on ? '<div class="cchip ok">🟢 Stai condividendo la posizione</div>' + info + '<p class="cmut"><b>Tieni questa pagina aperta</b> con lo schermo acceso: se la chiudi o blocchi il telefono la posizione si ferma. Si ferma da sola quando arrivi.</p><button class="btn" data-inp="stop" style="width:100%">Smetti di condividere</button>'
+        : '<button class="btn primary" data-inp="start" style="width:100%;min-height:60px;font-size:19px">📍 Condividi la mia posizione</button><p class="cmut">Il telefono ti chiederà il permesso: tocca “Consenti”.</p>') +
+      (INP.err ? '<p class="cmut" style="color:#b42318">' + esc(INP.err) + '</p>' : '') + '</div>' +
+      (INP.on && INP.me ? '<div class="fleetbox" id="inpMap" style="height:260px;border-radius:18px"><div class="mtiles"></div><svg class="msvg" aria-hidden="true"></svg><div class="mattr">© OpenStreetMap</div></div>' : '');
+    var ft = $('inpFoot'); if (ft) ft.textContent = INP.on ? 'Ultimo invio alle ' + shHm(Date.now()) : 'Link valido fino alle ' + shHm(d.expires);
+    setTimeout(invPubMap, 30);
+  }
+  function invPubMap() { var d = INP.d; if (!d || !INP.me) return; invMapDraw($('inpMap'), INP.keys, [d.dlat, d.dlng], [INP.me.la, INP.me.lo], null, 'Tu'); }
 
   /* ---------- Pagina pubblica del tracking (link ?t=…): chi riceve vede la barca e l'orario, senza PIN ---------- */
   var SHP = { tok: null, d: null, keys: {}, err: '' };
@@ -10451,6 +10586,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (isPack() && ['home', 'confeziona', 'programma', 'impost', 'contatti', 'snap', 'calendario'].indexOf(view) < 0) view = 'confeziona';
     if (isBoatRole() && ['home', 'calendario', 'barca', 'impost', 'contatti', 'snap', 'programma'].indexOf(view) < 0) view = 'calendario';
     if (view === 'confeziona' && !isPack() && !isMgr() && !isFullAcc()) view = 'home';
+    if (view === 'invita' && !isMgr() && !isFullAcc()) view = 'home';
     if (isVan() && ['home', 'polybox', 'tracking', 'contatti', 'impost', 'programma', 'navi', 'snap', 'calendario'].indexOf(view) < 0) view = 'home';
     if (view === 'tracking' && isOff()) view = 'ddt';
     if (view === 'spedizioni' && (isOff() || isVan())) view = 'home';
@@ -10501,7 +10637,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { calendario: viewCal, confeziona: viewConf, admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi, orari: viewOrari, navi: viewNavi, snap: viewSnap }[view] || viewTurno;
+    var fn = { invita: viewInv, calendario: viewCal, confeziona: viewConf, admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi, orari: viewOrari, navi: viewNavi, snap: viewSnap }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     diag('disegno ' + view); var _t0 = Date.now(), m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); if (view === 'percorsi') setTimeout(rtDraw, 0); m.scrollTop = (view === 'guida') ? 0 : sc; diag('fatto ' + view + ' ' + (Date.now() - _t0) + 'ms');
     if (LITE && Date.now() - _t0 > 2500 && window.__smbErr) window.__smbErr('Pagina lenta: ' + view + ' ' + (Date.now() - _t0) + ' ms');
@@ -10616,7 +10752,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   /* ---------- Home: ogni strumento è un'icona come un'app del telefono ---------- */
   var APPS = {
     logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
-    barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], confeziona: ['Polybox Seminario', '#b45309'], calendario: ['Calendario', '#7c3aed'], notifiche: ['Notifiche', '#db2777'],
+    barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], confeziona: ['Polybox Seminario', '#b45309'], invita: ['Invia tracking', '#db2777'], calendario: ['Calendario', '#7c3aed'], notifiche: ['Notifiche', '#db2777'],
     oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], listini: ['Listini', '#0e7490'], porzione: ['Costo porzione', '#7c2d12'], menu: ['Menu', '#9d174d'], fatturato: ['Fatturato', '#047857'], carena: ['Carena', '#0e7490'], percorsi: ['Percorsi', '#0f766e'], orari: ['Orari reali', '#6d28d9'], navi: ['Navigatore', '#1a73e8'], snap: ['Snap', '#e6c300'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Telefono', '#34c759'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
   };
   function homeApps() {
@@ -10626,9 +10762,9 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (isVan()) return ['polybox', 'tracking', 'programma', 'calendario', 'navi', 'snap', 'contatti', 'impost'];
     if (isBill()) return ['fatturato', 'calendario', 'contatti', 'impost'];
     if (isOff()) return ['presenze', 'ddt', 'cucina', 'programma', 'calendario', 'notifiche', 'snap', 'contatti', 'impost'];
-    if (isAdm) return ['logistica', 'calendario', 'notifiche', 'snap', 'turni', 'presenze'].concat(canMoney() ? ['fatturato'] : [], ['spedizioni', 'tracking', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'barca', 'benzina', 'programma', 'contatti', 'impost']);
-    if (isFull) return ['logistica', 'turno', 'calendario', 'turni', 'presenze', 'programma', 'ddtgiro', 'fatturato', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'confeziona', 'notifiche', 'snap', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'cucina', 'menu', 'foodcost', 'porzione', 'allergeni', 'listini', 'contatti', 'impost'];
-    if (isMgr()) return ['logistica', 'turno', 'calendario', 'turni', 'programma', 'notifiche', 'snap', 'barca', 'benzina', 'spedizioni', 'tracking', 'polybox', 'confeziona', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'contatti', 'impost'];
+    if (isAdm) return ['logistica', 'calendario', 'notifiche', 'snap', 'turni', 'presenze'].concat(canMoney() ? ['fatturato'] : [], ['spedizioni', 'invita', 'tracking', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'barca', 'benzina', 'programma', 'contatti', 'impost']);
+    if (isFull) return ['logistica', 'turno', 'calendario', 'turni', 'presenze', 'programma', 'ddtgiro', 'fatturato', 'barca', 'benzina', 'spedizioni', 'invita', 'tracking', 'polybox', 'confeziona', 'notifiche', 'snap', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'cucina', 'menu', 'foodcost', 'porzione', 'allergeni', 'listini', 'contatti', 'impost'];
+    if (isMgr()) return ['logistica', 'turno', 'calendario', 'turni', 'programma', 'notifiche', 'snap', 'barca', 'benzina', 'spedizioni', 'invita', 'tracking', 'polybox', 'confeziona', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'contatti', 'impost'];
     return ['turno', 'navi', 'programma', 'calendario', 'ddtgiro', 'barca', 'notifiche', 'snap', 'tracking', 'benzina', 'impost'];
   }
   function viewHome() {
@@ -12183,6 +12319,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   setInterval(function () { var c = $('clock'); if (c && S.shift) c.textContent = dur(Date.now() - S.shift.start); }, 1000);
   var SHIPTOK = null; try { SHIPTOK = new URLSearchParams(location.search).get('t'); } catch (e) {}
   if (SHIPTOK && /^[0-9a-f-]{36}$/i.test(SHIPTOK)) { shipBoot(SHIPTOK); return; }
+  var INVCODE = null; try { INVCODE = new URLSearchParams(location.search).get('i'); } catch (e) {}
+  if (INVCODE && /^[0-9a-f-]{36}$/i.test(INVCODE)) { invBoot(INVCODE); return; }
   if (CUSTTOK) { custBoot(); return; }
   drawLogin();
   if (SESSION && !S.shift) view = 'home';
