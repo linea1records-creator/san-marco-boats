@@ -3580,6 +3580,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (!SH.d) return h + '<div class="card"><p class="muted">Carico…</p></div></div>';
     var mgr = SH.d.mgr;
     if (SH.made) { var m = SH.made; h += '<section class="card" style="display:flex;flex-direction:column;gap:8px;border:2px solid #16a34a"><b>✅ Tracking creato: ' + esc((m.emoji || '') + ' ' + m.title + ' → ' + m.to) + '</b><span class="muted" style="font-size:13.5px">Mandalo adesso' + (m.recipient ? ' a ' + esc(m.recipient) : '') + ':</span>' + shShareBtns(m) + '<button class="btn sm" data-act="shmadeok">Fatto</button></section>'; }
+    if (mgr && !SH.f) h += invShipCard();
     if (mgr) h += SH.f ? shForm() : '<button class="btn primary" data-act="shnew">+ Nuovo tracking</button>';
     var it = SH.d.items || [], act = it.filter(function (x) { return x.status === 'attivo'; }), prev = it.filter(function (x) { return x.status === 'previsto'; }).sort(function (a, b) { return (a.planned_t || '99') < (b.planned_t || '99') ? -1 : 1; }), old = it.filter(function (x) { return x.status !== 'attivo' && x.status !== 'previsto'; });
     h += '<section class="card trcat"><div class="trch"><h3>In corso · ' + act.length + '</h3><button class="btn sm" data-act="shreload">Aggiorna</button></div>' + (act.length ? act.map(shRow).join('') : '<p class="muted" style="margin:6px 12px 10px">Nessun tracking in corso.</p>') + '</section>';
@@ -3749,6 +3750,14 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   setInterval(function () { if (view === 'invita' && !document.hidden) invLoad(); }, 10000);
 
 
+
+  // nella pagina Tracking: le posizioni condivise (Invia tracking e fornitori) sempre a portata di mano
+  function invShipCard() {
+    if (!INV.d) setTimeout(invLoad, 0);
+    var act = (INV.d || []).filter(function (x) { return x.status === 'attivo'; });
+    return '<button class="hmshift" data-act="nav" data-v="invita" style="background:#db2777;color:#fff;margin:8px 0"><span style="font-size:28px" aria-hidden="true">📍</span><span><b>Invia tracking · posizioni condivise</b>' +
+      (act.length ? act.map(function (x) { return esc(x.label) + (x.dist != null ? ' a ' + fmtDist(x.dist) : x.at ? '' : ' (link non aperto)'); }).join(' · ') : 'chiedi a una persona o a un fornitore di condividere la posizione') + '</span></button>';
+  }
   function supLink(u) { return location.origin + location.pathname + '?f=' + u.code; }
   function supShare(u) {
     var txt = 'Ciao ' + u.name + '! Questo è il tuo link per la logistica San Marco: quando parti per ' + u.dest + ' aprilo e tocca “Sto arrivando”, così vediamo dove sei. Salvalo (o aggiungilo alla schermata Home) per le prossime volte.';
@@ -10780,10 +10789,10 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   });
   // Home dei responsabili: gli strumenti divisi in aree, con il riassunto di oggi in cima
   var HOME_AREAS = [
-    ['Pianifica', 'Programmi, orari, navigatore, nuovi turni e consegne, cucina', ['logistica', 'programma', 'orari', 'navi', 'turno', 'cucina']],
+    ['Pianifica', 'Programmi, calendario, orari, navigatore, nuovi turni e consegne, cucina', ['logistica', 'calendario', 'programma', 'orari', 'navi', 'turno', 'cucina']],
     ['Cucina e costi', 'Food cost, allergeni e listini dei fornitori', ['menu', 'foodcost', 'porzione', 'allergeni', 'listini']],
     ['Flotta', 'Barche, documenti, benzina, carena e velox', ['barca', 'benzina', 'carena', 'velox']],
-    ['Oggetti', 'Polybox, ceste e cose in viaggio', ['polybox', 'tracking', 'spedizioni']],
+    ['Tracking e oggetti', 'Tracking, posizioni condivise, polybox e cose in viaggio', ['spedizioni', 'invita', 'tracking', 'polybox', 'confeziona']],
     ['Archivio', 'Percorsi, statistiche, turni, presenze e DDT', ['percorsi', 'stat', 'turni', 'presenze', 'ddtgiro', 'fatturato']],
     ['Persone', 'Messaggi, Snap, telefono e opzioni', ['notifiche', 'snap', 'contatti', 'impost']]
   ];
