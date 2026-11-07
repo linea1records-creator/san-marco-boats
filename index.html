@@ -263,9 +263,12 @@ li.on .ddwk{background:#4FC3F7;border-color:#4FC3F7;color:#0B1317}.ddwk.ok{borde
 .vxh{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.vxh b{font-size:16px}.vxm{margin:0;font-size:13px;color:#5b6570}
 .vxl{border:0;background:none;color:#1655C8;font:600 14px inherit;font-family:inherit;cursor:pointer;padding:4px}
 .vxlg{display:flex;align-items:center;gap:5px;font-size:13px;color:#5b6570}.vxlg i,.vxres i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-left:6px}
-i.d-ok{background:#1E8E3E}i.d-ko{background:#E65100}i.d-none{background:#FFD23F;border-radius:2px!important;box-shadow:0 0 0 1.5px #3A3000}
-.vxst{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}.vxst button{border:1.5px solid #d6dbe0;background:#fff;border-radius:12px;padding:10px 6px;font:600 13.5px/1.2 inherit;font-family:inherit;color:#222;cursor:pointer;min-height:48px}
-.vxst button.s-ok[aria-pressed="true"]{background:#1E8E3E;border-color:#1E8E3E;color:#fff}.vxst button.s-ko[aria-pressed="true"]{background:#E65100;border-color:#E65100;color:#fff}.vxst button.s-none[aria-pressed="true"]{background:#333;border-color:#333;color:#fff}
+i.d-ok{background:#1E8E3E}i.d-ko{background:#E65100}i.d-check{background:#607D8B}i.d-live{background:#D50000;animation:vxbl 1s infinite}
+.vxlive{animation:vxbl 1s infinite}@keyframes vxbl{0%,100%{opacity:1}50%{opacity:.15}}@media (prefers-reduced-motion: reduce){.vxlive,i.d-live{animation:none}}
+.vxlivebtn{width:100%;margin-top:8px;border:2px solid #D50000;background:#fff;color:#D50000;border-radius:12px;padding:10px;font:700 15px inherit;font-family:inherit;min-height:48px}.vxlivebtn[aria-pressed="true"]{background:#D50000;color:#fff}
+.nvalert .vxlv{margin-left:8px;border:0;border-radius:999px;background:#D50000;color:#fff;font:inherit;font-weight:800;padding:4px 10px}i.d-none{background:#FFD23F;border-radius:2px!important;box-shadow:0 0 0 1.5px #3A3000}
+.vxst{display:grid;grid-template-columns:1fr 1fr;gap:6px}.vxst button{border:1.5px solid #d6dbe0;background:#fff;border-radius:12px;padding:10px 6px;font:600 13.5px/1.2 inherit;font-family:inherit;color:#222;cursor:pointer;min-height:48px}
+.vxst button.s-ok[aria-pressed="true"]{background:#1E8E3E;border-color:#1E8E3E;color:#fff}.vxst button.s-check[aria-pressed="true"]{background:#607D8B;border-color:#607D8B;color:#fff}.vxst button.s-ko[aria-pressed="true"]{background:#E65100;border-color:#E65100;color:#fff}.vxst button.s-none[aria-pressed="true"]{background:#333;border-color:#333;color:#fff}
 .vxnote{display:flex;gap:6px}.vxnote input{flex:1;min-width:0}
 .vxres{display:flex;flex-direction:column}.vxres button{display:flex;align-items:center;gap:8px;border:0;border-top:1px solid #eef0f3;background:none;text-align:left;padding:10px 2px;font:15px inherit;font-family:inherit;color:#111;cursor:pointer}.vxres button i{margin-left:0}
 .vxbtns{display:flex;gap:8px;flex-wrap:wrap}
@@ -8434,11 +8437,13 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       if (VX.sel && PT[VX.sel]) {
         var P = PT[VX.sel], m = vxMark(VX.sel), st = m ? m.state : 'none';
         return '<div class="vxh"><b>' + esc(P[1]) + '</b><button class="vxl" data-act="vxsel" data-id="">Chiudi</button></div>' + (m && m.by ? '<p class="vxm">Segnato da ' + esc(String(m.by).split(' ')[0]) + ' il ' + new Date(m.at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }) + '</p>' : '') + ro +
-          '<div class="vxst">' + [['none', 'Nessun velox'], ['ok', 'Velox funzionante'], ['ko', 'Velox non funzionante']].map(function (o) { return '<button data-act="vxset" data-s="' + o[0] + '" class="s-' + o[0] + '" aria-pressed="' + (st === o[0]) + '"' + (vxCan() ? '' : ' disabled') + '>' + o[1] + '</button>'; }).join('') + '</div>' +
+          '<div class="vxst">' + [['none', 'Nessun velox'], ['check', 'Da verificare'], ['ok', 'Velox funzionante'], ['ko', 'Velox non funzionante']].map(function (o) { return '<button data-act="vxset" data-s="' + o[0] + '" class="s-' + o[0] + '" aria-pressed="' + (st === o[0]) + '"' + (vxCan() ? '' : ' disabled') + '>' + o[1] + '</button>'; }).join('') + '</div>' +
           (m ? '<div class="vxnote"><input id="vxNote" class="field txt" placeholder="Nota (es. velox lato canale, solo verso Rialto)" value="' + esc(m.note || '') + '"' + (vxCan() ? '' : ' disabled') + '><button class="btn sm" data-act="vxnote"' + (vxCan() ? '' : ' disabled') + '>Salva</button></div>' : '') +
+          (m && st !== 'ko' ? '<button class="vxlivebtn" data-act="vxlive" data-id="' + esc(VX.sel) + '" aria-pressed="' + !!m.live + '">' + (m.live ? '🔴 Luce rossa accesa (segnalata alle ' + shHm(m.live) + (m.liveby ? ' da ' + esc(String(m.liveby).split(' ')[0]) : '') + ') · tocca se è spenta' : '🔴 Vedo la luce rossa accesa') + '</button><p class="vxm">La luce rossa vuol dire che il velox è acceso adesso: sulla mappa e nel navigatore lampeggia per 3 ore.</p>' : '') +
           (st === 'none' ? '' : '<p class="vxm">Se togli il velox, si cancellano anche i suoi collegamenti.</p>');
       }
-      return '<div class="vxh"><b>Pontili con velox</b><span class="vxlg"><i class="d-ok"></i>' + nOk + ' funzionanti <i class="d-ko"></i>' + nKo + ' non funzionanti</span></div>' +
+      var nCk = marks.filter(function (m) { return m.state === 'check'; }).length, nLv = marks.filter(function (m) { return m.live; }).length; nKo = marks.filter(function (m) { return m.state === 'ko'; }).length;
+      return '<div class="vxh"><b>Pontili con velox</b><span class="vxlg">' + (nLv ? '<i class="d-live"></i>' + nLv + ' accesi ' : '') + '<i class="d-ok"></i>' + nOk + ' funzionanti <i class="d-check"></i>' + nCk + ' da verificare <i class="d-ko"></i>' + nKo + ' rotti</span></div>' +
         '<p class="vxm">Tocca un pontile giallo sulla mappa per segnare se ha il velox.</p>' + ro +
         '<input id="vxQ" class="field txt" type="search" placeholder="Cerca un pontile (es. Rialto, Murano Faro)" autocomplete="off" value="' + esc(VX.q) + '"><div id="vxRes" class="vxres">' + vxRes() + '</div>';
     }
@@ -8452,7 +8457,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var L = VX.d.links;
     var lst = L.length ? '<div class="vxll">' + L.map(function (l) {
       var A = PT[l.a], B = PT[l.b]; if (!A || !B) return '';
-      return '<div class="vxli' + (VX.link === l.id ? ' on' : '') + '"><button class="vxlt" data-act="vxlink" data-id="' + l.id + '"><b>' + esc(vxShort(A[1])) + ' ↔ ' + esc(vxShort(B[1])) + '</b><small>' + (l.dist ? vxKm(l.dist) : '') + (l.path && l.path.length ? ' · rotta con ' + l.path.length + ' punti' : ' · linea dritta') + ' · tempo minimo ' + (l.dist ? mmss(l.dist / (vxLinkKmh(l) / 3.6)) : '—') + '</small></button>' +
+      return '<div class="vxli' + (VX.link === l.id ? ' on' : '') + '"><button class="vxlt" data-act="vxlink" data-id="' + l.id + '"><b>' + esc(vxShort(A[1])) + ' ↔ ' + esc(vxShort(B[1])) + '</b><small>' + (l.dist ? vxKm(l.dist) : '') + (l.path && l.path.length ? ' · rotta con ' + l.path.length + ' punti' : ' · linea dritta') + ' · tempo minimo ' + (l.dist ? mmss(l.dist / (vxLinkKmh(l) / 3.6)) : '—') + (l.sisa != null ? ' · cartina ' + l.sisa + ' km/h' : '') + '</small></button>' +
         '<label class="vxkmh">Limite <input type="number" inputmode="decimal" min="2" max="30" step="0.5" data-vxkmh="' + l.id + '" value="' + vxLinkKmh(l) + '"' + (vxCan() ? '' : ' disabled') + '> km/h</label>' + (vxCan() ? '<button class="btn sm danger" data-act="vxdel" data-id="' + l.id + '">Elimina</button>' : '') + '</div>';
     }).join('') + '</div>' : '<p class="vxm">Ancora nessun collegamento.</p>';
     return '<div class="vxh"><b>Collegamenti tra velox</b><span class="vxm">' + L.length + '</span></div>' + ro +
@@ -8486,8 +8491,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       var p = vxXY(P[2], P[3]); if (p[0] < -30 || p[1] < -30 || p[0] > W + 30 || p[1] > H + 30) return;
       var m = M[P[0]], sel = VX.sel === P[0] || (VX.draft && VX.draft.a === P[0]), dim = VX.mode === 'link' && !m, x = p[0].toFixed(1), y = p[1].toFixed(1);
       if (m) {
-        var col = m.state === 'ok' ? '#1E8E3E' : '#E65100';
-        g += (sel ? '<circle cx="' + x + '" cy="' + y + '" r="17" fill="none" stroke="#7C3AED" stroke-width="3"/>' : '') + '<circle cx="' + x + '" cy="' + y + '" r="11" fill="' + col + '" stroke="#fff" stroke-width="2.5"/>' +
+        var col = m.state === 'ok' ? '#1E8E3E' : m.state === 'check' ? '#607D8B' : '#E65100';
+        g += (m.live ? '<circle class="vxlive" cx="' + x + '" cy="' + y + '" r="19" fill="#D50000" opacity=".9"/>' : '') + (sel ? '<circle cx="' + x + '" cy="' + y + '" r="17" fill="none" stroke="#7C3AED" stroke-width="3"/>' : '') + '<circle cx="' + x + '" cy="' + y + '" r="11" fill="' + col + '" stroke="#fff" stroke-width="2.5"/>' +
           '<path transform="translate(' + (p[0] - 6).toFixed(1) + ',' + (p[1] - 4.5).toFixed(1) + ')" d="M0 2.2h3l1.3-2.2h3.4l1.3 2.2h3v6.8h-12z" fill="#fff"/><circle cx="' + x + '" cy="' + (p[1] + 0.9).toFixed(1) + '" r="1.9" fill="' + col + '"/>' + (m.state === 'ko' ? '<path d="M' + (p[0] - 8) + ' ' + (p[1] + 8) + 'L' + (p[0] + 8) + ' ' + (p[1] - 8) + '" stroke="#fff" stroke-width="2.4"/>' : '');
       } else {
         g += (sel ? '<circle cx="' + x + '" cy="' + y + '" r="13" fill="none" stroke="#7C3AED" stroke-width="3"/>' : '') + '<rect x="' + (p[0] - 5.5).toFixed(1) + '" y="' + (p[1] - 5.5).toFixed(1) + '" width="11" height="11" rx="2" fill="#FFD23F" stroke="#3A3000" stroke-width="1.6"' + (dim ? ' opacity=".45"' : '') + '/>';
@@ -8588,6 +8593,12 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act^="vx"]') : null; if (!el || el.disabled) return; var a = el.getAttribute('data-act');
     if (a === 'vxclose') vxClose();
+    else if (a === 'vxlive') {
+      var lid2 = el.getAttribute('data-id'), mk = vxMark(lid2); if (!mk) return; var on = !mk.live;
+      mk.live = on ? new Date().toISOString() : null; mk.liveby = on && SESSION ? SESSION.name : null; if (on && mk.state === 'check') mk.state = 'ok';
+      cl('rpc_velox_live', { p_stop: lid2, p_on: on }).then(function (r) { if (r && r.ok) toast(on ? '🔴 Segnalato: velox acceso' : 'Luce rossa tolta'); else toast('Non salvato'); });
+      if (VX.open) vxRender(); else { var al = $('nvAlert'); if (al) nvVelox(nvPos()); }
+    }
     else if (a === 'vxmode') { VX.mode = el.getAttribute('data-m'); VX.sel = null; VX.draft = null; VX.link = null; vxRender(); }
     else if (a === 'vxzoom') vxZoom(+el.getAttribute('data-n'));
     else if (a === 'vxsel') { VX.sel = el.getAttribute('data-id') || null; vxRender(); }
@@ -10076,7 +10087,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     document.body.appendChild(w); document.body.classList.add('nvopen');
     nvGpsOn();
     if (!NV.places && tok()) cl('rpc_places_list', {}).then(function (r) { if (r && r.length !== undefined) { NV.places = r; nvDraw(); } });
-    if (!VX.d && tok()) vxLoad();
+    if (tok() && (!VX.d || Date.now() - (VX.lt || 0) > 120000)) { VX.lt = Date.now(); vxLoad(); } // ogni 2 minuti: velox accesi segnalati dagli altri
     ngLoad();
     if (!OR.d && !OR.busy && tok() && (isMgr() || isFullAcc())) orLoad();
     NV.tick = setInterval(nvTick, 1000);
@@ -10142,7 +10153,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var al = $('nvAlert'); if (!al) return;
     var marks = (VX.d && VX.d.marks) || [], kmh = p && p.v != null ? p.v * 3.6 : null, near = null, nd = 1e9, msg = '', now = Date.now();
     if (p) { NV.vtr = (NV.vtr || []).filter(function (q) { return now - q.t < 90000; }); var lq = NV.vtr[NV.vtr.length - 1]; if (!lq || hav(lq.la, lq.lo, p.la, p.lo) > 3) NV.vtr.push({ la: p.la, lo: p.lo, t: now }); }
-    if (p) marks.forEach(function (m) { if (m.state !== 'ok' || !PT[m.id]) return; var q = PT[m.id], d = hav(p.la, p.lo, q[2], q[3]); if (d < nd) { nd = d; near = m; } });
+    if (p) marks.forEach(function (m) { if (m.state === 'ko' || !PT[m.id]) return; var q = PT[m.id], d = hav(p.la, p.lo, q[2], q[3]); if (d < nd) { nd = d; near = m; } });
     // passaggio davanti a un velox: punto più vicino, poi la distanza torna a crescere
     if (p && near && nd < 70) {
       if (!NV.vxp || NV.vxp.id !== near.id) NV.vxp = { id: near.id, min: nd, t: now };
@@ -10177,8 +10188,10 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       }
     } else if (near && nd < 200) {
       var fast = kmh != null && kmh > NV_LIM;
-      msg = '📸 Velox ' + esc(PT[near.id][1]) + ' a ' + Math.round(nd) + ' m'; warn = fast; if (fast) msg += ' · vai a <b>' + Math.round(kmh) + ' km/h</b>, rallenta sotto ' + NV_LIM;
+      msg = (near.live ? '🔴 <b>Velox ACCESO</b> ' : '📸 Velox ') + esc(PT[near.id][1]) + ' a ' + Math.round(nd) + ' m' + (near.state === 'check' ? ' (da verificare)' : ''); warn = fast || (!!near.live && kmh != null && kmh > NV_LIM - 1); if (fast) msg += ' · vai a <b>' + Math.round(kmh) + ' km/h</b>, rallenta sotto ' + NV_LIM;
     }
+    // segnala la luce rossa accesa del velox vicino
+    if (near && nd < 150 && !near.live) msg += '<button class="vxlv" data-act="vxlive" data-id="' + esc(near.id) + '">🔴 Luce accesa?</button>';
     al.hidden = !msg; al.innerHTML = msg; al.classList.toggle('bad', !!warn);
     if (warn && now - NV.beep > 8000) { NV.beep = now; try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {} nvBeep(); if (S.voice) say('Attenzione velox, rallenta'); }
   }
@@ -10259,7 +10272,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       g += '<polyline points="' + pts + '" fill="none" stroke="#fff" stroke-width="' + (rl.usual ? 9 : 7) + '" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/><polyline points="' + pts + '" fill="none" stroke="' + (i ? '#5e97f6' : '#1a73e8') + '" stroke-width="' + (rl.usual ? 6 : 4) + '"' + (rl.usual ? '' : ' stroke-dasharray="10 7"') + ' stroke-linecap="round" stroke-linejoin="round"/>';
     });
     // velox
-    if (z >= 13) ((VX.d && VX.d.marks) || []).forEach(function (m) { var q = PT[m.id]; if (!q) return; var ok = m.state === 'ok'; g += '<g><circle cx="' + X(q[3]) + '" cy="' + Y(q[2]) + '" r="9" fill="' + (ok ? '#d32f2f' : '#9e9e9e') + '" stroke="#fff" stroke-width="2"/><text x="' + X(q[3]) + '" y="' + (+Y(q[2]) + 4) + '" text-anchor="middle" font-size="10" fill="#fff">📸</text><title>Velox ' + esc(q[1]) + (ok ? ' (attivo)' : ' (spento)') + '</title></g>'; });
+    if (z >= 13) ((VX.d && VX.d.marks) || []).forEach(function (m) { var q = PT[m.id]; if (!q) return; var ok = m.state === 'ok'; g += '<g>' + (m.live ? '<circle class="vxlive" cx="' + X(q[3]) + '" cy="' + Y(q[2]) + '" r="17" fill="#D50000" opacity=".85"/>' : '') + '<circle cx="' + X(q[3]) + '" cy="' + Y(q[2]) + '" r="9" fill="' + (m.live ? '#D50000' : ok ? '#d32f2f' : m.state === 'check' ? '#607D8B' : '#9e9e9e') + '" stroke="#fff" stroke-width="2"/><text x="' + X(q[3]) + '" y="' + (+Y(q[2]) + 4) + '" text-anchor="middle" font-size="10" fill="#fff">📸</text><title>Velox ' + esc(q[1]) + (m.live ? ' (luce rossa accesa)' : ok ? ' (funzionante)' : m.state === 'check' ? ' (da verificare)' : ' (rotto)') + '</title></g>'; });
     // luoghi salvati e tappe del giro (solo con zoom vicino)
     if (z >= 14) {
       (NV.places || []).forEach(function (q) { g += '<g data-act="nvpl" data-id="' + esc(q.id) + '"><circle cx="' + X(q.lng) + '" cy="' + Y(q.lat) + '" r="6" fill="#7c3aed" stroke="#fff" stroke-width="2"/>' + (z >= 15 ? '<text x="' + X(q.lng) + '" y="' + (+Y(q.lat) - 10) + '" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">' + esc(q.name) + '</text>' : '') + '</g>'; });
