@@ -10188,7 +10188,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       }
     } else if (near && nd < 200) {
       var fast = kmh != null && kmh > NV_LIM;
-      msg = (near.live ? '🔴 <b>Velox ACCESO</b> ' : '📸 Velox ') + esc(PT[near.id][1]) + ' a ' + Math.round(nd) + ' m' + (near.state === 'check' ? ' (da verificare)' : ''); warn = fast || (!!near.live && kmh != null && kmh > NV_LIM - 1); if (fast) msg += ' · vai a <b>' + Math.round(kmh) + ' km/h</b>, rallenta sotto ' + NV_LIM;
+      // solo informazione: l'allarme scatta soltanto dentro un tratto controllato, cioè dopo essere passati davanti al velox d'inizio del collegamento
+      msg = (near.live ? '🔴 <b>Velox ACCESO</b> ' : '📸 Velox ') + esc(PT[near.id][1]) + ' a ' + Math.round(nd) + ' m' + (near.state === 'check' ? ' (da verificare)' : ''); if (fast) msg += ' · ' + Math.round(kmh) + ' km/h';
     }
     // segnala la luce rossa accesa del velox vicino
     if (near && nd < 150 && !near.live) msg += '<button class="vxlv" data-act="vxlive" data-id="' + esc(near.id) + '">🔴 Luce accesa?</button>';
