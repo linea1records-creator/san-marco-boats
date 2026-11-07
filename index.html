@@ -1251,6 +1251,7 @@ body.nvopen { overflow: hidden; }
 .nvic.off { color: #1a73e8; }
 .nvside { position: absolute; right: 10px; top: calc(70px + env(safe-area-inset-top, 0px)); display: flex; flex-direction: column; gap: 8px; z-index: 3; }
 .nvalert { position: absolute; left: 10px; right: 10px; top: calc(70px + env(safe-area-inset-top, 0px)); margin-right: 60px; z-index: 3; background: #fff3e0; color: #7c2d12; border-radius: 14px; padding: 10px 14px; font-size: 15px; box-shadow: 0 2px 10px rgba(0,0,0,.25); }
+.vxkmh { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); white-space: nowrap; } .vxkmh input { width: 64px; padding: 6px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-weight: 700; }
 .nvalert.bad { background: #c62828; color: #fff; animation: nvfl 1s infinite; }
 @keyframes nvfl { 50% { background: #8e0000; } }
 @media (prefers-reduced-motion: reduce) { .nvalert.bad { animation: none; } }
@@ -8451,7 +8452,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var L = VX.d.links;
     var lst = L.length ? '<div class="vxll">' + L.map(function (l) {
       var A = PT[l.a], B = PT[l.b]; if (!A || !B) return '';
-      return '<div class="vxli' + (VX.link === l.id ? ' on' : '') + '"><button class="vxlt" data-act="vxlink" data-id="' + l.id + '"><b>' + esc(vxShort(A[1])) + ' ↔ ' + esc(vxShort(B[1])) + '</b><small>' + (l.dist ? vxKm(l.dist) : '') + (l.path && l.path.length ? ' · rotta con ' + l.path.length + ' punti' : ' · linea dritta') + '</small></button>' + (vxCan() ? '<button class="btn sm danger" data-act="vxdel" data-id="' + l.id + '">Elimina</button>' : '') + '</div>';
+      return '<div class="vxli' + (VX.link === l.id ? ' on' : '') + '"><button class="vxlt" data-act="vxlink" data-id="' + l.id + '"><b>' + esc(vxShort(A[1])) + ' ↔ ' + esc(vxShort(B[1])) + '</b><small>' + (l.dist ? vxKm(l.dist) : '') + (l.path && l.path.length ? ' · rotta con ' + l.path.length + ' punti' : ' · linea dritta') + ' · tempo minimo ' + (l.dist ? mmss(l.dist / (vxLinkKmh(l) / 3.6)) : '—') + '</small></button>' +
+        '<label class="vxkmh">Limite <input type="number" inputmode="decimal" min="2" max="30" step="0.5" data-vxkmh="' + l.id + '" value="' + vxLinkKmh(l) + '"' + (vxCan() ? '' : ' disabled') + '> km/h</label>' + (vxCan() ? '<button class="btn sm danger" data-act="vxdel" data-id="' + l.id + '">Elimina</button>' : '') + '</div>';
     }).join('') + '</div>' : '<p class="vxm">Ancora nessun collegamento.</p>';
     return '<div class="vxh"><b>Collegamenti tra velox</b><span class="vxm">' + L.length + '</span></div>' + ro +
       (marks.length < 2 ? '<p class="vxm">Prima segna almeno due pontili con velox nella scheda Velox.</p>' : '<p class="vxm">Tocca un pontile con velox per iniziare un collegamento.</p>') + lst;
@@ -8576,6 +8578,12 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     window.addEventListener('resize', function () { if (VX.open) vxDraw(); });
     document.addEventListener('keydown', function (e) { if (VX.open && e.key === 'Escape') { if (VX.draft) { VX.draft = null; vxRender(); } else vxClose(); } });
   })();
+  document.addEventListener('change', function (e) {
+    var t = e.target, id = t && t.getAttribute && t.getAttribute('data-vxkmh'); if (!id) return;
+    var v = Math.round(+String(t.value).replace(',', '.') * 2) / 2; if (!(v >= 2 && v <= 30)) { toast('Scrivi un limite tra 2 e 30 km/h'); return; }
+    var l = ((VX.d && VX.d.links) || []).filter(function (x) { return x.id === id; })[0]; if (l) l.kmh = v;
+    cl('rpc_velox_link_speed', { p_id: id, p_kmh: v }).then(function (r) { if (r && r.ok) { toast('Limite ' + v + ' km/h · tempo minimo ' + (l && l.dist ? mmss(l.dist / (v / 3.6)) : '')); vxRender(); } else toast('Non salvato'); });
+  });
   document.addEventListener('input', function (e) { if (e.target && e.target.id === 'vxQ') { VX.q = e.target.value; var r = $('vxRes'); if (r) r.innerHTML = vxRes(); } });
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act^="vx"]') : null; if (!el || el.disabled) return; var a = el.getAttribute('data-act');
@@ -10095,21 +10103,84 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (NV.follow && p && !NV.drag) { NV.cx = tileX(p.lo, NV.z); NV.cy = tileY(p.la, NV.z); }
     nvDraw(); nvBot();
   }
-  // velox: allarme sotto i 200 m da un velox attivo se si va oltre 7 km/h; tra due velox collegati la media del tratto
+  // velox: allarme sotto i 200 m da un velox se si va oltre il limite. Passando davanti a un velox capisce la direzione
+  // (rotta della barca + prossima tappa) e sceglie il tratto controllato verso il velox successivo: parte un timer con il
+  // tempo minimo per arrivarci senza superare la media consentita, e dice a che velocità andare.
+  function brgDeg(a, b, c, d) { return (Math.atan2((d - b) * Math.cos(a * Math.PI / 180), c - a) * 180 / Math.PI + 360) % 360; }
+  function angDiff(x, y) { var d = Math.abs(x - y) % 360; return d > 180 ? 360 - d : d; }
+  function vxLinkKmh(l) { return l && +l.kmh > 0 ? +l.kmh : NV_LIM; }
+  function nvTrailHead() {
+    var T = NV.vtr || [], n = T.length; if (n < 2) return NV.head == null ? null : (NV.head + 360) % 360;
+    var b = T[n - 1]; for (var i = n - 2; i >= 0; i--) { if (hav(T[i].la, T[i].lo, b.la, b.lo) >= 25) return brgDeg(T[i].la, T[i].lo, b.la, b.lo); }
+    return NV.head == null ? null : (NV.head + 360) % 360;
+  }
+  // tratti che partono dal velox "id": direzione iniziale e velox d'arrivo
+  function vxOut(id) {
+    return ((VX.d && VX.d.links) || []).filter(function (l) { return (l.a === id || l.b === id) && PT[l.a] && PT[l.b]; }).map(function (l) {
+      var pth = vxPath(l.a, l.path, l.b); if (l.b === id) pth = pth.slice().reverse();
+      var o = pth[0], dir = null, acc = 0;
+      for (var i = 1; i < pth.length; i++) { acc += hav(pth[i - 1][0], pth[i - 1][1], pth[i][0], pth[i][1]); if (acc >= 40 || i === pth.length - 1) { dir = brgDeg(o[0], o[1], pth[i][0], pth[i][1]); break; } }
+      return { l: l, to: l.a === id ? l.b : l.a, dir: dir, dist: l.dist || Math.round(acc) };
+    });
+  }
+  function vxPick(id, head) {
+    var C = vxOut(id); if (!C.length) return null;
+    var tg = NV.route && NV.route[0], Pt = PT[id];
+    var ok = head == null ? C : C.filter(function (c) { return c.dir != null && angDiff(c.dir, head) <= 75; });
+    if (!ok.length) return null; // sta andando in una direzione senza tratti controllati
+    if (ok.length > 1 && tg) {
+      // più tratti nella stessa direzione: quello che avvicina alla prossima tappa del percorso
+      ok.sort(function (x, y) { var X = PT[x.to], Y = PT[y.to]; return hav(X[2], X[3], tg.la, tg.lo) - hav(Y[2], Y[3], tg.la, tg.lo); });
+      var d0 = hav(Pt[2], Pt[3], tg.la, tg.lo), best = ok[0], Bx = PT[best.to];
+      if (hav(Bx[2], Bx[3], tg.la, tg.lo) < d0 + 150) return best;
+    }
+    if (head != null) ok.sort(function (x, y) { return angDiff(x.dir, head) - angDiff(y.dir, head); });
+    return ok[0];
+  }
+  function mmss(sec) { sec = Math.max(0, Math.round(sec)); return Math.floor(sec / 60) + ':' + pad(sec % 60); }
   function nvVelox(p) {
     var al = $('nvAlert'); if (!al) return;
-    var marks = (VX.d && VX.d.marks) || [], kmh = p && p.v != null ? p.v * 3.6 : null, near = null, nd = 1e9, msg = '';
+    var marks = (VX.d && VX.d.marks) || [], kmh = p && p.v != null ? p.v * 3.6 : null, near = null, nd = 1e9, msg = '', now = Date.now();
+    if (p) { NV.vtr = (NV.vtr || []).filter(function (q) { return now - q.t < 90000; }); var lq = NV.vtr[NV.vtr.length - 1]; if (!lq || hav(lq.la, lq.lo, p.la, p.lo) > 3) NV.vtr.push({ la: p.la, lo: p.lo, t: now }); }
     if (p) marks.forEach(function (m) { if (m.state !== 'ok' || !PT[m.id]) return; var q = PT[m.id], d = hav(p.la, p.lo, q[2], q[3]); if (d < nd) { nd = d; near = m; } });
-    if (p && near && nd < 60) {
-      (VX.d.links || []).forEach(function (l) { if ((l.a === near.id || l.b === near.id) && (!NV.seg || NV.seg.from !== near.id)) { if (NV.seg && NV.seg.to === near.id) { var dt = (Date.now() - NV.seg.t) / 3600000, avg = (l.dist || 0) / 1000 / Math.max(dt, 1e-6); toast('Tratto controllato finito: media ' + Math.round(avg) + ' km/h'); NV.seg = null; } else NV.seg = { from: near.id, to: l.a === near.id ? l.b : l.a, t: Date.now(), dist: l.dist || 0 }; } });
+    // passaggio davanti a un velox: punto più vicino, poi la distanza torna a crescere
+    if (p && near && nd < 70) {
+      if (!NV.vxp || NV.vxp.id !== near.id) NV.vxp = { id: near.id, min: nd, t: now };
+      else if (nd < NV.vxp.min) { NV.vxp.min = nd; NV.vxp.t = now; }
     }
-    if (NV.seg && Date.now() - NV.seg.t > 20 * 60000) NV.seg = null;
-    var segAvg = null; if (NV.seg && p) { var tp = PT[NV.seg.to], rest = tp ? hav(p.la, p.lo, tp[2], tp[3]) : 0, done = Math.max(0, NV.seg.dist - rest), h = (Date.now() - NV.seg.t) / 3600000; if (h > 0.003 && done > 30) segAvg = done / 1000 / h; }
-    var fast = kmh != null && kmh > NV_LIM, warn = false;
-    if (near && nd < 200) { msg = '📸 Velox ' + esc(PT[near.id][1]) + ' a ' + Math.round(nd) + ' m'; warn = fast; if (fast) msg += ' · vai a <b>' + Math.round(kmh) + ' km/h</b>, rallenta sotto ' + NV_LIM; }
-    else if (NV.seg) { var tn = PT[NV.seg.to]; msg = '📸 Tratto controllato verso ' + esc(tn ? tn[1] : '') + (segAvg != null ? ' · media <b>' + Math.round(segAvg) + ' km/h</b>' : ''); warn = segAvg != null && segAvg > NV_LIM; }
+    if (NV.vxp && p) {
+      var Q = PT[NV.vxp.id], dq = Q ? hav(p.la, p.lo, Q[2], Q[3]) : 1e9;
+      if (dq > NV.vxp.min + 15 || dq >= 70) {
+        var id = NV.vxp.id, tPass = NV.vxp.t; NV.vxp = null;
+        if (NV.seg && NV.seg.to === id) {
+          // arrivato al velox d'arrivo del tratto
+          var sec = (tPass - NV.seg.t) / 1000, avg = NV.seg.dist / 1000 / Math.max(sec / 3600, 1e-6), okk = sec >= NV.seg.min - 1;
+          toast((okk ? '✅ ' : '⚠️ ') + 'Tratto ' + vxShort(PT[NV.seg.from][1]) + ' → ' + vxShort(PT[id][1]) + ': media ' + avg.toFixed(1).replace('.', ',') + ' km/h' + (okk ? '' : ' (limite ' + NV.seg.kmh + ')'));
+          NV.seg = null;
+        }
+        var pk = vxPick(id, nvTrailHead());
+        if (pk && (!NV.seg || NV.seg.from !== id)) { var lim = vxLinkKmh(pk.l); NV.seg = { from: id, to: pk.to, t: tPass, dist: pk.dist, kmh: lim, min: pk.dist / (lim / 3.6), beepEnd: false }; if (S.voice) say('Tratto controllato: ' + lim + ' chilometri orari, minimo ' + Math.round(NV.seg.min) + ' secondi'); }
+      }
+    }
+    if (NV.seg && now - NV.seg.t > Math.max(20 * 60000, NV.seg.min * 3000)) NV.seg = null;
+    var warn = false;
+    if (NV.seg && p) {
+      var S2 = NV.seg, tp = PT[S2.to], rest = tp ? hav(p.la, p.lo, tp[2], tp[3]) * 1.1 : 0, left = S2.min - (now - S2.t) / 1000;
+      if (left > 0) {
+        // velocità per arrivare esattamente quando scade il timer
+        var adv = Math.min(30, rest / left * 3.6), eta = kmh && kmh > 1 ? rest / (kmh / 3.6) : 1e9, early = eta < left - 3;
+        msg = '📸 <b>' + esc(vxShort(tp ? tp[1] : '')) + '</b> · limite ' + S2.kmh + ' km/h · ⏱ <b>' + mmss(left) + '</b> · vai max <b>' + Math.max(1, Math.floor(adv)) + ' km/h</b>' + (early ? ' · troppo veloce: arriveresti ' + Math.round(left - eta) + ' s prima' : '');
+        warn = early && rest < 400;
+      } else {
+        msg = '📸 ' + esc(vxShort(tp ? tp[1] : '')) + ' · ✅ timer scaduto: puoi accelerare' + (rest ? ' · ' + Math.round(rest) + ' m' : '');
+        if (!S2.beepEnd) { S2.beepEnd = true; try { if (navigator.vibrate) navigator.vibrate(120); } catch (e) {} if (S.voice) say('Timer scaduto, puoi accelerare'); }
+      }
+    } else if (near && nd < 200) {
+      var fast = kmh != null && kmh > NV_LIM;
+      msg = '📸 Velox ' + esc(PT[near.id][1]) + ' a ' + Math.round(nd) + ' m'; warn = fast; if (fast) msg += ' · vai a <b>' + Math.round(kmh) + ' km/h</b>, rallenta sotto ' + NV_LIM;
+    }
     al.hidden = !msg; al.innerHTML = msg; al.classList.toggle('bad', !!warn);
-    if (warn && Date.now() - NV.beep > 8000) { NV.beep = Date.now(); try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {} nvBeep(); if (S.voice) say('Attenzione velox, rallenta'); }
+    if (warn && now - NV.beep > 8000) { NV.beep = now; try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {} nvBeep(); if (S.voice) say('Attenzione velox, rallenta'); }
   }
   function nvBeep() { try { var C = window.AudioContext || window.webkitAudioContext; if (!C || LITE) return; var c = nvBeep.c || (nvBeep.c = new C()), o = c.createOscillator(), g = c.createGain(); o.frequency.value = 880; g.gain.value = .15; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + .35); } catch (e) {} }
   // orari di arrivo: tratte conosciute dai tempi reali, altrimenti distanza × 1,3 a 10 km/h, più la sosta tipica
