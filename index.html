@@ -1243,6 +1243,7 @@ body.nvopen .toast { top: calc(124px + env(safe-area-inset-top, 0px)); bottom: a
 body.nvopen { overflow: hidden; }
 .nvmap { position: absolute; top: 0; right: 0; bottom: 0; left: 0; touch-action: none; cursor: grab; }
 .nvw .mtiles .mtb { filter: none; }
+.nvpv{position:absolute;top:calc(64px + env(safe-area-inset-top,0px));left:10px;right:10px;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:8px 10px;border-radius:14px;background:#283593;color:#fff;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.25)}.nvw.pvon .nvside{top:calc(150px + env(safe-area-inset-top,0px))}.nvpvs{opacity:.9;font-variant-numeric:tabular-nums}.nvpvb{display:flex;gap:6px;margin-left:auto}.nvpvb button{border:0;border-radius:10px;padding:6px 10px;font-weight:700;background:rgba(255,255,255,.18);color:#fff;font-size:13px}.nvpvb button:last-child{background:#fff;color:#283593}
 .nvtop { position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); left: 10px; right: 10px; display: flex; gap: 8px; z-index: 3; }
 .nvsrch { flex: 1; min-width: 0; position: relative; }
 .nvsrch input { width: 100%; height: 48px; border-radius: 24px; border: 0; padding: 0 18px; font-size: 16px; background: #fff; color: #111; box-shadow: 0 2px 10px rgba(0,0,0,.25); }
@@ -1812,7 +1813,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   }
   function fillBoatDays() { Object.keys(PROGRAM).forEach(function (k) { Object.keys(BOATS).forEach(function (c) { if (BOATS[c].extra && !BOATS[c].gone && !PROGRAM[k].boats[c]) PROGRAM[k].boats[c] = { stops: [], onCall: true, extraOnly: true }; }); }); }
   function bcol(c) { return (typeof BCOL === 'object' && BCOL[c]) || '#888'; }
-  function boatCodes() { return Object.keys(BOATS).filter(function (k) { return !BOATS[k].gone; }); }
+  function boatCodes() { return Object.keys(BOATS).filter(function (k) { return !BOATS[k].gone && !BOATS[k].personal; }); }
   try { var _pc = JSON.parse(localStorage.getItem('smb-prog') || 'null'); if (_pc && _pc.days) applyProgram(_pc.days); } catch (e) {}
   var DOCS = ['Libretto di navigazione', 'Assicurazione RC'];
   var PRE = ['Carburante sopra metà serbatoio', 'Giubbotti di salvataggio a bordo', 'Contenitori e polibox puliti', 'Telefono carico e radio accesa', 'Luci di via funzionanti'];
@@ -2216,9 +2217,9 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   function closeSheet() { $('layer').innerHTML = ''; }
   function scanSheet() {
     var day = pickDay(), pers = progLink() === 'persona', mine = pers ? progMine() : [], my = mine[0];
-    var list = boatCodes().map(function (k) {
+    var list = boatCodes().concat(myBoats()).map(function (k) {
       var bd = PROGRAM[day].boats[k], off = !bd || bd.off, pr = pers && my && my !== k && mine.indexOf(k) < 0;
-      return '<button class="btn boatpick" data-act="demo" data-code="' + k + '"><b>' + esc(BOATS[k].name) + '</b><span class="muted">' + (pr ? '📋 con il tuo programma della ' + esc(BOATS[my].name) : off ? 'Nessun servizio oggi' : esc(BOATS[k].crew) + (BOATS[k].giro ? ' · ' + esc(BOATS[k].giro) : '')) + '</span></button>';
+      return '<button class="btn boatpick" data-act="demo" data-code="' + k + '"><b>' + (BOATS[k].personal ? '🛥️ ' : '') + esc(BOATS[k].name) + '</b><span class="muted">' + (BOATS[k].personal && !pr ? 'La tua barca personale · per lavorare' : pr ? '📋 con il tuo programma della ' + esc(BOATS[my].name) : off ? 'Nessun servizio oggi' : esc(BOATS[k].crew) + (BOATS[k].giro ? ' · ' + esc(BOATS[k].giro) : '')) + '</span></button>';
     }).join('');
     openSheet(
       '<h2>Su che barca sali davvero?</h2>' +
@@ -6047,6 +6048,9 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       if (!BI[c] || typeof BI[c] !== 'object') return;
       if (!BOATS[c]) BOATS[c] = { name: BI[c].name || c, crew: '', giro: '', extra: true };
       BOATS[c].gone = false;
+      BOATS[c].personal = !!BI[c].personal; BOATS[c].mine = !!BI[c].mine; BOATS[c].owner = BI[c].owner || '';
+      // barche personali degli altri: solo il nome (per i loro turni di lavoro), non si possono scegliere
+      if (BOATS[c].personal && !BOATS[c].mine) BOATS[c].gone = true;
       if (typeof BCOL === 'object' && !BCOL[c]) BCOL[c] = BPAL[Object.keys(BCOL).length % BPAL.length];
       if (BI[c].name) BOATS[c].name = BI[c].name;
       if ('crew' in BI[c]) BOATS[c].crew = BI[c].crew;
@@ -6089,10 +6093,10 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     });
   }
   function isEditor() { return !!(SESSION && (SESSION.role === 'admin' || SESSION.role === 'boat')); }
-  function curBoatCode() { return isEditor() ? (BF.sel || (S.shift && physOf(S.shift)) || boatCodes()[0]) : (S.shift ? physOf(S.shift) : null); }
+  function curBoatCode() { if (view === 'mybarche' && MB.sel) return MB.sel; return isEditor() ? (BF.sel || (S.shift && physOf(S.shift)) || boatCodes()[0]) : (S.shift ? physOf(S.shift) : null); }
   function loadFiles(code) {
     if (!tok() || !code) return;
-    cl('rpc_boat_files', { p_boat: code }).then(function (r) { if (r) { BF.files[code] = r; if (view === 'barca' && !BF.edit) render(); } });
+    cl('rpc_boat_files', { p_boat: code }).then(function (r) { if (r) { BF.files[code] = r; if ((view === 'barca' && !BF.edit) || (view === 'mybarche' && !MB.edit)) render(); } });
   }
   var BFIELDS = [['name', 'Nome'], ['crew', 'Equipaggio'], ['giro', 'Giro'], ['targa', 'Targa'], ['capacita', 'Capacità']];
   var MFIELDS = [['motore_modello', 'Modello'], ['motore_matricola', 'Matricola'], ['motore_ore', 'Ore motore'], ['motore_tagliando', 'Prossimo tagliando']];
@@ -6102,7 +6106,133 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     return i[k] || '';
   }
   function fmtKB(n) { return n < 1048576 ? Math.max(1, Math.round(n / 1024)) + ' KB' : (n / 1048576).toFixed(1).replace('.', ',') + ' MB'; }
+  /* ---------- Barche personali: ognuno aggiunge le sue barche, le usa in navigazione privata o per lavorare, carica i documenti ---------- */
+  var MB = { sel: null, edit: null, adding: false };
+  function myBoats() { return Object.keys(BOATS).filter(function (k) { return BOATS[k].personal && BOATS[k].mine && !BOATS[k].gone; }); }
+  function myBoatsBtn() {
+    var n = myBoats().length;
+    return '<button class="btn rqbtn" data-act="nav" data-v="mybarche">🛥️ Le mie barche personali' + (n ? ' <b>' + n + '</b>' : '') + ' <span>navigazione privata, lavoro e documenti ›</span></button>';
+  }
+  // navigazione privata: niente turno, niente ore, niente statistiche, la posizione non esce dal telefono
+  var PRIV = null, PRIVH = [];
+  try { PRIV = JSON.parse(localStorage.getItem('smb-priv') || 'null'); } catch (e) {}
+  try { PRIVH = JSON.parse(localStorage.getItem('smb-priv-h') || '[]') || []; } catch (e) {}
+  function pvSave() { try { localStorage.setItem('smb-priv', JSON.stringify(PRIV)); localStorage.setItem('smb-priv-h', JSON.stringify(PRIVH.slice(0, 30))); } catch (e) {} }
+  function pvKm(m) { return (m / 1000).toFixed(m < 10000 ? 2 : 1).replace('.', ',') + ' km'; }
+  function pvDur(ms) { var m = Math.round(ms / 60000); return m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + pad(m % 60); }
+  function pvStart(code) {
+    if (S.shift) { toast('Hai un turno di lavoro aperto: chiudilo prima di navigare in privato'); return; }
+    if (!BOATS[code]) return;
+    PRIV = { boat: code, name: BOATS[code].name, start: Date.now(), m: 0, max: 0, last: null, tr: [] };
+    pvSave(); locStop();
+    view = 'navi'; render(); setTimeout(function () { if (!NV.open) nvOpen(); pvDraw(); }, 30);
+    toast('🔒 Navigazione privata sulla ' + BOATS[code].name + ': la tua posizione resta sul telefono');
+  }
+  function pvEnd(silent) {
+    if (!PRIV) return null;
+    var r = { boat: PRIV.boat, name: PRIV.name, start: PRIV.start, end: Date.now(), m: Math.round(PRIV.m), max: PRIV.max, tr: (PRIV.tr || []).slice(-1500) };
+    if (r.end - r.start > 60000 || r.m > 50) { PRIVH.unshift(r); PRIVH = PRIVH.slice(0, 30); }
+    PRIV = null; pvSave(); var el = $('nvPv'); if (el) el.remove(); var w0 = $('nvWrap'); if (w0) w0.classList.remove('pvon');
+    if (!silent) toast('Navigazione privata finita · ' + pvKm(r.m) + ' · ' + pvDur(r.end - r.start));
+    setTimeout(locApply, 500);
+    return r;
+  }
+  function pvTick(p) {
+    if (!PRIV || !p || S.shift) return;
+    if (p.acc != null && p.acc > 35) return;
+    var L = PRIV.last;
+    if (L) { var d = hav(L.la, L.lo, p.la, p.lo), dt = (p.t - L.t) / 1000; if (dt > 0 && d / dt > 25) return; if (d < 6) return; PRIV.m += d; }
+    if (p.v != null && p.v * 3.6 > PRIV.max && p.v * 3.6 < 90) PRIV.max = Math.round(p.v * 36) / 10;
+    PRIV.last = { la: p.la, lo: p.lo, t: p.t };
+    if (!L || PRIV.tr.length === 0 || hav(PRIV.tr[PRIV.tr.length - 1][0], PRIV.tr[PRIV.tr.length - 1][1], p.la, p.lo) >= 15) PRIV.tr.push([+p.la.toFixed(6), +p.lo.toFixed(6)]);
+    if (PRIV.tr.length > 3000) PRIV.tr = PRIV.tr.filter(function (z, i) { return i % 2 === 0; });
+    if (!PRIV.sv || Date.now() - PRIV.sv > 15000) { PRIV.sv = Date.now(); pvSave(); }
+  }
+  function pvDraw() {
+    var w = $('nvWrap'); if (!w) return;
+    var el = $('nvPv');
+    if (!PRIV || S.shift) { if (el) el.remove(); w.classList.remove('pvon'); return; }
+    if (!el) { el = document.createElement('div'); el.id = 'nvPv'; el.className = 'nvpv'; w.appendChild(el); } w.classList.add('pvon');
+    el.innerHTML = '<span class="nvpvt">🔒 <b>Navigazione privata</b> · ' + esc(PRIV.name) + '</span><span class="nvpvs">' + pvKm(PRIV.m) + ' · ' + pvDur(Date.now() - PRIV.start) + (PRIV.max ? ' · max ' + String(PRIV.max).replace('.', ',') + ' km/h' : '') + '</span><span class="nvpvb"><button data-act="pvwork">💼 Passa al lavoro</button><button data-act="pvend">Termina</button></span>';
+  }
+  function viewMyBoats() {
+    var L = myBoats(); if (!MB.sel || L.indexOf(MB.sel) < 0) MB.sel = L[0] || null;
+    var code = MB.sel, h = '<div class="wrap"><button class="aslink" data-act="nav" data-v="barca">‹ Barche</button><h2>🛥️ Le mie barche personali</h2>';
+    if (!tok()) return h + '<p class="hint">Serve la connessione per vedere e aggiungere le tue barche.</p></div>';
+    if (PRIV) h += '<button class="hmshift" data-act="pvopen" style="background:#3949AB"><span style="font-size:28px" aria-hidden="true">🔒</span><span><b>Navigazione privata in corso</b>' + esc(PRIV.name) + ' · ' + pvKm(PRIV.m) + ' · tocca per tornare alla mappa</span></button>';
+    if (L.length) h += '<div class="chips" role="group" aria-label="Le mie barche">' + L.map(function (k) { return '<button class="chip" data-act="mbsel" data-c="' + k + '" aria-pressed="' + (k === code) + '">' + esc(BOATS[k].name) + '</button>'; }).join('') + '<button class="chip" data-act="mbaddo" aria-pressed="' + !!MB.adding + '">＋ Aggiungi</button></div>';
+    if (!L.length || MB.adding) h += '<section class="card" style="display:flex;flex-direction:column;gap:8px"><h3>' + (L.length ? 'Aggiungi un’altra barca' : 'Aggiungi la tua prima barca') + '</h3><p class="muted" style="margin:0">La vedi solo tu. Puoi usarla per uscire in privato o, quando serve, per lavorare.</p><input class="field" id="mbName" type="text" maxlength="40" placeholder="Nome della barca" style="text-transform:none"><button class="btn primary" data-act="mbadd">Aggiungi barca</button></section>';
+    if (!code) return h + '</div>';
+    var b = BOATS[code], i = BI[code] || {}, E = MB.edit === code;
+    h += '<div class="btns"><button class="btn primary" data-act="pvgo" data-c="' + code + '"' + (S.shift ? ' disabled' : '') + '>🧭 Navigazione privata</button><button class="btn" data-act="mbwork" data-c="' + code + '"' + (S.shift ? ' disabled' : '') + '>💼 Inizia un turno di lavoro con questa barca</button></div>' +
+      (S.shift ? '<p class="hint">Hai un turno di lavoro aperto: per uscire in privato chiudilo prima.</p>' : '<p class="hint">In navigazione privata la tua posizione non viene inviata a nessuno e non conta nelle ore né nelle statistiche. Con il turno di lavoro invece vale come una barca della ditta: GPS, consegne, ore e statistiche.</p>');
+    var F = [['name', 'Nome'], ['targa', 'Targa'], ['capacita', 'Capacità'], ['motore_modello', 'Motore'], ['motore_matricola', 'Matricola motore'], ['motore_tagliando', 'Prossimo tagliando']];
+    h += '<section class="card"><div class="row"><h3>Scheda</h3>' + (E ? '' : '<button class="btn sm" data-act="mbedit">Modifica</button>') + '</div><dl class="kv">' + F.map(function (f) {
+      var v = f[0] === 'name' ? b.name : (i[f[0]] || '');
+      return E ? '<dt><label for="mb_' + f[0] + '">' + f[1] + '</label></dt><dd><input class="field" id="mb_' + f[0] + '" data-mb="' + f[0] + '" type="text" maxlength="120" value="' + esc(v) + '" style="text-transform:none"></dd>'
+        : '<dt>' + f[1] + '</dt><dd>' + (v ? esc(v) : '<span class="muted">Da inserire</span>') + '</dd>';
+    }).join('') + '</dl>' + (E ? '<textarea class="field" data-mb="note" rows="3" maxlength="500" style="text-transform:none" placeholder="Note">' + esc(i.note || '') + '</textarea><div class="btns"><button class="btn primary" data-act="mbsave">Salva</button><button class="btn quiet" data-act="mbcancel">Annulla</button></div>' : (i.note ? '<p>' + esc(i.note) + '</p>' : '')) + '</section>';
+    var files = BF.files[code]; if (!files && !MB.fl) { MB.fl = true; setTimeout(function () { MB.fl = false; loadFiles(code); }, 0); }
+    var labels = DOCS.slice(); (files || []).forEach(function (f) { if (labels.indexOf(f.doc) < 0) labels.push(f.doc); });
+    h += '<h3>Documenti</h3>' + (!files ? '<p class="muted">Carico i documenti…</p>' : '') + '<div class="btns">' + labels.map(function (l) {
+      var f = (files || []).filter(function (x) { return x.doc === l; })[0];
+      return '<div class="card" style="display:flex;flex-direction:column;gap:8px"><div class="row"><div><b>' + esc(l) + '</b><div class="muted">' + (f ? esc(f.name) + ' · ' + dmy(Date.parse(f.at)) + ' · ' + fmtKB(f.size) : 'Non ancora caricato') + '</div>' + (f ? expLine(f) : '') + '</div><span class="pill ' + (f ? 'ok' : '') + '">' + (f ? 'Caricato' : 'Da caricare') + '</span></div>' +
+        (f ? '<label class="muted" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">📅 Scadenza<input class="field" type="date" data-expid="' + esc(f.id) + '" value="' + esc(f.exp || '') + '" style="flex:1;min-width:150px"></label>' : '') +
+        '<div class="row" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">' + (f ? '<button class="btn sm" data-act="docopen" data-id="' + esc(f.id) + '">Apri</button>' : '') + '<button class="btn sm" data-act="docup" data-doc="' + esc(l) + '">' + (f ? 'Sostituisci' : 'Carica') + '</button>' + (f ? '<button class="btn sm danger" data-act="docrm" data-id="' + esc(f.id) + '">Rimuovi</button>' : '') + '</div></div>';
+    }).join('') + '</div>' +
+      '<div class="card" style="display:flex;flex-direction:column;gap:8px"><b>Aggiungi un altro documento</b><input class="field" id="docExtra" type="text" maxlength="80" placeholder="Nome del documento (es. Patente nautica)" value="' + esc(BF.extra) + '" style="text-transform:none"><button class="btn" data-act="docnew">Scegli il file e carica</button></div>' +
+      '<p class="hint">PDF o foto fino a circa 3 MB. Con la data di scadenza ti arriva il promemoria nel Calendario. I documenti delle tue barche li vedi solo tu.</p>';
+    var H = PRIVH.filter(function (x) { return x.boat === code; });
+    h += '<h3>Uscite private</h3>' + (H.length ? '<div class="l10">' + H.slice(0, 15).map(function (x) {
+      var d = new Date(x.start);
+      return '<div class="l10r"><div class="l10h"><b>' + esc(d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' })) + ' · ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + '</b><span class="mono">' + pvKm(x.m) + '</span></div><div class="muted">' + pvDur(x.end - x.start) + (x.max ? ' · velocità massima ' + String(x.max).replace('.', ',') + ' km/h' : '') + '</div></div>';
+    }).join('') + '</div><p class="hint">Restano solo su questo telefono.</p>' : '<p class="muted">Ancora nessuna uscita privata con questa barca.</p>');
+    h += '<section class="card" style="display:flex;flex-direction:column;gap:8px"><b>Rimuovi la barca</b><p class="muted" style="margin:0">Non la potrai più scegliere. I turni di lavoro già fatti restano nella cronologia.</p><button class="btn danger" data-act="mbrm" data-c="' + code + '">Rimuovi ' + esc(b.name) + '</button></section>';
+    return h + '</div>';
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'mbsel') { MB.sel = el.getAttribute('data-c'); MB.edit = null; MB.adding = false; render(); }
+    else if (a === 'mbaddo') { MB.adding = !MB.adding; render(); }
+    else if (a === 'mbadd') {
+      var n = (($('mbName') || {}).value || '').trim(); if (!n) { toast('Scrivi il nome della barca'); return; }
+      el.disabled = true;
+      cl('rpc_my_boat_add', { p_name: n }).then(function (r) {
+        el.disabled = false;
+        if (r && r.ok) { toast('Barca aggiunta: ' + n); MB.sel = r.code; MB.adding = false; loadBoatInfo(); setTimeout(render, 800); }
+        else toast({ barca_esistente: 'Esiste già una barca con questo nome', troppe: 'Hai già 10 barche personali' }[r && r.error] || 'Non sono riuscito ad aggiungerla. Controlla la connessione.');
+      });
+    }
+    else if (a === 'mbedit') { MB.edit = MB.sel; render(); }
+    else if (a === 'mbcancel') { MB.edit = null; render(); }
+    else if (a === 'mbsave') {
+      var data = {}; Array.prototype.forEach.call(document.querySelectorAll('[data-mb]'), function (f) { data[f.getAttribute('data-mb')] = f.value; });
+      if (data.name != null && !String(data.name).trim()) { toast('Il nome non può essere vuoto'); return; }
+      cl('rpc_boat_info_set', { p_boat: MB.sel, p_data: data }).then(function (r) { if (r && r.ok) { toast('Scheda salvata'); MB.edit = null; loadBoatInfo(); setTimeout(render, 600); } else toast('Non sono riuscito a salvare. Controlla la connessione.'); });
+    }
+    else if (a === 'mbrm') {
+      var c = el.getAttribute('data-c');
+      if (el.getAttribute('data-sure') !== '1') { el.setAttribute('data-sure', '1'); el.textContent = 'Sicuro? Tocca di nuovo'; setTimeout(function () { if (el.isConnected) { el.removeAttribute('data-sure'); el.textContent = 'Rimuovi ' + (BOATS[c] ? BOATS[c].name : ''); } }, 3500); return; }
+      cl('rpc_my_boat_remove', { p_code: c }).then(function (r) {
+        if (r && r.ok) { toast('Barca rimossa'); if (PRIV && PRIV.boat === c) pvEnd(true); BOATS[c].gone = true; MB.sel = null; loadBoatInfo(); render(); }
+        else toast(r && r.error === 'turno_aperto' ? 'C’è un turno aperto su questa barca: chiudilo prima.' : 'Non sono riuscito a rimuoverla.');
+      });
+    }
+    else if (a === 'pvgo') pvStart(el.getAttribute('data-c'));
+    else if (a === 'pvopen') { view = 'navi'; render(); setTimeout(function () { if (!NV.open) nvOpen(); pvDraw(); }, 30); }
+    else if (a === 'pvend') { pvEnd(); nvClose(); view = 'mybarche'; render(); }
+    else if (a === 'pvwork' || a === 'mbwork') {
+      var bc = a === 'pvwork' ? (PRIV && PRIV.boat) : el.getAttribute('data-c'); if (!bc || !BOATS[bc]) return;
+      if (S.shift) { toast('Hai già un turno aperto'); return; }
+      if (a === 'pvwork') { pvEnd(true); NV.keep = NV.open; }
+      startShift(bc);
+    }
+  });
   function viewBarca() {
+    var h0 = viewBarca0();
+    return draft ? h0 : h0.replace('<div class="wrap">', '<div class="wrap">' + myBoatsBtn());
+  }
+  function viewBarca0() {
     if (isCrewOnly()) return viewBarcaCrew();
     if (isMgr() && !isEditor()) return viewBarcaCrew().replace('<h2>Barche</h2>', '<h2>Barche</h2>' + fleetBlock());
     var code = curBoatCode(), ed = isEditor();
@@ -7222,7 +7352,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   function locStop() { if (LOC.id != null) { try { navigator.geolocation.clearWatch(LOC.id); } catch (e) {} LOC.id = null; } }
   function locApply() {
     locStop();
-    if (!SESSION || !SESSION.locator || !LOC.on || S.shift || !tok() || !navigator.geolocation) return;
+    if (!SESSION || !SESSION.locator || !LOC.on || S.shift || PRIV || !tok() || !navigator.geolocation) return;
     try {
       LOC.id = navigator.geolocation.watchPosition(function (pos) {
         var n = Date.now(); if (n - LOC.sent < 30000) return; LOC.sent = n;
@@ -10166,6 +10296,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     setTimeout(function () { nvDraw(); nvBot(); }, 30);
   }
   function nvClose() {
+    if (PRIV && !S.shift) pvEnd();
     NV.open = false; clearInterval(NV.tick); nvGpsOff();
     var w = $('nvWrap'); if (w) w.remove(); document.body.classList.remove('nvopen');
     if (view === 'navi') { view = S.shift && !isMioUser() ? 'guida' : 'home'; spoken = ''; render(); }
@@ -10183,6 +10314,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     // tappa raggiunta: a 60 m si toglie dal percorso
     if (!S.shift && p && NV.route.length && hav(p.la, p.lo, NV.route[0].la, NV.route[0].lo) < 60) { var done = NV.route.shift(); nvSave(); toast('📍 Arrivato a ' + done.name); if (S.voice) say('Arrivato a ' + done.name); }
     nvVelox(p);
+    if (PRIV && NV.pos) { pvTick(NV.pos); pvDraw(); }
     if (NV.follow && p && !NV.drag) { NV.cx = tileX(p.lo, NV.z); NV.cy = tileY(p.la, NV.z); }
     nvDraw(); nvBot();
   }
@@ -10867,7 +10999,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { invita: viewInv, calendario: viewCal, confeziona: viewConf, admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi, orari: viewOrari, navi: viewNavi, snap: viewSnap }[view] || viewTurno;
+    var fn = { invita: viewInv, calendario: viewCal, confeziona: viewConf, admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, mybarche: viewMyBoats, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi, orari: viewOrari, navi: viewNavi, snap: viewSnap }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     diag('disegno ' + view); var _t0 = Date.now(), m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); if (view === 'percorsi') setTimeout(rtDraw, 0); m.scrollTop = (view === 'guida') ? 0 : sc; diag('fatto ' + view + ' ' + (Date.now() - _t0) + 'ms');
     if (LITE && Date.now() - _t0 > 2500 && window.__smbErr) window.__smbErr('Pagina lenta: ' + view + ' ' + (Date.now() - _t0) + ' ms');
@@ -11446,7 +11578,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       else toast('Non riesco a salvare la scadenza');
     }).catch(function () { toast('Non riesco a salvare la scadenza'); });
   });
-  function canSeeExp() { return !!(SESSION && (SESSION.role === 'admin' || SESSION.role === 'boat' || SESSION.full)); }
+  function canSeeExp() { return !!(SESSION && (SESSION.role === 'admin' || SESSION.role === 'boat' || SESSION.full || myBoats().length)); }
   function expHomeBanner() {
     if (!canSeeExp() || !tok()) return '';
     calLoadExp();
