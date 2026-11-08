@@ -2519,7 +2519,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (!r.items.length) return '<p class="muted">Nessuna consegna con orario in questo periodo.</p>';
     return '<p class="hint" style="margin:4px 0">Tutte le consegne con orario che entrano nel calcolo. Tocca una consegna per correggerla.</p><div class="l10">' + r.items.map(function (x, i) {
       var dt = new Date(x.at), when = dt.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' }) + ' ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes()), es = cpEsito(x);
-      var ex = x.excused ? 'Esclusa a mano: non conta' : x.kitchen ? 'Merce non pronta: non conta' : '';
+      var ex = x.excused ? 'Esclusa a mano: non conta' : x.kitchen ? 'Ritardo per merce non pronta: non conta' : '';
       return '<button class="l10r cpr" data-act="cped" data-w="' + esc(who) + '" data-i="' + i + '"><div class="l10h"><b>' + esc(x.stop) + '</b><span class="mono">' + esc(when) + '</span></div><div class="muted">' + (BOATS[x.boat] ? esc(BOATS[x.boat].name) : esc(x.boat || '')) + ' · previsto ' + esc(x.planned || '—') + '</div><span class="l10p ' + (ex ? '' : es.c) + '">' + esc(es.t) + (ex ? ' · ' + esc(ex) : '') + '</span></button>';
     }).join('') + '</div>';
   }
@@ -2529,7 +2529,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var dt = new Date(x.at), arr = pad(dt.getHours()) + ':' + pad(dt.getMinutes()), es = cpEsito(x), pi = rtProgIdx(x.day, x.boat, { name: x.stop, plan: x.planned });
     var h = '<h2>' + esc(x.stop) + '</h2><p class="muted">' + esc(String(who).split(' ')[0]) + ' · ' + esc(pbDayLab(x.day)) + ' · ' + (BOATS[x.boat] ? esc(BOATS[x.boat].name) : esc(x.boat || '')) + '</p>' +
       '<div class="card"><div class="row"><span>Orario previsto</span><b>' + esc(x.planned || '—') + '</b></div><div class="row"><span>Arrivato</span><b>' + arr + '</b></div><div class="row"><span>Differenza</span><b class="' + es.c + '">' + esc(es.t) + '</b></div>' +
-      (x.kitchen && !x.excused ? '<div class="row"><span>Conta per il trasportatore?</span><b>No · merce non pronta</b></div>' : '') + (x.reason ? '<p class="hint" style="margin:6px 0 0">' + esc(x.reason) + '</p>' : '') + '</div>' +
+      (x.kitchen && !x.excused ? '<div class="row"><span>Conta per il trasportatore?</span><b>No · ritardo per merce non pronta</b></div>' : '') + (x.reason ? '<p class="hint" style="margin:6px 0 0">' + esc(x.reason) + '</p>' : '') + '</div>' +
       '<div class="clsec">Orario di arrivo vero</div><div style="display:flex;gap:8px;align-items:center"><input class="field" type="time" id="cpArr" value="' + arr + '" style="flex:1"><button class="btn primary" data-act="cparr" style="flex:none">Salva</button></div>' +
       '<p class="hint" style="margin-top:4px">Se “Consegna fatta” è stata premuta in ritardo: metti l’ora in cui è arrivato davvero.</p>' +
       '<div class="clsec">Orario previsto</div>' +
@@ -2602,7 +2602,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     h += stSec('trasp', 'Puntualità di ogni trasportatore', d.delay_by.length + (d.delay_by.length === 1 ? ' trasportatore' : ' trasportatori'), (d.delay_by.length ? d.delay_by.map(function (x) {
       var op = CP.open === x.who;
       return '<div class="str' + (op ? ' op' : '') + '"><button class="strb" data-act="cpopen" data-w="' + esc(x.who) + '" aria-expanded="' + op + '"><div class="strh"><b>' + esc(x.who) + ' <span class="trchev" aria-hidden="true">›</span></b><span class="' + dlCls(x.avg) + '">' + dlTxt(x.avg) + '</span></div>' + dlBar(x.avg) + '<small>' + x.n + ' consegne · ' + (x.n ? Math.round(x.ontime / x.n * 100) : 0) + '% in orario · ' + x.late + ' in ritardo' + (x.kitchen ? ' · ' + x.kitchen + ' ritardi non contati (merce non pronta o esclusi)' : '') + '</small></button>' + (op ? cpList(x.who) : '') + '</div>';
-    }).join('') + '<p class="hint">Tocca un trasportatore per vedere le consegne che contano e correggere gli errori.</p>' : '<p class="muted">Nessun dato.</p>'));
+    }).join('') + '<p class="hint">Tocca un trasportatore per vedere le consegne che contano e correggere gli errori. Con merce o polybox non pronti si toglie solo il ritardo: se il trasportatore arriva in orario o in anticipo, la consegna conta.</p>' : '<p class="muted">Nessun dato.</p>'));
     // ultime 10 consegne con l'esito
     var L10 = d.last || [];
     h += stSec('ult10', 'Ultime 10 consegne', L10.length ? 'L’ultima: ' + esc(L10[0].stop) : 'Nessuna consegna', (L10.length ? '<div class="l10">' + L10.map(function (x) {
