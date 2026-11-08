@@ -366,7 +366,7 @@ body.fspl{background:#000!important}body.fspl .top,body.fspl .nav{display:none!i
 .dlbar{position:relative;height:30px;margin:8px 0 2px}.dlbar .z{position:absolute;left:0;right:0;top:8px;height:8px;border-radius:4px;background:linear-gradient(90deg,#1655C8 0%,#9EC1F5 35%,#2E7D32 45%,#2E7D32 55%,#FFB74D 65%,#E65100 100%);opacity:.75}
 .dlbar b{position:absolute;top:2px;width:6px;height:20px;margin-left:-3px;border-radius:3px;background:#111;box-shadow:0 0 0 2px #fff}
 .dlbar span{position:absolute;top:20px;font-size:10.5px;color:var(--muted,#667)}.dlbar span:nth-of-type(1){left:0}.dlbar span:nth-of-type(2){left:50%;transform:translateX(-50%)}.dlbar span:nth-of-type(3){right:0}
-.str{padding:8px 0;border-top:1px solid var(--line,#eef0f3)}.strh{display:flex;justify-content:space-between;font-size:15px}.strh span{font-weight:800}.str small{font-size:12.5px;color:var(--muted,#667)}
+.str{padding:8px 0;border-top:1px solid var(--line,#eef0f3)}.strb{all:unset;display:block;width:100%;box-sizing:border-box;cursor:pointer}.strb:focus-visible{outline:2px solid #1655C8;outline-offset:2px}.strb .trchev{display:inline-block;color:var(--muted,#667);transition:transform .15s}.str.op .strb .trchev{transform:rotate(90deg)}.cpr{all:unset;display:block;box-sizing:border-box;width:100%;cursor:pointer}.strh{display:flex;justify-content:space-between;font-size:15px}.strh span{font-weight:800}.str small{font-size:12.5px;color:var(--muted,#667)}
 .stb{display:grid;grid-template-columns:96px 1fr auto;gap:8px;align-items:center;padding:6px 0}.stbn{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .stbb{height:10px;border-radius:5px;background:rgba(127,127,127,.15);overflow:hidden}.stbb i{display:block;height:100%;background:#1655C8;border-radius:5px}
 .stbv{text-align:right;font-weight:700;font-size:14px;display:flex;flex-direction:column}.stbv small{font-weight:400;font-size:11.5px;color:var(--muted,#667)}
@@ -2487,7 +2487,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (r.problems.length) h += '<h4>Problemi segnalati</h4>' + r.problems.map(function (p) { return '<div class="dtr"><span><span class="mono">' + hm(p.at) + '</span> <b>' + esc(p.stop) + '</b><small>' + esc(p.reason || '') + '</small></span></div>'; }).join('');
     return h + '</div>';
   }
-  function dtRefresh() { DT.k = null; DT.det = {}; HS.k = null; ST2.dk = null; RP.k = null; HO.k = null; render(); }
+  function dtRefresh() { CP.d = {}; DT.k = null; DT.det = {}; HS.k = null; ST2.dk = null; RP.k = null; HO.k = null; render(); }
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act="dtday"],[data-act="dtdel"],[data-act="hsdel"],[data-act="tudel"]') : null; if (!el) return;
     var a = el.getAttribute('data-act');
@@ -2500,6 +2500,77 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       if (r && r.ok) { toast(k === 'shift' ? 'Turno eliminato: non conta più in ore e statistiche' : 'Consegna eliminata dalle statistiche'); if (a === 'tudel') { TU.d = null; tuLoad(); } dtRefresh(); }
       else { el.disabled = false; el.removeAttribute('data-sure'); el.textContent = 'Elimina'; toast('Non eliminato: controlla la connessione'); }
     });
+  });
+  /* ---------- Puntualità di ogni trasportatore: tocca il nome e vedi tutte le consegne che contano, per correggerle ---------- */
+  var CP = { open: null, d: {}, busy: {}, sel: null };
+  function cpKey(who) { return ST2.y + '-' + ST2.m + ':' + who; }
+  function cpLoad(who, force) {
+    var k = cpKey(who); if (CP.busy[k] || (CP.d[k] && !force)) return;
+    CP.busy[k] = true;
+    cl('rpc_carrier_deliveries', { p_year: ST2.y, p_month: ST2.m || 0, p_who: who }).then(function (r) { CP.busy[k] = false; if (r && r.items) { CP.d[k] = r; if (view === 'stat') render(); } }).catch(function () { CP.busy[k] = false; });
+  }
+  function cpRefresh() { CP.d = {}; ST2.dk = null; DT.k = null; DT.det = {}; HS.k = null; if (view === 'stat') render(); }
+  function cpEsito(x) {
+    var dl = x.delay, t = Math.abs(dl) <= 5 ? 'in orario' + (dl ? ' (' + (dl > 0 ? '+' : '') + dl + ' min)' : '') : dl > 0 ? '+' + dl + ' min' : dl + ' min';
+    return { t: t, c: Math.abs(dl) <= 5 ? 'ok' : dl > 0 ? 'late' : 'early' };
+  }
+  function cpList(who) {
+    var r = CP.d[cpKey(who)]; if (!r) { cpLoad(who); return '<p class="muted">Carico le consegne…</p>'; }
+    if (!r.items.length) return '<p class="muted">Nessuna consegna con orario in questo periodo.</p>';
+    return '<p class="hint" style="margin:4px 0">Tutte le consegne con orario che entrano nel calcolo. Tocca una consegna per correggerla.</p><div class="l10">' + r.items.map(function (x, i) {
+      var dt = new Date(x.at), when = dt.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' }) + ' ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes()), es = cpEsito(x);
+      var ex = x.excused ? 'Esclusa a mano: non conta' : x.kitchen ? 'Merce non pronta: non conta' : '';
+      return '<button class="l10r cpr" data-act="cped" data-w="' + esc(who) + '" data-i="' + i + '"><div class="l10h"><b>' + esc(x.stop) + '</b><span class="mono">' + esc(when) + '</span></div><div class="muted">' + (BOATS[x.boat] ? esc(BOATS[x.boat].name) : esc(x.boat || '')) + ' · previsto ' + esc(x.planned || '—') + '</div><span class="l10p ' + (ex ? '' : es.c) + '">' + esc(es.t) + (ex ? ' · ' + esc(ex) : '') + '</span></button>';
+    }).join('') + '</div>';
+  }
+  function cpEdSheet(who, i) {
+    var r = CP.d[cpKey(who)], x = r && r.items[i]; if (!x) return;
+    CP.sel = { who: who, i: i };
+    var dt = new Date(x.at), arr = pad(dt.getHours()) + ':' + pad(dt.getMinutes()), es = cpEsito(x), pi = rtProgIdx(x.day, x.boat, { name: x.stop, plan: x.planned });
+    var h = '<h2>' + esc(x.stop) + '</h2><p class="muted">' + esc(String(who).split(' ')[0]) + ' · ' + esc(pbDayLab(x.day)) + ' · ' + (BOATS[x.boat] ? esc(BOATS[x.boat].name) : esc(x.boat || '')) + '</p>' +
+      '<div class="card"><div class="row"><span>Orario previsto</span><b>' + esc(x.planned || '—') + '</b></div><div class="row"><span>Arrivato</span><b>' + arr + '</b></div><div class="row"><span>Differenza</span><b class="' + es.c + '">' + esc(es.t) + '</b></div>' +
+      (x.kitchen && !x.excused ? '<div class="row"><span>Conta per il trasportatore?</span><b>No · merce non pronta</b></div>' : '') + (x.reason ? '<p class="hint" style="margin:6px 0 0">' + esc(x.reason) + '</p>' : '') + '</div>' +
+      '<div class="clsec">Orario di arrivo vero</div><div style="display:flex;gap:8px;align-items:center"><input class="field" type="time" id="cpArr" value="' + arr + '" style="flex:1"><button class="btn primary" data-act="cparr" style="flex:none">Salva</button></div>' +
+      '<p class="hint" style="margin-top:4px">Se “Consegna fatta” è stata premuta in ritardo: metti l’ora in cui è arrivato davvero.</p>' +
+      '<div class="clsec">Orario previsto</div>' +
+      (pi >= 0 ? '<div class="btns"><button class="btn" data-act="cpprog" data-p="' + pi + '">🕒 Cambia l’orario nel programma</button></div><p class="hint" style="margin-top:4px">Corregge il programma di quel giorno: ritardi e puntualità si ricalcolano da soli.</p>'
+        : '<div style="display:flex;gap:8px;align-items:center"><input class="field" type="time" id="cpPlan" value="' + esc(/^\d{1,2}:\d{2}$/.test(x.planned || '') ? (x.planned.length === 4 ? '0' + x.planned : x.planned) : '') + '" style="flex:1"><button class="btn primary" data-act="cpplan" style="flex:none">Salva</button></div><p class="hint" style="margin-top:4px">Se l’orario del programma era sbagliato. Cambia solo questa consegna.</p>') +
+      '<div class="btns">' + (x.excused ? '<button class="btn" data-act="cpexc" data-v="0">↩︎ Conta di nuovo per ' + esc(String(who).split(' ')[0]) + '</button>'
+        : x.kitchen ? '' : '<button class="btn" data-act="cpexc" data-v="1">🚫 Non è colpa del trasportatore: non contarla</button>') +
+      (r.del ? '<button class="btn danger" data-act="cpdel">🗑 Elimina la consegna dalle statistiche</button>' : '') +
+      '<button class="btn quiet" data-act="close">Chiudi</button></div>' +
+      (!x.excused && !x.kitchen ? '<p class="hint">“Non contarla” la toglie solo dalla puntualità del trasportatore: resta nella puntualità del giro.</p>' : '');
+    openSheet(h);
+  }
+  function cpDone(msg) { closeSheet(); toast(msg); cpRefresh(); }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'cpopen') { var w = el.getAttribute('data-w'); CP.open = CP.open === w ? null : w; ST2.open.trasp = true; render(); return; }
+    if (a === 'cped') { cpEdSheet(el.getAttribute('data-w'), +el.getAttribute('data-i')); return; }
+    if (a.slice(0, 2) !== 'cp' || !CP.sel) return;
+    var r = CP.d[cpKey(CP.sel.who)], x = r && r.items[CP.sel.i]; if (!x) return;
+    if (a === 'cparr') {
+      var v = ($('cpArr') || {}).value; if (!/^\d{1,2}:\d{2}$/.test(v || '')) { toast('Scrivi l’ora'); return; }
+      var d = new Date(x.day + 'T00:00:00'); d.setHours(+v.split(':')[0], +v.split(':')[1], 0, 0);
+      el.disabled = true;
+      cl('rpc_route_event_time', { p_id: x.id, p_at: d.toISOString() }).then(function (q) {
+        if (q && q.ok) cpDone('Arrivo alle ' + v + ': puntualità ricalcolata');
+        else { el.disabled = false; toast(q && q.error === 'orario_fuori_turno' ? 'Quell’ora è fuori dal turno' : 'Non riesco a salvare: controlla la connessione'); }
+      });
+    } else if (a === 'cpplan') {
+      var p = ($('cpPlan') || {}).value; if (!/^\d{1,2}:\d{2}$/.test(p || '')) { toast('Scrivi l’ora'); return; }
+      el.disabled = true;
+      cl('rpc_stop_event_planned', { p_id: x.id, p_planned: p }).then(function (q) { if (q && q.ok) cpDone('Previsto alle ' + p + ': puntualità ricalcolata'); else { el.disabled = false; toast('Non riesco a salvare: controlla la connessione'); } });
+    } else if (a === 'cpprog') { closeSheet(); tsOpen(x.day, x.boat, +el.getAttribute('data-p')); }
+    else if (a === 'cpexc') {
+      var on = el.getAttribute('data-v') === '1'; el.disabled = true;
+      cl('rpc_carrier_excuse', { p_id: x.id, p_excuse: on }).then(function (q) { if (q && q.ok) cpDone(on ? 'Non conta più per ' + String(CP.sel.who).split(' ')[0] : 'Conta di nuovo'); else { el.disabled = false; toast('Non riesco a salvare: controlla la connessione'); } });
+    } else if (a === 'cpdel') {
+      // doppio tocco, niente finestre del browser
+      if (el.getAttribute('data-sure') !== '1') { el.setAttribute('data-sure', '1'); el.textContent = 'Sicuro? Tocca di nuovo'; setTimeout(function () { if (el.isConnected) { el.removeAttribute('data-sure'); el.textContent = '🗑 Elimina la consegna dalle statistiche'; } }, 3500); return; }
+      el.disabled = true;
+      cl('rpc_delivery_void', { p_kind: 'event', p_id: x.id, p_void: true }).then(function (q) { if (q && q.ok) cpDone('Consegna eliminata dalle statistiche'); else { el.disabled = false; toast('Non eliminata: controlla la connessione'); } });
+    }
   });
   function viewStat() {
     var now = new Date(); if (!ST2.y) { ST2.y = now.getFullYear(); ST2.m = now.getMonth() + 1; }
@@ -2529,8 +2600,9 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       '<p class="hint">Giro: tutte le consegne con orario. Trasportatori: senza i ritardi causati dalla cucina o dal fornitore (merce, polybox o pane non pronti), quando il trasportatore era arrivato in orario al Seminario o a Pane.</p>');
     h += stSec('ritardo', 'Anticipo / ritardo medio', dl.n ? dlTxt(dl.avg) + ' · ' + dl.n + ' consegne' : 'Nessun dato', (dl.n ? dlBar(dl.avg) + '<p class="hint">' + dl.n + ' consegne con orario · ' + dl.ontime + ' in orario (±5 min) · ' + dl.late + ' in ritardo · ' + dl.early + ' in anticipo</p>' : '<p class="muted">Ancora nessuna consegna con orario in questo periodo.</p>'), dl.n ? dlCls(dl.avg) : '');
     h += stSec('trasp', 'Puntualità di ogni trasportatore', d.delay_by.length + (d.delay_by.length === 1 ? ' trasportatore' : ' trasportatori'), (d.delay_by.length ? d.delay_by.map(function (x) {
-      return '<div class="str"><div class="strh"><b>' + esc(x.who) + '</b><span class="' + dlCls(x.avg) + '">' + dlTxt(x.avg) + '</span></div>' + dlBar(x.avg) + '<small>' + x.n + ' consegne · ' + (x.n ? Math.round(x.ontime / x.n * 100) : 0) + '% in orario · ' + x.late + ' in ritardo' + (x.kitchen ? ' · ' + x.kitchen + ' ritardi per merce non pronta non contati' : '') + '</small></div>';
-    }).join('') : '<p class="muted">Nessun dato.</p>'));
+      var op = CP.open === x.who;
+      return '<div class="str' + (op ? ' op' : '') + '"><button class="strb" data-act="cpopen" data-w="' + esc(x.who) + '" aria-expanded="' + op + '"><div class="strh"><b>' + esc(x.who) + ' <span class="trchev" aria-hidden="true">›</span></b><span class="' + dlCls(x.avg) + '">' + dlTxt(x.avg) + '</span></div>' + dlBar(x.avg) + '<small>' + x.n + ' consegne · ' + (x.n ? Math.round(x.ontime / x.n * 100) : 0) + '% in orario · ' + x.late + ' in ritardo' + (x.kitchen ? ' · ' + x.kitchen + ' ritardi non contati (merce non pronta o esclusi)' : '') + '</small></button>' + (op ? cpList(x.who) : '') + '</div>';
+    }).join('') + '<p class="hint">Tocca un trasportatore per vedere le consegne che contano e correggere gli errori.</p>' : '<p class="muted">Nessun dato.</p>'));
     // ultime 10 consegne con l'esito
     var L10 = d.last || [];
     h += stSec('ult10', 'Ultime 10 consegne', L10.length ? 'L’ultima: ' + esc(L10[0].stop) : 'Nessuna consegna', (L10.length ? '<div class="l10">' + L10.map(function (x) {
@@ -2895,7 +2967,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (T.shift && d) stops.slice(T.i + 1).forEach(function (z) { if (z.t) z.t = m2t(t2m(z.t) + d); if (z.end) z.end = m2t(t2m(z.end) + d); });
     var what = T.name + ' ' + (T.t0 || '—') + '→' + nt + ' · ' + BOATS[T.b].name + ' ' + pgFmt(T.k);
     TS = null; tsDraw();
-    progPublish([day], 'Orario ' + what).then(function (u) { if (view === 'percorsi') rtReload(); render(); undoBar(T.name + ' alle ' + nt + (T.shift && d ? ' (e tappe dopo)' : ''), function () { progUndo(u.prev, what); }); })
+    progPublish([day], 'Orario ' + what).then(function (u) { if (view === 'percorsi') rtReload(); if (view === 'stat') cpRefresh(); render(); undoBar(T.name + ' alle ' + nt + (T.shift && d ? ' (e tappe dopo)' : ''), function () { progUndo(u.prev, what); }); })
       .catch(function () { toast('Non riesco a salvare: controlla la connessione'); });
   }
   function taskDelRun(run) {
