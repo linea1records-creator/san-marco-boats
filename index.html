@@ -1182,7 +1182,6 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .rtd { justify-self: center; width: 24px; height: 24px; border-radius: 50%; background: var(--surface); border: 2px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 12px; position: relative; z-index: 1; }
 .rti > div b { display: block; font-size: 15px; }
 .rti > div small { display: block; color: var(--muted); font-size: 13px; }
-.rtnote { display: block; margin-top: 3px; color: var(--ink, inherit); font-style: italic; }
 .rtnch { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .k-stop .rtd { color: #fff; font-size: 0; }
 .k-stop.ok .rtd { background: #2E7D32; border-color: #2E7D32; }
@@ -1820,7 +1819,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   var DOCS = ['Libretto di navigazione', 'Assicurazione RC'];
   var PRE = ['Carburante sopra metà serbatoio', 'Giubbotti di salvataggio a bordo', 'Contenitori e polibox puliti', 'Telefono carico e radio accesa', 'Luci di via funzionanti'];
   var END_CHECKS = ['Motore spento e chiavi riposte', 'Cime fissate e parabordi in posizione', 'Barca ormeggiata nel posto assegnato', 'Nessun rifiuto o merce rimasta a bordo'];
-  var REASONS = ['Annullata dal cliente', 'Barca ferma o guasta', 'Marea troppo bassa', 'Tappa non raggiungibile', 'Merce o polibox non pronti', 'Altro problema'];
+  var REASONS = ['Annullata dal cliente', 'Barca ferma o guasta', 'Marea troppo bassa', 'Tappa non raggiungibile', 'Merce o polibox non pronti', 'Evento non ancora finito', 'Altro problema'];
   var CATS = [
     { id: 'ormeggio', name: 'Ormeggio e cime', hint: 'Cime, parabordi, gancio', items: ['Cime', 'Parabordi', 'Gancio d’accosto', 'Ancora e catena', 'Grilli e moschettoni'] },
     { id: 'motore', name: 'Motore e meccanica', hint: 'Interventi e ricambi', items: ['Intervento sul motore', 'Cambio olio', 'Elica o parastrappi', 'Batteria', 'Pompa di sentina', 'Rumori o spie accese'] },
@@ -9810,7 +9809,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       else if (e.k === 'stop') {
         lastStop = e.at; var late = x.delay != null && x.delay > 10, early = x.delay != null && x.delay < -10, bad = x.status === 'problem';
         ic = bad ? '!' : x.arr ? '📍' : '●'; cls = 'k-stop' + (bad ? ' bad' : late ? ' late' : ' ok') + (late && kit[i] ? ' kit' : ''); tt = esc(x.name) + (x.arr ? ' · arrivato (GPS)' : '');
-        sub = (x.plan && x.plan !== '00:00' ? 'previsto ' + esc(x.plan) : 'senza orario') + (x.delay != null ? ' · ' + (x.delay > 0 ? '+' + x.delay + ' min' : x.delay < 0 ? x.delay + ' min' : 'puntuale') : '') + (early ? ' (in anticipo)' : '') + (late && kit[i] ? ' · merce non pronta (cucina o fornitore): non conta per il trasportatore' : '') + (x.reason ? ' · ' + esc(x.reason) : '') + (x.arr ? ' · consegna in corso' : '') + (x.note ? '<span class="rtnote">📝 ' + esc(x.note) + '</span>' : '');
+        sub = (x.plan && x.plan !== '00:00' ? 'previsto ' + esc(x.plan) : 'senza orario') + (x.delay != null ? ' · ' + (x.delay > 0 ? '+' + x.delay + ' min' : x.delay < 0 ? x.delay + ' min' : 'puntuale') : '') + (early ? ' (in anticipo)' : '') + (late && kit[i] ? ' · merce non pronta (cucina o fornitore): non conta per il trasportatore' : '') + (x.reason ? ' · ' + esc(x.reason) : '') + (x.arr ? ' · consegna in corso' : '');
       }
       else if (e.k === 'problem') { ic = '⚠'; cls = 'k-prob'; tt = 'Problema' + (x.name ? ' a ' + esc(x.name) : ''); sub = esc(x.reason || ''); }
       else if (e.k === 'pbret') { ic = '↩'; cls = 'k-sub'; tt = 'Polybox vuoti ritirati: ' + x.n + (x.exp != null ? ' su ' + x.exp + ' attesi' : ''); sub = esc(x.name) + (x.exp != null && x.n < x.exp ? ' · ne mancano ' + (x.exp - x.n) : ''); }
@@ -10064,7 +10063,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (e.k === 'stop') {
       var pi = rtProgIdx(k, b, x), pt = pi >= 0 ? (PROGRAM[k].boats[b].stops[pi].t || '') : '';
       h += '<div class="card"><div class="row"><span>Orario previsto</span><b>' + esc(pt || x.plan || '—') + '</b></div><div class="row"><span>Arrivato</span><b>' + rtHm(e.at) + '</b></div>' + (x.delay != null ? '<div class="row"><span>Differenza</span><b>' + (x.delay > 0 ? '+' : '') + x.delay + ' min</b></div>' : '') + '</div>' +
-        rtNoteBox(x) +
+        rtProbBox(e) +
         '<div class="clsec">Orario di arrivo vero</div><div style="display:flex;gap:8px;align-items:center"><input class="field" type="time" id="rtArr" value="' + rtHm(e.at) + '" style="flex:1"><button class="btn primary" data-act="rtarr" style="flex:none">Salva arrivo</button></div><p class="hint" style="margin-top:4px">Se hai premuto “Consegna fatta” in ritardo: metti l’ora in cui sei arrivato davvero.</p>' +
         '<div class="btns">' + (pi >= 0 ? '<button class="btn" data-act="rtedt" data-p="' + pi + '">🕒 Cambia l’orario previsto</button>' : '<p class="muted">Questa tappa non è nel programma del giorno: si può solo cancellare.</p>') +
         (pi >= 0 ? '<button class="btn" data-act="rtdel" data-m="both" data-p="' + pi + '">🗑 Elimina la tappa (dal giro e dal programma)</button>' : '') +
@@ -10074,24 +10073,19 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else h += '<p>Vuoi eliminare ' + esc(RT_KLAB[e.k] || 'questo passo') + '?' + (e.k === 'swap' ? ' Il GPS torna sulla barca di prima e le velocità della carena si ricalcolano.' : '') + '</p><div class="btns"><button class="btn danger" data-act="rtdel" data-m="ev">Elimina</button><button class="btn quiet" data-act="close">Annulla</button></div>';
     openSheet(h);
   }
-  // note della tappa: scritte da Pietro dalla linea del tempo; tasti rapidi per le note più usate
-  var RT_NOTE_FIX = ['Evento non ancora finito'];
-  function rtNoteRecent() { try { return JSON.parse(localStorage.getItem('smb_rtnotes') || '[]'); } catch (x) { return []; } }
-  function rtNotePresets() { var out = RT_NOTE_FIX.slice(); rtNoteRecent().forEach(function (n) { if (out.indexOf(n) < 0) out.push(n); }); return out.slice(0, 8); }
-  function rtNoteBox(x) {
-    return '<div class="clsec">📝 Note</div><textarea class="field" id="rtNote" rows="2" maxlength="500" placeholder="Scrivi una nota su questa tappa…">' + esc(x.note || '') + '</textarea>' +
-      '<div class="rtnch">' + rtNotePresets().map(function (n) { return '<button class="sw" data-act="rtnpre" data-n="' + esc(n) + '">+ ' + esc(n) + '</button>'; }).join('') + '</div>' +
-      '<div style="display:flex;gap:8px;margin:6px 0 12px"><button class="btn primary" data-act="rtnsave" style="flex:1">Salva nota</button>' + (x.note ? '<button class="btn quiet" data-act="rtnclr" style="flex:none">Cancella</button>' : '') + '</div>';
+  // problema sulla tappa, come il tasto Problema del cruscotto: Pietro lo aggiunge dopo dalla linea del tempo
+  function rtProbBox(e) {
+    var have = (RT.pk ? RT.pk.ev : []).filter(function (q) { return q.k === 'problem' && q.s === e.s && q.x.name === e.x.name && Math.abs(q.at - e.at) < 3 * 3600e3; }).map(function (q) { return q.x.reason; });
+    return '<div class="clsec">⚠ Problema</div>' + (have.length ? '<p class="hint" style="margin:0 0 6px">Già segnato: ' + have.map(esc).join(' · ') + '</p>' : '') +
+      '<div class="rtnch">' + REASONS.map(function (r, n) { return '<button class="sw" data-act="rtprob" data-r="' + n + '">' + esc(r) + '</button>'; }).join('') + '</div>' +
+      '<div style="display:flex;gap:8px;margin:6px 0 12px"><input class="field" id="rtProbTxt" maxlength="200" placeholder="Oppure scrivi tu il problema…" style="flex:1"><button class="btn" data-act="rtprobtxt" style="flex:none">Aggiungi</button></div>';
   }
-  function rtNoteSave(txt) {
-    var pk = RT.pk, ev = pk && RT.ed && pk.ev[RT.ed.i]; if (!ev || !ev.x || ev.x.arr) return;
-    txt = String(txt || '').trim();
-    if (txt) { var r = rtNoteRecent().filter(function (n) { return n !== txt; }); if (txt.length <= 60) r.unshift(txt); try { localStorage.setItem('smb_rtnotes', JSON.stringify(r.slice(0, 6))); } catch (x) {} }
+  function rtProbAdd(r) {
+    var pk = RT.pk, ev = pk && RT.ed && pk.ev[RT.ed.i]; r = String(r || '').trim(); if (!ev || !ev.x || ev.x.arr) return; if (!r) { toast('Scrivi il problema'); return; }
     closeSheet(); toast('Salvo…');
-    cl('rpc_route_stop_note', { p_id: String(ev.x.id), p_note: txt }).then(function (r) {
-      if (r && r.ok) { ev.x.note = txt || null; toast(txt ? 'Nota salvata' : 'Nota cancellata'); render(); }
-      else toast('Non riesco a salvare la nota: controlla la connessione');
-    }).catch(function () { toast('Non riesco a salvare la nota: controlla la connessione'); });
+    cl('rpc_route_stop_problem', { p_id: String(ev.x.id), p_reason: r }).then(function (x) {
+      if (x && x.ok) { toast('Problema segnato a ' + ev.x.name); rtReload(); } else toast('Non riesco a salvare: controlla la connessione');
+    }).catch(function () { toast('Non riesco a salvare: controlla la connessione'); });
   }
   function rtDel(mode, pi) {
     var pk = RT.pk, e = pk && RT.ed && pk.ev[RT.ed.i]; if (!e || !e.x) return;
@@ -10129,9 +10123,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
         else toast(r && r.error === 'orario_fuori_turno' ? 'Quell’ora è fuori dal turno' : 'Non riesco a salvare: controlla la connessione');
       }).catch(function () { toast('Non riesco a salvare: controlla la connessione'); });
     }
-    else if (a === 'rtnpre') { var ta = $('rtNote'); if (!ta) return; var nv = el.getAttribute('data-n'), cur = ta.value.trim(); if (cur.indexOf(nv) < 0) ta.value = cur ? cur + ' · ' + nv : nv; ta.focus(); }
-    else if (a === 'rtnsave') rtNoteSave(($('rtNote') || {}).value);
-    else if (a === 'rtnclr') rtNoteSave('');
+    else if (a === 'rtprob') rtProbAdd(REASONS[+el.getAttribute('data-r')]);
+    else if (a === 'rtprobtxt') rtProbAdd(($('rtProbTxt') || {}).value);
     else if (a === 'rtdel') rtDel(el.getAttribute('data-m'), el.hasAttribute('data-p') ? +el.getAttribute('data-p') : -1);
   }, true);
   /* ---------- Orari realistici: tempi veri delle tratte dal GPS e proposta di orari per il programma ---------- */
