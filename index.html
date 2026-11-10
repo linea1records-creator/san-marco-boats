@@ -9756,6 +9756,19 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
         if (isSem) nSem++;
       });
     });
+    // evento non ancora finito: in orario alla tappa ma ha dovuto aspettare. Scusa i ritardi dopo, fino al Seminario successivo compreso.
+    ev.forEach(function (q) {
+      if (q.k !== 'problem' || !/evento non (ancora )?finito/i.test(q.x.reason || '')) return;
+      var pe = null; ev.forEach(function (z) { if (z.s === q.s && z.k === 'stop' && z.x.name === q.x.name && (!pe || Math.abs(z.at - q.at) < Math.abs(pe.at - q.at))) pe = z; });
+      if (pe && pe.x.delay != null && Math.min(q.at, pe.at) > pe.at - pe.x.delay * 60000 + 10 * 60000) return; // arrivato tardi lì: colpa sua
+      var nSem = 0;
+      ev.forEach(function (e, i) {
+        if (e.s !== q.s || e.k !== 'stop' || e.at < q.at) return;
+        var isSem = /seminario/i.test(e.x.name || '');
+        if (nSem === 0 || (nSem === 1 && !isSem)) out[i] = 1;
+        if (isSem) nSem++;
+      });
+    });
     return out;
   }
   function rtMaxHeld(pts) {
@@ -9809,7 +9822,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       else if (e.k === 'stop') {
         lastStop = e.at; var late = x.delay != null && x.delay > 10, early = x.delay != null && x.delay < -10, bad = x.status === 'problem';
         ic = bad ? '!' : x.arr ? '📍' : '●'; cls = 'k-stop' + (bad ? ' bad' : late ? ' late' : ' ok') + (late && kit[i] ? ' kit' : ''); tt = esc(x.name) + (x.arr ? ' · arrivato (GPS)' : '');
-        sub = (x.plan && x.plan !== '00:00' ? 'previsto ' + esc(x.plan) : 'senza orario') + (x.delay != null ? ' · ' + (x.delay > 0 ? '+' + x.delay + ' min' : x.delay < 0 ? x.delay + ' min' : 'puntuale') : '') + (early ? ' (in anticipo)' : '') + (late && kit[i] ? ' · merce non pronta (cucina o fornitore): non conta per il trasportatore' : '') + (x.reason ? ' · ' + esc(x.reason) : '') + (x.arr ? ' · consegna in corso' : '');
+        sub = (x.plan && x.plan !== '00:00' ? 'previsto ' + esc(x.plan) : 'senza orario') + (x.delay != null ? ' · ' + (x.delay > 0 ? '+' + x.delay + ' min' : x.delay < 0 ? x.delay + ' min' : 'puntuale') : '') + (early ? ' (in anticipo)' : '') + (late && kit[i] ? ' · ritardo non suo (merce non pronta o evento non finito): non conta per il trasportatore' : '') + (x.reason ? ' · ' + esc(x.reason) : '') + (x.arr ? ' · consegna in corso' : '');
       }
       else if (e.k === 'problem') { ic = '⚠'; cls = 'k-prob'; tt = 'Problema' + (x.name ? ' a ' + esc(x.name) : ''); sub = esc(x.reason || ''); }
       else if (e.k === 'pbret') { ic = '↩'; cls = 'k-sub'; tt = 'Polybox vuoti ritirati: ' + x.n + (x.exp != null ? ' su ' + x.exp + ' attesi' : ''); sub = esc(x.name) + (x.exp != null && x.n < x.exp ? ' · ne mancano ' + (x.exp - x.n) : ''); }
@@ -9841,12 +9854,12 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     h += sw('who', 'Persona') + sw('boat', 'Barca');
     var pk = rtPick(), st = rtStat(pk), punct = st.plan ? Math.round(st.ok / st.plan * 100) : null, punctc = st.cplan ? Math.round(st.cok / st.cplan * 100) : null;
     h += '<div class="fleetbox rtmap" id="rtBox"><div class="mtiles" id="rtTiles"></div><svg class="msvg" id="rtSvg" aria-hidden="true"></svg><div class="rtzm"><button data-act="rtz" data-z="1" aria-label="Avvicina">+</button><button data-act="rtz" data-z="-1" aria-label="Allontana">−</button><button data-act="rtz" data-z="0" aria-label="Mostra tutto il giro">⤢</button></div><div class="mhud" id="rtHud"></div><div class="mattr">© OpenStreetMap · OpenSeaMap</div></div>' +
-      '<div class="rtlg"><span><i class="g"></i>puntuale</span><span><i class="y"></i>ritardo oltre 10 min</span><span><i class="k"></i>ritardo per merce non pronta</span><span><i class="r"></i>problema</span>' + (RT.sel.k === 'who' && pk.shifts.some(function (s) { return (s.seg || []).length > 1; }) ? '<span>il colore della linea è la barca</span>' : '') + '</div>';
+      '<div class="rtlg"><span><i class="g"></i>puntuale</span><span><i class="y"></i>ritardo oltre 10 min</span><span><i class="k"></i>ritardo non suo (merce non pronta, evento non finito)</span><span><i class="r"></i>problema</span>' + (RT.sel.k === 'who' && pk.shifts.some(function (s) { return (s.seg || []).length > 1; }) ? '<span>il colore della linea è la barca</span>' : '') + '</div>';
     h += '<div class="blk rtk"><div><small>Durata</small><b>' + rtFmtMin(st.dur / 60000) + '</b></div><div><small>Km (GPS)</small><b>' + rtKm(st.km) + '</b></div>' +
       '<div><small>Velocità max</small><b>' + (st.mx != null ? String(Math.round(st.mx)) + ' km/h' : '—') + '</b></div><div><small>Media in moto</small><b>' + (st.avg != null ? String(Math.round(st.avg)) + ' km/h' : '—') + '</b></div>' +
       (RT.sel.k === 'who' ? '<div><small>In movimento</small><b>' + rtFmtMin(st.mov) + '</b></div><div><small>Fermo</small><b>' + rtFmtMin(st.stop) + '</b></div>' : '') +
       '<div><small>Tappe</small><b>' + st.stops + '</b></div><div' + (punct != null && punct < 80 ? ' class="warn"' : '') + '><small>Puntualità del giro</small><b>' + (punct == null ? '—' : punct + '%') + '</b></div>' +
-      '<div' + (punctc != null && punctc < 80 ? ' class="warn"' : '') + '><small>Puntualità trasportatore</small><b>' + (punctc == null ? '—' : punctc + '%') + '</b>' + (st.kit ? '<small>' + st.kit + (st.kit === 1 ? ' ritardo' : ' ritardi') + ' per merce non pronta esclusi</small>' : '') + '</div>' +
+      '<div' + (punctc != null && punctc < 80 ? ' class="warn"' : '') + '><small>Puntualità trasportatore</small><b>' + (punctc == null ? '—' : punctc + '%') + '</b>' + (st.kit ? '<small>' + st.kit + (st.kit === 1 ? ' ritardo' : ' ritardi') + ' non suoi esclusi</small>' : '') + '</div>' +
       '<div><small>Polybox caricati / ritirati</small><b>' + st.pbOut + ' / ' + st.pbIn + '</b></div><div><small>DDT firmati</small><b>' + st.ddt + (st.pax ? ' · ' + st.pax + ' pax' : '') + '</b></div>' +
       '<div' + (st.prob ? ' class="warn"' : '') + '><small>Problemi</small><b>' + st.prob + '</b></div>' + (st.swaps ? '<div><small>Cambi barca</small><b>' + st.swaps + '</b></div>' : '') +
       (RT.sel.k === 'who' && st.gap >= 10 ? '<div class="warn"><small>Buco GPS più lungo</small><b>' + st.gap + ' min</b></div>' : '') + '</div>';
