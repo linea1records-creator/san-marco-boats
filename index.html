@@ -11235,6 +11235,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var sh = S.shift; if (!sh || sh.noGps || !GPS.last || holdIdx() != null) return; var i = curIdx(); if (i < 0) return;
     var s = stops()[i]; if (!s || s.cancelled || (s.maint && sh.step)) return; var tg = COORDS[s.name]; if (!tg) return;
     sh.arr = sh.arr || {}; var k = arrKey(i);
+    if (sh.arr[k] && leaveCheck(i, k, s, tg)) return;
     var lk0 = $('nextLock'); if (lk0) lk0.textContent = lockTxt(i);
     var nb0 = $('nextBtn'); if (nb0 && view === 'guida' && revIdx() == null && nb0.classList.contains('locked') !== !canArrive(i)) { render(); return; }
     if (sh.arr[k]) return;
@@ -11249,6 +11250,23 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       if (S.voice && view === 'guida') say('Arrivato a ' + s.name + '. Quando hai consegnato tocca Consegna fatta.');
       if (view === 'guida') render();
     }
+  }
+  // con il GPS: se sei arrivato alla tappa e poi ti allontani (oltre 200 m per almeno 20 secondi) senza premere
+  // "Consegna fatta", la tappa si segna fatta da sola. Firma, DDT, polybox e foto si fanno solo mentre sei lì.
+  var LEAVE_R = 200, LEAVE_MS = 20000;
+  function leaveCheck(i, k, s, tg) {
+    var sh = S.shift; if (!gpsFresh() || sh.done[i]) return false;
+    var d = hav(GPS.last.la, GPS.last.lo, tg[0], tg[1]);
+    if (d <= LEAVE_R) { if (sh.away && sh.away.k === k) { sh.away = null; save(); } return false; }
+    if (!sh.away || sh.away.k !== k) { sh.away = { k: k, t: Date.now() }; save(); return false; }
+    if (Date.now() - sh.away.t < LEAVE_MS) return false;
+    if ($('sigScreen') || $('ddView')) return false; // sta firmando o guardando il DDT: aspetta
+    sh.away = null;
+    try { closeSheet(); } catch (x) {}
+    finish(i, 'ok', 'Fatta in automatico: il GPS ha visto la partenza dalla tappa', true);
+    toast('📍 Ripartito da ' + s.name + ': tappa segnata fatta');
+    if (S.voice) say('Tappa ' + s.name + ' segnata fatta.');
+    return true;
   }
   // il tasto Sono arrivato si sblocca solo al checkpoint GPS (100 m); senza GPS o senza posizione della tappa resta libero
   function gpsFresh() { return !!(GPS.last && Date.now() - GPS.last.t < 120000 && GPS.state === 'on'); }
@@ -11850,8 +11868,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       });
     }
     S.shift.step = 0; S.shift.trip = 0; save(); spoken = '';
-    if (status === 'ok' && sp && isBenz(sp.name) && !refuelGet(i)) setTimeout(function () { refuelSheet(i); }, 600);
-    if (status === 'ok' && sp && isSem(sp.name) && !SEM.leaving) { var lg = legAfter(i); if (!lg.length) lg = colliTodo(i).slice(0, 1); if (lg.length) setTimeout(function () { colliSheet(lg, true); }, 600); }
+    if (status === 'ok' && sp && !auto && isBenz(sp.name) && !refuelGet(i)) setTimeout(function () { refuelSheet(i); }, 600);
+    if (status === 'ok' && sp && !auto && isSem(sp.name) && !SEM.leaving) { var lg = legAfter(i); if (!lg.length) lg = colliTodo(i).slice(0, 1); if (lg.length) setTimeout(function () { colliSheet(lg, true); }, 600); }
     var n = curIdx();
     if (S.shift.hold != null) { toast((auto ? '📍 GPS: arrivato a ' : 'Arrivato a ') + (sp ? sp.name : '')); if (S.voice) say('Arrivato a ' + (sp ? sp.name : '') + '. Quando hai finito tocca Avanti.'); spoken = 'hold'; view = 'guida'; render(); return; }
     toast(status === 'ok' ? 'Tappa completata' : 'Problema segnalato');
