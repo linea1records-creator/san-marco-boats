@@ -3488,11 +3488,15 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     h += '<div class="chips" role="group" aria-label="Giorno">' + keys.map(function (d) { return '<button class="chip" data-act="day" data-k="' + d + '" aria-pressed="' + (d === k ? 'true' : 'false') + '">' + esc(PROGRAM[d].short) + '</button>'; }).join('') + '</div>';
     var day = PROGRAM[k], bd = day.boats[me];
     h += '<section class="card mypg" style="--bc:' + bcol(me) + '"><h3>' + esc(day.label) + '</h3>';
-    if (!bd || bd.off) h += '<p class="big">Riposo: nessun servizio.</p>';
-    else if (!(bd.stops || []).length) h += '<p class="big">' + (bd.onCall ? 'Nessun giro fisso: sei reperibile.' : 'Nessuna tappa.') + '</p>';
-    else { var mine = S.shift && S.shift.day === k && S.shift.boat === me, cur = mine ? curIdx() : -2; h += '<ul class="stl">' + bd.stops.map(function (s, i) { return pgStopLi(s, i, mine, cur); }).join('') + '</ul>'; }
+    var cfl = cfMerge([], k);
+    if ((!bd || bd.off) && !cfl.length) h += '<p class="big">Riposo: nessun servizio.</p>';
+    else if (!(bd && !bd.off && (bd.stops || []).length) && !cfl.length) h += '<p class="big">' + (bd && bd.onCall ? 'Nessun giro fisso: sei reperibile.' : 'Nessuna tappa.') + '</p>';
+    else {
+      var mine = S.shift && S.shift.day === k && S.shift.boat === me, cur = mine ? curIdx() : -2, base = bd && !bd.off ? (bd.stops || []).map(function (s, i) { return { s: s, i: i, t: s.t }; }) : [];
+      h += '<ul class="stl">' + cfMerge(base, k).map(function (o) { return o.cf ? '<li class="stp' + (o.done ? ' past' : '') + '"><span class="mono">' + esc(o.t || '—') + '</span><span><b>🎓 ' + esc(o.name) + '</b><small>' + esc(o.note) + '</small></span>' + (o.done ? '<span class="pill ok">Fatta</span>' : '') + '</li>' : pgStopLi(o.s, o.i, mine, cur); }).join('') + '</ul>';
+    }
     if (bd && bd.onCall && (bd.stops || []).length) h += '<div class="note"><b>Emergenze.</b> Dopo il giro resti reperibile.</div>';
-    return h + '</section>' + cfProgCard(k) + pdReport(k, [me]) + '<p class="hint">Gli orari possono subire variazioni. Per dubbi scrivi alla logistica.</p></div>';
+    return h + '</section>' + pdReport(k, [me]) + '<p class="hint">Gli orari possono subire variazioni. Per dubbi scrivi alla logistica.</p></div>';
   }
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
@@ -5088,7 +5092,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
         '<p class="huge">' + (arrT ? 'Sei a ' : 'Vai a ') + esc(s.name) + '</p>' + (arrT && isPane(s.name) ? '<div class="note"><b>Carica il DDT del pane:</b> appena è caricato si passa da solo alla consegna successiva.</div>' : '') +
         (s.note ? '<div class="note"><b>Alla tappa:</b> ' + esc(s.note) + '</div>' : '') +
         '<div class="muted">' + (next ? 'Dopo: ' + esc(next.name) + (next.t ? ' alle ' + esc(next.t) : '') : 'Ultima tappa del giro') + '</div>' + gpsModeChip();
-      primary = (isSem(s.name) || isBenz(s.name) || /^(darsena|scalo)\b/i.test(String(s.name).trim())) ? 'Tappa fatta' : arrT && isPane(s.name) ? '📷 Carica il DDT del pane' : arrT ? 'Apri la consegna' : 'Sono arrivato';
+      primary = s.cf ? (cfKindOf(s) === 'pick' ? 'Cosa hai ricevuto?' : 'Cosa stai consegnando?') : (isSem(s.name) || isBenz(s.name) || /^(darsena|scalo)\b/i.test(String(s.name).trim())) ? 'Tappa fatta' : arrT && isPane(s.name) ? '📷 Carica il DDT del pane' : arrT ? 'Apri la consegna' : 'Sono arrivato';
       speech = 'Tappa ' + (i + 1) + ' di ' + all.length + '. Vai a ' + s.name + '. ' + (s.t ? 'Arrivo previsto alle ' + s.t + '.' : 'Orario da definire.') + (s.note ? ' ' + s.note + '.' : '');
     } else {
       body = '<h3>Operazioni a ' + esc(s.name) + '</h3>' + (s.note ? '<p class="note big">' + esc(s.note) + '</p>' : '<p class="big">Ormeggia in sicurezza e svolgi le operazioni previste per questa tappa.</p>') +
@@ -8999,6 +9003,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     }
     var bs = mioBoats(), P = PROGRAM[todayKey()], c = bs[0], bd = P && c && P.boats[c], st2 = bd && !bd.off ? (bd.stops || []).filter(function (z) { return !z.cancelled; }) : [];
     var my = mioMine(); if (!st2.length && my.length) st2 = my.map(function (t) { return { name: t.name, t: t.t, note: t.cargo || '' }; });
+    st2 = cfMerge(st2, todayKey());
     return { shift: false, boat: c, s: st2[0] || null, next: st2[1] || null, done: 0, total: st2.length };
   }
   function plPolybox(p) {
@@ -9015,8 +9020,9 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var n = String(p.s.name || '').trim();
     if (/^darsena\b/i.test(n)) return p.last ? 'endphoto' : 'photo';
     if (isSem(n)) return PLA.sem[S.shift.day + ':' + p.i] ? 'semgo' : 'sem';
+    if (p.s.cf) return cfKindOf(p.s) === 'pick' ? 'cfpick' : 'cfdrop';
     if (isPane(n)) return 'pane';
-    if (isDel(p.s)) return 'sign';
+    if (isDel(p.s) && ddtOfStop(S.shift.day, p.s.name).some(function (x) { return x.status === 'pending'; })) return 'sign';
     return 'go';
   }
   var PL_ACT = {
@@ -9028,6 +9034,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     photo: ['📷', 'Foto barca', 'Scatta la foto della barca in Darsena'],
     endphoto: ['📷', 'Foto barca e fine turno', 'Ultima tappa: foto della barca e chiudi il turno'],
     go: ['✓', 'Fatto, avanti', 'Passa alla prossima tappa'],
+    cfpick: ['📥', 'Cosa hai ricevuto?', 'Ca’ Foscari: spunta le cose che ti danno qui'],
+    cfdrop: ['📦', 'Cosa stai consegnando?', 'Ca’ Foscari: spunta le cose che consegni qui'],
     end: ['🏁', 'Termina turno', 'Tutte le tappe fatte']
   };
   function viewPlancia() {
@@ -9058,7 +9066,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var el = e.target.closest ? e.target.closest('[data-act="plgo"],[data-act="plcam"],[data-act="plopen"]') : null; if (!el) return;
     var a = el.getAttribute('data-act'), p = plStep(), k = plKind(p);
     if (a === 'plcam') { if (!S.shift || p.i < 0) { toast('Inizia il turno: le foto si salvano sulla tappa in corso'); return; } plPhoto(function (u) { plProof(p.i, u).then(function () { toast('Foto salvata su ' + p.s.name); }); }); return; }
-    if (a === 'plopen') { if (S.shift && p.i >= 0) { if (isSem(p.s.name)) semSheet(p.i, false); else if (isDel(p.s)) cnsSheet(p.i, false); else plFire('next'); } return; }
+    if (a === 'plopen') { if (S.shift && p.i >= 0) { if (p.s.cf) cfConfirmOpen(String(p.s.cfk || '').slice(3), p.i); else if (isSem(p.s.name)) semSheet(p.i, false); else if (isDel(p.s)) cnsSheet(p.i, false); else plFire('next'); } return; }
     if (k === 'start') { if (S.shift) return; if (openInfo()) { resumeShift(); return; } scanSheet(); return; }
     if (k === 'end' || k === 'endphoto') { plFire('endsheet'); return; }
     if (k === 'sem') { PLA.sem[S.shift.day + ':' + p.i] = 1; semSheet(p.i, false); return; }
@@ -11736,11 +11744,50 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   }
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act="vgdrop"]') : null; if (!el) return;
-    var k = el.getAttribute('data-k'), s = vgStops().filter(function (z) { return z.key === k; })[0]; if (!s) return;
-    var p = Promise.resolve(); toast('Invio…');
-    s.rows.forEach(function (r) { p = p.then(function () { return cl('rpc_cf_item_status', { p_id: r.i.id, p_status: r.i.status === 'magazzino' || r.i.status === 'mancante' ? 'caricato' : r.i.status, p_note: 'consegnato da ' + (SESSION ? SESSION.name : '') + ' · ' + s.place + ' → ' + s.to }); }); });
-    p.then(function () { vgMark(k); toast('Consegna segnata ✓'); cafLoad(true).then(render); });
+    cfConfirmOpen(el.getAttribute('data-k'), null);
   });
+  /* scheda unica Ca' Foscari: "Cosa hai ricevuto?" al ritiro, "Cosa stai consegnando?" alla consegna — caselle già spuntate, si tolgono solo quelle che mancano */
+  var CFC = null;
+  function cfConfirmOpen(key, si) {
+    if (si == null && S.shift) stops().forEach(function (z, n) { if (z.cfk === 'cf|' + key && !z.cancelled && !S.shift.done[n]) si = n; });
+    var s = vgStops().filter(function (z) { return z.key === key; })[0];
+    if (!s) { if (si != null) finish(si, 'ok', '', true); return; }
+    var pick = s.kind === 'pick', rows = pick ? s.rows.filter(function (r) { return !r.g.conf; }) : s.rows;
+    if (pick && !rows.length) { if (si != null) finish(si, 'ok', '', true); return; }
+    if (pick && s.ts && Date.now() < s.ts - 20 * 60000 && !(SESSION && SESSION.simple)) { toast('Puoi confermare dalle ' + hm(s.ts - 20 * 60000)); return; }
+    CFC = { s: s, si: si, rows: rows };
+    var ev = function (x) { return (x.room || x.venue || '').split(' · ')[0].replace(/\s*\(.*\)$/, ''); };
+    openSheet('<h2>' + (pick ? '📥 Cosa hai ricevuto?' : '📦 Cosa stai consegnando?') + '</h2><p class="muted">' + esc((s.t ? s.t + ' · ' : '') + s.place + ' · ' + (pick ? (s.from ? 'da ' + s.from : '') : 'a ' + s.to)) + '</p>' +
+      '<p class="hint" style="margin-top:0">È già tutto spuntato: togli la spunta solo a quello che manca.</p>' +
+      rows.map(function (r, k) {
+        return '<div class="cafrrow"><label class="chk"><input type="checkbox" id="cfcR' + k + '" checked data-act="cfcchk" data-k="' + k + '"> <b>' + esc((r.i.qty ? fmtQ(r.i.qty) + (r.i.unit ? ' ' + r.i.unit : '') + ' × ' : '') + r.i.what) + '</b> <small class="muted">' + esc(ev(r.x)) + '</small></label>' +
+          '<input class="field txt" id="cfcN' + k + '" placeholder="Cosa manca? (es. 2 tovaglie in meno)" style="display:none;margin-top:4px"></div>';
+      }).join('') +
+      '<div style="display:flex;gap:8px;margin-top:12px"><button class="btn quiet" data-act="veil" style="flex:1">Annulla</button><button class="btn primary" data-act="cfcsend" style="flex:2">' + (pick ? 'Ho ricevuto' : 'Consegnato') + '</button></div>');
+  }
+  function cfConfirmSend() {
+    var C = CFC; if (!C) return; var s = C.s, pick = s.kind === 'pick', me = SESSION ? SESSION.name : '';
+    var jobs = C.rows.map(function (r, k) { var ok = !!($('cfcR' + k) || {}).checked; return { r: r, ok: ok, note: ok ? '' : (($('cfcN' + k) || {}).value || '') }; });
+    closeSheet(); toast('Invio…');
+    var miss = 0, err = null, p = Promise.resolve();
+    jobs.forEach(function (j) { if (!j.ok) miss++; p = p.then(function () {
+      var q = pick ? cl('rpc_cf_receive', { p_item: j.r.i.id, p_leg: j.r.n, p_ok: j.ok, p_note: j.note })
+        : cl('rpc_cf_item_status', { p_id: j.r.i.id, p_status: !j.ok ? 'mancante' : j.r.i.status === 'magazzino' || j.r.i.status === 'mancante' ? 'caricato' : j.r.i.status, p_note: (j.ok ? 'consegnato da ' : 'manca alla consegna di ') + me + ' · ' + s.place + ' → ' + s.to + (j.note ? ' · ' + j.note : '') });
+      return q.then(function (x) { if (!x || !x.ok) err = x && x.error === 'presto' ? 'Puoi confermare dalle ' + x.from : 'Non riesco a salvare tutto'; });
+    }); });
+    p.then(function () {
+      if (!err && !pick) vgMark(s.key);
+      toast(err || (miss ? 'Fatto · segnalato che mancano ' + miss + (miss === 1 ? ' cosa' : ' cose') : pick ? 'Tutto ricevuto ✓' : 'Consegna segnata ✓'));
+      if (!err && C.si != null && S.shift && stops()[C.si] && !S.shift.done[C.si]) finish(C.si, 'ok', '', true);
+      cafLoad(true).then(render);
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act="cfcsend"],[data-act="cfcchk"]') : null; if (!el) return;
+    if (el.getAttribute('data-act') === 'cfcsend') { cfConfirmSend(); return; }
+    var n = $('cfcN' + el.getAttribute('data-k')); if (n) n.style.display = el.checked ? 'none' : '';
+  });
+  function cfKindOf(z) { if (!z || !z.cf || !z.cfk) return null; var s = vgStops().filter(function (y) { return 'cf|' + y.key === z.cfk; })[0]; return s ? s.kind : /^cf\|p\|/.test(z.cfk) ? 'pick' : 'drop'; }
   /* ---------- Ca' Foscari nel programma del turno: se sei tra chi riceve o consegna cose di un evento, la tappa entra da sola nel tuo giro ---------- */
   function cfNear(a, b) { var x = t2m(a), y = t2m(b); return x == null || y == null || Math.abs(x - y) <= 60; }
   function cfInProg(list, place, t) { return (list || []).some(function (z) { return !z.cancelled && !z.cf && smPlace(z.name, place) && cfNear(z.t, t); }); }
@@ -11782,6 +11829,18 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     });
   }
   setInterval(cfRefresh, 60000);
+  // tappe Ca' Foscari di oggi messe dentro una lista di tappe, al loro orario (senza doppioni se il posto è già nel giro)
+  function cfMerge(list, k) {
+    if (k !== todayKey() || !hasCf()) return list; vgEnsure(); if (CAF.loaded !== k) return list;
+    var out = list.slice();
+    vgStops().forEach(function (s) {
+      if (!s.place || cfInProg(list.map(function (o) { return o.s || o; }), s.place, s.t)) return;
+      var c = { cf: true, cfk: 'cf|' + s.key, name: s.place, t: s.t || '', note: cfStopNote(s).replace(/^🎓 /, ''), done: s.done }, pos = out.length, ct = t2m(c.t);
+      if (ct != null) for (var j = 0; j < out.length; j++) { var lt = t2m(out[j].t); if (lt != null && lt > ct) { pos = j; break; } }
+      out.splice(pos, 0, c);
+    });
+    return out;
+  }
   // nel "Mio programma": le tappe Ca' Foscari di oggi in cui ricevi o consegni qualcosa
   function cfProgCard(k) {
     if (k !== todayKey() || !hasCf()) return ''; vgEnsure(); if (CAF.loaded !== k) return '';
@@ -12814,6 +12873,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (a === 'drvexit') { view = 'turno'; render(); return; }
     if (a === 'next' && S.shift.noGps && revIdx() == null && holdIdx() == null) { var sz = stops()[i]; S.shift.arr = S.shift.arr || {}; if (sz && isDel(sz) && !S.shift.arr[arrKey(i)]) { S.shift.arr[arrKey(i)] = Date.now(); save(); toast('✋ Arrivato a ' + sz.name + ' alle ' + hm(Date.now())); render(); } }
     if (a === 'next' && !canArrive(i)) { toast('Si sblocca quando la barca arriva alla tappa (100 m). Se il GPS non funziona usa Salta questa tappa.'); return; }
+    if (a === 'next' && stops()[i] && stops()[i].cf) { cfConfirmOpen(String(stops()[i].cfk || '').slice(3), i); return; }
     if (a === 'next' && isDel(stops()[i])) { cnsSheet(i, false); return; }
     if (a === 'next') { if (el.classList && el.classList.contains('done')) return; if (el.classList) el.classList.add('done'); setTimeout(advance, 420); return; }
     if (a === 'back') { if (sh.step > 0) { sh.step--; save(); render(); } return; }
