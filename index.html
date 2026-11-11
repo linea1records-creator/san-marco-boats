@@ -6123,6 +6123,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       var _op = r.shift_open && r.shift_id && !(S.shift && (!S.shift.sid || S.shift.sid === r.shift_id)) ? { id: r.shift_id, boat: r.shift_boat, start: r.shift_start } : null;
       if (JSON.stringify(SESSION.open || null) !== JSON.stringify(_op)) { SESSION.open = _op; ch = true; }
       if (!!SESSION.simple !== !!r.simple) { SESSION.simple = !!r.simple; ch = true; }
+      if (!!SESSION.signer !== !!r.signer) { SESSION.signer = !!r.signer; ch = true; }
       if (!!SESSION.money !== !!r.money) { SESSION.money = !!r.money; ch = true; }
       if (r.bill && SESSION.role !== 'billing') { SESSION.role = 'billing'; ch = true; }
       if (!!SESSION.locator !== !!r.locator) { SESSION.locator = !!r.locator; ch = true; }
@@ -8471,7 +8472,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   var DG = { day: null, boat: null };
   function viewDdtGiro() {
     if (!DD.loaded && !DD.busy) loadDdt().then(function () { if (view === 'ddtgiro') render(); });
-    var k = DG.day || todayKey(), sgn = isSigner(), boats = sgn ? [] : myBoatCodes(); if (!sgn && S.shift && boats.indexOf(S.shift.boat) < 0) boats.unshift(S.shift.boat);
+    var k = DG.day || todayKey(), sgn = isSigner() || !!(SESSION && SESSION.signer), boats = sgn ? [] : myBoatCodes(); if (!sgn && S.shift && boats.indexOf(S.shift.boat) < 0) boats.unshift(S.shift.boat);
     if (!boats.length) boats = boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO' && !BOATS[c].personal; });
     if (sgn) boats.unshift('ALL');
     var b = DG.boat && boats.indexOf(DG.boat) >= 0 ? DG.boat : boats[0], P = PROGRAM[k], bd = P && P.boats[b];
@@ -11537,47 +11538,88 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   });
   /* ---------- Turno semplice (es. Beppe): una tappa alla volta, un tocco per andare avanti, niente orari da rispettare ---------- */
   function smPlace(a, b) { a = ddtNorm(a || ''); b = ddtNorm(b || ''); if (!a || !b) return false; return a === b || a.indexOf(b) >= 0 || b.indexOf(a) >= 0 || a.split(' ')[0] === b.split(' ')[0] && a.split(' ')[0].length > 3; }
+  // tappe Ca' Foscari che non sono nel programma della barca: ritiro (dove ricevo io) e consegna in sede (la tappa dopo)
+  function smCfStops(day, prog) {
+    var out = [], seen = {};
+    (CAF.loaded === day ? CAF.items : []).forEach(function (x) {
+      if (x.status === 'annullato') return;
+      (x.items || []).forEach(function (it) {
+        var rt = it.route || [];
+        rt.forEach(function (g, n) {
+          if (g.kind === 'ref' || g.to !== CAF.me) return;
+          var add = function (t, place, ord) {
+            var tt = t || String(ord || '').slice(0, 5);
+            if (!place || prog.some(function (z) { return smPlace(z.name, place) && (!tt || !z.t || Math.abs(t2m(z.t) - t2m(tt)) <= 60); })) return;
+            var k = (t || '') + '|' + ddtNorm(place); if (seen[k]) return; seen[k] = 1; out.push({ cf: true, key: k, t: t || '', ord: t || ord || '', name: place, note: (x.room || x.venue).split(' · ')[0] + (x.notes ? ' · ' + x.notes : '') });
+          };
+          add(g.t, g.place);
+          var nx = rt[n + 1]; if (nx && nx.kind === 'ref') add(nx.t || '', nx.place || x.venue, g.t ? g.t + ':01' : '');
+        });
+      });
+    });
+    return out;
+  }
+  function smList() {
+    var all = stops(), day = S.shift.day, prog = all.map(function (z, i) { return { z: z, i: i, t: z.t || '', name: z.name }; }).filter(function (o) { return !o.z.cancelled; });
+    var cf = smCfStops(day, all), list = prog.slice();
+    cf.forEach(function (c) {
+      var pos = list.length, ct = c.ord || c.t; if (ct) for (var k = 0; k < list.length; k++) { var lt = list[k].ord || list[k].t; if (lt && lt > ct) { pos = k; break; } }
+      list.splice(pos, 0, c);
+    });
+    S.shift.cfDone = S.shift.cfDone || {};
+    list.forEach(function (o) { o.done = o.cf ? !!S.shift.cfDone[o.key] : !!S.shift.done[o.i]; });
+    return list;
+  }
   function viewSimple() {
-    var b = boat(), all = stops(), i = curIdx(), c = counts(), day = S.shift.day, me = SESSION && SESSION.name;
-    if (CAF.loaded !== day && !CAF.busy) { CAF.day = day; cafLoad().then(function () { if (view === 'guida') render(); }); }
-    if (!DD.loaded && !DD.busy) loadDdt().then(function () { if (view === 'guida') render(); });
-    var h = '<div class="wrap smw"><div class="row"><h2>🚤 ' + esc(b ? b.name : '') + '</h2><span class="pill">' + Math.min(c.ok + c.bad + 1, c.total) + ' / ' + c.total + '</span></div>';
-    if (i < 0) return h + '<section class="card smcard"><div class="smbig">🎉 Giro finito</div><p class="muted">Grazie! Puoi chiudere il turno.</p><button class="btn primary smgo" data-act="smend">Chiudi il turno</button></section></div>';
-    var s = all[i], acts = '';
+    var b = boat(), day = S.shift.day;
+    if (CAF.loaded !== day && !CAF.busy) { CAF.day = day; cafLoad().then(function () { if (view === 'guida' || view === 'home') render(); }); }
+    if (!DD.loaded && !DD.busy) loadDdt().then(function () { if (view === 'guida' || view === 'home') render(); });
+    var list = smList(), ci = -1; list.some(function (o, k) { if (!o.done) { ci = k; return true; } return false; });
+    var nDone = list.filter(function (o) { return o.done; }).length;
+    var h = '<div class="wrap smw"><div class="row"><h2>🚤 ' + esc(b ? b.name : '') + '</h2><span class="pill">' + Math.min(nDone + 1, list.length) + ' / ' + list.length + '</span></div>';
+    if (ci < 0) return h + '<section class="card smcard"><div class="smbig">🎉 Giro finito</div><p class="muted">Grazie! Puoi chiudere il turno.</p><button class="btn primary smgo" data-act="smend">Chiudi il turno</button></section></div>';
+    var s = list[ci], acts = '';
     // 1) DDT da far firmare in questa tappa
     ddtOfStop(day, s.name).filter(function (x) { return x.mine && x.status === 'pending'; }).forEach(function (x) {
       acts += '<button class="btn smact" data-act="ddtsign" data-id="' + x.id + '">✍️ Fai firmare il DDT<small>' + esc(x.customer) + '</small></button>';
     });
     ddtOfStop(day, s.name).filter(function (x) { return x.mine && x.status === 'signed'; }).forEach(function (x) { acts += '<div class="smok">✓ DDT firmato · ' + esc(x.customer) + '</div>'; });
-    // 2) Ca' Foscari: ritiro delle cose (da Sergio o dal Seminario) e consegna in sede
+    // 2) Ca' Foscari: ritiro delle cose (da Sergio, dal Seminario…) e consegna in sede
     (CAF.loaded === day ? CAF.items : []).forEach(function (x) {
       if (x.status === 'annullato') return;
       cafMySlots(x).forEach(function (sl) {
         if (!smPlace(sl.place, s.name)) return;
         var todo = sl.rows.filter(function (r) { return !r.g.conf; });
         var from = /sergio|furgone/i.test(sl.rows.map(function (r) { return r.g.act || ''; }).join(' ')) ? 'da Sergio' : /seminario/i.test(sl.place) ? 'dal Seminario' : '';
-        if (!todo.length) { acts += '<div class="smok">✓ Ritiro confermato · ' + esc(x.room || x.venue) + '</div>'; return; }
+        if (!todo.length) { acts += '<div class="smok">✓ Ritiro confermato · ' + esc((x.room || x.venue).split(' · ')[0]) + '</div>'; return; }
         acts += '<button class="btn smact" data-act="cafrcv" data-e="' + x.id + '" data-k="' + esc(sl.t + '|' + sl.place + '|' + (sl.kind || '')) + '">📥 Ho ritirato le cose ' + esc(from) + '<small>' + esc((x.room || x.venue).split(' · ')[0] + ': ' + todo.map(function (r) { return r.i.what; }).join(', ')) + '</small></button>';
       });
-      if (!smPlace(x.venue, s.name)) return;
       var mine = (x.items || []).filter(function (it) {
         var rt = it.route || [], k = -1; rt.forEach(function (g, n) { if (g.kind !== 'ref' && g.to === CAF.me) k = n; });
-        return k >= 0 && rt[k + 1] && rt[k + 1].kind === 'ref' && smPlace(rt[k + 1].place, s.name) && rt[k].conf && ['in_sede', 'ritirato', 'rientrato'].indexOf(it.status) < 0;
+        var nx = k >= 0 ? rt[k + 1] : null;
+        return nx && nx.kind === 'ref' && smPlace(nx.place || x.venue, s.name) && ['in_sede', 'ritirato', 'rientrato'].indexOf(it.status) < 0;
       });
+      var dn = (x.items || []).filter(function (it) { return it.status === 'in_sede' && smPlace(x.venue, s.name) && (it.route || []).some(function (g) { return g.to === CAF.me; }); });
       if (mine.length) acts += '<button class="btn smact" data-act="smdel" data-ids="' + mine.map(function (it) { return it.id; }).join(',') + '">✅ Consegna fatta<small>' + esc((x.room || x.venue).split(' · ')[0] + ': ' + mine.map(function (it) { return it.what; }).join(', ')) + '</small></button>';
+      else if (dn.length) acts += '<div class="smok">✓ Consegnato · ' + esc((x.room || x.venue).split(' · ')[0]) + '</div>';
     });
-    var nx = all.filter(function (z, k) { return k > i && !S.shift.done[k] && !z.cancelled; })[0];
+    var nx = list.filter(function (o, k) { return k > ci && !o.done; })[0];
+    var note = s.cf ? s.note : (s.z && s.z.note) || '';
     h += '<section class="card smcard"><div class="smlbl">Adesso vai a</div><div class="smbig">' + esc(s.name) + '</div>' + (s.t ? '<div class="muted">circa ' + esc(s.t) + '</div>' : '') +
-      (s.note ? '<p class="smnote">' + esc(s.note) + '</p>' : '') + (acts ? '<div class="smacts">' + acts + '</div>' : '') +
-      '<button class="btn primary smgo" data-act="smnext" data-i="' + i + '">✓ Fatto · avanti</button>' + (nx ? '<div class="muted" style="text-align:center;margin-top:6px">Poi: ' + esc(nx.name) + '</div>' : '') + '</section>';
-    h += '<ol class="smlist">' + all.map(function (z, k) { if (z.cancelled) return ''; var d = S.shift.done[k]; return '<li class="' + (d ? 'dn' : k === i ? 'now' : '') + '"><span>' + (d ? '✓' : k === i ? '➜' : '') + '</span>' + esc(z.name) + '</li>'; }).join('') + '</ol>';
+      (note ? '<p class="smnote">' + esc(note) + '</p>' : '') + (acts ? '<div class="smacts">' + acts + '</div>' : '') +
+      '<button class="btn primary smgo" data-act="smnext" data-k="' + ci + '">✓ Fatto · avanti</button>' + (nx ? '<div class="muted" style="text-align:center;margin-top:6px">Poi: ' + esc(nx.name) + '</div>' : '') + '</section>';
+    h += '<ol class="smlist">' + list.map(function (o, k) { return '<li class="' + (o.done ? 'dn' : k === ci ? 'now' : '') + '"><span>' + (o.done ? '✓' : k === ci ? '➜' : '') + '</span>' + esc(o.name) + (o.cf ? ' 🎓' : '') + '</li>'; }).join('') + '</ol>';
     return h + '<button class="aslink" data-act="smend" style="display:block;margin:10px auto">Chiudi il turno</button></div>';
   }
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act^="sm"]') : null; if (!el) return;
     var a = el.getAttribute('data-act');
-    if (a === 'smnext') { var i = +el.getAttribute('data-i'); if (S.shift && !S.shift.done[i]) finish(i, 'ok', '', true); }
-    else if (a === 'smend') { if (curIdx() >= 0 && !confirm('Ci sono ancora tappe da fare. Chiudere il turno lo stesso?')) return; endShift(); }
+    if (a === 'smnext') {
+      if (!S.shift) return; var o = smList()[+el.getAttribute('data-k')]; if (!o || o.done) return;
+      if (o.cf) { S.shift.cfDone[o.key] = Date.now(); save(); toast('Tappa completata'); render(); }
+      else finish(o.i, 'ok', '', true);
+    }
+    else if (a === 'smend') { if (S.shift && smList().some(function (o) { return !o.done; }) && !confirm('Ci sono ancora tappe da fare. Chiudere il turno lo stesso?')) return; endShift(); }
     else if (a === 'smdel') {
       var ids = String(el.getAttribute('data-ids') || '').split(',').filter(Boolean), p = Promise.resolve(); toast('Invio…');
       ids.forEach(function (id) { p = p.then(function () { return cl('rpc_cf_item_status', { p_id: id, p_status: 'in_sede', p_note: 'consegnato da ' + (SESSION ? SESSION.name : '') }); }); });
