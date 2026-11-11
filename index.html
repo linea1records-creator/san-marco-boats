@@ -2010,6 +2010,11 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       if (st[i].extra && st[i].urgency === 'emergenza') return i;
       if (first < 0) first = i;
     }
+    if (first >= 0 && t2m(st[first].t) != null) {
+      var bi = -1;
+      for (var j = 0; j < st.length; j++) { var z = st[j]; if (!z.cf || S.shift.done[j] || z.cancelled || t2m(z.t) == null) continue; if (t2m(z.t) < t2m(st[first].t) && (bi < 0 || t2m(z.t) < t2m(st[bi].t))) bi = j; }
+      if (bi >= 0) return bi;
+    }
     return first;
   }
   function counts() {
@@ -2191,7 +2196,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       save(); closeSheet(); view = NV.keep && NV.open ? 'navi' : isMioUser() ? 'home' : 'guida'; NV.keep = false; spoken = '';
       wakeOn();
       toast('Turno iniziato su ' + BOATS[phys].name + (phys !== code ? ' · programma della ' + BOATS[code].name : ''));
-      gpsApply(); render(); setTimeout(loadMyTasks, 600); setTimeout(colliSync, 1500); if (!(SESSION && SESSION.simple)) setTimeout(function () { gpsModeAsk(true); }, 400);
+      gpsApply(); render(); setTimeout(loadMyTasks, 600); setTimeout(cfRefresh, 900); setTimeout(colliSync, 1500); if (!(SESSION && SESSION.simple)) setTimeout(function () { gpsModeAsk(true); }, 400);
     };
     if (tok() || isOffSess()) { cl('rpc_start_shift', { p_boat: code }).then(function (r) { if (r && (r.resumed || r.error === 'turno_aperto_su_altra_barca')) { closeSheet(); if (r.error) toast('Hai già un turno aperto: lo riprendo. Per cambiare barca usa “Cambio barca”.'); resumeShift(); return; } if (r && r.error === 'barca_in_uso' && phys !== code) { toast('La ' + BOATS[code].name + ' risulta in uso: parto con il programma della ' + BOATS[phys].name); PL_FORCE = true; startShift(phys); return; } if (r && r.error) { scanMsg(startErr(r.error), true); return; } go(); if (r && r.shift_id && S.shift) { S.shift.sid = r.shift_id; save(); } if (phys !== code && tok() && !isOffSess()) cl('rpc_shift_boat_swap', { p_boat: phys, p_partner: false, p_note: 'Programma collegato alla persona' }).then(function (w) { if (!w || !w.ok) toast('Non riesco a segnare la ' + BOATS[phys].name + ' come barca del turno: usa “Cambio barca”'); }); cl('rpc_set_plan', { p_plan: stops().map(function (z) { return { name: z.name, t: z.ind ? '' : (z.t || '') }; }) }); }); } else go();
   }
@@ -3487,7 +3492,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (!(bd.stops || []).length) h += '<p class="big">' + (bd.onCall ? 'Nessun giro fisso: sei reperibile.' : 'Nessuna tappa.') + '</p>';
     else { var mine = S.shift && S.shift.day === k && S.shift.boat === me, cur = mine ? curIdx() : -2; h += '<ul class="stl">' + bd.stops.map(function (s, i) { return pgStopLi(s, i, mine, cur); }).join('') + '</ul>'; }
     if (bd && bd.onCall && (bd.stops || []).length) h += '<div class="note"><b>Emergenze.</b> Dopo il giro resti reperibile.</div>';
-    return h + '</section>' + pdReport(k, [me]) + '<p class="hint">Gli orari possono subire variazioni. Per dubbi scrivi alla logistica.</p></div>';
+    return h + '</section>' + cfProgCard(k) + pdReport(k, [me]) + '<p class="hint">Gli orari possono subire variazioni. Per dubbi scrivi alla logistica.</p></div>';
   }
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
@@ -5101,7 +5106,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var sh = S.shift;
     setTimeout(function () { loadWx(false); loadTide(false); drawMap(); }, 50);
     var parts = {
-      stop: '<div class="stpanel">' + (rev ? '<div class="revb">✓ ' + (hold ? 'Arrivato alle ' + hm(rev.t) + (rev.gps ? ' · confermato dal GPS' : '') + ' · consegna segnata' : (rev.status === 'ok' ? 'Già consegnata' : 'Già segnata con problema') + ' alle ' + hm(rev.t) + ' · non si ripete') + '</div>' : '') + (s && i >= 0 ? probBanner(i) + refuelChip(i) + (rev && !hold ? '' : colliChip(i)) : '') + '<div class="stbody" id="stFace">' + (s ? stopInner(s, i, all) : freePanel(c)) + '</div></div>',
+      stop: '<div class="stpanel">' + (rev ? '<div class="revb">✓ ' + (hold ? 'Arrivato alle ' + hm(rev.t) + (rev.gps ? ' · confermato dal GPS' : '') + ' · consegna segnata' : (rev.status === 'ok' ? 'Già consegnata' : 'Già segnata con problema') + ' alle ' + hm(rev.t) + ' · non si ripete') + '</div>' : '') + (s && i >= 0 ? probBanner(i) + refuelChip(i) + (rev && !hold ? '' : colliChip(i)) : '') + '<div class="stbody" id="stFace">' + (s ? stopInner(s, i, all) : freePanel(c)) + '</div>' + (s && i >= 0 && !rev ? cfStopActs(s.name) : '') + '</div>',
       ddt: '<div id="ddwMini">' + ddwMini() + '</div>',
       map: mapHtml(),
       speed: gwVar('speed') === 0 ? '<div class="gz sm" id="spFace">' + speedInner() + '</div>' : '<div class="spv sp' + gwVar('speed') + '" id="spFace">' + speedInner() + '</div>',
@@ -10123,7 +10128,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       (r.colli || []).forEach(function (c) { for (var i = 0; i < st.length; i++) if (st[i].name === c.name && (st[i].t || '') === (c.planned || '')) { S.shift.colli[day + ':' + i] = c.n; break; } });
       if (SESSION) { SESSION.open = null; try { localStorage.setItem(SKEY, JSON.stringify(SESSION)); } catch (x) {} }
       save(); closeSheet(); view = isMioUser() ? 'home' : 'guida'; spoken = '';
-      wakeOn(); gpsApply(); render(); setTimeout(loadMyTasks, 600);
+      wakeOn(); gpsApply(); render(); setTimeout(loadMyTasks, 600); setTimeout(cfRefresh, 900);
       toast('Turno ripreso su ' + BOATS[code].name + (n ? ' · ' + n + (n === 1 ? ' tappa già fatta' : ' tappe già fatte') : ''));
     }).catch(function () { resumeShift.busy = false; toast('Non riesco a riprendere il turno: controlla la connessione'); });
   }
@@ -11250,6 +11255,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       CAF.busy = false; if (!r || r.error) { CAF.loaded = k; CAF.items = []; CAF.err = r && r.error; return; }
       CAF.err = null; CAF.acc = r.access; CAF.me = r.me; CAF.items = r.items || []; CAF.loaded = k;
       if (r.access === 'carrier' && k !== todayKey()) { CAF.day = todayKey(); }
+      try { cfSyncExtras(); } catch (e) {}
     }).catch(function () { CAF.busy = false; });
   }
   function cafStep(s) {
@@ -11453,7 +11459,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       var who = g.kind === 'ref' ? 'ref' : (g.to || '');
       return '<div class="caflegrow"><input class="field txt" id="cafLt' + n + '" value="' + esc(g.t || '') + '" placeholder="08:00" inputmode="numeric" style="width:74px">' +
         '<input class="field txt" id="cafLp' + n + '" value="' + esc(g.place || '') + '" placeholder="Dove" style="flex:1">' +
-        '<select class="field txt" id="cafLw' + n + '" style="flex:1"><option value="ref"' + (who === 'ref' ? ' selected' : '') + '>👤 Referente camerieri</option>' + (who && who !== 'ref' && !pp.some(function (p) { return p.id === who; }) ? '<option value="' + esc(who) + '" selected>' + esc(g.to_name || 'Trasportatore') + '</option>' : '') + pp.map(function (p) { return '<option value="' + p.id + '"' + (who === p.id ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join('') + '</select>' +
+        '<select class="field txt" id="cafLw' + n + '" style="flex:1"><option value="ref"' + (who === 'ref' ? ' selected' : '') + '>👤 Referente camerieri</option>' + (who && who !== 'ref' && !pp.some(function (p) { return p.id === who; }) ? '<option value="' + esc(who) + '" selected>' + esc(g.to_name || 'Trasportatore') + '</option>' : '') + pp.map(function (p) { return '<option value="' + p.id + '"' + (who === p.id ? ' selected' : '') + '>' + esc(p.name + (p.tag ? ' · ' + p.tag : '')) + '</option>'; }).join('') + '</select>' +
         '<button class="btn sm quiet" data-act="caflegdel" data-n="' + n + '" aria-label="Togli">✕</button></div>';
     }).join('');
   }
@@ -11727,6 +11733,73 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     s.rows.forEach(function (r) { p = p.then(function () { return cl('rpc_cf_item_status', { p_id: r.i.id, p_status: r.i.status === 'magazzino' || r.i.status === 'mancante' ? 'caricato' : r.i.status, p_note: 'consegnato da ' + (SESSION ? SESSION.name : '') + ' · ' + s.place + ' → ' + s.to }); }); });
     p.then(function () { vgMark(k); toast('Consegna segnata ✓'); cafLoad(true).then(render); });
   });
+  /* ---------- Ca' Foscari nel programma del turno: se sei tra chi riceve o consegna cose di un evento, la tappa entra da sola nel tuo giro ---------- */
+  function cfNear(a, b) { var x = t2m(a), y = t2m(b); return x == null || y == null || Math.abs(x - y) <= 60; }
+  function cfInProg(list, place, t) { return (list || []).some(function (z) { return !z.cancelled && !z.cf && smPlace(z.name, place) && cfNear(z.t, t); }); }
+  function cfStopNote(s) {
+    var w = []; s.rows.forEach(function (r) { var n = (r.i.qty ? fmtQ(r.i.qty) + (r.i.unit ? ' ' + r.i.unit : '') + ' × ' : '') + r.i.what; if (w.indexOf(n) < 0) w.push(n); });
+    var ev = []; s.rows.forEach(function (r) { var n = (r.x.room || r.x.venue || '').split(' · ')[0].replace(/\s*\(.*\)$/, ''); if (n && ev.indexOf(n) < 0) ev.push(n); });
+    return '🎓 Ca’ Foscari' + (ev.length ? ' (' + ev.join(', ') + ')' : '') + ' · ' + (s.kind === 'pick' ? 'Ricevi' + (s.from ? ' da ' + s.from : '') : 'Consegna a ' + s.to) + ': ' + w.join(', ');
+  }
+  function cfSyncExtras() {
+    var sh = S.shift; if (!sh || (SESSION && SESSION.simple) || sh.day !== todayKey() || CAF.loaded !== todayKey()) return false;
+    var bd = boatDay(), base = bd ? bd.stops.length : 0, want = {}, changed = false;
+    sh.extra = sh.extra || [];
+    vgStops().forEach(function (s) {
+      if (!s.place || cfInProg(bd ? bd.stops : [], s.place, s.t)) return; // già nel giro della barca: i tasti compaiono in quella tappa
+      var k = 'cf|' + s.key, note = cfStopNote(s), idx = -1; want[k] = 1;
+      sh.extra.forEach(function (x, n) { if (x.cfk === k) idx = n; });
+      if (idx < 0) {
+        var ck = COORDS[s.place] ? s.place : Object.keys(COORDS).filter(function (n) { return smPlace(n, s.place); })[0], co = ck ? COORDS[ck] : null;
+        if (co && !COORDS[s.place]) COORDS[s.place] = co;
+        sh.extra.push({ cfk: k, cf: true, extra: true, name: s.place, t: s.t || '', note: note, urgency: 'normale', by: 'Ca’ Foscari', lat: co ? co[0] : null, lng: co ? co[1] : null });
+        changed = true;
+      } else {
+        var x = sh.extra[idx];
+        if (x.cancelled && !sh.done[base + idx]) { x.cancelled = false; changed = true; }
+        if (x.note !== note) { x.note = note; changed = true; }
+      }
+    });
+    // tolta dall'inventario (o evento annullato): la tappa non fatta sparisce dal giro
+    sh.extra.forEach(function (x, n) { if (x.cfk && !want[x.cfk] && !x.cancelled && !sh.done[base + n]) { x.cancelled = true; changed = true; } });
+    if (changed) save();
+    return changed;
+  }
+  function cfRefresh() {
+    if (!S.shift || !tok() || isOffSess() || document.hidden || view === 'cafoscari') return;
+    (hasCf() ? Promise.resolve() : cafMe().catch(function () {})).then(function () {
+      if (!hasCf() || CAF.busy) return;
+      CAF.day = todayKey();
+      return cafLoad(true).then(function () { if (cfSyncExtras() && (view === 'guida' || view === 'turno' || view === 'programma')) render(); });
+    });
+  }
+  setInterval(cfRefresh, 60000);
+  // nel "Mio programma": le tappe Ca' Foscari di oggi in cui ricevi o consegni qualcosa
+  function cfProgCard(k) {
+    if (k !== todayKey() || !hasCf()) return ''; vgEnsure(); if (CAF.loaded !== k) return '';
+    var l = vgStops(); if (!l.length) return '';
+    return '<section class="card"><h3>🎓 Ca’ Foscari · tappe per te</h3><ul class="stl">' + l.map(function (s) {
+      return '<li' + (s.done ? ' style="opacity:.55"' : '') + '><div><b>' + esc((s.t ? s.t + ' · ' : '') + s.place) + '</b><div class="muted">' + esc(cfStopNote(s).replace(/^🎓 Ca’ Foscari\s*/, '')) + '</div></div>' + (s.done ? '<span class="pill">✓</span>' : '') + '</li>';
+    }).join('') + '</ul><div class="hint">Entrano da sole nel giro quando inizi il turno.</div></section>';
+  }
+  // tasti Ca' Foscari nella tappa del turno (ricevi / consegna), per chi fa il giro normale
+  function cfStopActs(name) {
+    if (!S.shift || !name || CAF.loaded !== todayKey()) return '';
+    var h = '';
+    vgStops().forEach(function (s) {
+      if (!smPlace(s.place, name)) return;
+      if (s.done) { h += '<div class="smok">✓ Ca’ Foscari · ' + (s.kind === 'pick' ? 'ricevuto' : 'consegnato') + '</div>'; return; }
+      if (s.kind === 'pick') {
+        var open = !s.ts || Date.now() >= s.ts - 20 * 60000, byEv = {};
+        s.rows.forEach(function (r) { (byEv[r.x.id] = byEv[r.x.id] || []).push(r); });
+        Object.keys(byEv).forEach(function (eid) {
+          var todo = byEv[eid].filter(function (r) { return !r.g.conf; }); if (!todo.length) return;
+          h += '<button class="btn ' + (open ? 'primary ' : '') + 'smact" data-act="cafrcv" data-e="' + eid + '" data-k="' + esc(s.lk) + '"' + (open ? '' : ' disabled') + '>' + (open ? '🎓 Spunta cosa hai ricevuto' : '⏰ Puoi confermare dalle ' + esc(hm(s.ts - 20 * 60000))) + '<small>' + esc(todo.map(function (r) { return r.i.what; }).join(', ')) + '</small></button>';
+        });
+      } else h += '<button class="btn primary smact" data-act="vgdrop" data-k="' + esc(s.key) + '">🎓 Consegnato a ' + esc(s.to) + '<small>' + esc(s.rows.map(function (r) { return r.i.what; }).join(', ')) + '</small></button>';
+    });
+    return h ? '<div class="smacts">' + h + '</div>' : '';
+  }
   function homeApps() { var ap = homeApps0(); if (hasCf() && ap.indexOf('cafoscari') < 0 && !isBill() && !isPack() && !isBoatRole()) ap.splice(isCfOnly() ? 0 : Math.min(2, ap.length), 0, 'cafoscari'); return ap; }
   function homeApps0() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
