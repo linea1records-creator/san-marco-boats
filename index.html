@@ -11436,9 +11436,9 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     cl('rpc_cf_waiters', {}).then(function (ws) {
       ws = Array.isArray(ws) ? ws : [];
       openSheet('<h2>👤 Referente camerieri</h2><p class="muted">' + esc(x.venue + (x.room ? ' · ' + x.room : '')) + '</p><p class="hint" style="margin-top:0">Il referente conferma sull’app di aver ricevuto le cose, da 20 minuti prima della consegna.</p>' +
-        (ws.length ? ws.map(function (w) { return '<button class="btn' + (w.id === x.ref_id ? ' primary' : '') + '" data-act="cafrefset" data-id="' + w.id + '" style="width:100%;margin-bottom:6px;justify-content:space-between;display:flex"><span>' + esc(w.name) + '</span><small>PIN ' + esc(w.pin || '—') + '</small></button>'; }).join('') : '<p class="muted">Nessun cameriere ancora.</p>') +
+        (ws.length ? ws.map(function (w) { return '<div style="display:flex;gap:6px;margin-bottom:6px"><button class="btn' + (w.id === x.ref_id ? ' primary' : '') + '" data-act="cafrefset" data-id="' + w.id + '" style="flex:1;justify-content:space-between;display:flex"><span>' + esc(w.name) + '</span><small>PIN ' + esc(w.pin || '—') + '</small></button><button class="btn quiet" data-act="cafwdel" data-id="' + w.id + '" data-n="' + esc(w.name) + '" aria-label="Elimina ' + esc(w.name) + '" style="flex:none;color:#b91c1c">🗑</button></div>'; }).join('') : '<p class="muted">Nessun cameriere ancora.</p>') +
         (x.ref_id ? '<button class="btn quiet" data-act="cafrefset" data-id="" style="width:100%">Togli il referente</button>' : '') +
-        '<div class="clsec">Nuovo cameriere</div><div style="display:flex;gap:8px"><input class="field txt" id="cafWn" placeholder="Nome e cognome" style="flex:1"><button class="btn" data-act="cafwadd" style="flex:none">Crea</button></div>' +
+        '<div class="clsec">Nuovo cameriere</div><div style="display:flex;gap:8px"><input class="field txt" id="cafWn" placeholder="Nome e cognome" dir="ltr" autocapitalize="words" autocomplete="off" autocorrect="off" spellcheck="false" style="flex:1;direction:ltr;unicode-bidi:plaintext"><button class="btn" data-act="cafwadd" style="flex:none">Crea</button></div>' +
         '<button class="btn quiet" data-act="veil" style="width:100%;margin-top:10px">Chiudi</button>');
     });
   }
@@ -11513,6 +11513,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (a === 'cafref') cafRefPick(id);
     else if (a === 'cafrefset') cafRefSet(CAF.refEv, id);
     else if (a === 'cafwadd') cafWaiterAdd();
+    else if (a === 'cafwdel') { if (!confirm('Eliminare l’account di ' + el.getAttribute('data-n') + '?')) return; cl('rpc_cf_waiter_del', { p_id: id }).then(function (r) { if (r && r.ok) { toast('Account eliminato'); cafLoad(true); cafRefPick(CAF.refEv); } else toast('Non riesco a eliminare'); }); }
     else if (a === 'cafisave') {
       var w = $('cfiWhat').value.trim(); if (!w) { toast('Scrivi cosa'); return; }
       var it = { id: id || null, event_id: el.getAttribute('data-e'), what: w, qty: String($('cfiQty').value || '').replace(',', '.'), unit: $('cfiUnit').value, cat: $('cfiCat').value, route: cafLegsRead() };
