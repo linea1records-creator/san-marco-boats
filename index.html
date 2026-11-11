@@ -1202,6 +1202,7 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .cafrcv.done { font-size: 13.5px; color: #166534; text-align: center; padding: 6px; background: #dcfce7; border-radius: 10px; }
 .cafrrow { padding: 8px 0; border-bottom: 1px solid rgba(127,127,127,.15); }
 .caflegrow { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; } .caflegrow .field { margin: 0; padding: 8px; font-size: 15px; }
+.scalbn { background: #fff7ed; border: 2px solid #ea580c; color: #7c2d12; margin-bottom: 10px; } .plw > .scalbn { margin: 10px; width: calc(100% - 20px); }
 .smw > .row h2 { color: #fff; } .vgw.smw > .row h2 { color: inherit; } .vgw.smw > .row .pill { background: rgba(127,127,127,.15); color: inherit; } .vgw.smw .smlist li { color: var(--muted); border-color: rgba(127,127,127,.15); } .vgw.smw .smlist li.now { color: inherit; } .smw > .row .pill { background: rgba(255,255,255,.15); color: #fff; } .smw .smlist li { color: rgba(255,255,255,.6); border-color: rgba(255,255,255,.12); } .smw .smlist li.now { color: #fff; } .smw > .aslink { color: #93c5fd; }
 .smw .smcard { padding: 18px; } .smlbl { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 .smbig { font-size: 30px; font-weight: 800; line-height: 1.15; margin: 2px 0 4px; } .smnote { font-size: 17px; margin: 10px 0; }
@@ -9031,7 +9032,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var tz = s && s.t ? s.t : '––:––', late = '';
     if (p.shift && s && s.t && !s.ind) { var now = new Date(), dm = now.getHours() * 60 + now.getMinutes() - t2m(s.t); if (dm > 5) late = '<span class="plate bad">+' + dm + ' min</span>'; else if (dm < -5) late = '<span class="plate">tra ' + (-dm) + ' min</span>'; else late = '<span class="plate ok">in orario</span>'; }
     var boatN = p.shift ? physName(S.shift) : (p.boat && BOATS[p.boat] ? BOATS[p.boat].name : '');
-    var h = '<div class="plw">';
+    var h = '<div class="plw">' + scalBanner();
     // TABELLONE
     h += '<section class="pltb" aria-label="Tabellone"><div class="pltop"><span>' + (p.shift ? 'PROSSIMA TAPPA' : 'PRIMA TAPPA DI OGGI') + '</span><span>' + esc(boatN.toUpperCase()) + (p.total ? ' · ' + p.done + '/' + p.total : '') + '</span></div>';
     if (s) h += '<div class="pldest">' + esc(s.name) + '</div><div class="plrow"><div class="plcell"><small>ORA</small><b>' + esc(tz) + '</b></div><div class="plcell"><small>POLYBOX</small><b>' + (pb == null ? '–' : pb) + '</b></div><div class="plcell pll">' + late + '</div></div>' +
@@ -11033,7 +11034,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   var NAV_FULL = [['logistica', 'Logistica'], ['barca', 'Barche'], ['turno', 'Turno'], ['notifiche', 'Notifiche'], ['altro', 'Altro']];
   var NAV_MGR = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['turno', 'Turno'], ['barca', 'Barca'], ['contatti', 'Contatti']];
   var NAV = [['turno', 'Turno'], ['programma', 'Programma'], ['ddtgiro', 'DDT'], ['barca', 'Barche'], ['notifiche', 'Chat']];
-  var NAV_CF = [['cafoscari', 'Ca’ Foscari'], ['calendario', 'Calendario'], ['contatti', 'Contatti'], ['impost', 'Impostazioni']];
+  var NAV_CF = [['scaletta', 'Scaletta'], ['cafoscari', 'Ca’ Foscari'], ['calendario', 'Calendario'], ['contatti', 'Contatti'], ['impost', 'Impostazioni']];
   var NAV_SIGN = [['ddtgiro', 'DDT'], ['programma', 'Programma'], ['calendario', 'Calendario'], ['contatti', 'Contatti']];
   var NAV_VAN = [['furgone', 'Giro'], ['polybox', 'Polybox'], ['tracking', 'Dov’è'], ['programma', 'Programma'], ['contatti', 'Contatti']];
   var NAV_OFF = [['cucina', 'Cucina'], ['programma', 'Programma'], ['ddt', 'DDT'], ['notifiche', 'Chat'], ['contatti', 'Contatti']];
@@ -11047,14 +11048,14 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isOff() && ['home', 'presenze', 'ddt', 'contatti', 'impost', 'programma', 'cucina', 'notifiche', 'snap'].indexOf(view) < 0) view = 'home';
     if (view === 'presenze' && !isOff() && !isMgr() && !isFullAcc()) view = 'home';
-    if (isCfOnly() && ['home', 'cafoscari', 'calendario', 'contatti', 'impost'].indexOf(view) < 0) view = 'cafoscari';
+    if (isCfOnly() && ['home', 'cafoscari', 'scaletta', 'calendario', 'contatti', 'impost'].indexOf(view) < 0) view = 'cafoscari';
     if (view === 'cafoscari' && !hasCf()) view = 'home';
-    if (isSigner() && ['home', 'ddtgiro', 'programma', 'calendario', 'contatti', 'impost', 'cafoscari'].indexOf(view) < 0) view = 'ddtgiro';
+    if (isSigner() && ['home', 'ddtgiro', 'programma', 'calendario', 'contatti', 'impost', 'cafoscari', 'scaletta'].indexOf(view) < 0) view = 'ddtgiro';
     if (isPack() && ['home', 'confeziona', 'programma', 'impost', 'contatti', 'snap', 'calendario'].indexOf(view) < 0) view = 'confeziona';
     if (isBoatRole() && ['home', 'calendario', 'barca', 'impost', 'contatti', 'snap', 'programma'].indexOf(view) < 0) view = 'calendario';
     if (view === 'confeziona' && !isPack() && !isMgr() && !isFullAcc()) view = 'home';
     if (view === 'invita' && !isMgr() && !isFullAcc()) view = 'home';
-    if (isVan() && ['home', 'polybox', 'tracking', 'contatti', 'impost', 'programma', 'navi', 'snap', 'calendario', 'cafoscari', 'furgone'].indexOf(view) < 0) view = 'home';
+    if (isVan() && ['home', 'polybox', 'tracking', 'contatti', 'impost', 'programma', 'navi', 'snap', 'calendario', 'cafoscari', 'furgone', 'scaletta'].indexOf(view) < 0) view = 'home';
     if (view === 'tracking' && isOff()) view = 'ddt';
     if (view === 'spedizioni' && (isOff() || isVan())) view = 'home';
     if (view === 'turni' && !isMgr() && !isFullAcc()) view = 'home';
@@ -11104,7 +11105,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { invita: viewInv, calendario: viewCal, confeziona: viewConf, admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, mybarche: viewMyBoats, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi, orari: viewOrari, navi: viewNavi, snap: viewSnap, cafoscari: viewCafoscari, furgone: viewFurgone }[view] || viewTurno;
+    var fn = { invita: viewInv, calendario: viewCal, confeziona: viewConf, admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, mybarche: viewMyBoats, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi, orari: viewOrari, navi: viewNavi, snap: viewSnap, cafoscari: viewCafoscari, furgone: viewFurgone, scaletta: viewScaletta }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     diag('disegno ' + view); var _t0 = Date.now(), m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); if (view === 'percorsi') setTimeout(rtDraw, 0); m.scrollTop = (view === 'guida') ? 0 : sc; diag('fatto ' + view + ' ' + (Date.now() - _t0) + 'ms');
     if (LITE && Date.now() - _t0 > 2500 && window.__smbErr) window.__smbErr('Pagina lenta: ' + view + ' ' + (Date.now() - _t0) + ' ms');
@@ -11265,7 +11266,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (!tabs.some(function (t) { return t[0] === CAF.tab; })) CAF.tab = 'prog';
     var h = '<div class="wrap cafw">' + (isCfOnly() ? '' : '<button class="aslink" data-act="nav" data-v="home">‹ Home</button>') +
       '<div class="row"><h2>🎓 Ca’ Foscari</h2>' + (a ? '<span class="pill">' + esc(CAF_ACC[a] || a) + '</span>' : '') + '</div>' +
-      '<div class="chips caftabs">' + tabs.map(function (t) { return '<button class="chip" data-act="caftab" data-t="' + t[0] + '" aria-pressed="' + (CAF.tab === t[0]) + '">' + t[1] + '</button>'; }).join('') + '</div>';
+      (CAF.day === todayKey() || !CAF.day ? scalBanner() : '') + '<div class="chips caftabs">' + tabs.map(function (t) { return '<button class="chip" data-act="caftab" data-t="' + t[0] + '" aria-pressed="' + (CAF.tab === t[0]) + '">' + t[1] + '</button>'; }).join('') + '</div>';
     if (CAF.err === 'non_autorizzato_cf') return h + '<div class="card"><p class="muted">Oggi non hai eventi Ca’ Foscari assegnati.</p></div></div>';
     if (CAF.tab === 'stat') return h + cafStatView() + '</div>';
     if (a === 'carrier') h += '<p class="hint" style="margin-top:0">Vedi gli eventi di oggi perché sei incaricato del trasporto.</p>';
@@ -11649,65 +11650,75 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       p.then(function () { toast('Consegna segnata ✓'); cafLoad(true).then(render); });
     }
   });
-  /* ---------- Giro del furgone (Sergio): una tappa alla volta; a ogni tappa una cosa obbligatoria da confermare ---------- */
+  /* ---------- Scaletta personale: per chiunque abbia un compito (trasportatori, furgone, referente camerieri, chiunque riceva o consegni) ---------- */
   var VG = { busy: false };
   function vgKey() { return 'smb-vg-' + todayKey(); }
   function vgDone() { try { return JSON.parse(localStorage.getItem(vgKey()) || '{}'); } catch (e) { return {}; } }
   function vgMark(k) { var d = vgDone(); d[k] = Date.now(); try { localStorage.setItem(vgKey(), JSON.stringify(d)); } catch (e) {} }
+  function vgMine(x, g) { return g.kind === 'ref' ? (!!CAF.me && x.ref_id === CAF.me) : (!!CAF.me && g.to === CAF.me); }
+  function vgWho(x, g) { return g ? (g.kind === 'ref' ? (x.ref ? x.ref + ' (referente camerieri)' : 'referente camerieri') : (g.to_name || 'trasportatore')) : ''; }
+  function vgEnsure() { var d = todayKey(); if (hasCf() && CAF.loaded !== d && !CAF.busy) { CAF.day = d; cafLoad().then(function () { render(); }); } }
   function vgStops() {
-    var m = {}, out = [], me = CAF.me;
+    var m = {}, out = [];
     (CAF.loaded === todayKey() ? CAF.items : []).forEach(function (x) {
       if (x.status === 'annullato') return;
       (x.items || []).forEach(function (it) {
         var rt = it.route || [];
         rt.forEach(function (g, n) {
-          if (g.kind === 'ref' || g.to !== me) return;
-          var k = 'p|' + (g.t || '') + '|' + ddtNorm(g.place || '');
-          if (!m[k]) { m[k] = { key: k, kind: 'pick', t: g.t || '', place: g.place || 'Ritiro', rows: [] }; out.push(m[k]); }
+          if (!vgMine(x, g)) return;
+          var pv = rt[n - 1], k = 'p|' + (g.t || '') + '|' + ddtNorm(g.place || '') + '|' + (g.kind || '');
+          if (!m[k]) { m[k] = { key: k, kind: 'pick', t: g.t || '', ts: cafLegTs(x, g), place: g.place || x.venue, from: pv ? vgWho(x, pv) : '', lk: (g.t || '') + '|' + (g.place || '') + '|' + (g.kind || ''), rows: [] }; out.push(m[k]); }
           m[k].rows.push({ x: x, i: it, n: n, g: g });
-          var nx = rt[n + 1]; if (!nx) return;
-          var to = nx.kind === 'ref' ? 'referente camerieri' : (nx.to_name || 'barca') + (/toppetta|ardemar|patana/i.test(nx.act || '') ? ' · ' + (nx.act.match(/toppetta|ardemar|patana/i) || [''])[0] : '');
+          var nx = rt[n + 1]; if (!nx || vgMine(x, nx)) return;
           var k2 = 'd|' + (nx.t || '') + '|' + ddtNorm(nx.place || '');
-          if (!m[k2]) { m[k2] = { key: k2, kind: 'drop', t: nx.t || '', place: nx.place || x.venue, to: to, rows: [] }; out.push(m[k2]); }
+          if (!m[k2]) { m[k2] = { key: k2, kind: 'drop', t: nx.t || '', place: nx.place || x.venue, to: vgWho(x, nx) + (/toppetta|ardemar|patana/i.test(nx.act || '') ? ' · ' + (nx.act.match(/toppetta|ardemar|patana/i) || [''])[0] : ''), rows: [] }; out.push(m[k2]); }
           m[k2].rows.push({ x: x, i: it, n: n + 1, g: nx });
         });
       });
     });
-    var dd = vgDone();
+    var dd = vgDone(), me = SESSION && SESSION.name;
     out.forEach(function (s) {
-      s.done = s.kind === 'pick' ? s.rows.every(function (r) { return !!r.g.conf; }) : !!dd[s.key] || s.rows.every(function (r) { return !!r.g.conf; });
+      s.done = s.kind === 'pick' ? s.rows.every(function (r) { return !!r.g.conf; })
+        : !!dd[s.key] || s.rows.every(function (r) { return !!r.g.conf || (r.i.log || []).some(function (l) { return l.who === me && /consegnato da/.test(l.note || '') && (l.note || '').indexOf(s.place) >= 0; }); });
     });
     return out.sort(function (a, b) { return (a.t || '99') < (b.t || '99') ? -1 : (a.t || '99') > (b.t || '99') ? 1 : a.kind === 'pick' ? -1 : 1; });
   }
-  function viewFurgone() {
-    var day = todayKey();
-    if (CAF.loaded !== day && !CAF.busy) { CAF.day = day; cafLoad().then(function () { if (view === 'furgone') render(); }); }
-    if (!DD.loaded && !DD.busy) loadDdt().then(function () { if (view === 'furgone') render(); });
-    var h = '<div class="wrap smw vgw"><button class="aslink" data-act="nav" data-v="home">‹ Home</button><div class="row"><h2>🚐 Giro del furgone</h2>';
+  function scalBanner() {
+    if (!hasCf()) return ''; vgEnsure(); if (CAF.loaded !== todayKey()) return '';
+    var l = vgStops(); if (!l.length) return ''; var todo = l.filter(function (s) { return !s.done; }).length;
+    return '<button class="hmshift scalbn" data-act="nav" data-v="' + (isVan() ? 'furgone' : 'scaletta') + '"><span style="font-size:28px" aria-hidden="true">📋</span><span><b>La tua scaletta di oggi</b>' + (todo ? todo + (todo === 1 ? ' cosa da confermare' : ' cose da confermare') : 'Tutto confermato ✓') + '</span></button>';
+  }
+  function viewScaletta() {
+    var day = todayKey(); vgEnsure();
+    if (!DD.loaded && !DD.busy && !isCfOnly()) loadDdt().then(function () { if (view === 'scaletta' || view === 'furgone') render(); });
+    var h = '<div class="wrap smw vgw">' + (isCfOnly() ? '' : '<button class="aslink" data-act="nav" data-v="home">‹ Home</button>') + '<div class="row"><h2>' + (isVan() ? '🚐 Giro del furgone' : '📋 La mia scaletta') + '</h2>';
     if (CAF.loaded !== day) return h + '</div><div class="card"><p class="muted">Carico…</p></div></div>';
     var list = vgStops(), ci = -1; list.some(function (s, k) { if (!s.done) { ci = k; return true; } return false; });
-    h += '<span class="pill">' + Math.min(list.filter(function (s) { return s.done; }).length + 1, list.length) + ' / ' + list.length + '</span></div>';
-    if (!list.length) return h + '<div class="card"><p class="muted">Oggi non ci sono ritiri o consegne Ca’ Foscari per il furgone.</p></div></div>';
-    if (ci < 0) return h + '<section class="card smcard"><div class="smbig">🎉 Giro finito</div><p class="muted">Tutto confermato. Grazie!</p></section>' + vgListHtml(list, -1) + '</div>';
-    var s = list[ci], acts = '', must = 0;
-    var ddts = ddtOfStop(day, s.place).filter(function (x) { return x.mine; });
-    ddts.forEach(function (x) { if (x.status === 'pending') { must++; acts += '<button class="btn smact" data-act="ddtsign" data-id="' + x.id + '">✍️ Fai firmare il DDT<small>' + esc(x.customer) + '</small></button>'; } else acts += '<div class="smok">✓ DDT firmato · ' + esc(x.customer) + '</div>'; });
+    h += (list.length ? '<span class="pill">' + Math.min(list.filter(function (s) { return s.done; }).length + 1, list.length) + ' / ' + list.length + '</span>' : '') + '</div>';
+    if (!list.length) return h + '<div class="card"><p class="muted">Oggi non hai cose da ricevere o da consegnare.</p></div></div>';
+    if (ci < 0) return h + '<section class="card smcard"><div class="smbig">🎉 Tutto fatto</div><p class="muted">Hai confermato tutto. Grazie!</p></section>' + vgListHtml(list, -1) + '</div>';
+    var s = list[ci], acts = '';
+    if (!isCfOnly()) ddtOfStop(day, s.place).filter(function (x) { return x.mine; }).forEach(function (x) { acts += x.status === 'pending' ? '<button class="btn smact" data-act="ddtsign" data-id="' + x.id + '">✍️ Fai firmare il DDT<small>' + esc(x.customer) + '</small></button>' : '<div class="smok">✓ DDT firmato · ' + esc(x.customer) + '</div>'; });
+    var ev = function (x) { return (x.room || x.venue).split(' · ')[0].replace(/\s*\(.*\)$/, ''); };
     if (s.kind === 'pick') {
-      var byEv = {}; s.rows.forEach(function (r) { (byEv[r.x.id] = byEv[r.x.id] || { x: r.x, rows: [] }).rows.push(r); });
+      var open = !s.ts || Date.now() >= s.ts - 20 * 60000 || (SESSION && SESSION.simple), byEv = {};
+      s.rows.forEach(function (r) { (byEv[r.x.id] = byEv[r.x.id] || { x: r.x, rows: [] }).rows.push(r); });
       Object.keys(byEv).forEach(function (eid) {
         var o = byEv[eid], todo = o.rows.filter(function (r) { return !r.g.conf; });
-        if (!todo.length) { acts += '<div class="smok">✓ Caricato · ' + esc((o.x.room || o.x.venue).split(' · ')[0]) + '</div>'; return; }
-        acts += '<button class="btn primary smact" data-act="cafrcv" data-e="' + eid + '" data-k="' + esc(s.t + '|' + s.place + '|carrier') + '">📋 Spunta la lista da caricare<small>' + esc((o.x.room || o.x.venue).split(' · ')[0] + ': ' + todo.map(function (r) { return r.i.what; }).join(', ')) + '</small></button>';
+        if (!todo.length) { acts += '<div class="smok">✓ Ricevuto · ' + esc(ev(o.x)) + '</div>'; return; }
+        acts += '<button class="btn ' + (open ? 'primary ' : '') + 'smact" data-act="cafrcv" data-e="' + eid + '" data-k="' + esc(s.lk) + '"' + (open ? '' : ' disabled') + '>' + (open ? '📋 Spunta cosa hai ricevuto' : '⏰ Puoi confermare dalle ' + esc(hm(s.ts - 20 * 60000))) + '<small>' + esc(ev(o.x) + ': ' + todo.map(function (r) { return r.i.what; }).join(', ')) + '</small></button>';
       });
     } else {
-      acts += '<button class="btn primary smact" data-act="vgdrop" data-k="' + esc(s.key) + '">✅ Consegnato · ' + esc(s.to) + '<small>' + esc((function () { var g = {}, o = []; s.rows.forEach(function (r) { var n = (r.x.room || r.x.venue).split(' · ')[0].replace(/\s*\(.*\)$/, ''); if (!g[n]) { g[n] = []; o.push(n); } g[n].push(r.i.what); }); return o.map(function (n) { return n + ': ' + g[n].join(', '); }).join(' · '); })()) + '</small></button>';
+      var g = {}, o = []; s.rows.forEach(function (r) { var n = ev(r.x); if (!g[n]) { g[n] = []; o.push(n); } g[n].push(r.i.what); });
+      acts += '<button class="btn primary smact" data-act="vgdrop" data-k="' + esc(s.key) + '">✅ Consegnato a ' + esc(s.to) + '<small>' + esc(o.map(function (n) { return n + ': ' + g[n].join(', '); }).join(' · ')) + '</small></button>';
     }
-    h += '<section class="card smcard"><div class="smlbl">' + (s.kind === 'pick' ? 'Vai a caricare' : 'Vai a consegnare') + '</div><div class="smbig">' + esc(s.place) + '</div>' + (s.t ? '<div class="muted">circa ' + esc(s.t) + '</div>' : '') +
-      '<div class="smacts">' + acts + '</div><p class="hint" style="margin:4px 0 0">Conferma qui sopra per passare alla tappa dopo.</p></section>';
+    h += '<section class="card smcard"><div class="smlbl">' + (s.kind === 'pick' ? 'Ricevi' + (s.from ? ' da ' + esc(s.from) : '') : 'Consegna') + '</div><div class="smbig">' + esc(s.place) + '</div>' + (s.t ? '<div class="muted">circa ' + esc(s.t) + '</div>' : '') +
+      '<div class="smacts">' + acts + '</div><p class="hint" style="margin:4px 0 0">Conferma qui sopra per passare al punto dopo.</p></section>';
     return h + vgListHtml(list, ci) + '</div>';
   }
+  var viewFurgone = viewScaletta;
   function vgListHtml(list, ci) {
-    return '<ol class="smlist">' + list.map(function (s, k) { return '<li class="' + (s.done ? 'dn' : k === ci ? 'now' : '') + '"><span>' + (s.done ? '✓' : k === ci ? '➜' : '') + '</span>' + esc((s.t ? s.t + ' ' : '') + s.place) + ' · ' + (s.kind === 'pick' ? 'carico' : 'consegna') + '</li>'; }).join('') + '</ol>';
+    return '<ol class="smlist">' + list.map(function (s, k) { return '<li class="' + (s.done ? 'dn' : k === ci ? 'now' : '') + '"><span>' + (s.done ? '✓' : k === ci ? '➜' : '') + '</span>' + esc((s.t ? s.t + ' ' : '') + s.place) + ' · ' + (s.kind === 'pick' ? 'ricevi' : 'consegna') + '</li>'; }).join('') + '</ol>';
   }
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act="vgdrop"]') : null; if (!el) return;
@@ -11739,7 +11750,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (S.shift && !isVan() && !isOff()) h += '<button class="hmshift" data-act="nav" data-v="turno"><span style="font-size:28px" aria-hidden="true">🚤</span><span><b>Turno in corso</b>' + esc(BOATS[S.shift.boat] ? BOATS[S.shift.boat].name : '') + ' · tocca per riprendere</span></button>';
     if ((navigator.onLine === false || (SESSION && SESSION.offline)) && !isVan() && !isOff()) h += '<button class="hmshift" data-act="emopen" style="background:#7f1d1d;color:#fff"><span style="font-size:28px" aria-hidden="true">🆘</span><span><b>' + (SESSION && SESSION.offline ? 'Modalità offline · niente va nel database' : 'Sei offline') + '</b>Apri il turno d’emergenza: le tappe si segnano dal programma</span></button>';
     if (OUT.n) h += '<div class="card" role="status" style="border-color:#E65100"><b>📤 ' + OUT.n + (OUT.n === 1 ? ' dato del turno offline' : ' dati del turno offline') + ' sul telefono</b><span class="muted">' + (isOffSess() ? 'Si inviano da soli quando entri con il tuo PIN e c’è internet.' : OUT.err ? 'Non inviati: chiudi prima il turno aperto sul server, poi riapri l’app.' : 'Li sto inviando al database…') + '</span></div>';
-    h += turniHomeBanner() + shipHomeBanner() + expHomeBanner();
+    h += scalBanner() + turniHomeBanner() + shipHomeBanner() + expHomeBanner();
     var _apps = homeApps(), _ord = homeOrdered(_apps);
     if (HM.edit) h += homeEditView(_apps) + '</div>';
     else if (_ord && (isMgr() || isFullAcc()) && !isVan() && !isOff()) { ogLoad(false); h += homeMgr([]).replace(/<section class="hmarea[\s\S]*$/, '') + '<div class="hmgrid hmg2" role="list">' + _ord.map(homeTile).join('') + '</div><button class="aslink hmcus" data-act="hmedit">✎ Personalizza la Home</button></div>'; }
