@@ -11305,7 +11305,9 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   // linea del tempo dell'evento: orari del servizio + tappe di carico e scarico di barche e furgone (dal percorso degli oggetti)
   function cafTimeline(x) {
     var rows = (x.steps || []).map(function (s) { return { t: s.t || '', h: cafStep(s) }; }), grp = {}, ord = [];
+    var wt = cafAcc() === 'waiter'; // ai camerieri solo i passaggi al referente, niente barche e furgone
     (x.items || []).forEach(function (i) { (i.route || []).forEach(function (g) {
+      if (wt && g.kind !== 'ref' && g.to !== CAF.me) return;
       var k = (g.t || '') + '|' + (g.place || '') + '|' + (g.kind || '') + '|' + (g.to || '');
       if (!grp[k]) { grp[k] = { g: g, w: [], dn: true }; ord.push(k); } grp[k].w.push(i.what); if (!g.conf) grp[k].dn = false;
     }); });
@@ -11322,7 +11324,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (x.carrier2) tr += '<br>🚤 ' + esc(x.carrier2) + (x.boat2 && BOATS[x.boat2] ? ' · ' + esc(BOATS[x.boat2].name) : '');
     return '<section class="card cafev' + (x.status === 'annullato' ? ' cafoff' : '') + '">' + cafHead(x) +
       (x.kind ? '<p class="cafkind">' + esc(x.kind) + '</p>' : '') + (x.address ? '<p class="muted" style="margin:2px 0">📍 ' + esc(x.address) + '</p>' : '') +
-      '<p style="margin:4px 0">' + tr + '</p>' +
+      (cafAcc() === 'waiter' ? '' : '<p style="margin:4px 0">' + tr + '</p>') +
       '<p style="margin:4px 0">👤 ' + (x.ref ? 'Referente camerieri: <b>' + esc(x.ref) + '</b>' : '<span style="color:#b45309">Referente camerieri da scegliere</span>') + (cafCanEdit() ? ' <button class="aslink" data-act="cafref" data-id="' + x.id + '">' + (x.ref ? 'cambia' : 'scegli') + '</button>' : '') + '</p>' +
       cafTimeline(x) +
       (x.notes ? '<p class="hint" style="margin:6px 0 0">📝 ' + esc(x.notes) + '</p>' : '') +
@@ -11705,6 +11707,13 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     });
     return out.sort(function (a, b) { return (a.t || '99') < (b.t || '99') ? -1 : (a.t || '99') > (b.t || '99') ? 1 : a.kind === 'pick' ? -1 : 1; });
   }
+  function cfBox() {
+    vgEnsure(); if (CAF.loaded !== todayKey()) return '<section class="card"><h3>📋 La tua scaletta di oggi</h3><p class="muted">Carico…</p></section>';
+    var l = vgStops(), todo = l.filter(function (s) { return !s.done; }), nx = todo[0];
+    if (!l.length) return '<section class="card"><h3>📋 La tua scaletta di oggi</h3><p class="muted">Oggi non hai cose da ricevere o da consegnare.</p></section>';
+    return '<button class="hmshift scalbn" data-act="nav" data-v="scaletta" style="flex-direction:column;align-items:flex-start;gap:4px"><b style="font-size:18px">📋 La tua scaletta di oggi</b>' +
+      (nx ? '<span>' + (nx.kind === 'pick' ? '📥 Ricevi' : '📦 Consegna') + ' · <b>' + esc((nx.t ? nx.t + ' ' : '') + nx.place) + '</b>' + (nx.kind === 'pick' && nx.from ? ' da ' + esc(nx.from.replace(/\s*\(.*\)$/, '')) : nx.kind !== 'pick' ? ' a ' + esc(nx.to) : '') + '</span><small>' + todo.length + (todo.length === 1 ? ' cosa da confermare' : ' cose da confermare') + ' · tocca per aprire</small>' : '<span>Tutto confermato ✓</span>') + '</button>';
+  }
   function scalBanner() {
     if (!hasCf()) return ''; vgEnsure(); if (CAF.loaded !== todayKey()) return '';
     var l = vgStops(); if (!l.length) return ''; var todo = l.filter(function (s) { return !s.done; }).length;
@@ -11797,7 +11806,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     return '🎓 Ca’ Foscari' + (ev.length ? ' (' + ev.join(', ') + ')' : '') + ' · ' + (s.kind === 'pick' ? 'Ricevi' + (s.from ? ' da ' + s.from : '') : 'Consegna a ' + s.to) + ': ' + w.join(', ');
   }
   function cfSyncExtras() {
-    var sh = S.shift; if (!sh || (SESSION && SESSION.simple) || sh.day !== todayKey() || CAF.loaded !== todayKey()) return false;
+    var sh = S.shift; if (!sh || isCfOnly() || (SESSION && SESSION.simple) || sh.day !== todayKey() || CAF.loaded !== todayKey()) return false;
     var bd = boatDay(), base = bd ? bd.stops.length : 0, want = {}, changed = false;
     sh.extra = sh.extra || [];
     vgStops().forEach(function (s) {
@@ -11821,7 +11830,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     return changed;
   }
   function cfRefresh() {
-    if (!S.shift || !tok() || isOffSess() || document.hidden || view === 'cafoscari') return;
+    if (!S.shift || isCfOnly() || !tok() || isOffSess() || document.hidden || view === 'cafoscari') return;
     (hasCf() ? Promise.resolve() : cafMe().catch(function () {})).then(function () {
       if (!hasCf() || CAF.busy) return;
       CAF.day = todayKey();
@@ -11886,11 +11895,13 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (isMioUser()) return viewPlancia();
     var nm = SESSION && SESSION.name ? String(SESSION.name).split(' ')[0] : '', hr = new Date().getHours();
     var h = '<div class="wrap hmwrap"><div class="hmhi">' + (hr < 13 ? 'Buongiorno' : hr < 18 ? 'Buon pomeriggio' : 'Buonasera') + (nm ? ', ' + esc(nm) : '') + '</div><div class="muted">' + esc(new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })) + '</div>';
-    if (!S.shift && !isVan() && !isOff()) h += resumeBtn();
-    if (S.shift && !isVan() && !isOff()) h += '<button class="hmshift" data-act="nav" data-v="turno"><span style="font-size:28px" aria-hidden="true">🚤</span><span><b>Turno in corso</b>' + esc(BOATS[S.shift.boat] ? BOATS[S.shift.boat].name : '') + ' · tocca per riprendere</span></button>';
-    if ((navigator.onLine === false || (SESSION && SESSION.offline)) && !isVan() && !isOff()) h += '<button class="hmshift" data-act="emopen" style="background:#7f1d1d;color:#fff"><span style="font-size:28px" aria-hidden="true">🆘</span><span><b>' + (SESSION && SESSION.offline ? 'Modalità offline · niente va nel database' : 'Sei offline') + '</b>Apri il turno d’emergenza: le tappe si segnano dal programma</span></button>';
+    var boatish = !isVan() && !isOff() && !isCfOnly(); // camerieri e ufficio Ca' Foscari: niente turni né barche
+    if (isCfOnly()) h += cfBox();
+    if (!S.shift && boatish) h += resumeBtn();
+    if (S.shift && boatish) h += '<button class="hmshift" data-act="nav" data-v="turno"><span style="font-size:28px" aria-hidden="true">🚤</span><span><b>Turno in corso</b>' + esc(BOATS[S.shift.boat] ? BOATS[S.shift.boat].name : '') + ' · tocca per riprendere</span></button>';
+    if ((navigator.onLine === false || (SESSION && SESSION.offline)) && boatish) h += '<button class="hmshift" data-act="emopen" style="background:#7f1d1d;color:#fff"><span style="font-size:28px" aria-hidden="true">🆘</span><span><b>' + (SESSION && SESSION.offline ? 'Modalità offline · niente va nel database' : 'Sei offline') + '</b>Apri il turno d’emergenza: le tappe si segnano dal programma</span></button>';
     if (OUT.n) h += '<div class="card" role="status" style="border-color:#E65100"><b>📤 ' + OUT.n + (OUT.n === 1 ? ' dato del turno offline' : ' dati del turno offline') + ' sul telefono</b><span class="muted">' + (isOffSess() ? 'Si inviano da soli quando entri con il tuo PIN e c’è internet.' : OUT.err ? 'Non inviati: chiudi prima il turno aperto sul server, poi riapri l’app.' : 'Li sto inviando al database…') + '</span></div>';
-    h += scalBanner() + turniHomeBanner() + shipHomeBanner() + expHomeBanner();
+    h += (isCfOnly() ? '' : scalBanner()) + turniHomeBanner() + shipHomeBanner() + expHomeBanner();
     var _apps = homeApps(), _ord = homeOrdered(_apps);
     if (HM.edit) h += homeEditView(_apps) + '</div>';
     else if (_ord && (isMgr() || isFullAcc()) && !isVan() && !isOff()) { ogLoad(false); h += homeMgr([]).replace(/<section class="hmarea[\s\S]*$/, '') + '<div class="hmgrid hmg2" role="list">' + _ord.map(homeTile).join('') + '</div><button class="aslink hmcus" data-act="hmedit">✎ Personalizza la Home</button></div>'; }
