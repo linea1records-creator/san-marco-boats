@@ -11417,7 +11417,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       var who = g.kind === 'ref' ? 'ref' : (g.to || '');
       return '<div class="caflegrow"><input class="field txt" id="cafLt' + n + '" value="' + esc(g.t || '') + '" placeholder="08:00" inputmode="numeric" style="width:74px">' +
         '<input class="field txt" id="cafLp' + n + '" value="' + esc(g.place || '') + '" placeholder="Dove" style="flex:1">' +
-        '<select class="field txt" id="cafLw' + n + '" style="flex:1"><option value="ref"' + (who === 'ref' ? ' selected' : '') + '>👤 Referente camerieri</option>' + pp.map(function (p) { return '<option value="' + p.id + '"' + (who === p.id ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join('') + '</select>' +
+        '<select class="field txt" id="cafLw' + n + '" style="flex:1"><option value="ref"' + (who === 'ref' ? ' selected' : '') + '>👤 Referente camerieri</option>' + (who && who !== 'ref' && !pp.some(function (p) { return p.id === who; }) ? '<option value="' + esc(who) + '" selected>' + esc(g.to_name || 'Trasportatore') + '</option>' : '') + pp.map(function (p) { return '<option value="' + p.id + '"' + (who === p.id ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join('') + '</select>' +
         '<button class="btn sm quiet" data-act="caflegdel" data-n="' + n + '" aria-label="Togli">✕</button></div>';
     }).join('');
   }
