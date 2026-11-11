@@ -3346,9 +3346,11 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   });
   /* ---------- Trasportatori (Elia, Daffa): Barche = documenti per i controlli + richieste ---------- */
   function isVan() { return !!(SESSION && SESSION.role === 'van'); }
-  function isCrewOnly() { return !!SESSION && !isMgr() && !isOff() && !isFullAcc() && !isVan() && !isBill() && !isPack() && !isBoatRole(); }
+  function isCrewOnly() { return !!SESSION && !isMgr() && !isOff() && !isFullAcc() && !isVan() && !isBill() && !isPack() && !isBoatRole() && !isSigner(); }
   function isBoatRole() { return !!(SESSION && SESSION.role === 'boat'); }
   function isPack() { return !!(SESSION && SESSION.role === 'pack'); }
+  // Beppe: vede i DDT di tutte le consegne e li fa firmare
+  function isSigner() { return !!(SESSION && SESSION.role === 'signer'); }
   function viewBarcaCrew() {
     if (draft) return viewRichieste();
     var code = BF.sel || (S.shift && S.shift.boat) || myBoatCode() || boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO'; })[0];
@@ -8430,14 +8432,17 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   var DG = { day: null, boat: null };
   function viewDdtGiro() {
     if (!DD.loaded && !DD.busy) loadDdt().then(function () { if (view === 'ddtgiro') render(); });
-    var k = DG.day || todayKey(), boats = myBoatCodes(); if (S.shift && boats.indexOf(S.shift.boat) < 0) boats.unshift(S.shift.boat);
-    if (!boats.length) boats = boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO'; });
+    var k = DG.day || todayKey(), sgn = isSigner(), boats = sgn ? [] : myBoatCodes(); if (!sgn && S.shift && boats.indexOf(S.shift.boat) < 0) boats.unshift(S.shift.boat);
+    if (!boats.length) boats = boatCodes().filter(function (c) { return !BOATS[c].test && c !== 'TULLIO' && !BOATS[c].personal; });
+    if (sgn) boats.unshift('ALL');
     var b = DG.boat && boats.indexOf(DG.boat) >= 0 ? DG.boat : boats[0], P = PROGRAM[k], bd = P && P.boats[b];
+    // chi firma per tutti: "Tutte" mette insieme le consegne di tutte le barche
+    if (b === 'ALL') { var al = []; boats.forEach(function (c) { var q = c !== 'ALL' && P && P.boats[c]; if (q && !q.off) (q.stops || []).forEach(function (z) { if (!al.some(function (y) { return ddtNorm(y.name) === ddtNorm(z.name); })) al.push(z); }); }); al.sort(function (p1, p2) { return String(p1.t || '99') < String(p2.t || '99') ? -1 : 1; }); bd = { stops: al }; }
     var h = '<div class="wrap"><h2>📄 DDT del giro</h2><div class="ldnav"><button class="btn sm" data-act="dgday" data-n="-1" aria-label="Giorno prima">‹</button><b>' + (k === todayKey() ? 'Oggi · ' : '') + esc(pgDateLabel(k)) + '</b><button class="btn sm" data-act="dgday" data-n="1" aria-label="Giorno dopo">›</button></div>';
-    if (boats.length > 1) h += '<div class="chips">' + boats.map(function (c) { return '<button class="chip" data-act="dgboat" data-c="' + c + '" aria-pressed="' + (c === b) + '">' + esc(BOATS[c].name) + '</button>'; }).join('') + '</div>';
+    if (boats.length > 1) h += '<div class="chips">' + boats.map(function (c) { return '<button class="chip" data-act="dgboat" data-c="' + c + '" aria-pressed="' + (c === b) + '">' + esc(c === 'ALL' ? 'Tutte' : BOATS[c].name) + '</button>'; }).join('') + '</div>';
     var list = [];
     if (bd && !bd.off) (bd.stops || []).forEach(function (z, i) { if (z.cancelled || z.maint) return; var nm = String(z.name || '').trim(); if (!driverDdt(z.name, z.note) && (/^(darsena|scalo|seminario)\b/i.test(nm) || /certosa/i.test(nm))) return; list.push({ name: z.name, note: z.note, t: z.t, ind: z.ind }); });
-    if (k === todayKey()) (X.my || []).forEach(function (t) { if (t.name && !list.some(function (z) { return ddtNorm(z.name) === ddtNorm(t.name); })) list.push({ name: t.name, note: t.note || '', t: '', extra: true }); });
+    if (k === todayKey() && !sgn) (X.my || []).forEach(function (t) { if (t.name && !list.some(function (z) { return ddtNorm(z.name) === ddtNorm(t.name); })) list.push({ name: t.name, note: t.note || '', t: '', extra: true }); });
     if (!list.length) return h + '<div class="card"><p class="muted">Nessuna consegna con DDT in questo giorno.</p></div></div>';
     // tre cartelle: da far firmare, da caricare, firmati — una riga bassa per ogni DDT
     var toSign = [], toLoad = [], signed = [];
@@ -8458,18 +8463,18 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
         (op ? '<div class="dgfb">' + (n ? rows : '<p class="muted" style="margin:6px 12px 10px;font-size:13.5px">' + empty + '</p>') + '</div>' : '') + '</section>';
     }
     function row(o, btns, attrs) { return '<div class="ddr"' + (attrs || '') + '><span class="ddrt"><b>' + esc(o.cn) + '</b><small>' + esc(sub(o)) + '</small></span><span class="ddrb">' + btns + '</span></div>'; }
-    h += '<div class="ddsum"><span><b>' + toSign.length + '</b> da firmare</span><span><b>' + toLoad.length + '</b> da caricare</span><span><b>' + signed.length + '</b> firmati</span></div>';
+    h += '<div class="ddsum"><span><b>' + toSign.length + '</b> da firmare</span>' + (sgn ? '' : '<span><b>' + toLoad.length + '</b> da caricare</span>') + '<span><b>' + signed.length + '</b> firmati</span></div>';
     h += fold('sign', '✍️', 'Da far firmare', toSign.length, toSign.map(function (o) {
-      return row(o, '<button class="btn sm primary" data-act="dgsign" data-id="' + o.x.id + '">Firma</button><button class="btn sm" data-act="ddtview" data-id="' + o.x.id + '">Apri</button><button class="btn sm" data-act="ddwfix" data-id="' + o.x.id + '" aria-label="Correggi">⋯</button>');
+      return row(o, '<button class="btn sm primary" data-act="dgsign" data-id="' + o.x.id + '">Firma</button><button class="btn sm" data-act="ddtview" data-id="' + o.x.id + '">Apri</button>' + (sgn ? '' : '<button class="btn sm" data-act="ddwfix" data-id="' + o.x.id + '" aria-label="Correggi">⋯</button>'));
     }).join(''), 'Nessun DDT in attesa di firma.');
-    h += fold('load', '📤', 'Da caricare', toLoad.length, toLoad.map(function (o) {
+    if (!sgn) h += fold('load', '📤', 'Da caricare', toLoad.length, toLoad.map(function (o) {
       var z = o.z, da = ' data-c="' + esc(o.cn) + '" data-s="' + esc(z.name) + '" data-no="' + esc(z.note || '') + '"';
       return row(o, '<button class="btn sm" data-act="dgup" data-m="cam"' + da + ' aria-label="Fotografa il DDT di ' + esc(o.cn) + '">📷</button><button class="btn sm" data-act="dgup" data-m="file"' + da + ' aria-label="Carica il PDF del DDT di ' + esc(o.cn) + '">📄</button>', (DG.drop === z.name ? ' style="background:rgba(37,99,235,.1)"' : '') + ' data-dgdrop="' + esc(z.name) + '" data-no="' + esc(z.note || '') + '"');
     }).join(''), 'Tutti i DDT del giorno sono caricati.');
     h += fold('done', '✅', 'Firmati', signed.length, signed.map(function (o) {
-      return row(o, '<button class="btn sm" data-act="ddtget" data-id="' + o.x.id + '">Copia</button><button class="btn sm" data-act="ddwfix" data-id="' + o.x.id + '" aria-label="Correggi">⋯</button>');
+      return row(o, '<button class="btn sm" data-act="ddtget" data-id="' + o.x.id + '">Copia</button>' + (sgn ? '' : '<button class="btn sm" data-act="ddwfix" data-id="' + o.x.id + '" aria-label="Correggi">⋯</button>'));
     }).join(''), 'Ancora nessun DDT firmato.');
-    return h + '<p class="hint">📷 fotografa il DDT · 📄 carica il PDF. Sul computer puoi anche trascinare il PDF sopra la riga.</p></div>';
+    return h + (sgn ? '<p class="hint">Qui vedi i DDT di tutte le consegne del giorno. Tocca Firma e passa il telefono al cliente.</p></div>' : '<p class="hint">📷 fotografa il DDT · 📄 carica il PDF. Sul computer puoi anche trascinare il PDF sopra la riga.</p></div>');
   }
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return; var a = el.getAttribute('data-act');
@@ -10964,6 +10969,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   var NAV_FULL = [['logistica', 'Logistica'], ['barca', 'Barche'], ['turno', 'Turno'], ['notifiche', 'Notifiche'], ['altro', 'Altro']];
   var NAV_MGR = [['logistica', 'Logistica'], ['notifiche', 'Notifiche'], ['turno', 'Turno'], ['barca', 'Barca'], ['contatti', 'Contatti']];
   var NAV = [['turno', 'Turno'], ['programma', 'Programma'], ['ddtgiro', 'DDT'], ['barca', 'Barche'], ['notifiche', 'Chat']];
+  var NAV_SIGN = [['ddtgiro', 'DDT'], ['programma', 'Programma'], ['calendario', 'Calendario'], ['contatti', 'Contatti']];
   var NAV_VAN = [['polybox', 'Polybox'], ['tracking', 'Dov’è'], ['programma', 'Programma'], ['contatti', 'Contatti']];
   var NAV_OFF = [['cucina', 'Cucina'], ['programma', 'Programma'], ['ddt', 'DDT'], ['notifiche', 'Chat'], ['contatti', 'Contatti']];
   function render() {
@@ -10976,6 +10982,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isOff() && ['home', 'presenze', 'ddt', 'contatti', 'impost', 'programma', 'cucina', 'notifiche', 'snap'].indexOf(view) < 0) view = 'home';
     if (view === 'presenze' && !isOff() && !isMgr() && !isFullAcc()) view = 'home';
+    if (isSigner() && ['home', 'ddtgiro', 'programma', 'calendario', 'contatti', 'impost'].indexOf(view) < 0) view = 'ddtgiro';
     if (isPack() && ['home', 'confeziona', 'programma', 'impost', 'contatti', 'snap', 'calendario'].indexOf(view) < 0) view = 'confeziona';
     if (isBoatRole() && ['home', 'calendario', 'barca', 'impost', 'contatti', 'snap', 'programma'].indexOf(view) < 0) view = 'calendario';
     if (view === 'confeziona' && !isPack() && !isMgr() && !isFullAcc()) view = 'home';
@@ -11022,7 +11029,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (isMgr() && cur === 'richieste') cur = 'barca';
     if (isCrewOnly() && ['richieste', 'contatti', 'ddt'].indexOf(cur) >= 0) cur = 'barca';
     if (isFull && cur === 'confeziona') cur = 'altro';
-    var NV = isVan() ? NAV_VAN : isOff() ? NAV_OFF : isAdm ? NAV_ADMIN : isFull ? NAV_FULL : (isMgr() ? NAV_MGR : NAV);
+    var NV = isSigner() ? NAV_SIGN : isVan() ? NAV_VAN : isOff() ? NAV_OFF : isAdm ? NAV_ADMIN : isFull ? NAV_FULL : (isMgr() ? NAV_MGR : NAV);
     drawHomeNav();
     document.body.classList.toggle('fspl', view === 'home' && isMioUser());
     document.body.classList.toggle('phonev', view === 'contatti' && !(CTE && CTE.on));
@@ -11151,6 +11158,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   function homeApps() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isBoatRole()) return ['calendario', 'barca', 'programma', 'snap', 'contatti', 'impost'];
+    if (isSigner()) return ['ddtgiro', 'programma', 'calendario', 'contatti', 'impost'];
     if (isPack()) return ['confeziona', 'calendario', 'programma', 'snap', 'contatti', 'impost'];
     if (isVan()) return ['polybox', 'tracking', 'programma', 'calendario', 'navi', 'snap', 'contatti', 'impost'];
     if (isBill()) return ['fatturato', 'calendario', 'contatti', 'impost'];
