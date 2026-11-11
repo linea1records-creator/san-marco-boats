@@ -1854,7 +1854,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   function fillBoatDays() { Object.keys(PROGRAM).forEach(function (k) { Object.keys(BOATS).forEach(function (c) { if (BOATS[c].extra && !BOATS[c].gone && !PROGRAM[k].boats[c]) PROGRAM[k].boats[c] = { stops: [], onCall: true, extraOnly: true }; }); }); }
   function bcol(c) { return (typeof BCOL === 'object' && BCOL[c]) || '#888'; }
   function boatCodes() { return Object.keys(BOATS).filter(function (k) { return !BOATS[k].gone && !BOATS[k].personal; }); }
-  try { var _pc = JSON.parse(localStorage.getItem('smb-prog') || 'null'); if (_pc && _pc.days) applyProgram(_pc.days); } catch (e) {}
+  try { var _pc = JSON.parse(localStorage.getItem('smb-prog') || 'null'); if (_pc && _pc.days) { applyProgram(_pc.days); setTimeout(function () { try { vanApply(_pc.days); } catch (x) {} }, 0); } } catch (e) {}
   var DOCS = ['Libretto di navigazione', 'Assicurazione RC'];
   var PRE = ['Carburante sopra metà serbatoio', 'Giubbotti di salvataggio a bordo', 'Contenitori e polibox puliti', 'Telefono carico e radio accesa', 'Luci di via funzionanti'];
   var END_CHECKS = ['Motore spento e chiavi riposte', 'Cime fissate e parabordi in posizione', 'Barca ormeggiata nel posto assegnato', 'Nessun rifiuto o merce rimasta a bordo'];
@@ -4505,7 +4505,83 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     return h + '<div class="pdsum"><span class="pill">' + totDone + ' consegne fatte</span><span class="pill">' + totN + ' polybox</span><span class="pill' + (totLate ? ' bad' : ' ok') + '">' + totLate + ' in ritardo</span></div>' + body + '</section>';
   }
 
+  /* ---------- Programma del furgone (Sergio): separato dai giri delle barche ----------
+     Ogni giorno del furgone è un programma a sé con "van": true e la data spostata indietro di 100 anni
+     (es. 12/11/2026 → 1926-11-12): così non tocca mai i giri delle barche né il server, che guarda solo da oggi in poi. */
+  var VAN = {}, VANE = null;
+  function vanKey(k) { return (+k.slice(0, 4) - 100) + k.slice(4); }
+  function vanApply(days) {
+    var v = {}; Object.keys(days || {}).forEach(function (k) {
+      var d = days[k]; if (!d || !d.van || !/^\d{4}-\d{2}-\d{2}$/.test(k)) return; var m = [k, (+k.slice(0, 4) + 100) + k.slice(4)];
+      var st = (d.stops || []).filter(function (z) { return z && z.name; }).map(function (z) { return { t: String(z.t || ''), name: String(z.name), note: String(z.note || '') }; });
+      if (st.length || d.note) v[m[1]] = { note: String(d.note || ''), stops: st };
+    });
+    VAN = v;
+  }
+  function vanKeys(all) { var t = todayKey(); return Object.keys(VAN).filter(function (k) { return all || k >= t; }).sort(); }
+  function vanStopsHtml(st, k) {
+    var now = k === todayKey() ? new Date().getHours() * 60 + new Date().getMinutes() : -1, nx = -1;
+    if (now >= 0) st.some(function (z, i) { var m = t2m(z.t); if (m != null && m + 20 >= now) { nx = i; return true; } return false; });
+    return '<ul class="stl">' + st.map(function (z, i) {
+      var past = now >= 0 && nx >= 0 ? i < nx : now >= 0 && nx < 0 && t2m(z.t) != null;
+      return '<li class="stp' + (i === nx ? ' now' : past ? ' past' : '') + '"><span class="mono">' + esc(z.t || '—') + '</span><span><b>' + esc(z.name) + '</b>' + (z.note ? '<small>' + esc(z.note) + '</small>' : '') + '</span>' + (i === nx ? '<span class="pill go">Adesso</span>' : '') + '</li>';
+    }).join('') + '</ul>';
+  }
+  function vanTodayCard() {
+    var d = VAN[todayKey()]; if (!d || !d.stops.length) return '';
+    return '<section class="card"><h3>🚐 Programma del furgone · oggi</h3>' + (d.note ? '<div class="note">' + esc(d.note) + '</div>' : '') + vanStopsHtml(d.stops, todayKey()) + '</section>';
+  }
+  function viewProgrammaVan() {
+    var keys = vanKeys(false), t = todayKey(); if (keys.indexOf(t) < 0) keys.unshift(t);
+    var k = viewDay && keys.indexOf(viewDay) >= 0 ? viewDay : keys.filter(function (x) { return VAN[x]; })[0] || t;
+    var h = '<div class="wrap"><h2>🚐 Programma del furgone</h2><div class="chips" role="group" aria-label="Giorno">' + keys.map(function (d) { var p = dateParts(d); return '<button class="chip" data-act="day" data-k="' + d + '" aria-pressed="' + (d === k ? 'true' : 'false') + '">' + esc((d === t ? 'Oggi ' : DNALL[p.dow].slice(0, 3) + ' ') + p.n) + '</button>'; }).join('') + '</div>';
+    var d = VAN[k], cfl = k === t ? cfMerge([], k) : [];
+    h += '<section class="card"><h3>' + esc(pgDateLabel(k)) + '</h3>';
+    if (d && d.note) h += '<div class="note">' + esc(d.note) + '</div>';
+    h += d && d.stops.length ? vanStopsHtml(d.stops, k) : '<p class="big">Nessun giro del furgone in programma.</p>';
+    if (cfl.length) h += '<h3 style="margin-top:12px">🎓 Ca’ Foscari · cose da ricevere o consegnare</h3><ul class="stl">' + cfl.map(function (o) { return '<li class="stp' + (o.done ? ' past' : '') + '"><span class="mono">' + esc(o.t || '—') + '</span><span><b>' + esc(o.name) + '</b><small>' + esc(o.note) + '</small></span>' + (o.done ? '<span class="pill ok">Fatta</span>' : '') + '</li>'; }).join('') + '</ul>';
+    return h + '</section><p class="hint">Gli orari sono l’ora in cui devi essere sul posto. Per dubbi scrivi alla logistica.</p></div>';
+  }
+  // per la logistica: il furgone nel Programma dettagliato, con modifica
+  function vanMgrCard(k) {
+    var d = VAN[k], ed = isMgr() && tok();
+    if (!d && !ed) return '';
+    return '<section class="card"><div class="row"><div><h2 style="font-size:22px">🚐 Furgone</h2><div class="muted">Sergio</div></div>' + (ed ? '<button class="btn sm" data-act="vanedit" data-k="' + k + '">✎ ' + (d ? 'Modifica' : 'Aggiungi') + '</button>' : '') + '</div>' +
+      (d && d.note ? '<div class="note">' + esc(d.note) + '</div>' : '') + (d && d.stops.length ? vanStopsHtml(d.stops, k) : '<p class="muted">Nessun giro del furgone.</p>') + '</section>';
+  }
+  function vanRow(z, i) {
+    return '<div class="pgs" data-vr="' + i + '"><input class="field txt" style="max-width:86px" inputmode="numeric" placeholder="Ora" aria-label="Ora" data-vf="t" value="' + esc(z.t || '') + '">' +
+      '<input class="field txt" placeholder="Posto" aria-label="Posto" data-vf="name" value="' + esc(z.name || '') + '" style="text-transform:none">' +
+      '<input class="field txt" placeholder="Cosa fare" aria-label="Cosa fare" data-vf="note" value="' + esc(z.note || '') + '" style="text-transform:none">' +
+      '<button class="btn quiet sm" data-act="vandel" data-i="' + i + '" aria-label="Togli">✕</button></div>';
+  }
+  function vanRead() {
+    var st = []; Array.prototype.forEach.call(document.querySelectorAll('[data-vr]'), function (r) { var g = function (f) { return ((r.querySelector('[data-vf="' + f + '"]') || {}).value || '').trim(); }; st.push({ t: g('t').replace('.', ':'), name: g('name'), note: g('note') }); });
+    return st;
+  }
+  function vanSheet(k, st, note) {
+    VANE = { k: k };
+    openSheet('<h2>🚐 Furgone · ' + esc(pgDateLabel(k)) + '</h2><label class="muted" for="vanNote">Nota del giorno (facoltativa)</label><textarea class="field txt" id="vanNote" rows="2" style="text-transform:none">' + esc(note || '') + '</textarea>' +
+      '<div id="vanRows">' + st.map(vanRow).join('') + '</div><button class="btn quiet sm" data-act="vanadd">+ Aggiungi tappa</button>' +
+      '<p class="muted" id="vanMsg" role="status" style="min-height:1.3em"></p><div class="btns"><button class="btn primary" data-act="vansave">Salva e pubblica</button><button class="btn quiet" data-act="close">Annulla</button></div>');
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act^="van"]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'vanedit') { var k = el.getAttribute('data-k'), d = VAN[k]; vanSheet(k, d ? d.stops.slice() : [{ t: '', name: '', note: '' }], d ? d.note : ''); }
+    else if (a === 'vanadd') { var st = vanRead(); st.push({ t: '', name: '', note: '' }); $('vanRows').innerHTML = st.map(vanRow).join(''); }
+    else if (a === 'vandel') { var s2 = vanRead(); s2.splice(+el.getAttribute('data-i'), 1); $('vanRows').innerHTML = s2.map(vanRow).join(''); }
+    else if (a === 'vansave') {
+      if (!VANE) return; var m = $('vanMsg'), st3 = vanRead().filter(function (z) { return z.name; }), nt = (($('vanNote') || {}).value || '').trim();
+      if (st3.some(function (z) { return z.t && !/^\d{1,2}:\d{2}$/.test(z.t); })) { m.textContent = 'Scrivi gli orari come 7:20'; return; }
+      st3.sort(function (a, b) { var x = t2m(a.t), y = t2m(b.t); return (x == null ? 9999 : x) - (y == null ? 9999 : y); });
+      m.textContent = 'Salvo…'; var k3 = VANE.k;
+      cl('rpc_program_save', { p_id: null, p_title: '🚐 Furgone ' + pgFmt(k3), p_notes: '', p_days: [{ date: vanKey(k3), van: true, note: nt, stops: st3 }], p_publish: true }).then(function (r) {
+        if (r && r.ok) { closeSheet(); toast('Programma del furgone salvato'); loadProgram(); } else m.textContent = 'Non sono riuscito a salvare.';
+      }).catch(function () { m.textContent = 'Serve la connessione.'; });
+    }
+  });
   function viewProgramma() {
+    if (isVan()) return viewProgrammaVan();
     if (isCrewOnly()) return viewProgrammaCrew();
     // giorni senza programma ma con consegne aggiunte (es. una domenica): li mostro lo stesso
     var VX = {}, keys = DAYKEYS.slice();
@@ -4540,6 +4616,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       if (bd.onCall) h += '<div class="note"><b>Emergenze.</b> Resta reperibile durante il turno.</div>';
       h += '</section>';
     });
+    h += vanMgrCard(k);
     h += pdReport(k, ids);
     if (TL) {
       var xt = TL.filter(function (t) { return t.status !== 'annullata' && isoOf(t.created_at) === k; });
@@ -7712,8 +7789,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     return cl('rpc_program_active', {}).then(function (r) {
       if (!r || !r.days) return;
       try { localStorage.setItem('smb-prog', JSON.stringify(r)); } catch (e) {}
-      var before = JSON.stringify(DAYKEYS) + JSON.stringify(PROGRAM); applyProgram(r.days);
-      if (before !== JSON.stringify(DAYKEYS) + JSON.stringify(PROGRAM) && !PG.d) render();
+      var before = JSON.stringify(DAYKEYS) + JSON.stringify(PROGRAM) + JSON.stringify(VAN); applyProgram(r.days); vanApply(r.days);
+      if (before !== JSON.stringify(DAYKEYS) + JSON.stringify(PROGRAM) + JSON.stringify(VAN) && !PG.d) render();
     });
   }
   function pgDraftBanner() {
@@ -7722,7 +7799,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       return '<button class="hmshift" data-act="pgedit" data-id="' + esc(x.id) + '" style="background:#7c3aed;color:#fff;margin:8px 0"><span style="font-size:26px" aria-hidden="true">📝</span><span><b>Bozza: ' + esc(x.title || 'Senza titolo') + '</b>' + (x.from ? esc(pgFmt(x.from) + ' – ' + pgFmt(x.to)) + ' · ' : '') + 'tocca per vederla, spostare le consegne tra i giri e pubblicarla</span></button>';
     }).join('');
   }
-  function loadPgList() { return cl('rpc_program_list', {}).then(function (r) { if (r && r.length !== undefined) { PG.list = r; if (view === 'programmi' && !PG.busy) render(); } }); }
+  function loadPgList() { return cl('rpc_program_list', {}).then(function (r) { if (r && r.length !== undefined) { PG.list = r.filter(function (x) { return !(x.from && x.from < '2000'); }); if (view === 'programmi' && !PG.busy) render(); } }); }
   function pgStops() { return Object.keys(COORDS).concat(['Ca’ Foscari', 'Verifica e manutenzione']); }
   function pgDateLabel(k) { var d = dateParts(k); return DNALL[d.dow] + ' ' + d.n + ' ' + MONTHS[d.m]; }
   function pgFmt(k) { if (!k) return ''; var d = dateParts(k); return d.n + ' ' + MONTHS[d.m].slice(0, 3); }
@@ -11725,10 +11802,11 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var day = todayKey(); vgEnsure();
     if (!DD.loaded && !DD.busy && !isCfOnly()) loadDdt().then(function () { if (view === 'scaletta' || view === 'furgone') render(); });
     var h = '<div class="wrap smw vgw">' + (isCfOnly() ? '' : '<button class="aslink" data-act="nav" data-v="home">‹ Home</button>') + '<div class="row"><h2>' + (isVan() ? '🚐 Giro del furgone' : '📋 La mia scaletta') + '</h2>';
-    if (CAF.loaded !== day) return h + '</div><div class="card"><p class="muted">Carico…</p></div></div>';
+    if (CAF.loaded !== day) return h + '</div>' + (isVan() ? vanTodayCard() : '') + '<div class="card"><p class="muted">Carico…</p></div></div>';
     var list = vgStops(), ci = -1; list.some(function (s, k) { if (!s.done) { ci = k; return true; } return false; });
     h += (list.length ? '<span class="pill">' + Math.min(list.filter(function (s) { return s.done; }).length + 1, list.length) + ' / ' + list.length + '</span>' : '') + '</div>';
-    if (!list.length) return h + '<div class="card"><p class="muted">Oggi non hai cose da ricevere o da consegnare.</p></div></div>';
+    if (isVan()) h += vanTodayCard();
+    if (!list.length) return h + (isVan() && VAN[day] ? '' : '<div class="card"><p class="muted">Oggi non hai cose da ricevere o da consegnare.</p></div>') + '</div>';
     if (ci < 0) return h + '<section class="card smcard"><div class="smbig">🎉 Tutto fatto</div><p class="muted">Hai confermato tutto. Grazie!</p></section>' + vgListHtml(list, -1) + '</div>';
     var s = list[ci], acts = '';
     if (!isCfOnly()) ddtOfStop(day, s.place).filter(function (x) { return x.mine; }).forEach(function (x) { acts += x.status === 'pending' ? '<button class="btn smact" data-act="ddtsign" data-id="' + x.id + '">✍️ Fai firmare il DDT<small>' + esc(x.customer) + '</small></button>' : '<div class="smok">✓ DDT firmato · ' + esc(x.customer) + '</div>'; });
