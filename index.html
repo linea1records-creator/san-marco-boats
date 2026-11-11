@@ -1202,7 +1202,7 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .cafrcv.done { font-size: 13.5px; color: #166534; text-align: center; padding: 6px; background: #dcfce7; border-radius: 10px; }
 .cafrrow { padding: 8px 0; border-bottom: 1px solid rgba(127,127,127,.15); }
 .caflegrow { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; } .caflegrow .field { margin: 0; padding: 8px; font-size: 15px; }
-.smw > .row h2 { color: #fff; } .smw > .row .pill { background: rgba(255,255,255,.15); color: #fff; } .smw .smlist li { color: rgba(255,255,255,.6); border-color: rgba(255,255,255,.12); } .smw .smlist li.now { color: #fff; } .smw > .aslink { color: #93c5fd; }
+.smw > .row h2 { color: #fff; } .vgw.smw > .row h2 { color: inherit; } .vgw.smw > .row .pill { background: rgba(127,127,127,.15); color: inherit; } .vgw.smw .smlist li { color: var(--muted); border-color: rgba(127,127,127,.15); } .vgw.smw .smlist li.now { color: inherit; } .smw > .row .pill { background: rgba(255,255,255,.15); color: #fff; } .smw .smlist li { color: rgba(255,255,255,.6); border-color: rgba(255,255,255,.12); } .smw .smlist li.now { color: #fff; } .smw > .aslink { color: #93c5fd; }
 .smw .smcard { padding: 18px; } .smlbl { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 .smbig { font-size: 30px; font-weight: 800; line-height: 1.15; margin: 2px 0 4px; } .smnote { font-size: 17px; margin: 10px 0; }
 .smacts { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; } .smact { display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding: 12px 14px; font-size: 17px; }
@@ -1938,6 +1938,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       '<path d="M17 55c3-2.5 6-2.5 8 0s5 2.5 8 0 5-2.5 8 0 4 2.5 6 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
   }
   var ICONS = {
+    furgone: '<path d="M2 7h11v9H2zM13 10h4l3 3v3h-7z"/><circle cx="6" cy="17" r="2"/><circle cx="16" cy="17" r="2"/>',
     cafoscari: '<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/><path d="M22 9v6"/>',
     fatturato: '<path d="M18 6.5a7 7 0 1 0 0 11"/><path d="M4 10h10M4 14h10"/>',
     menu: '<path d="M5 3h14v18H5z"/><path d="M9 8h6M9 12h6M9 16h4"/>',
@@ -11012,7 +11013,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   var NAV = [['turno', 'Turno'], ['programma', 'Programma'], ['ddtgiro', 'DDT'], ['barca', 'Barche'], ['notifiche', 'Chat']];
   var NAV_CF = [['cafoscari', 'Ca’ Foscari'], ['calendario', 'Calendario'], ['contatti', 'Contatti'], ['impost', 'Impostazioni']];
   var NAV_SIGN = [['ddtgiro', 'DDT'], ['programma', 'Programma'], ['calendario', 'Calendario'], ['contatti', 'Contatti']];
-  var NAV_VAN = [['polybox', 'Polybox'], ['tracking', 'Dov’è'], ['programma', 'Programma'], ['contatti', 'Contatti']];
+  var NAV_VAN = [['furgone', 'Giro'], ['polybox', 'Polybox'], ['tracking', 'Dov’è'], ['programma', 'Programma'], ['contatti', 'Contatti']];
   var NAV_OFF = [['cucina', 'Cucina'], ['programma', 'Programma'], ['ddt', 'DDT'], ['notifiche', 'Chat'], ['contatti', 'Contatti']];
   function render() {
     if (view !== 'tracking' && typeof TR !== 'undefined' && TR && TR.fs) { TR.fs = false; document.body.classList.remove('trfsopen'); }
@@ -11031,7 +11032,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (isBoatRole() && ['home', 'calendario', 'barca', 'impost', 'contatti', 'snap', 'programma'].indexOf(view) < 0) view = 'calendario';
     if (view === 'confeziona' && !isPack() && !isMgr() && !isFullAcc()) view = 'home';
     if (view === 'invita' && !isMgr() && !isFullAcc()) view = 'home';
-    if (isVan() && ['home', 'polybox', 'tracking', 'contatti', 'impost', 'programma', 'navi', 'snap', 'calendario', 'cafoscari'].indexOf(view) < 0) view = 'home';
+    if (isVan() && ['home', 'polybox', 'tracking', 'contatti', 'impost', 'programma', 'navi', 'snap', 'calendario', 'cafoscari', 'furgone'].indexOf(view) < 0) view = 'home';
     if (view === 'tracking' && isOff()) view = 'ddt';
     if (view === 'spedizioni' && (isOff() || isVan())) view = 'home';
     if (view === 'turni' && !isMgr() && !isFullAcc()) view = 'home';
@@ -11081,7 +11082,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { invita: viewInv, calendario: viewCal, confeziona: viewConf, admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, mybarche: viewMyBoats, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi, orari: viewOrari, navi: viewNavi, snap: viewSnap, cafoscari: viewCafoscari }[view] || viewTurno;
+    var fn = { invita: viewInv, calendario: viewCal, confeziona: viewConf, admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, mybarche: viewMyBoats, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi, orari: viewOrari, navi: viewNavi, snap: viewSnap, cafoscari: viewCafoscari, furgone: viewFurgone }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     diag('disegno ' + view); var _t0 = Date.now(), m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); if (view === 'percorsi') setTimeout(rtDraw, 0); m.scrollTop = (view === 'guida') ? 0 : sc; diag('fatto ' + view + ' ' + (Date.now() - _t0) + 'ms');
     if (LITE && Date.now() - _t0 > 2500 && window.__smbErr) window.__smbErr('Pagina lenta: ' + view + ' ' + (Date.now() - _t0) + ' ms');
@@ -11195,7 +11196,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   }
   /* ---------- Home: ogni strumento è un'icona come un'app del telefono ---------- */
   var APPS = {
-    cafoscari: ['Ca’ Foscari', '#8a1538'], logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
+    furgone: ['Giro furgone', '#ea580c'], cafoscari: ['Ca’ Foscari', '#8a1538'], logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
     barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], confeziona: ['Polybox Seminario', '#b45309'], invita: ['Invia tracking', '#db2777'], calendario: ['Calendario', '#7c3aed'], notifiche: ['Notifiche', '#db2777'],
     oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], listini: ['Listini', '#0e7490'], porzione: ['Costo porzione', '#7c2d12'], menu: ['Menu', '#9d174d'], fatturato: ['Fatturato', '#047857'], carena: ['Carena', '#0e7490'], percorsi: ['Percorsi', '#0f766e'], orari: ['Orari reali', '#6d28d9'], navi: ['Navigatore', '#1a73e8'], snap: ['Snap', '#e6c300'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Telefono', '#34c759'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
   };
@@ -11626,6 +11627,73 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       p.then(function () { toast('Consegna segnata ✓'); cafLoad(true).then(render); });
     }
   });
+  /* ---------- Giro del furgone (Sergio): una tappa alla volta; a ogni tappa una cosa obbligatoria da confermare ---------- */
+  var VG = { busy: false };
+  function vgKey() { return 'smb-vg-' + todayKey(); }
+  function vgDone() { try { return JSON.parse(localStorage.getItem(vgKey()) || '{}'); } catch (e) { return {}; } }
+  function vgMark(k) { var d = vgDone(); d[k] = Date.now(); try { localStorage.setItem(vgKey(), JSON.stringify(d)); } catch (e) {} }
+  function vgStops() {
+    var m = {}, out = [], me = CAF.me;
+    (CAF.loaded === todayKey() ? CAF.items : []).forEach(function (x) {
+      if (x.status === 'annullato') return;
+      (x.items || []).forEach(function (it) {
+        var rt = it.route || [];
+        rt.forEach(function (g, n) {
+          if (g.kind === 'ref' || g.to !== me) return;
+          var k = 'p|' + (g.t || '') + '|' + ddtNorm(g.place || '');
+          if (!m[k]) { m[k] = { key: k, kind: 'pick', t: g.t || '', place: g.place || 'Ritiro', rows: [] }; out.push(m[k]); }
+          m[k].rows.push({ x: x, i: it, n: n, g: g });
+          var nx = rt[n + 1]; if (!nx) return;
+          var to = nx.kind === 'ref' ? 'referente camerieri' : (nx.to_name || 'barca') + (/toppetta|ardemar|patana/i.test(nx.act || '') ? ' · ' + (nx.act.match(/toppetta|ardemar|patana/i) || [''])[0] : '');
+          var k2 = 'd|' + (nx.t || '') + '|' + ddtNorm(nx.place || '');
+          if (!m[k2]) { m[k2] = { key: k2, kind: 'drop', t: nx.t || '', place: nx.place || x.venue, to: to, rows: [] }; out.push(m[k2]); }
+          m[k2].rows.push({ x: x, i: it, n: n + 1, g: nx });
+        });
+      });
+    });
+    var dd = vgDone();
+    out.forEach(function (s) {
+      s.done = s.kind === 'pick' ? s.rows.every(function (r) { return !!r.g.conf; }) : !!dd[s.key] || s.rows.every(function (r) { return !!r.g.conf; });
+    });
+    return out.sort(function (a, b) { return (a.t || '99') < (b.t || '99') ? -1 : (a.t || '99') > (b.t || '99') ? 1 : a.kind === 'pick' ? -1 : 1; });
+  }
+  function viewFurgone() {
+    var day = todayKey();
+    if (CAF.loaded !== day && !CAF.busy) { CAF.day = day; cafLoad().then(function () { if (view === 'furgone') render(); }); }
+    if (!DD.loaded && !DD.busy) loadDdt().then(function () { if (view === 'furgone') render(); });
+    var h = '<div class="wrap smw vgw"><button class="aslink" data-act="nav" data-v="home">‹ Home</button><div class="row"><h2>🚐 Giro del furgone</h2>';
+    if (CAF.loaded !== day) return h + '</div><div class="card"><p class="muted">Carico…</p></div></div>';
+    var list = vgStops(), ci = -1; list.some(function (s, k) { if (!s.done) { ci = k; return true; } return false; });
+    h += '<span class="pill">' + Math.min(list.filter(function (s) { return s.done; }).length + 1, list.length) + ' / ' + list.length + '</span></div>';
+    if (!list.length) return h + '<div class="card"><p class="muted">Oggi non ci sono ritiri o consegne Ca’ Foscari per il furgone.</p></div></div>';
+    if (ci < 0) return h + '<section class="card smcard"><div class="smbig">🎉 Giro finito</div><p class="muted">Tutto confermato. Grazie!</p></section>' + vgListHtml(list, -1) + '</div>';
+    var s = list[ci], acts = '', must = 0;
+    var ddts = ddtOfStop(day, s.place).filter(function (x) { return x.mine; });
+    ddts.forEach(function (x) { if (x.status === 'pending') { must++; acts += '<button class="btn smact" data-act="ddtsign" data-id="' + x.id + '">✍️ Fai firmare il DDT<small>' + esc(x.customer) + '</small></button>'; } else acts += '<div class="smok">✓ DDT firmato · ' + esc(x.customer) + '</div>'; });
+    if (s.kind === 'pick') {
+      var byEv = {}; s.rows.forEach(function (r) { (byEv[r.x.id] = byEv[r.x.id] || { x: r.x, rows: [] }).rows.push(r); });
+      Object.keys(byEv).forEach(function (eid) {
+        var o = byEv[eid], todo = o.rows.filter(function (r) { return !r.g.conf; });
+        if (!todo.length) { acts += '<div class="smok">✓ Caricato · ' + esc((o.x.room || o.x.venue).split(' · ')[0]) + '</div>'; return; }
+        acts += '<button class="btn primary smact" data-act="cafrcv" data-e="' + eid + '" data-k="' + esc(s.t + '|' + s.place + '|carrier') + '">📋 Spunta la lista da caricare<small>' + esc((o.x.room || o.x.venue).split(' · ')[0] + ': ' + todo.map(function (r) { return r.i.what; }).join(', ')) + '</small></button>';
+      });
+    } else {
+      acts += '<button class="btn primary smact" data-act="vgdrop" data-k="' + esc(s.key) + '">✅ Consegnato · ' + esc(s.to) + '<small>' + esc((function () { var g = {}, o = []; s.rows.forEach(function (r) { var n = (r.x.room || r.x.venue).split(' · ')[0].replace(/\s*\(.*\)$/, ''); if (!g[n]) { g[n] = []; o.push(n); } g[n].push(r.i.what); }); return o.map(function (n) { return n + ': ' + g[n].join(', '); }).join(' · '); })()) + '</small></button>';
+    }
+    h += '<section class="card smcard"><div class="smlbl">' + (s.kind === 'pick' ? 'Vai a caricare' : 'Vai a consegnare') + '</div><div class="smbig">' + esc(s.place) + '</div>' + (s.t ? '<div class="muted">circa ' + esc(s.t) + '</div>' : '') +
+      '<div class="smacts">' + acts + '</div><p class="hint" style="margin:4px 0 0">Conferma qui sopra per passare alla tappa dopo.</p></section>';
+    return h + vgListHtml(list, ci) + '</div>';
+  }
+  function vgListHtml(list, ci) {
+    return '<ol class="smlist">' + list.map(function (s, k) { return '<li class="' + (s.done ? 'dn' : k === ci ? 'now' : '') + '"><span>' + (s.done ? '✓' : k === ci ? '➜' : '') + '</span>' + esc((s.t ? s.t + ' ' : '') + s.place) + ' · ' + (s.kind === 'pick' ? 'carico' : 'consegna') + '</li>'; }).join('') + '</ol>';
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act="vgdrop"]') : null; if (!el) return;
+    var k = el.getAttribute('data-k'), s = vgStops().filter(function (z) { return z.key === k; })[0]; if (!s) return;
+    var p = Promise.resolve(); toast('Invio…');
+    s.rows.forEach(function (r) { p = p.then(function () { return cl('rpc_cf_item_status', { p_id: r.i.id, p_status: r.i.status === 'magazzino' || r.i.status === 'mancante' ? 'caricato' : r.i.status, p_note: 'consegnato da ' + (SESSION ? SESSION.name : '') + ' · ' + s.place + ' → ' + s.to }); }); });
+    p.then(function () { vgMark(k); toast('Consegna segnata ✓'); cafLoad(true).then(render); });
+  });
   function homeApps() { var ap = homeApps0(); if (hasCf() && ap.indexOf('cafoscari') < 0 && !isBill() && !isPack() && !isBoatRole()) ap.splice(isCfOnly() ? 0 : Math.min(2, ap.length), 0, 'cafoscari'); return ap; }
   function homeApps0() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
@@ -11633,7 +11701,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (isCfOnly()) return ['calendario', 'contatti', 'impost'];
     if (isSigner()) return ['ddtgiro', 'programma', 'calendario', 'contatti', 'impost'];
     if (isPack()) return ['confeziona', 'calendario', 'programma', 'snap', 'contatti', 'impost'];
-    if (isVan()) return ['polybox', 'tracking', 'programma', 'calendario', 'navi', 'snap', 'contatti', 'impost'];
+    if (isVan()) return ['furgone', 'polybox', 'tracking', 'programma', 'calendario', 'navi', 'snap', 'contatti', 'impost'];
     if (isBill()) return ['fatturato', 'calendario', 'contatti', 'impost'];
     if (isOff()) return ['presenze', 'ddt', 'cucina', 'programma', 'calendario', 'notifiche', 'snap', 'contatti', 'impost'];
     if (isAdm) return ['logistica', 'calendario', 'notifiche', 'snap', 'turni', 'presenze'].concat(canMoney() ? ['fatturato'] : [], ['spedizioni', 'invita', 'tracking', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'barca', 'benzina', 'programma', 'contatti', 'impost']);
