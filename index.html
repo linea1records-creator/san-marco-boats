@@ -1193,6 +1193,8 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .cafroute li span small { display: block; font-size: 12px; opacity: .85; }
 .cafroute li.nx { color: inherit; font-weight: 600; } .cafroute li.dn { text-decoration: line-through; opacity: .7; }
 .cafroute li i { font-style: normal; color: #16a34a; margin-left: auto; }
+.cafs.tr { color: inherit; } .cafs.tr::before { background: #0ea5e9; border-radius: 2px; } .cafs.tr em { font-style: normal; font-weight: 600; }
+.cafs.tr small { display: block; font-size: 12px; color: var(--muted); } .cafs.tr.dn { opacity: .6; } .cafs i { font-style: normal; color: #16a34a; margin-left: auto; }
 .cafkind { margin: 6px 0 2px; font-style: italic; }
 .cafmeta { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
 .cafoff { opacity: .55; }
@@ -11243,13 +11245,28 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   function cafHead(x) {
     return '<div class="row"><div><b>' + esc(x.venue) + '</b>' + (x.code ? ' <span class="pill">' + esc(x.code) + '</span>' : '') + '<div class="muted">' + esc([x.room, x.pax ? x.pax + ' pax' : '', x.pax_note].filter(Boolean).join(' · ')) + '</div></div>' + (x.status === 'annullato' ? '<span class="pill" style="background:#fee2e2;color:#991b1b">Annullato</span>' : '') + '</div>';
   }
+  // linea del tempo dell'evento: orari del servizio + tappe di carico e scarico di barche e furgone (dal percorso degli oggetti)
+  function cafTimeline(x) {
+    var rows = (x.steps || []).map(function (s) { return { t: s.t || '', h: cafStep(s) }; }), grp = {}, ord = [];
+    (x.items || []).forEach(function (i) { (i.route || []).forEach(function (g, n) {
+      var k = (g.t || '') + '|' + (g.place || '') + '|' + (g.act || '') + '|' + (g.by || '');
+      if (!grp[k]) { grp[k] = { g: g, w: [], dn: true }; ord.push(k); } grp[k].w.push(i.what); if (!cafLegDone(i, g, n)) grp[k].dn = false;
+    }); });
+    ord.forEach(function (k) {
+      var o = grp[k], g = o.g, van = /furgone|sergio/i.test((g.by || '') + ' ' + (g.act || '')) && !/toppetta|ardemar|patana/i.test(g.by || '');
+      rows.push({ t: g.t || '', h: '<li class="cafs tr' + (o.dn ? ' dn' : '') + '"><b>' + esc(g.t || '') + '</b><span>' + (van ? '🚐 ' : '🚤 ') + '<em>' + esc(g.place || '') + (g.act ? ' · ' + esc(g.act) : '') + '</em>' + (g.by ? ' · ' + esc(g.by) : '') + '<small>' + esc(o.w.join(', ')) + '</small></span>' + (o.dn ? '<i aria-label="fatto">✓</i>' : '') + '</li>' });
+    });
+    if (!rows.length) return '';
+    rows.sort(function (a, b) { return (a.t || '99') < (b.t || '99') ? -1 : (a.t || '99') > (b.t || '99') ? 1 : 0; });
+    return '<ol class="cafsteps">' + rows.map(function (r) { return r.h; }).join('') + '</ol>';
+  }
   function cafEvCard(x) {
     var tr = x.carrier ? (x.vehicle === 'furgone' ? '🚐 ' : '🚤 ') + esc(x.carrier) + (x.boat && BOATS[x.boat] ? ' · ' + esc(BOATS[x.boat].name) : '') : '<span style="color:#b45309">Trasporto da assegnare</span>';
     if (x.carrier2) tr += '<br>🚤 ' + esc(x.carrier2) + (x.boat2 && BOATS[x.boat2] ? ' · ' + esc(BOATS[x.boat2].name) : '');
     return '<section class="card cafev' + (x.status === 'annullato' ? ' cafoff' : '') + '">' + cafHead(x) +
       (x.kind ? '<p class="cafkind">' + esc(x.kind) + '</p>' : '') + (x.address ? '<p class="muted" style="margin:2px 0">📍 ' + esc(x.address) + '</p>' : '') +
       '<p style="margin:4px 0">' + tr + '</p>' +
-      ((x.steps || []).length ? '<ol class="cafsteps">' + x.steps.map(cafStep).join('') + '</ol>' : '') +
+      cafTimeline(x) +
       (x.notes ? '<p class="hint" style="margin:6px 0 0">📝 ' + esc(x.notes) + '</p>' : '') +
       '<div class="cafmeta">' + (x.items || []).length + ' oggetti · ' + (x.ddt ? x.ddt.length + ' DDT · ' : '') + (x.by ? 'aggiornato da ' + esc(x.by.split(' ')[0]) : '') + '</div>' +
       (cafCanEdit() ? '<div style="display:flex;gap:8px;margin-top:8px"><button class="btn sm" data-act="cafedit" data-id="' + x.id + '">✎ Modifica</button><button class="btn sm" data-act="cafdup" data-id="' + x.id + '">Duplica</button></div>' : '') + '</section>';
