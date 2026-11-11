@@ -1202,6 +1202,14 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .cafrcv.done { font-size: 13.5px; color: #166534; text-align: center; padding: 6px; background: #dcfce7; border-radius: 10px; }
 .cafrrow { padding: 8px 0; border-bottom: 1px solid rgba(127,127,127,.15); }
 .caflegrow { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; } .caflegrow .field { margin: 0; padding: 8px; font-size: 15px; }
+.smw > .row h2 { color: #fff; } .smw > .row .pill { background: rgba(255,255,255,.15); color: #fff; } .smw .smlist li { color: rgba(255,255,255,.6); border-color: rgba(255,255,255,.12); } .smw .smlist li.now { color: #fff; } .smw > .aslink { color: #93c5fd; }
+.smw .smcard { padding: 18px; } .smlbl { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.smbig { font-size: 30px; font-weight: 800; line-height: 1.15; margin: 2px 0 4px; } .smnote { font-size: 17px; margin: 10px 0; }
+.smacts { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; } .smact { display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding: 12px 14px; font-size: 17px; }
+.smact small { font-weight: 400; font-size: 13.5px; opacity: .85; margin-top: 2px; } .smok { color: #166534; background: #dcfce7; border-radius: 10px; padding: 8px 12px; font-size: 14.5px; }
+.smgo { width: 100%; min-height: 64px; font-size: 21px; margin-top: 8px; }
+.smlist { list-style: none; padding: 0; margin: 12px 0 0; } .smlist li { display: flex; gap: 10px; padding: 7px 4px; border-bottom: 1px solid rgba(127,127,127,.15); color: var(--muted); }
+.smlist li span { width: 18px; } .smlist li.now { color: inherit; font-weight: 700; } .smlist li.dn { text-decoration: line-through; opacity: .6; }
 .cafkind { margin: 6px 0 2px; font-style: italic; }
 .cafmeta { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
 .cafoff { opacity: .55; }
@@ -2179,7 +2187,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       save(); closeSheet(); view = NV.keep && NV.open ? 'navi' : isMioUser() ? 'home' : 'guida'; NV.keep = false; spoken = '';
       wakeOn();
       toast('Turno iniziato su ' + BOATS[phys].name + (phys !== code ? ' · programma della ' + BOATS[code].name : ''));
-      gpsApply(); render(); setTimeout(loadMyTasks, 600); setTimeout(colliSync, 1500); setTimeout(function () { gpsModeAsk(true); }, 400);
+      gpsApply(); render(); setTimeout(loadMyTasks, 600); setTimeout(colliSync, 1500); if (!(SESSION && SESSION.simple)) setTimeout(function () { gpsModeAsk(true); }, 400);
     };
     if (tok() || isOffSess()) { cl('rpc_start_shift', { p_boat: code }).then(function (r) { if (r && (r.resumed || r.error === 'turno_aperto_su_altra_barca')) { closeSheet(); if (r.error) toast('Hai già un turno aperto: lo riprendo. Per cambiare barca usa “Cambio barca”.'); resumeShift(); return; } if (r && r.error === 'barca_in_uso' && phys !== code) { toast('La ' + BOATS[code].name + ' risulta in uso: parto con il programma della ' + BOATS[phys].name); PL_FORCE = true; startShift(phys); return; } if (r && r.error) { scanMsg(startErr(r.error), true); return; } go(); if (r && r.shift_id && S.shift) { S.shift.sid = r.shift_id; save(); } if (phys !== code && tok() && !isOffSess()) cl('rpc_shift_boat_swap', { p_boat: phys, p_partner: false, p_note: 'Programma collegato alla persona' }).then(function (w) { if (!w || !w.ok) toast('Non riesco a segnare la ' + BOATS[phys].name + ' come barca del turno: usa “Cambio barca”'); }); cl('rpc_set_plan', { p_plan: stops().map(function (z) { return { name: z.name, t: z.ind ? '' : (z.t || '') }; }) }); }); } else go();
   }
@@ -5032,6 +5040,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
 
   function viewGuida() {
     if (!S.shift) return viewTurno();
+    if (SESSION && SESSION.simple) return viewSimple();
     var b = boat(), bd = boatDay(), all = stops(), i = curIdx(), c = counts(), FREE = i < 0, R = revIdx();
     if (R != null) { var dn = S.shift.done[R]; return guidaCluster(all[R], R, all, FREE ? 'Torna alla fine del giro' : 'Torna a ' + all[i].name, '', c, dn); }
     var HI = holdIdx(); if (HI != null) { var hn = nextStop(HI), dh = S.shift.done[HI]; return guidaCluster(all[HI], HI, all, 'Sono arrivato · Avanti', '', c, dh, true); }
@@ -6113,6 +6122,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       if (S.shift && r.shift_open && r.cur_boat && BOATS[r.cur_boat]) { var _ph = r.cur_boat === S.shift.boat ? null : r.cur_boat; if ((S.shift.phys || null) !== _ph) { S.shift.phys = _ph; save(); ch = true; setTimeout(function () { toast('Adesso sei sulla ' + BOATS[r.cur_boat].name); }, 60); } }
       var _op = r.shift_open && r.shift_id && !(S.shift && (!S.shift.sid || S.shift.sid === r.shift_id)) ? { id: r.shift_id, boat: r.shift_boat, start: r.shift_start } : null;
       if (JSON.stringify(SESSION.open || null) !== JSON.stringify(_op)) { SESSION.open = _op; ch = true; }
+      if (!!SESSION.simple !== !!r.simple) { SESSION.simple = !!r.simple; ch = true; }
       if (!!SESSION.money !== !!r.money) { SESSION.money = !!r.money; ch = true; }
       if (r.bill && SESSION.role !== 'billing') { SESSION.role = 'billing'; ch = true; }
       if (!!SESSION.locator !== !!r.locator) { SESSION.locator = !!r.locator; ch = true; }
@@ -8991,6 +9001,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     end: ['🏁', 'Termina turno', 'Tutte le tappe fatte']
   };
   function viewPlancia() {
+    if (S.shift && SESSION && SESSION.simple) return viewSimple();
     var p = plStep(), k = plKind(p), A = PL_ACT[k], pb = plPolybox(p), s = p.s;
     if (k === 'start' && openInfo()) A = ['⏯', 'Riprendi turno', 'Turno aperto ' + resumeLabel(openInfo()) + ': non è stato terminato'];
     var tz = s && s.t ? s.t : '––:––', late = '';
@@ -9007,7 +9018,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     h += '<section class="plas" aria-label="Assistente"><button class="plbig k-' + k + '" data-act="plgo"><span class="plic" aria-hidden="true">' + A[0] + '</span><span class="pltx"><b>' + A[1] + '</b><small>' + A[2] + '</small></span></button>' +
       (p.shift && s ? '<div class="plsub"><button data-act="problem">⚠ Problema</button><button data-act="plopen">Apri la tappa</button></div>' : '') + '</section>';
     // STRUMENTI
-    h += '<nav class="plst" aria-label="Strumenti"><button data-act="plcam"><span>📷</span>Fotocamera</button><button data-act="nav" data-v="contatti"><span>📞</span>Telefono</button><button data-act="nav" data-v="mio"><span>➕</span>Nuova consegna</button><button data-act="nav" data-v="programma"><span>📋</span>Programma</button><button data-act="nav" data-v="calendario"><span>📅</span>Calendario</button><button data-act="nav" data-v="navi"><span>🧭</span>Navigatore</button><button data-act="nav" data-v="snap"><span>👻</span>Snap</button>' + (p.shift ? '<button data-act="swopen"><span>🔁</span>Cambio barca</button>' : '') + '<button data-act="nav" data-v="impost" aria-label="Opzioni"><span>⚙️</span>Opzioni</button></nav>';
+    h += '<nav class="plst" aria-label="Strumenti">' + (hasCf() ? '<button data-act="nav" data-v="cafoscari"><span>🎓</span>Ca’ Foscari</button>' : '') + '<button data-act="plcam"><span>📷</span>Fotocamera</button><button data-act="nav" data-v="contatti"><span>📞</span>Telefono</button><button data-act="nav" data-v="mio"><span>➕</span>Nuova consegna</button><button data-act="nav" data-v="programma"><span>📋</span>Programma</button><button data-act="nav" data-v="calendario"><span>📅</span>Calendario</button><button data-act="nav" data-v="navi"><span>🧭</span>Navigatore</button><button data-act="nav" data-v="snap"><span>👻</span>Snap</button>' + (p.shift ? '<button data-act="swopen"><span>🔁</span>Cambio barca</button>' : '') + '<button data-act="nav" data-v="impost" aria-label="Opzioni"><span>⚙️</span>Opzioni</button></nav>';
     return h + '</div>';
   }
   function plFire(act, attrs) { var b = document.createElement('button'); b.setAttribute('data-act', act); Object.keys(attrs || {}).forEach(function (k) { b.setAttribute(k, attrs[k]); }); b.style.display = 'none'; document.body.appendChild(b); b.click(); b.remove(); }
@@ -11524,6 +11535,55 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (a === 'cafdopen') ddtOpenOriginal(id);
     else if (a === 'cafsign') { var go = function () { if (ddtFind(id)) { SIGQ = []; SIGQ.total = 1; sigOpen(id); } else toast('DDT non trovato: riprova tra poco'); }; if (ddtFind(id)) go(); else loadDdt().then(go); }
   });
+  /* ---------- Turno semplice (es. Beppe): una tappa alla volta, un tocco per andare avanti, niente orari da rispettare ---------- */
+  function smPlace(a, b) { a = ddtNorm(a || ''); b = ddtNorm(b || ''); if (!a || !b) return false; return a === b || a.indexOf(b) >= 0 || b.indexOf(a) >= 0 || a.split(' ')[0] === b.split(' ')[0] && a.split(' ')[0].length > 3; }
+  function viewSimple() {
+    var b = boat(), all = stops(), i = curIdx(), c = counts(), day = S.shift.day, me = SESSION && SESSION.name;
+    if (CAF.loaded !== day && !CAF.busy) { CAF.day = day; cafLoad().then(function () { if (view === 'guida') render(); }); }
+    if (!DD.loaded && !DD.busy) loadDdt().then(function () { if (view === 'guida') render(); });
+    var h = '<div class="wrap smw"><div class="row"><h2>🚤 ' + esc(b ? b.name : '') + '</h2><span class="pill">' + Math.min(c.ok + c.bad + 1, c.total) + ' / ' + c.total + '</span></div>';
+    if (i < 0) return h + '<section class="card smcard"><div class="smbig">🎉 Giro finito</div><p class="muted">Grazie! Puoi chiudere il turno.</p><button class="btn primary smgo" data-act="smend">Chiudi il turno</button></section></div>';
+    var s = all[i], acts = '';
+    // 1) DDT da far firmare in questa tappa
+    ddtOfStop(day, s.name).filter(function (x) { return x.mine && x.status === 'pending'; }).forEach(function (x) {
+      acts += '<button class="btn smact" data-act="ddtsign" data-id="' + x.id + '">✍️ Fai firmare il DDT<small>' + esc(x.customer) + '</small></button>';
+    });
+    ddtOfStop(day, s.name).filter(function (x) { return x.mine && x.status === 'signed'; }).forEach(function (x) { acts += '<div class="smok">✓ DDT firmato · ' + esc(x.customer) + '</div>'; });
+    // 2) Ca' Foscari: ritiro delle cose (da Sergio o dal Seminario) e consegna in sede
+    (CAF.loaded === day ? CAF.items : []).forEach(function (x) {
+      if (x.status === 'annullato') return;
+      cafMySlots(x).forEach(function (sl) {
+        if (!smPlace(sl.place, s.name)) return;
+        var todo = sl.rows.filter(function (r) { return !r.g.conf; });
+        var from = /sergio|furgone/i.test(sl.rows.map(function (r) { return r.g.act || ''; }).join(' ')) ? 'da Sergio' : /seminario/i.test(sl.place) ? 'dal Seminario' : '';
+        if (!todo.length) { acts += '<div class="smok">✓ Ritiro confermato · ' + esc(x.room || x.venue) + '</div>'; return; }
+        acts += '<button class="btn smact" data-act="cafrcv" data-e="' + x.id + '" data-k="' + esc(sl.t + '|' + sl.place + '|' + (sl.kind || '')) + '">📥 Ho ritirato le cose ' + esc(from) + '<small>' + esc((x.room || x.venue).split(' · ')[0] + ': ' + todo.map(function (r) { return r.i.what; }).join(', ')) + '</small></button>';
+      });
+      if (!smPlace(x.venue, s.name)) return;
+      var mine = (x.items || []).filter(function (it) {
+        var rt = it.route || [], k = -1; rt.forEach(function (g, n) { if (g.kind !== 'ref' && g.to === CAF.me) k = n; });
+        return k >= 0 && rt[k + 1] && rt[k + 1].kind === 'ref' && smPlace(rt[k + 1].place, s.name) && rt[k].conf && ['in_sede', 'ritirato', 'rientrato'].indexOf(it.status) < 0;
+      });
+      if (mine.length) acts += '<button class="btn smact" data-act="smdel" data-ids="' + mine.map(function (it) { return it.id; }).join(',') + '">✅ Consegna fatta<small>' + esc((x.room || x.venue).split(' · ')[0] + ': ' + mine.map(function (it) { return it.what; }).join(', ')) + '</small></button>';
+    });
+    var nx = all.filter(function (z, k) { return k > i && !S.shift.done[k] && !z.cancelled; })[0];
+    h += '<section class="card smcard"><div class="smlbl">Adesso vai a</div><div class="smbig">' + esc(s.name) + '</div>' + (s.t ? '<div class="muted">circa ' + esc(s.t) + '</div>' : '') +
+      (s.note ? '<p class="smnote">' + esc(s.note) + '</p>' : '') + (acts ? '<div class="smacts">' + acts + '</div>' : '') +
+      '<button class="btn primary smgo" data-act="smnext" data-i="' + i + '">✓ Fatto · avanti</button>' + (nx ? '<div class="muted" style="text-align:center;margin-top:6px">Poi: ' + esc(nx.name) + '</div>' : '') + '</section>';
+    h += '<ol class="smlist">' + all.map(function (z, k) { if (z.cancelled) return ''; var d = S.shift.done[k]; return '<li class="' + (d ? 'dn' : k === i ? 'now' : '') + '"><span>' + (d ? '✓' : k === i ? '➜' : '') + '</span>' + esc(z.name) + '</li>'; }).join('') + '</ol>';
+    return h + '<button class="aslink" data-act="smend" style="display:block;margin:10px auto">Chiudi il turno</button></div>';
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act^="sm"]') : null; if (!el) return;
+    var a = el.getAttribute('data-act');
+    if (a === 'smnext') { var i = +el.getAttribute('data-i'); if (S.shift && !S.shift.done[i]) finish(i, 'ok', '', true); }
+    else if (a === 'smend') { if (curIdx() >= 0 && !confirm('Ci sono ancora tappe da fare. Chiudere il turno lo stesso?')) return; endShift(); }
+    else if (a === 'smdel') {
+      var ids = String(el.getAttribute('data-ids') || '').split(',').filter(Boolean), p = Promise.resolve(); toast('Invio…');
+      ids.forEach(function (id) { p = p.then(function () { return cl('rpc_cf_item_status', { p_id: id, p_status: 'in_sede', p_note: 'consegnato da ' + (SESSION ? SESSION.name : '') }); }); });
+      p.then(function () { toast('Consegna segnata ✓'); cafLoad(true).then(render); });
+    }
+  });
   function homeApps() { var ap = homeApps0(); if (hasCf() && ap.indexOf('cafoscari') < 0 && !isBill() && !isPack() && !isBoatRole()) ap.splice(isCfOnly() ? 0 : Math.min(2, ap.length), 0, 'cafoscari'); return ap; }
   function homeApps0() {
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
@@ -11642,6 +11702,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   // checkpoint GPS: entro 100 metri dalla tappa sei arrivato (l'ora di arrivo è quella dell'ingresso nel cerchio)
   var ARR_R = 100;
   function arrCheck() {
+    if (SESSION && SESSION.simple) return; // turno semplice: nessun controllo GPS delle tappe
     var sh = S.shift; if (!sh || sh.noGps || !GPS.last || holdIdx() != null) return; var i = curIdx(); if (i < 0) return;
     var s = stops()[i]; if (!s || s.cancelled || (s.maint && sh.step)) return; var tg = COORDS[s.name]; if (!tg) return;
     sh.arr = sh.arr || {}; var k = arrKey(i);
@@ -11715,7 +11776,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   function arrSend(i) {
     var sh = S.shift, sp = stops()[i], t = sh && sh.arr && sh.arr[arrKey(i)]; if (!sp || sp.local || sp.maint || !t || sh.noGps) return;
     var fx = GPS.last && Date.now() - GPS.last.t < 60000 ? GPS.last : null;
-    cl('rpc_stop_arrived', { p_stop: sp.name, p_planned: sp.ind ? null : (sp.t || null), p_lat: fx ? fx.la : null, p_lng: fx ? fx.lo : null, p_at: new Date(t).toISOString() });
+    cl('rpc_stop_arrived', { p_stop: sp.name, p_planned: sp.ind || (SESSION && SESSION.simple) ? null : (sp.t || null), p_lat: fx ? fx.la : null, p_lng: fx ? fx.lo : null, p_at: new Date(t).toISOString() });
   }
   function arrKey(i) { var z = stops()[i]; return S.shift.day + ':' + i + ':' + (z ? z.name + '@' + (z.t || '') : ''); }
   function arrAt(i) { var sh = S.shift, t = sh && sh.arr && sh.arr[arrKey(i)]; return t && Date.now() - t < 4 * 3600e3 ? new Date(t).toISOString() : null; }
@@ -12274,7 +12335,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       var fx = GPS.last && Date.now() - GPS.last.t < 60000 ? GPS.last : null;
       (fx ? cl('rpc_log_gps', { p_lat: fx.la, p_lng: fx.lo, p_speed: null, p_acc: null }) : Promise.resolve()).then(function () {
         if (sp.extra) cl('rpc_task_update', { p_task: sp.id, p_status: status === 'ok' ? 'fatta' : 'problema', p_reason: reason || null, p_lat: fx ? fx.la : null, p_lng: fx ? fx.lo : null });
-        else cl('rpc_stop_event2', { p_stop: sp.name, p_status: status, p_reason: reason || (probText(i) ? 'Problema segnalato: ' + probText(i) : null), p_planned: sp.ind ? null : (sp.t || null), p_at: status === 'ok' ? arrAt(i) : null });
+        else cl('rpc_stop_event2', { p_stop: sp.name, p_status: status, p_reason: reason || (probText(i) ? 'Problema segnalato: ' + probText(i) : null), p_planned: sp.ind || (SESSION && SESSION.simple) ? null : (sp.t || null), p_at: status === 'ok' ? arrAt(i) : null });
       });
     }
     S.shift.step = 0; S.shift.trip = 0; save(); spoken = '';
