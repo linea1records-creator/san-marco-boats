@@ -12757,7 +12757,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       if (sp.done) return;
       if (cfk ? 'cf|' + sp.key === cfk : smPlace(sp.place, name) && cfNear(sp.t, t)) out.push({ cf: sp });
     });
-    if (DD.loaded) ddtOfStop(day, name).forEach(function (x) { if (x.mine && x.status === 'pending') out.push({ ddt: x }); });
+    var no = (S.shift && S.shift.ddtNo) || {};
+    if (DD.loaded) ddtOfStop(day, name).forEach(function (x) { if (x.mine && x.status === 'pending' && !no[x.id]) out.push({ ddt: x }); });
     return out;
   }
   function stopPending(i) {
@@ -12771,9 +12772,25 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       return '<button class="btn primary smact" data-act="pendcf" data-k="' + esc(sp.key) + '"' + (i != null ? ' data-i="' + i + '"' : '') + '>' + (sp.kind === 'pick' ? '📥 Spunta cosa ricevi' + (sp.from ? ' da ' + esc(sp.from.replace(/\s*\(.*$/, '')) : '') : '📦 Spunta cosa consegni a ' + esc(String(sp.to || '').replace(/\s*[(·].*$/, ''))) + '<small>' + esc(w) + '</small></button>';
     }).join('');
     openSheet('<h2>Prima di andare avanti</h2><p class="muted">A <b>' + esc(name) + '</b> devi ancora:</p><div class="smacts">' + h + '</div>' +
-      '<p class="hint">Se manca qualcosa togli la spunta e scrivi cosa: va bene lo stesso. Se non puoi farlo usa “Salta tappa”.</p><div class="btns"><button class="btn quiet" data-act="close">Indietro</button></div>');
+      '<p class="hint">Se manca qualcosa togli la spunta e scrivi cosa: va bene lo stesso. Se non puoi farlo usa “Salta tappa”.</p><div class="btns">' +
+      (pd.some(function (p) { return p.ddt; }) ? '<button class="btn" data-act="ddtno" data-ids="' + pd.filter(function (p) { return p.ddt; }).map(function (p) { return p.ddt.id; }).join(',') + '" data-n="' + esc(name) + '"' + (i != null ? ' data-i="' + i + '"' : '') + '>Non riesco a far firmare il DDT</button>' : '') +
+      '<button class="btn quiet" data-act="close">Indietro</button></div>');
     if (S.voice) say('Prima di andare avanti devi confermare ' + (pd.length === 1 ? 'una cosa' : pd.length + ' cose') + ' a ' + name + '.');
   }
+  // per ora si può andare avanti senza firma del DDT, dopo una conferma: resta segnato nella tappa
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act="ddtno"],[data-act="ddtnoyes"]') : null; if (!el || !S.shift) return;
+    var ids = el.getAttribute('data-ids'), n = el.getAttribute('data-n'), si = el.getAttribute('data-i');
+    if (el.getAttribute('data-act') === 'ddtno') {
+      openSheet('<h2>⚠️ Sei sicuro?</h2><p class="big">Sei sicuro di non voler fare firmare il DDT?</p><p class="muted">La tappa ' + esc(n) + ' viene chiusa senza firma e la logistica lo vede.</p><div class="btns">' +
+        '<button class="btn danger" data-act="ddtnoyes" data-ids="' + esc(ids) + '" data-n="' + esc(n) + '"' + (si != null ? ' data-i="' + si + '"' : '') + '>Sì, vai avanti senza firma</button><button class="btn primary" data-act="close">No, faccio firmare</button></div>');
+      return;
+    }
+    S.shift.ddtNo = S.shift.ddtNo || {}; String(ids || '').split(',').filter(Boolean).forEach(function (id) { S.shift.ddtNo[id] = Date.now(); }); save(); closeSheet();
+    var cust = DD.items.filter(function (x) { return String(ids).split(',').indexOf(String(x.id)) >= 0; }).map(function (x) { return x.customer; }).join(', ');
+    if (si != null) finish(+si, 'ok', 'DDT non firmato' + (cust ? ': ' + cust : ''));
+    else toast('DDT senza firma: ora puoi andare avanti');
+  });
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest('[data-act="pendcf"]') : null; if (!el) return;
     closeSheet(); var si = el.getAttribute('data-i'); cfConfirmOpen(el.getAttribute('data-k'), si == null ? null : +si);
