@@ -1210,6 +1210,8 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .smgo { width: 100%; min-height: 64px; font-size: 21px; margin-top: 8px; }
 .smlist { list-style: none; padding: 0; margin: 12px 0 0; } .smlist li { display: flex; gap: 10px; padding: 7px 4px; border-bottom: 1px solid rgba(127,127,127,.15); color: var(--muted); }
 .smlist li span { width: 18px; } .smlist li.now { color: inherit; font-weight: 700; } .smlist li.dn { text-decoration: line-through; opacity: .6; }
+.pnbtn { flex: 1; display: flex; flex-direction: column; align-items: flex-start; text-align: left; background: none; border: 0; padding: 0; color: inherit; font: inherit; position: relative; padding-right: 22px; cursor: pointer; }
+.pnbtn small { color: var(--muted); } .pnbtn .pnadd { color: var(--primary); } .pnbtn i { position: absolute; right: 0; top: 2px; font-style: normal; opacity: .45; font-size: 14px; }
 .cafkind { margin: 6px 0 2px; font-style: italic; }
 .cafmeta { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
 .cafoff { opacity: .55; }
@@ -2977,6 +2979,26 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   function t2m(t) { var x = /^(\d{1,2}):(\d{2})$/.exec(t || ''); return x ? +x[1] * 60 + +x[2] : null; }
   // Scheda per cambiare orario: ±5/±15 minuti, ora diretta, e "sposta anche le tappe dopo"
   var TS = null;
+  // nota di una tappa del programma: Pietro la cambia toccando la tappa
+  var PNOTE = null;
+  function pnoOpen(k, b, i) {
+    var bd = PROGRAM[k] && PROGRAM[k].boats[b], s = bd && bd.stops[i]; if (!s) return;
+    PNOTE = { k: k, b: b, i: i, name: s.name, n0: s.note || '' };
+    openSheet('<h2>' + esc(s.name) + '</h2><p class="muted">' + esc(BOATS[b].name + ' · ' + pgDateLabel(k) + (s.t ? ' · ' + s.t : '')) + '</p>' +
+      '<label>Nota della consegna</label><textarea class="field txt" id="pnoIn" rows="4" maxlength="400" placeholder="Es. porta d’acqua aperta, chiamare prima di arrivare">' + esc(s.note || '') + '</textarea>' +
+      '<p class="hint">La vede il trasportatore nel programma e quando arriva alla tappa.</p>' +
+      '<div style="display:flex;gap:8px;margin-top:10px">' + (s.note ? '<button class="btn quiet" data-act="pnoclr" style="flex:1">Togli la nota</button>' : '<button class="btn quiet" data-act="veil" style="flex:1">Annulla</button>') + '<button class="btn primary" data-act="pnosave" style="flex:2">Salva</button></div>');
+    setTimeout(function () { var t = $('pnoIn'); if (t) { t.focus(); t.setSelectionRange(t.value.length, t.value.length); } }, 50);
+  }
+  function pnoSave(txt) {
+    if (!PNOTE) return; var P0 = PNOTE; PNOTE = null; txt = String(txt == null ? '' : txt).trim().slice(0, 400);
+    closeSheet(); if (txt === P0.n0) return;
+    var day = asDayFromProgram(P0.k), s = day.boats[P0.b] && day.boats[P0.b].stops[P0.i]; if (!s) return;
+    s.note = txt; toast('Salvo…');
+    var what = 'Nota ' + P0.name + ' · ' + BOATS[P0.b].name + ' ' + pgFmt(P0.k);
+    progPublish([day], what).then(function (u) { render(); undoBar('Nota di ' + P0.name + (txt ? ' cambiata' : ' tolta'), function () { progUndo(u.prev, what); }); })
+      .catch(function () { toast('Non riesco a salvare: controlla la connessione'); });
+  }
   function tsOpen(k, b, i) {
     var bd = PROGRAM[k] && PROGRAM[k].boats[b], s = bd && bd.stops[i]; if (!s) return;
     var after = bd.stops.slice(i + 1).filter(function (z) { return z.t; }).length;
@@ -4488,7 +4510,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       (isMgr() && tok() ? pgDraftBanner() + '<button class="btn" data-act="nav" data-v="logistica">+ Nuovo turno o consegna</button>' : '') + '<h3>' + esc(day.label) + '</h3>' + (day.halloween ? '<div class="note">🎃 <b>Buon Halloween!</b> Occhio alla nebbia in laguna: dolcetto o scherzetto a fine giro.</div>' : '');
     if (canDdt) h += '<p class="hint">Tocca <b>📎 DDT</b> su una consegna per collegare il suo DDT' + (isWide() ? ', oppure trascina il file sulla riga' : '') + '. Il trasportatore lo trova nel navigatore quando arriva lì.</p>';
     if (isOff() && tok()) h += '<input type="file" id="ddAttIn" accept="application/pdf,image/*" style="display:none">';
-    if (canEdit && ids.some(function (id) { return (day.boats[id].stops || []).length; })) h += '<p class="hint">Tocca un orario per cambiarlo · scorri a sinistra per eliminare · tieni premuta una tappa e trascinala per cambiare l’ordine.</p>';
+    if (canEdit && ids.some(function (id) { return (day.boats[id].stops || []).length; })) h += '<p class="hint">Tocca un orario per cambiarlo · tocca la tappa per cambiare la nota · scorri a sinistra per eliminare · tieni premuta una tappa e trascinala per cambiare l’ordine.</p>';
     ids.forEach(function (id) {
       var b = BOATS[id], bd = day.boats[id], mine = S.shift && S.shift.day === k && S.shift.boat === id, cur = mine ? curIdx() : -2;
       h += '<section class="card"' + (mine ? ' style="border:2px solid var(--primary)"' : '') + '><div class="row"><div><h2 style="font-size:22px">' + esc(b.name) + '</h2><div class="muted">' + esc(b.crew) + (b.giro ? ' · ' + esc(b.giro) : '') + '</div></div>' +
@@ -4499,7 +4521,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
           if (mine) { var r = S.shift.done[i]; if (r) { st = '<span class="pill ' + (r.status === 'ok' ? 'ok' : 'bad') + '">' + (r.status === 'ok' ? 'Fatta' : 'Problema') + '</span>'; cls = ' past'; } else if (i === cur) { st = '<span class="pill go">In corso</span>'; cls = ' now'; } }
           var tx = esc(s.t ? (s.end ? s.t + '–' + s.end : s.t) : '—'), body = '<span><b>' + esc(s.name) + '</b>' + (s.note ? '<small>' + esc(s.note) + '</small>' : '') + '</span>' + st;
           if (canEdit) { var da = ' data-k="' + k + '" data-b="' + id + '" data-i="' + i + '"';
-            return '<li class="swr"' + da + '><div class="swc stp' + cls + (s.cancelled ? ' cxl' : '') + '"><button class="mono tbtn" data-act="ptime"' + da + ' aria-label="Cambia orario di ' + esc(s.name) + '">' + tx + '</button>' + body + '</div><button class="swdel" data-act="pdel"' + da + '>Elimina</button></li>'; }
+            return '<li class="swr"' + da + '><div class="swc stp' + cls + (s.cancelled ? ' cxl' : '') + '"><button class="mono tbtn" data-act="ptime"' + da + ' aria-label="Cambia orario di ' + esc(s.name) + '">' + tx + '</button>' + '<button class="pnbtn" data-act="pnote"' + da + ' aria-label="Cambia la nota di ' + esc(s.name) + '"><b>' + esc(s.name) + '</b>' + (s.note ? '<small>' + esc(s.note) + '</small>' : '<small class="pnadd">＋ nota</small>') + '<i aria-hidden="true">✎</i></button>' + st + '</div><button class="swdel" data-act="pdel"' + da + '>Elimina</button></li>'; }
           if (canDdt) return '<li class="stp ddpin' + (s.cancelled ? ' cxl' : '') + '" data-ddrop="1" data-k="' + k + '" data-b="' + id + '" data-i="' + i + '"><span class="mono">' + tx + '</span><span><b>' + esc(s.name) + '</b>' + (s.note ? '<small>' + esc(s.note) + '</small>' : '') + '</span>' + ddtStopCell(k, id, i, s) + '</li>';
           return '<li class="stp' + cls + (s.cancelled ? ' cxl' : '') + '"><span class="mono">' + tx + '</span>' + body + '</li>';
         }).join('') + '</ul>';
@@ -12613,6 +12635,9 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (a === 'ddtcar') { var cid = el.getAttribute('data-id'), cc = (DD.carriers || []).filter(function (c) { return c.id === cid; })[0]; closeSheet(); if (DDA && DDA.go && cc) DDA.go(cc); DDA = null; return; }
     if (a === 'pdel') { var li0 = el.closest('.swr'); if (li0) li0.classList.add('gone'); progDelStop(el.getAttribute('data-k'), el.getAttribute('data-b'), +el.getAttribute('data-i')); return; }
     if (a === 'xdel') { var li1 = el.closest('.swr'); if (li1) li1.classList.add('gone'); taskDelRun(el.getAttribute('data-run')); return; }
+    if (a === 'pnote') { pnoOpen(el.getAttribute('data-k'), el.getAttribute('data-b'), +el.getAttribute('data-i')); return; }
+    if (a === 'pnosave') { pnoSave(($('pnoIn') || {}).value); return; }
+    if (a === 'pnoclr') { pnoSave(''); return; }
     if (a === 'ptime') { tsOpen(el.getAttribute('data-k'), el.getAttribute('data-b'), +el.getAttribute('data-i')); return; }
     if (a === 'tsclose') { TS = null; tsDraw(); return; }
     if (a === 'tsstep') { if (TS) { var bm = t2m(TS.t); if (bm === null) bm = 8 * 60; TS.t = m2t(bm + +el.getAttribute('data-m')); var ti = $('tsIn'); if (ti) ti.value = TS.t; var dl = document.querySelector('.tsdelta'); if (dl) dl.textContent = tsDeltaText(); else tsDraw(); } return; }
