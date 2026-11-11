@@ -11357,7 +11357,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
         return '<div class="cafit"><div class="ddr"><span class="ddrt"><b>' + esc((i.qty ? fmtQ(i.qty) + (i.unit ? ' ' + i.unit : '') + ' × ' : '') + i.what) + '</b>' +
           (miss.length ? '<small style="color:#b91c1c">⚠ Manca' + esc(miss.map(function (g) { return g.conf.note ? ': ' + g.conf.note : ''; }).join(' ')) + '</small>' : '') + '</span>' +
           (cafCanItems() ? '<span class="ddrb"><button class="btn sm" data-act="cafiedit" data-e="' + x.id + '" data-id="' + i.id + '" aria-label="Modifica">⋯</button></span>' : '') + '</div>' +
-          ((i.route || []).length ? '<div class="cafchips">' + i.route.map(function (g) { return cafChip(x, g); }).join('') + '</div>' : '') + '</div>';
+          ((i.route || []).length ? '<div class="cafchips">' + cafOrd(i.route).map(function (n) { return cafChip(x, i.route[n]); }).join('') + '</div>' : '') + '</div>';
       }).join('');
     });
     if (cafCanItems()) h += '<button class="btn sm" data-act="cafiedit" data-e="' + x.id + '" style="margin-top:10px">＋ Aggiungi alla lista</button>';
@@ -11383,6 +11383,14 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     p.then(function () { toast(err || (miss ? 'Confermato · segnalato che mancano ' + miss + (miss === 1 ? ' cosa' : ' cose') : 'Tutto ricevuto ✓')); cafLoad(true).then(render); });
   }
   function fmtQ(q) { return String(+q).replace('.', ','); }
+  // ordine vero dei passaggi: per orario (chi riceve dopo viene dopo), non per come sono stati scritti
+  function cafOrd(rt) {
+    var last = -1;
+    return (rt || []).map(function (g, n) { var m = t2m(g.t); if (m == null) m = last; else last = m; return { n: n, m: m }; })
+      .sort(function (a, b) { return a.m - b.m || a.n - b.n; }).map(function (o) { return o.n; });
+  }
+  function cafNext(rt, n) { var o = cafOrd(rt), p = o.indexOf(n); return p >= 0 && p + 1 < o.length ? rt[o[p + 1]] : null; }
+  function cafPrev(rt, n) { var o = cafOrd(rt), p = o.indexOf(n); return p > 0 ? rt[o[p - 1]] : null; }
   function cafDdtCard(x) {
     var dd = x.ddt || [], mine = cafAcc() === 'carrier';
     return '<section class="card">' + cafHead(x) + '<div class="cafmeta">' + (x.carrier ? 'Trasporto: ' + esc(x.carrier) : 'Trasporto da assegnare: serve per caricare il DDT') + '</div>' +
@@ -11470,7 +11478,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       if (w !== 'ref') { o.to = w; var p = (CAF.pp || []).filter(function (z) { return z.id === w; })[0]; o.to_name = p ? p.name : g.to_name; }
       if (g.conf && (g.kind === o.kind) && (g.to || '') === (o.to || '')) o.conf = g.conf;
       return o;
-    });
+    }).map(function (o, n, all) { return { o: o, k: cafOrd(all).indexOf(n) }; }).sort(function (a, b) { return a.k - b.k; }).map(function (z) { return z.o; }); // salvati in ordine di orario
   }
   // referente camerieri: lo sceglie l'ufficio Ca' Foscari per ogni evento; può creare qui l'account del cameriere
   function cafRefPick(eid) {
@@ -11583,7 +11591,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
             var k = (t || '') + '|' + ddtNorm(place); if (seen[k]) return; seen[k] = 1; out.push({ cf: true, key: k, t: t || '', ord: t || ord || '', name: place, note: (x.room || x.venue).split(' · ')[0] + (x.notes ? ' · ' + x.notes : '') });
           };
           add(g.t, g.place);
-          var nx = rt[n + 1]; if (nx && nx.kind === 'ref') add(nx.t || '', nx.place || x.venue, g.t ? g.t + ':01' : '');
+          var nx = cafNext(rt, n); if (nx && nx.kind === 'ref') add(nx.t || '', nx.place || x.venue, g.t ? g.t + ':01' : '');
         });
       });
     });
@@ -11625,8 +11633,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
         acts += '<button class="btn smact" data-act="cafrcv" data-e="' + x.id + '" data-k="' + esc(sl.t + '|' + sl.place + '|' + (sl.kind || '')) + '">📥 Ho ritirato le cose ' + esc(from) + '<small>' + esc((x.room || x.venue).split(' · ')[0] + ': ' + todo.map(function (r) { return r.i.what; }).join(', ')) + '</small></button>';
       });
       var mine = (x.items || []).filter(function (it) {
-        var rt = it.route || [], k = -1; rt.forEach(function (g, n) { if (g.kind !== 'ref' && g.to === CAF.me) k = n; });
-        var nx = k >= 0 ? rt[k + 1] : null;
+        var rt = it.route || [], k = -1; cafOrd(rt).forEach(function (n) { var g = rt[n]; if (g.kind !== 'ref' && g.to === CAF.me) k = n; });
+        var nx = k >= 0 ? cafNext(rt, k) : null;
         return nx && nx.kind === 'ref' && smPlace(nx.place || x.venue, s.name) && ['in_sede', 'ritirato', 'rientrato'].indexOf(it.status) < 0;
       });
       var dn = (x.items || []).filter(function (it) { return it.status === 'in_sede' && smPlace(x.venue, s.name) && (it.route || []).some(function (g) { return g.to === CAF.me; }); });
@@ -11672,13 +11680,13 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
         var rt = it.route || [];
         rt.forEach(function (g, n) {
           if (!vgMine(x, g)) return;
-          var pv = rt[n - 1], k = 'p|' + (g.t || '') + '|' + ddtNorm(g.place || '') + '|' + (g.kind || '');
+          var pv = cafPrev(rt, n), k = 'p|' + (g.t || '') + '|' + ddtNorm(g.place || '') + '|' + (g.kind || '');
           if (!m[k]) { m[k] = { key: k, kind: 'pick', t: g.t || '', ts: cafLegTs(x, g), place: g.place || x.venue, from: pv ? vgWho(x, pv) : '', lk: (g.t || '') + '|' + (g.place || '') + '|' + (g.kind || ''), rows: [] }; out.push(m[k]); }
           m[k].rows.push({ x: x, i: it, n: n, g: g });
-          var nx = rt[n + 1]; if (!nx || vgMine(x, nx)) return;
+          var nx = cafNext(rt, n); if (!nx || vgMine(x, nx)) return;
           var k2 = 'd|' + (nx.t || '') + '|' + ddtNorm(nx.place || '');
           if (!m[k2]) { m[k2] = { key: k2, kind: 'drop', t: nx.t || '', place: nx.place || x.venue, to: vgWho(x, nx) + (/toppetta|ardemar|patana/i.test(nx.act || '') ? ' · ' + (nx.act.match(/toppetta|ardemar|patana/i) || [''])[0] : ''), rows: [] }; out.push(m[k2]); }
-          m[k2].rows.push({ x: x, i: it, n: n + 1, g: nx });
+          m[k2].rows.push({ x: x, i: it, n: rt.indexOf(nx), g: nx });
         });
       });
     });
