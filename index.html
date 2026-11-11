@@ -5149,9 +5149,17 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   }
   setInterval(function () { if (view === 'guida' && S.shift) { refreshStop(); loadWx(false); loadTide(false); } }, 30000);
 
+  // Pietro (e chi ha accesso completo) può passare dal cruscotto a schermo intero alla schermata semplice, come quella di Beppe
+  function canUiSimple() { return !!(SESSION && !SESSION.simple && (isMgr() || isFullAcc() || /avicolli/i.test(SESSION.name || ''))); }
+  function uiSimple() { return !!(SESSION && (SESSION.simple || (canUiSimple() && S.uiSimple))); }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act="uisimple"]') : null; if (!el || !canUiSimple()) return;
+    S.uiSimple = el.getAttribute('data-v') === '1'; save(); try { closeSheet(); } catch (x) {} view = 'guida'; render();
+    toast(S.uiSimple ? 'Schermata semplice' : 'Cruscotto a schermo intero');
+  });
   function viewGuida() {
     if (!S.shift) return viewTurno();
-    if (SESSION && SESSION.simple) return viewSimple();
+    if (uiSimple()) return viewSimple();
     var b = boat(), bd = boatDay(), all = stops(), i = curIdx(), c = counts(), FREE = i < 0, R = revIdx();
     if (R != null) { var dn = S.shift.done[R]; return guidaCluster(all[R], R, all, FREE ? 'Torna alla fine del giro' : 'Torna a ' + all[i].name, '', c, dn); }
     var HI = holdIdx(); if (HI != null) { var hn = nextStop(HI), dh = S.shift.done[HI]; return guidaCluster(all[HI], HI, all, 'Sono arrivato · Avanti', '', c, dh, true); }
@@ -5201,9 +5209,9 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       mimmo: '<div id="mimFace" class="mim">' + mimInner() + '</div>',
       bebe: '<div id="bbFace" class="mim bb">' + bbInner() + '</div>',
       km: '<div class="tile"><div class="kms"><span>Tappa <b id="kmT">' + fmt2(sh.trip || 0) + '</b> km</span><span>Turno <b id="kmS">' + fmt1(sh.km || 0) + '</b> km</span><span><b id="spdN">' + (GPS.speed == null ? '–' : fmt1(GPS.speed * 1.94384)) + '</b> nodi</span></div></div>',
-      next: !s ? '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (prevDone() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button><button class="chk fin" data-act="endsheet"><span class="chkt">Chiudi il turno</span></button></div><button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>' : '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (prevDone() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button>' +
+      next: !s ? '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (prevDone() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button><button class="chk fin" data-act="endsheet"><span class="chkt">Chiudi il turno</span></button></div>' + (canUiSimple() ? '<button class="nxexit" data-act="uisimple" data-v="1">▤ Schermata semplice</button>' : '') + '<button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div>' : '<div class="nxw"><div class="nxrow"><button class="nxback" data-act="goback"' + (prevDone() < 0 ? ' disabled' : '') + ' aria-label="Torna alla tappa precedente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Indietro</span></button>' +
         '<button class="chk' + (hold ? ' holdgo' : rev ? ' revgo' : !canArrive(i) ? ' locked' : S.shift && S.shift.arr && S.shift.arr[arrKey(i)] && canArrive(i) && arrDist(i) != null && arrDist(i) <= ARR_R ? ' near' : '') + '" id="nextBtn" data-act="' + (hold ? 'holdnext' : rev ? 'revexit' : 'next') + '" aria-label="' + esc(primary) + '"><span class="chkc"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" class="ring"/><path d="M13 25l8 8 15-17" class="tick"/></svg></span><span class="chkt">' + esc(primary) + '</span>' + (!hold && !rev && !canArrive(i) ? '<small class="chkl" id="nextLock">' + lockTxt(i) + '</small>' : '') + '</span></button></div>' +
-        '<div class="nxfoot">' + (hold || rev ? '' : '<button class="nxskip" data-act="skipask">Salta tappa</button>') + '<button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div></div>'
+        '<div class="nxfoot">' + (hold || rev ? '' : '<button class="nxskip" data-act="skipask">Salta tappa</button>') + (canUiSimple() ? '<button class="nxexit" data-act="uisimple" data-v="1">▤ Schermata semplice</button>' : '') + '<button class="nxexit" data-act="drvexit">Esci dal navigatore</button></div></div>'
     };
     var g = gwGet(); g = { order: g.order.filter(function (k) { return k !== 'prog' || isFullAcc(); }), hidden: g.hidden, v: g.v, size: g.size, map: g.map };
     var ed = GWE.on, cz = ddwCur(), noDdt = !ddwList().length && !(cz && ddwMuranoUp(cz, [])), vis = g.order.filter(function (k) { return !g.hidden[k] && !(k === 'ddt' && noDdt && !ed); }), gone = g.order.filter(function (k) { return g.hidden[k]; });
@@ -9117,7 +9125,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     end: ['🏁', 'Termina turno', 'Tutte le tappe fatte']
   };
   function viewPlancia() {
-    if (S.shift && SESSION && SESSION.simple) return viewSimple();
+    if (S.shift && uiSimple()) return viewSimple();
     var p = plStep(), k = plKind(p), A = PL_ACT[k], pb = plPolybox(p), s = p.s;
     if (k === 'start' && openInfo()) A = ['⏯', 'Riprendi turno', 'Turno aperto ' + resumeLabel(openInfo()) + ': non è stato terminato'];
     var tz = s && s.t ? s.t : '––:––', late = '';
@@ -11700,7 +11708,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (!DD.loaded && !DD.busy) loadDdt().then(function () { if (view === 'guida' || view === 'home') render(); });
     var list = smList(), ci = -1; list.some(function (o, k) { if (!o.done) { ci = k; return true; } return false; });
     var nDone = list.filter(function (o) { return o.done; }).length;
-    var h = '<div class="wrap smw"><div class="row"><h2>🚤 ' + esc(b ? b.name : '') + '</h2><span class="pill">' + Math.min(nDone + 1, list.length) + ' / ' + list.length + '</span></div>';
+    var h = '<div class="wrap smw"><div class="row"><h2>🚤 ' + esc(b ? b.name : '') + '</h2><span class="pill">' + Math.min(nDone + 1, list.length) + ' / ' + list.length + '</span></div>' + (canUiSimple() ? '<button class="btn sm" data-act="uisimple" data-v="0" style="margin:0 0 8px">⊞ Torna al cruscotto</button>' : '');
     if (ci < 0) return h + '<section class="card smcard"><div class="smbig">🎉 Giro finito</div><p class="muted">Grazie! Puoi chiudere il turno.</p><button class="btn primary smgo" data-act="smend">Chiudi il turno</button></section></div>';
     var s = list[ci], acts = '';
     // 1) DDT da far firmare in questa tappa
