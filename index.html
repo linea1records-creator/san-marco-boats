@@ -1187,6 +1187,12 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .cafs b { min-width: 44px; font-variant-numeric: tabular-nums; }
 .cafs::before { content: ''; position: absolute; left: -6px; top: 9px; width: 10px; height: 10px; border-radius: 50%; background: #94a3b8; }
 .cafs.st::before { background: #f97316; } .cafs.go::before { background: #2563eb; } .cafs.stop::before { background: #64748b; } .cafs.end::before { background: #dc2626; }
+.cafroute { list-style: none; margin: 2px 0 8px 4px; padding: 0 0 0 10px; border-left: 2px dashed rgba(127,127,127,.35); font-size: 13px; }
+.cafroute li { display: flex; gap: 8px; padding: 2px 0; color: var(--muted); align-items: baseline; }
+.cafroute li b { min-width: 40px; font-variant-numeric: tabular-nums; }
+.cafroute li span small { display: block; font-size: 12px; opacity: .85; }
+.cafroute li.nx { color: inherit; font-weight: 600; } .cafroute li.dn { text-decoration: line-through; opacity: .7; }
+.cafroute li i { font-style: normal; color: #16a34a; margin-left: auto; }
 .cafkind { margin: 6px 0 2px; font-style: italic; }
 .cafmeta { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
 .cafoff { opacity: .55; }
@@ -11175,7 +11181,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   /* ---------- Ca' Foscari: programma eventi, inventario, statistiche, DDT ---------- */
   // accessi: logistica (Pietro e admin) · ufficio Ca' Foscari · magazzino · camerieri · trasportatore incaricato di un evento oggi
   var CAF = { day: null, tab: 'prog', items: [], acc: null, loaded: null, busy: false, people: null, stat: null, statM: null, open: {} };
-  var CAF_ST = [['magazzino', 'In magazzino', '#64748b'], ['caricato', 'Caricato', '#2563eb'], ['in_sede', 'In sede', '#0d9488'], ['ritirato', 'Ritirato', '#7c3aed'], ['rientrato', 'Rientrato', '#16a34a'], ['mancante', 'Manca', '#dc2626']];
+  var CAF_ST = [['magazzino', 'In magazzino', '#64748b'], ['caricato', 'Caricato', '#2563eb'], ['in_sede', 'In sede', '#0d9488'], ['ritirato', 'Ritirato', '#7c3aed'], ['rientrato', 'Arrivato / rientrato', '#16a34a'], ['mancante', 'Manca', '#dc2626']];
   var CAF_ACC = { logistica: 'Logistica', office: 'Ufficio Ca’ Foscari', warehouse: 'Magazzino', waiter: 'Camerieri', carrier: 'Trasporto' };
   function cafSt(k) { return CAF_ST.filter(function (s) { return s[0] === k; })[0] || CAF_ST[0]; }
   function cafAcc() { return CAF.acc || (SESSION && SESSION.cf) || null; }
@@ -11248,17 +11254,43 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       '<div class="cafmeta">' + (x.items || []).length + ' oggetti · ' + (x.ddt ? x.ddt.length + ' DDT · ' : '') + (x.by ? 'aggiornato da ' + esc(x.by.split(' ')[0]) : '') + '</div>' +
       (cafCanEdit() ? '<div style="display:flex;gap:8px;margin-top:8px"><button class="btn sm" data-act="cafedit" data-id="' + x.id + '">✎ Modifica</button><button class="btn sm" data-act="cafdup" data-id="' + x.id + '">Duplica</button></div>' : '') + '</section>';
   }
+  // percorso pianificato di un oggetto: tappe di barche e furgone (carico, consegna, ritiro, scarico)
+  var CAF_SI = { magazzino: 0, caricato: 1, in_sede: 2, ritirato: 3, rientrato: 4 };
+  function cafLegDone(i, g, n) {
+    var rt = i.route || [], k = 0;
+    // una tappa è fatta se il log ha tante conferme di quello stato quante sono le tappe con lo stesso stato fino a lei
+    for (var q = 0; q <= n; q++) if (rt[q].s === g.s) k++;
+    var c = (i.log || []).filter(function (l) { return l.s === g.s; }).length;
+    return c >= k || (CAF_SI[i.status] != null && CAF_SI[i.status] > CAF_SI[g.s]);
+  }
   function cafInvCard(x) {
     var it = x.items || [], back = it.filter(function (i) { return i.status === 'rientrato'; }).length;
-    return '<section class="card">' + cafHead(x) + '<div class="cafmeta">' + (it.length ? back + '/' + it.length + ' rientrati' : 'Nessun oggetto segnato') + '</div>' +
+    return '<section class="card">' + cafHead(x) + '<div class="cafmeta">' + (it.length ? back + '/' + it.length + ' arrivati a destinazione' : 'Nessun oggetto segnato') + '</div>' +
       it.map(function (i) {
-        var s = cafSt(i.status), ix = CAF_ST.indexOf(s), nx = ix >= 0 && ix < 4 ? CAF_ST[ix + 1] : null, last = (i.log || [])[(i.log || []).length - 1];
-        return '<div class="ddr"><span class="ddrt"><button class="aslink" data-act="cafilog" data-e="' + x.id + '" data-id="' + i.id + '" style="padding:0;text-align:left"><b>' + esc((i.qty ? fmtQ(i.qty) + (i.unit ? ' ' + i.unit : '') + ' × ' : '') + i.what) + '</b></button><small><span class="cafdot" style="background:' + s[2] + '"></span>' + s[1] + (last && last.who ? ' · ' + esc(String(last.who).split(' ')[0]) + ' ' + hm(new Date(last.at).getTime()) : '') + '</small></span><span class="ddrb">' +
-          (nx ? '<button class="btn sm primary" data-act="cafist" data-id="' + i.id + '" data-s="' + nx[0] + '">' + nx[1] + '</button>' : '') +
+        var s = cafSt(i.status), ix = CAF_ST.indexOf(s), rt = i.route || [], last = (i.log || [])[(i.log || []).length - 1];
+        var nxL = -1; rt.some(function (g, n) { if (!cafLegDone(i, g, n)) { nxL = n; return true; } return false; });
+        var nx = rt.length ? null : (ix >= 0 && ix < 4 ? CAF_ST[ix + 1] : null);
+        var btn = i.status === 'mancante' ? '' : nxL >= 0 ? '<button class="btn sm primary" data-act="caflegok" data-id="' + i.id + '" data-e="' + x.id + '" data-n="' + nxL + '" aria-label="Fatto: ' + esc(rt[nxL].place || '') + '">✓ ' + esc(rt[nxL].t || 'Fatto') + '</button>' : nx ? '<button class="btn sm primary" data-act="cafist" data-id="' + i.id + '" data-s="' + nx[0] + '">' + nx[1] + '</button>' : '';
+        return '<div class="cafit"><div class="ddr"><span class="ddrt"><button class="aslink" data-act="cafilog" data-e="' + x.id + '" data-id="' + i.id + '" style="padding:0;text-align:left"><b>' + esc((i.qty ? fmtQ(i.qty) + (i.unit ? ' ' + i.unit : '') + ' × ' : '') + i.what) + '</b></button><small><span class="cafdot" style="background:' + s[2] + '"></span>' + s[1] + (last && last.who ? ' · ' + esc(String(last.who).split(' ')[0]) + ' ' + hm(new Date(last.at).getTime()) : '') + '</small></span><span class="ddrb">' + btn +
           (i.status !== 'rientrato' && i.status !== 'mancante' ? '<button class="btn sm" data-act="cafist" data-id="' + i.id + '" data-s="mancante" aria-label="Segna che manca">⚠</button>' : '') +
-          (cafCanItems() ? '<button class="btn sm" data-act="cafiedit" data-e="' + x.id + '" data-id="' + i.id + '" aria-label="Modifica">⋯</button>' : '') + '</span></div>';
+          (cafCanItems() ? '<button class="btn sm" data-act="cafiedit" data-e="' + x.id + '" data-id="' + i.id + '" aria-label="Modifica">⋯</button>' : '') + '</span></div>' +
+          (rt.length ? '<ol class="cafroute">' + rt.map(function (g, n) { var dn = cafLegDone(i, g, n); return '<li class="' + (dn ? 'dn' : n === nxL ? 'nx' : '') + '"><b>' + esc(g.t || '') + '</b><span>' + esc(g.place || '') + (g.act ? ' · ' + esc(g.act) : '') + (g.by ? '<small>' + esc(g.by) + '</small>' : '') + '</span>' + (dn ? '<i aria-label="fatto">✓</i>' : '') + '</li>'; }).join('') + '</ol>' : '') + '</div>';
       }).join('') +
       (cafCanItems() ? '<button class="btn sm" data-act="cafiedit" data-e="' + x.id + '" style="margin-top:8px">＋ Aggiungi oggetto</button>' : '') + '</section>';
+  }
+  function cafRouteText(rt) { return (rt || []).map(function (g) { return [((g.t || '') + ' ' + (g.place || '')).trim(), g.act || '', g.by || ''].filter(Boolean).join(' · '); }).join('\n'); }
+  function cafRouteParse(t) {
+    var seenIn = false;
+    return String(t || '').split('\n').map(function (l) { return l.trim(); }).filter(Boolean).map(function (l) {
+      var p = l.split(/\s+·\s+|\s*\|\s*/), h = p[0] || '', m = h.match(/^(\d{1,2})[:.](\d{2})\s*(.*)$/);
+      var g = { t: m ? pad(+m[1]) + ':' + m[2] : '', place: (m ? m[3] : h).trim(), act: (p[1] || '').trim(), by: p.slice(2).join(' · ').trim() };
+      var a = (g.act + ' ' + g.place).toLowerCase();
+      if (/scaric|rientr|deposit/.test(a) && seenIn) g.s = 'rientrato';
+      else if (/ritir/.test(a) && (seenIn || /cassett|sporc|vuot|da lavare|disallest/.test(a))) { g.s = 'ritirato'; seenIn = true; }
+      else if (/consegn|scaric|in sede/.test(a)) { g.s = 'in_sede'; seenIn = true; }
+      else g.s = 'caricato';
+      return g;
+    });
   }
   function fmtQ(q) { return String(+q).replace('.', ','); }
   function cafDdtCard(x) {
@@ -11318,6 +11350,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     openSheet('<h2>' + (i ? 'Modifica oggetto' : 'Aggiungi oggetto') + '</h2><p class="muted">' + esc(x ? x.venue : '') + '</p>' +
       '<label>Cosa</label><input class="field txt" id="cfiWhat" value="' + esc(i ? i.what : '') + '" placeholder="Es. tavoli, tovaglie, macchina caffè">' +
       '<div style="display:flex;gap:8px"><div style="flex:1"><label>Quantità</label><input class="field txt" id="cfiQty" inputmode="decimal" value="' + esc(i && i.qty != null ? fmtQ(i.qty) : '') + '"></div><div style="flex:1"><label>Unità</label><input class="field txt" id="cfiUnit" value="' + esc(i && i.unit || '') + '" placeholder="pz, casse…"></div></div>' +
+      '<label>Percorso (una tappa per riga: ora luogo · cosa si fa · mezzo)</label><textarea class="field txt" id="cafiRoute" rows="4" placeholder="08:00 Scalo fluviale · Ritiro dal furgone (Sergio) · Toppetta&#10;08:40 Ca’ Bernardo · Consegna · Toppetta">' + esc(cafRouteText(i && i.route)) + '</textarea>' +
       '<div style="display:flex;gap:8px;margin-top:12px">' + (i ? '<button class="btn quiet" data-act="cafidel" data-id="' + i.id + '" style="flex:1;color:#b91c1c">Elimina</button>' : '<button class="btn quiet" data-act="veil" style="flex:1">Annulla</button>') +
       '<button class="btn primary" data-act="cafisave" data-e="' + eid + '" data-id="' + (i ? i.id : '') + '" style="flex:2">Salva</button></div>');
   }
@@ -11373,9 +11406,13 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (a === 'cafsave') cafSave(id);
     else if (a === 'cafiedit') cafItemForm(el.getAttribute('data-e'), id);
     else if (a === 'cafilog') cafItemLog(el.getAttribute('data-e'), id);
+    else if (a === 'caflegok') {
+      var ev0 = cafFind(el.getAttribute('data-e')), i0 = ev0 && (ev0.items || []).filter(function (y) { return y.id === id; })[0], g0 = i0 && (i0.route || [])[+el.getAttribute('data-n')]; if (!g0) return;
+      cl('rpc_cf_item_status', { p_id: id, p_status: g0.s, p_note: [g0.t, g0.place, g0.act].filter(Boolean).join(' · ') }).then(function (r) { if (r && r.ok) { toast('✓ ' + (g0.place || 'tappa')); cafLoad(true).then(render); } else toast('Non riesco a salvare'); });
+    }
     else if (a === 'cafisave') {
       var w = $('cfiWhat').value.trim(); if (!w) { toast('Scrivi cosa'); return; }
-      var it = { id: id || null, event_id: el.getAttribute('data-e'), what: w, qty: String($('cfiQty').value || '').replace(',', '.'), unit: $('cfiUnit').value };
+      var it = { id: id || null, event_id: el.getAttribute('data-e'), what: w, qty: String($('cfiQty').value || '').replace(',', '.'), unit: $('cfiUnit').value, route: cafRouteParse($('cafiRoute').value) };
       closeSheet(); cl('rpc_cf_item_save', { p_item: it }).then(function (r) { if (r && r.ok) { toast('Salvato'); cafLoad(true).then(render); } else toast('Non riesco a salvare'); });
     }
     else if (a === 'cafidel') { closeSheet(); cl('rpc_cf_item_save', { p_item: { id: id, del: '1' } }).then(function (r) { if (r && r.ok) { toast('Oggetto tolto'); cafLoad(true).then(render); } }); }
