@@ -11305,9 +11305,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   // linea del tempo dell'evento: orari del servizio + tappe di carico e scarico di barche e furgone (dal percorso degli oggetti)
   function cafTimeline(x) {
     var rows = (x.steps || []).map(function (s) { return { t: s.t || '', h: cafStep(s) }; }), grp = {}, ord = [];
-    var wt = cafAcc() === 'waiter'; // ai camerieri solo i passaggi al referente, niente barche e furgone
     (x.items || []).forEach(function (i) { (i.route || []).forEach(function (g) {
-      if (wt && g.kind !== 'ref' && g.to !== CAF.me) return;
       var k = (g.t || '') + '|' + (g.place || '') + '|' + (g.kind || '') + '|' + (g.to || '');
       if (!grp[k]) { grp[k] = { g: g, w: [], dn: true }; ord.push(k); } grp[k].w.push(i.what); if (!g.conf) grp[k].dn = false;
     }); });
@@ -11324,7 +11322,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (x.carrier2) tr += '<br>🚤 ' + esc(x.carrier2) + (x.boat2 && BOATS[x.boat2] ? ' · ' + esc(BOATS[x.boat2].name) : '');
     return '<section class="card cafev' + (x.status === 'annullato' ? ' cafoff' : '') + '">' + cafHead(x) +
       (x.kind ? '<p class="cafkind">' + esc(x.kind) + '</p>' : '') + (x.address ? '<p class="muted" style="margin:2px 0">📍 ' + esc(x.address) + '</p>' : '') +
-      (cafAcc() === 'waiter' ? '' : '<p style="margin:4px 0">' + tr + '</p>') +
+      '<p style="margin:4px 0">' + tr + '</p>' +
       '<p style="margin:4px 0">👤 ' + (x.ref ? 'Referente camerieri: <b>' + esc(x.ref) + '</b>' : '<span style="color:#b45309">Referente camerieri da scegliere</span>') + (cafCanEdit() ? ' <button class="aslink" data-act="cafref" data-id="' + x.id + '">' + (x.ref ? 'cambia' : 'scegli') + '</button>' : '') + '</p>' +
       cafTimeline(x) +
       (x.notes ? '<p class="hint" style="margin:6px 0 0">📝 ' + esc(x.notes) + '</p>' : '') +
