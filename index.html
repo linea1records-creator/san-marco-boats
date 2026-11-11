@@ -1195,6 +1195,13 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .cafroute li i { font-style: normal; color: #16a34a; margin-left: auto; }
 .cafs.tr { color: inherit; } .cafs.tr::before { background: #0ea5e9; border-radius: 2px; } .cafs.tr em { font-style: normal; font-weight: 600; }
 .cafs.tr small { display: block; font-size: 12px; color: var(--muted); } .cafs.tr.dn { opacity: .6; } .cafs i { font-style: normal; color: #16a34a; margin-left: auto; }
+.cafchips { display: flex; flex-wrap: wrap; gap: 4px; margin: 2px 0 8px; }
+.cafchip { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: rgba(127,127,127,.12); }
+.cafchip.ok { background: #dcfce7; color: #166534; } .cafchip.ko { background: #fee2e2; color: #991b1b; }
+.cafrcv { width: 100%; margin: 8px 0 4px; display: flex; flex-direction: column; align-items: center; } .cafrcv small { font-weight: 400; opacity: .85; }
+.cafrcv.done { font-size: 13.5px; color: #166534; text-align: center; padding: 6px; background: #dcfce7; border-radius: 10px; }
+.cafrrow { padding: 8px 0; border-bottom: 1px solid rgba(127,127,127,.15); }
+.caflegrow { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; } .caflegrow .field { margin: 0; padding: 8px; font-size: 15px; }
 .cafkind { margin: 6px 0 2px; font-style: italic; }
 .cafmeta { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
 .cafoff { opacity: .55; }
@@ -11238,7 +11245,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       return h + ev.map(cafEvCard).join('') + '</div>';
     }
     if (!ev.length) return h + '<div class="card"><p class="muted">Nessun evento Ca’ Foscari in questo giorno.</p></div></div>';
-    if (CAF.tab === 'inv') return h + ev.filter(function (x) { return x.status !== 'annullato'; }).map(cafInvCard).join('') + '<p class="hint">Percorso degli oggetti: magazzino → caricato → in sede → ritirato → rientrato. Tocca il tasto per far avanzare ogni oggetto; tocca il nome per vedere chi l’ha spostato e quando.</p></div>';
+    if (CAF.tab === 'inv') return h + ev.filter(function (x) { return x.status !== 'annullato'; }).map(cafInvCard).join('') + '<p class="hint">Tutte le cose di ogni evento. Le confermano solo i trasportatori e il referente dei camerieri, quando le ricevono (da 20 minuti prima dell’orario).</p></div>';
     if (CAF.tab === 'ddt') return h + ev.filter(function (x) { return x.status !== 'annullato'; }).map(cafDdtCard).join('') + '</div>';
     return h + '</div>';
   }
@@ -11248,13 +11255,13 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   // linea del tempo dell'evento: orari del servizio + tappe di carico e scarico di barche e furgone (dal percorso degli oggetti)
   function cafTimeline(x) {
     var rows = (x.steps || []).map(function (s) { return { t: s.t || '', h: cafStep(s) }; }), grp = {}, ord = [];
-    (x.items || []).forEach(function (i) { (i.route || []).forEach(function (g, n) {
-      var k = (g.t || '') + '|' + (g.place || '') + '|' + (g.act || '') + '|' + (g.by || '');
-      if (!grp[k]) { grp[k] = { g: g, w: [], dn: true }; ord.push(k); } grp[k].w.push(i.what); if (!cafLegDone(i, g, n)) grp[k].dn = false;
+    (x.items || []).forEach(function (i) { (i.route || []).forEach(function (g) {
+      var k = (g.t || '') + '|' + (g.place || '') + '|' + (g.kind || '') + '|' + (g.to || '');
+      if (!grp[k]) { grp[k] = { g: g, w: [], dn: true }; ord.push(k); } grp[k].w.push(i.what); if (!g.conf) grp[k].dn = false;
     }); });
     ord.forEach(function (k) {
-      var o = grp[k], g = o.g, van = /furgone|sergio/i.test((g.by || '') + ' ' + (g.act || '')) && !/toppetta|ardemar|patana/i.test(g.by || '');
-      rows.push({ t: g.t || '', h: '<li class="cafs tr' + (o.dn ? ' dn' : '') + '"><b>' + esc(g.t || '') + '</b><span>' + (van ? '🚐 ' : '🚤 ') + '<em>' + esc(g.place || '') + (g.act ? ' · ' + esc(g.act) : '') + '</em>' + (g.by ? ' · ' + esc(g.by) : '') + '<small>' + esc(o.w.join(', ')) + '</small></span>' + (o.dn ? '<i aria-label="fatto">✓</i>' : '') + '</li>' });
+      var o = grp[k], g = o.g, ref = g.kind === 'ref', van = !ref && /sergio|furgone/i.test((g.to_name || '') + ' ' + (g.place || ''));
+      rows.push({ t: g.t || '', h: '<li class="cafs tr' + (o.dn ? ' dn' : '') + '"><b>' + esc(g.t || '') + '</b><span>' + (ref ? '👤 ' : van ? '🚐 ' : '🚤 ') + '<em>' + esc(g.place || '') + '</em> · ' + esc(ref ? 'consegna al referente' + (x.ref ? ' (' + x.ref + ')' : '') : 'riceve ' + (g.to_name || 'il trasportatore')) + (g.act ? ' · ' + esc(g.act) : '') + '<small>' + esc(o.w.join(', ')) + '</small></span>' + (o.dn ? '<i aria-label="confermato">✓</i>' : '') + '</li>' });
     });
     if (!rows.length) return '';
     rows.sort(function (a, b) { return (a.t || '99') < (b.t || '99') ? -1 : (a.t || '99') > (b.t || '99') ? 1 : 0; });
@@ -11266,48 +11273,72 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     return '<section class="card cafev' + (x.status === 'annullato' ? ' cafoff' : '') + '">' + cafHead(x) +
       (x.kind ? '<p class="cafkind">' + esc(x.kind) + '</p>' : '') + (x.address ? '<p class="muted" style="margin:2px 0">📍 ' + esc(x.address) + '</p>' : '') +
       '<p style="margin:4px 0">' + tr + '</p>' +
+      '<p style="margin:4px 0">👤 ' + (x.ref ? 'Referente camerieri: <b>' + esc(x.ref) + '</b>' : '<span style="color:#b45309">Referente camerieri da scegliere</span>') + (cafCanEdit() ? ' <button class="aslink" data-act="cafref" data-id="' + x.id + '">' + (x.ref ? 'cambia' : 'scegli') + '</button>' : '') + '</p>' +
       cafTimeline(x) +
       (x.notes ? '<p class="hint" style="margin:6px 0 0">📝 ' + esc(x.notes) + '</p>' : '') +
       '<div class="cafmeta">' + (x.items || []).length + ' oggetti · ' + (x.ddt ? x.ddt.length + ' DDT · ' : '') + (x.by ? 'aggiornato da ' + esc(x.by.split(' ')[0]) : '') + '</div>' +
       (cafCanEdit() ? '<div style="display:flex;gap:8px;margin-top:8px"><button class="btn sm" data-act="cafedit" data-id="' + x.id + '">✎ Modifica</button><button class="btn sm" data-act="cafdup" data-id="' + x.id + '">Duplica</button></div>' : '') + '</section>';
   }
-  // percorso pianificato di un oggetto: tappe di barche e furgone (carico, consegna, ritiro, scarico)
-  var CAF_SI = { magazzino: 0, caricato: 1, in_sede: 2, ritirato: 3, rientrato: 4 };
-  function cafLegDone(i, g, n) {
-    var rt = i.route || [], k = 0;
-    // una tappa è fatta se il log ha tante conferme di quello stato quante sono le tappe con lo stesso stato fino a lei
-    for (var q = 0; q <= n; q++) if (rt[q].s === g.s) k++;
-    var c = (i.log || []).filter(function (l) { return l.s === g.s; }).length;
-    return c >= k || (CAF_SI[i.status] != null && CAF_SI[i.status] > CAF_SI[g.s]);
+  // ---- Inventario: lista delle cose di ogni evento; confermano la ricezione solo trasportatori e referente camerieri ----
+  var CAF_CAT = [['noleggio', '🪑 Allestimento a noleggio'], ['cibo', '🍽 Cibo'], ['altro', '📦 Altro']];
+  function cafLegTs(x, g) { if (!/^\d{1,2}:\d{2}$/.test(g.t || '')) return 0; var p = g.t.split(':'); var d = new Date(x.day + 'T00:00:00'); d.setHours(+p[0], +p[1], 0, 0); return d.getTime(); }
+  function cafLegMine(x, g) { var me = CAF.me; if (!me) return false; return g.kind === 'ref' ? x.ref_id === me : g.to === me; }
+  function cafLegWho(x, g) { return g.kind === 'ref' ? (x.ref ? 'Referente: ' + x.ref : 'Referente camerieri (da scegliere)') : (g.to_name || 'Trasportatore'); }
+  function cafChip(x, g) {
+    var c = g.conf, st = c ? (c.ok ? 'ok' : 'ko') : 'wait';
+    return '<span class="cafchip ' + st + '">' + (c ? (c.ok ? '✓ ' : '⚠ ') : '⏳ ') + esc((g.t ? g.t + ' ' : '') + cafLegWho(x, g).replace('Referente: ', '👤 ')) + (c ? ' · ' + hm(new Date(c.at).getTime()) : '') + '</span>';
+  }
+  // le "consegne" che toccano a me in questo evento: raggruppate per orario e luogo
+  function cafMySlots(x) {
+    var m = {}, out = [];
+    (x.items || []).forEach(function (i) { (i.route || []).forEach(function (g, n) {
+      if (!cafLegMine(x, g)) return; var k = (g.t || '') + '|' + (g.place || '') + '|' + (g.kind || '');
+      if (!m[k]) { m[k] = { t: g.t || '', place: g.place || '', kind: g.kind, ts: cafLegTs(x, g), rows: [] }; out.push(m[k]); }
+      m[k].rows.push({ i: i, n: n, g: g });
+    }); });
+    return out.sort(function (a, b) { return (a.t || '99') < (b.t || '99') ? -1 : 1; });
   }
   function cafInvCard(x) {
-    var it = x.items || [], back = it.filter(function (i) { return i.status === 'rientrato'; }).length;
-    return '<section class="card">' + cafHead(x) + '<div class="cafmeta">' + (it.length ? back + '/' + it.length + ' arrivati a destinazione' : 'Nessun oggetto segnato') + '</div>' +
-      it.map(function (i) {
-        var s = cafSt(i.status), ix = CAF_ST.indexOf(s), rt = i.route || [], last = (i.log || [])[(i.log || []).length - 1];
-        var nxL = -1; rt.some(function (g, n) { if (!cafLegDone(i, g, n)) { nxL = n; return true; } return false; });
-        var nx = rt.length ? null : (ix >= 0 && ix < 4 ? CAF_ST[ix + 1] : null);
-        var btn = i.status === 'mancante' ? '' : nxL >= 0 ? '<button class="btn sm primary" data-act="caflegok" data-id="' + i.id + '" data-e="' + x.id + '" data-n="' + nxL + '" aria-label="Fatto: ' + esc(rt[nxL].place || '') + '">✓ ' + esc(rt[nxL].t || 'Fatto') + '</button>' : nx ? '<button class="btn sm primary" data-act="cafist" data-id="' + i.id + '" data-s="' + nx[0] + '">' + nx[1] + '</button>' : '';
-        return '<div class="cafit"><div class="ddr"><span class="ddrt"><button class="aslink" data-act="cafilog" data-e="' + x.id + '" data-id="' + i.id + '" style="padding:0;text-align:left"><b>' + esc((i.qty ? fmtQ(i.qty) + (i.unit ? ' ' + i.unit : '') + ' × ' : '') + i.what) + '</b></button><small><span class="cafdot" style="background:' + s[2] + '"></span>' + s[1] + (last && last.who ? ' · ' + esc(String(last.who).split(' ')[0]) + ' ' + hm(new Date(last.at).getTime()) : '') + '</small></span><span class="ddrb">' + btn +
-          (i.status !== 'rientrato' && i.status !== 'mancante' ? '<button class="btn sm" data-act="cafist" data-id="' + i.id + '" data-s="mancante" aria-label="Segna che manca">⚠</button>' : '') +
-          (cafCanItems() ? '<button class="btn sm" data-act="cafiedit" data-e="' + x.id + '" data-id="' + i.id + '" aria-label="Modifica">⋯</button>' : '') + '</span></div>' +
-          (rt.length ? '<ol class="cafroute">' + rt.map(function (g, n) { var dn = cafLegDone(i, g, n); return '<li class="' + (dn ? 'dn' : n === nxL ? 'nx' : '') + '"><b>' + esc(g.t || '') + '</b><span>' + esc(g.place || '') + (g.act ? ' · ' + esc(g.act) : '') + (g.by ? '<small>' + esc(g.by) + '</small>' : '') + '</span>' + (dn ? '<i aria-label="fatto">✓</i>' : '') + '</li>'; }).join('') + '</ol>' : '') + '</div>';
-      }).join('') +
-      (cafCanItems() ? '<button class="btn sm" data-act="cafiedit" data-e="' + x.id + '" style="margin-top:8px">＋ Aggiungi oggetto</button>' : '') + '</section>';
-  }
-  function cafRouteText(rt) { return (rt || []).map(function (g) { return [((g.t || '') + ' ' + (g.place || '')).trim(), g.act || '', g.by || ''].filter(Boolean).join(' · '); }).join('\n'); }
-  function cafRouteParse(t) {
-    var seenIn = false;
-    return String(t || '').split('\n').map(function (l) { return l.trim(); }).filter(Boolean).map(function (l) {
-      var p = l.split(/\s+·\s+|\s*\|\s*/), h = p[0] || '', m = h.match(/^(\d{1,2})[:.](\d{2})\s*(.*)$/);
-      var g = { t: m ? pad(+m[1]) + ':' + m[2] : '', place: (m ? m[3] : h).trim(), act: (p[1] || '').trim(), by: p.slice(2).join(' · ').trim() };
-      var a = (g.act + ' ' + g.place).toLowerCase();
-      if (/scaric|rientr|deposit/.test(a) && seenIn) g.s = 'rientrato';
-      else if (/ritir/.test(a) && (seenIn || /cassett|sporc|vuot|da lavare|disallest/.test(a))) { g.s = 'ritirato'; seenIn = true; }
-      else if (/consegn|scaric|in sede/.test(a)) { g.s = 'in_sede'; seenIn = true; }
-      else g.s = 'caricato';
-      return g;
+    var it = x.items || [], h = '<section class="card">' + cafHead(x);
+    h += '<div class="cafmeta">' + (x.ref ? '👤 Referente camerieri: <b>' + esc(x.ref) + '</b>' : '👤 Referente camerieri da scegliere') + (cafCanEdit() ? ' · <button class="aslink" data-act="cafref" data-id="' + x.id + '" style="padding:0">' + (x.ref ? 'cambia' : 'scegli') + '</button>' : '') + '</div>';
+    cafMySlots(x).forEach(function (sl) {
+      var todo = sl.rows.filter(function (r) { return !r.g.conf; }).length, open = !sl.ts || Date.now() >= sl.ts - 20 * 60000;
+      if (!todo) { h += '<div class="cafrcv done">✓ Ricezione confermata' + (sl.t ? ' · ' + esc(sl.t) : '') + ' ' + esc(sl.place) + '</div>'; return; }
+      h += '<button class="btn ' + (open ? 'primary' : '') + ' cafrcv" data-act="cafrcv" data-e="' + x.id + '" data-k="' + esc(sl.t + '|' + sl.place + '|' + (sl.kind || '')) + '"' + (open ? '' : ' disabled') + '>' +
+        (open ? '📥 Conferma cosa hai ricevuto' : '⏰ Conferma dalle ' + esc(hm(sl.ts - 20 * 60000))) + '<small>' + esc((sl.t ? sl.t + ' · ' : '') + sl.place + ' · ' + todo + (todo === 1 ? ' cosa' : ' cose')) + '</small></button>';
     });
+    if (!it.length) h += '<p class="muted" style="margin:8px 0">Nessuna cosa in lista.</p>';
+    CAF_CAT.forEach(function (c) {
+      var rows = it.filter(function (i) { return (i.cat || 'altro') === c[0]; }); if (!rows.length) return;
+      h += '<div class="clsec">' + c[1] + '</div>' + rows.map(function (i) {
+        var miss = (i.route || []).filter(function (g) { return g.conf && !g.conf.ok; });
+        return '<div class="cafit"><div class="ddr"><span class="ddrt"><b>' + esc((i.qty ? fmtQ(i.qty) + (i.unit ? ' ' + i.unit : '') + ' × ' : '') + i.what) + '</b>' +
+          (miss.length ? '<small style="color:#b91c1c">⚠ Manca' + esc(miss.map(function (g) { return g.conf.note ? ': ' + g.conf.note : ''; }).join(' ')) + '</small>' : '') + '</span>' +
+          (cafCanItems() ? '<span class="ddrb"><button class="btn sm" data-act="cafiedit" data-e="' + x.id + '" data-id="' + i.id + '" aria-label="Modifica">⋯</button></span>' : '') + '</div>' +
+          ((i.route || []).length ? '<div class="cafchips">' + i.route.map(function (g) { return cafChip(x, g); }).join('') + '</div>' : '') + '</div>';
+      }).join('');
+    });
+    if (cafCanItems()) h += '<button class="btn sm" data-act="cafiedit" data-e="' + x.id + '" style="margin-top:10px">＋ Aggiungi alla lista</button>';
+    return h + '</section>';
+  }
+  function cafRcvOpen(eid, key) {
+    var x = cafFind(eid); if (!x) return; var sl = cafMySlots(x).filter(function (s) { return (s.t + '|' + s.place + '|' + (s.kind || '')) === key; })[0]; if (!sl) return;
+    var rows = sl.rows.filter(function (r) { return !r.g.conf; });
+    CAF.rcv = { e: eid, rows: rows };
+    openSheet('<h2>📥 Cosa hai ricevuto?</h2><p class="muted">' + esc(x.venue + (x.room ? ' · ' + x.room : '') + ' · ' + (sl.t ? sl.t + ' ' : '') + sl.place) + '</p>' +
+      '<p class="hint" style="margin-top:0">Togli la spunta a quello che manca e scrivi cosa non va.</p>' +
+      rows.map(function (r, k) {
+        return '<div class="cafrrow"><label class="chk"><input type="checkbox" id="cafR' + k + '" checked data-act="cafrchk" data-k="' + k + '"> <b>' + esc((r.i.qty ? fmtQ(r.i.qty) + (r.i.unit ? ' ' + r.i.unit : '') + ' × ' : '') + r.i.what) + '</b></label>' +
+          '<input class="field txt" id="cafRn' + k + '" placeholder="Cosa manca? (es. 2 tovaglie in meno)" style="display:none;margin-top:4px"></div>';
+      }).join('') +
+      '<div style="display:flex;gap:8px;margin-top:12px"><button class="btn quiet" data-act="veil" style="flex:1">Annulla</button><button class="btn primary" data-act="cafrsend" style="flex:2">Conferma</button></div>');
+  }
+  function cafRcvSend() {
+    var R = CAF.rcv; if (!R) return; var jobs = R.rows.map(function (r, k) { var ok = !!($('cafR' + k) || {}).checked; return { r: r, ok: ok, note: ok ? '' : (($('cafRn' + k) || {}).value || '') }; });
+    closeSheet(); toast('Invio…');
+    var miss = 0, err = null, p = Promise.resolve();
+    jobs.forEach(function (j) { p = p.then(function () { return cl('rpc_cf_receive', { p_item: j.r.i.id, p_leg: j.r.n, p_ok: j.ok, p_note: j.note }).then(function (x) { if (!x || !x.ok) err = x && x.error === 'presto' ? 'Puoi confermare dalle ' + x.from : 'Non riesco a salvare tutto'; if (!j.ok) miss++; }); }); });
+    p.then(function () { toast(err || (miss ? 'Confermato · segnalato che mancano ' + miss + (miss === 1 ? ' cosa' : ' cose') : 'Tutto ricevuto ✓')); cafLoad(true).then(render); });
   }
   function fmtQ(q) { return String(+q).replace('.', ','); }
   function cafDdtCard(x) {
@@ -11354,22 +11385,74 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     }).sort(function (a, b) { return (a.t || '99') < (b.t || '99') ? -1 : 1; });
   }
   function cafSave(id) {
+    var o0 = id ? cafFind(id) : null, o0ref = o0 && o0.ref_id || '';
     var o = { id: id || null, day: $('cafDay').value, code: $('cafCode').value, venue: $('cafVenue').value, room: $('cafRoom').value, address: $('cafAddr').value, pax: String($('cafPax').value || '').replace(/\D/g, ''), pax_note: $('cafPaxN').value,
-      kind: $('cafKind').value, steps: cafParseSteps($('cafSteps').value), carrier_id: $('cafCar').value, carrier2_id: $('cafCar2').value, boat2: $('cafBoat2').value, vehicle: $('cafVeh').value, boat: $('cafBoat').value, notes: $('cafNotes').value, status: $('cafOff') && $('cafOff').checked ? 'annullato' : 'ok' };
+      kind: $('cafKind').value, steps: cafParseSteps($('cafSteps').value), ref_id: o0ref, carrier_id: $('cafCar').value, carrier2_id: $('cafCar2').value, boat2: $('cafBoat2').value, vehicle: $('cafVeh').value, boat: $('cafBoat').value, notes: $('cafNotes').value, status: $('cafOff') && $('cafOff').checked ? 'annullato' : 'ok' };
     if (!o.day || !o.venue.trim()) { toast('Scrivi giorno e sede'); return; }
     closeSheet(); toast('Salvo…');
     cl('rpc_cf_save', { p_ev: o }).then(function (r) {
       if (r && r.ok) { toast('Evento salvato'); CAF.day = o.day; cafLoad(true).then(render); } else toast('Non riesco a salvare l’evento');
     });
   }
+  function cafLegsDefault(x) {
+    var a = []; if (x && x.carrier_id) a.push({ t: '', place: '', kind: 'carrier', to: x.carrier_id, to_name: x.carrier }); a.push({ t: '', place: x ? x.venue : '', kind: 'ref' }); return a;
+  }
   function cafItemForm(eid, iid) {
     var x = cafFind(eid), i = iid && x ? (x.items || []).filter(function (y) { return y.id === iid; })[0] : null;
-    openSheet('<h2>' + (i ? 'Modifica oggetto' : 'Aggiungi oggetto') + '</h2><p class="muted">' + esc(x ? x.venue : '') + '</p>' +
-      '<label>Cosa</label><input class="field txt" id="cfiWhat" value="' + esc(i ? i.what : '') + '" placeholder="Es. tavoli, tovaglie, macchina caffè">' +
-      '<div style="display:flex;gap:8px"><div style="flex:1"><label>Quantità</label><input class="field txt" id="cfiQty" inputmode="decimal" value="' + esc(i && i.qty != null ? fmtQ(i.qty) : '') + '"></div><div style="flex:1"><label>Unità</label><input class="field txt" id="cfiUnit" value="' + esc(i && i.unit || '') + '" placeholder="pz, casse…"></div></div>' +
-      '<label>Percorso (una tappa per riga: ora luogo · cosa si fa · mezzo)</label><textarea class="field txt" id="cafiRoute" rows="4" placeholder="08:00 Scalo fluviale · Ritiro dal furgone (Sergio) · Toppetta&#10;08:40 Ca’ Bernardo · Consegna · Toppetta">' + esc(cafRouteText(i && i.route)) + '</textarea>' +
-      '<div style="display:flex;gap:8px;margin-top:12px">' + (i ? '<button class="btn quiet" data-act="cafidel" data-id="' + i.id + '" style="flex:1;color:#b91c1c">Elimina</button>' : '<button class="btn quiet" data-act="veil" style="flex:1">Annulla</button>') +
-      '<button class="btn primary" data-act="cafisave" data-e="' + eid + '" data-id="' + (i ? i.id : '') + '" style="flex:2">Salva</button></div>');
+    cafPeople().then(function (pp) {
+      var legs = i && (i.route || []).length ? i.route : cafLegsDefault(x); CAF.legs = JSON.parse(JSON.stringify(legs));
+      openSheet('<h2>' + (i ? 'Modifica' : 'Aggiungi alla lista') + '</h2><p class="muted">' + esc(x ? x.venue + (x.room ? ' · ' + x.room : '') : '') + '</p>' +
+        '<label>Cosa</label><input class="field txt" id="cfiWhat" value="' + esc(i ? i.what : '') + '" placeholder="Es. 10 tavoli tondi, Light Lunch, tovaglie">' +
+        '<div style="display:flex;gap:8px"><div style="flex:1"><label>Quantità</label><input class="field txt" id="cfiQty" inputmode="decimal" value="' + esc(i && i.qty != null ? fmtQ(i.qty) : '') + '"></div><div style="flex:1"><label>Unità</label><input class="field txt" id="cfiUnit" value="' + esc(i && i.unit || '') + '" placeholder="pz, casse…"></div></div>' +
+        '<label>Tipo</label><select class="field txt" id="cfiCat">' + CAF_CAT.map(function (c) { return '<option value="' + c[0] + '"' + ((i && i.cat || 'noleggio') === c[0] ? ' selected' : '') + '>' + c[1] + '</option>'; }).join('') + '</select>' +
+        '<label>Chi lo riceve e quando (conferma dall’app da 20 minuti prima)</label><div id="cafLegs">' + cafLegsHtml(pp) + '</div>' +
+        '<button class="btn sm" data-act="caflegadd">＋ Altro passaggio</button>' +
+        '<div style="display:flex;gap:8px;margin-top:12px">' + (i ? '<button class="btn quiet" data-act="cafidel" data-id="' + i.id + '" style="flex:1;color:#b91c1c">Elimina</button>' : '<button class="btn quiet" data-act="veil" style="flex:1">Annulla</button>') +
+        '<button class="btn primary" data-act="cafisave" data-e="' + eid + '" data-id="' + (i ? i.id : '') + '" style="flex:2">Salva</button></div>');
+      CAF.pp = pp;
+    });
+  }
+  function cafLegsHtml(pp) {
+    return CAF.legs.map(function (g, n) {
+      var who = g.kind === 'ref' ? 'ref' : (g.to || '');
+      return '<div class="caflegrow"><input class="field txt" id="cafLt' + n + '" value="' + esc(g.t || '') + '" placeholder="08:00" inputmode="numeric" style="width:74px">' +
+        '<input class="field txt" id="cafLp' + n + '" value="' + esc(g.place || '') + '" placeholder="Dove" style="flex:1">' +
+        '<select class="field txt" id="cafLw' + n + '" style="flex:1"><option value="ref"' + (who === 'ref' ? ' selected' : '') + '>👤 Referente camerieri</option>' + pp.map(function (p) { return '<option value="' + p.id + '"' + (who === p.id ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join('') + '</select>' +
+        '<button class="btn sm quiet" data-act="caflegdel" data-n="' + n + '" aria-label="Togli">✕</button></div>';
+    }).join('');
+  }
+  function cafLegsRead() {
+    return CAF.legs.map(function (g, n) {
+      var t = String(($('cafLt' + n) || {}).value || '').trim().replace('.', ':'), m = t.match(/^(\d{1,2}):?(\d{2})$/), w = ($('cafLw' + n) || {}).value;
+      var o = { t: m ? pad(+m[1]) + ':' + m[2] : '', place: String(($('cafLp' + n) || {}).value || '').trim(), kind: w === 'ref' ? 'ref' : 'carrier', act: g.act || '' };
+      if (w !== 'ref') { o.to = w; var p = (CAF.pp || []).filter(function (z) { return z.id === w; })[0]; o.to_name = p ? p.name : g.to_name; }
+      if (g.conf && (g.kind === o.kind) && (g.to || '') === (o.to || '')) o.conf = g.conf;
+      return o;
+    });
+  }
+  // referente camerieri: lo sceglie l'ufficio Ca' Foscari per ogni evento; può creare qui l'account del cameriere
+  function cafRefPick(eid) {
+    var x = cafFind(eid); if (!x) return; CAF.refEv = eid;
+    cl('rpc_cf_waiters', {}).then(function (ws) {
+      ws = Array.isArray(ws) ? ws : [];
+      openSheet('<h2>👤 Referente camerieri</h2><p class="muted">' + esc(x.venue + (x.room ? ' · ' + x.room : '')) + '</p><p class="hint" style="margin-top:0">Il referente conferma sull’app di aver ricevuto le cose, da 20 minuti prima della consegna.</p>' +
+        (ws.length ? ws.map(function (w) { return '<button class="btn' + (w.id === x.ref_id ? ' primary' : '') + '" data-act="cafrefset" data-id="' + w.id + '" style="width:100%;margin-bottom:6px;justify-content:space-between;display:flex"><span>' + esc(w.name) + '</span><small>PIN ' + esc(w.pin || '—') + '</small></button>'; }).join('') : '<p class="muted">Nessun cameriere ancora.</p>') +
+        (x.ref_id ? '<button class="btn quiet" data-act="cafrefset" data-id="" style="width:100%">Togli il referente</button>' : '') +
+        '<div class="clsec">Nuovo cameriere</div><div style="display:flex;gap:8px"><input class="field txt" id="cafWn" placeholder="Nome e cognome" style="flex:1"><button class="btn" data-act="cafwadd" style="flex:none">Crea</button></div>' +
+        '<button class="btn quiet" data-act="veil" style="width:100%;margin-top:10px">Chiudi</button>');
+    });
+  }
+  function cafRefSet(eid, wid) {
+    var x = cafFind(eid); if (!x) return; closeSheet(); toast('Salvo…');
+    var o = Object.assign({}, x, { ref_id: wid || '' }); delete o.items; delete o.ddt;
+    cl('rpc_cf_save', { p_ev: o }).then(function (r) { if (r && r.ok) { toast(wid ? 'Referente scelto' : 'Referente tolto'); cafLoad(true).then(render); } else toast('Non riesco a salvare'); });
+  }
+  function cafWaiterAdd() {
+    var n = String(($('cafWn') || {}).value || '').trim(); if (!n) { toast('Scrivi il nome'); return; }
+    cl('rpc_cf_waiter_add', { p_name: n }).then(function (r) {
+      if (r && r.ok) { toast(n + ': PIN ' + r.pin); cafRefPick(CAF.refEv); }
+      else toast(r && r.error === 'esiste' ? 'C’è già un account con questo nome' : 'Non riesco a creare l’account');
+    });
   }
   function cafItemLog(eid, iid) {
     var x = cafFind(eid), i = x && (x.items || []).filter(function (y) { return y.id === iid; })[0]; if (!i) return;
@@ -11423,21 +11506,19 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (a === 'cafsave') cafSave(id);
     else if (a === 'cafiedit') cafItemForm(el.getAttribute('data-e'), id);
     else if (a === 'cafilog') cafItemLog(el.getAttribute('data-e'), id);
-    else if (a === 'caflegok') {
-      var ev0 = cafFind(el.getAttribute('data-e')), i0 = ev0 && (ev0.items || []).filter(function (y) { return y.id === id; })[0], g0 = i0 && (i0.route || [])[+el.getAttribute('data-n')]; if (!g0) return;
-      cl('rpc_cf_item_status', { p_id: id, p_status: g0.s, p_note: [g0.t, g0.place, g0.act].filter(Boolean).join(' · ') }).then(function (r) { if (r && r.ok) { toast('✓ ' + (g0.place || 'tappa')); cafLoad(true).then(render); } else toast('Non riesco a salvare'); });
-    }
+    else if (a === 'cafrcv') cafRcvOpen(el.getAttribute('data-e'), el.getAttribute('data-k'));
+    else if (a === 'cafrchk') { var nn = $('cafRn' + el.getAttribute('data-k')); if (nn) { nn.style.display = el.checked ? 'none' : ''; if (!el.checked) nn.focus(); } }
+    else if (a === 'cafrsend') cafRcvSend();
+    else if (a === 'caflegadd' || a === 'caflegdel') { CAF.legs = cafLegsRead(); if (a === 'caflegadd') CAF.legs.push({ t: '', place: '', kind: 'carrier' }); else CAF.legs.splice(+el.getAttribute('data-n'), 1); $('cafLegs').innerHTML = cafLegsHtml(CAF.pp || []); }
+    else if (a === 'cafref') cafRefPick(id);
+    else if (a === 'cafrefset') cafRefSet(CAF.refEv, id);
+    else if (a === 'cafwadd') cafWaiterAdd();
     else if (a === 'cafisave') {
       var w = $('cfiWhat').value.trim(); if (!w) { toast('Scrivi cosa'); return; }
-      var it = { id: id || null, event_id: el.getAttribute('data-e'), what: w, qty: String($('cfiQty').value || '').replace(',', '.'), unit: $('cfiUnit').value, route: cafRouteParse($('cafiRoute').value) };
+      var it = { id: id || null, event_id: el.getAttribute('data-e'), what: w, qty: String($('cfiQty').value || '').replace(',', '.'), unit: $('cfiUnit').value, cat: $('cfiCat').value, route: cafLegsRead() };
       closeSheet(); cl('rpc_cf_item_save', { p_item: it }).then(function (r) { if (r && r.ok) { toast('Salvato'); cafLoad(true).then(render); } else toast('Non riesco a salvare'); });
     }
     else if (a === 'cafidel') { closeSheet(); cl('rpc_cf_item_save', { p_item: { id: id, del: '1' } }).then(function (r) { if (r && r.ok) { toast('Oggetto tolto'); cafLoad(true).then(render); } }); }
-    else if (a === 'cafist') {
-      var ns = el.getAttribute('data-s'), note = '';
-      if (ns === 'mancante') { note = prompt('Cosa è successo? (facoltativo)') || ''; }
-      cl('rpc_cf_item_status', { p_id: id, p_status: ns, p_note: note }).then(function (r) { if (r && r.ok) { toast(cafSt(ns)[1]); cafLoad(true).then(render); } else toast('Non riesco a salvare'); });
-    }
     else if (a === 'cafdup2') cafDdtUp(id, el.getAttribute('data-m'));
     else if (a === 'cafdopen') ddtOpenOriginal(id);
     else if (a === 'cafsign') { var go = function () { if (ddtFind(id)) { SIGQ = []; SIGQ.total = 1; sigOpen(id); } else toast('DDT non trovato: riprova tra poco'); }; if (ddtFind(id)) go(); else loadDdt().then(go); }
