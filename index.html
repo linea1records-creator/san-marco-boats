@@ -4518,7 +4518,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (S.shift && S.shift.day === k) ids.sort(function (a, b) { return (b === S.shift.boat) - (a === S.shift.boat); });
     var h = '<div class="wrap">' + (isMgr() && !isOff() ? '<button class="aslink" data-act="nav" data-v="logistica">‹ Logistica</button>' : '') + '<h2>Programma dettagliato</h2><p class="muted">Logistica Ristorazione San Marco · dal ' + pgFmt(DAYKEYS[0]) + ' al ' + pgFmt(DAYKEYS[DAYKEYS.length - 1]) + '</p>' + (VX[todayISO()] ? '' : dayNote()) +
       '<div class="chips" role="group" aria-label="Giorno">' + keys.map(function (d) { return '<button class="chip" data-act="day" data-k="' + d + '" aria-pressed="' + (d === k ? 'true' : 'false') + '">' + esc((PROGRAM[d] || VX[d]).short) + '</button>'; }).join('') + '</div>' +
-      (isMgr() && tok() ? pgDraftBanner() + '<button class="btn" data-act="nav" data-v="logistica">+ Nuovo turno o consegna</button>' : '') + '<h3>' + esc(day.label) + '</h3>' + (day.halloween ? '<div class="note">🎃 <b>Buon Halloween!</b> Occhio alla nebbia in laguna: dolcetto o scherzetto a fine giro.</div>' : '');
+      (isMgr() && tok() ? pgDraftBanner() + '<button class="btn" data-act="nav" data-v="logistica">+ Nuovo turno o consegna</button>' : '') + '<h3>' + esc(day.label) + '</h3>' + (day.halloween ? '<div class="note">🎃 <b>Buon Halloween!</b> Occhio alla nebbia in laguna: dolcetto o scherzetto a fine giro.</div>' : '') + cfProgCard(k);
     if (canDdt) h += '<p class="hint">Tocca <b>📎 DDT</b> su una consegna per collegare il suo DDT' + (isWide() ? ', oppure trascina il file sulla riga' : '') + '. Il trasportatore lo trova nel navigatore quando arriva lì.</p>';
     if (isOff() && tok()) h += '<input type="file" id="ddAttIn" accept="application/pdf,image/*" style="display:none">';
     if (canEdit && ids.some(function (id) { return (day.boats[id].stops || []).length; })) h += '<p class="hint">Tocca un orario per cambiarlo · tocca la tappa per cambiare la nota · scorri a sinistra per eliminare · tieni premuta una tappa e trascinala per cambiare l’ordine.</p>';
@@ -11388,7 +11388,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var R = CAF.rcv; if (!R) return; var jobs = R.rows.map(function (r, k) { var ok = !!($('cafR' + k) || {}).checked; return { r: r, ok: ok, note: ok ? '' : (($('cafRn' + k) || {}).value || '') }; });
     closeSheet(); toast('Invio…');
     var miss = 0, err = null, p = Promise.resolve();
-    jobs.forEach(function (j) { p = p.then(function () { return cl('rpc_cf_receive', { p_item: j.r.i.id, p_leg: j.r.n, p_ok: j.ok, p_note: j.note }).then(function (x) { if (!x || !x.ok) err = x && x.error === 'presto' ? 'Puoi confermare dalle ' + x.from : 'Non riesco a salvare tutto'; if (!j.ok) miss++; }); }); });
+    jobs.forEach(function (j) { p = p.then(function () { return cl('rpc_cf_receive', { p_item: j.r.i.id, p_leg: j.r.n, p_ok: j.ok, p_note: j.note }).then(function (x) { if (!x || !x.ok) err = x && x.error === 'presto' ? 'Puoi confermare dalle ' + x.from : 'Non riesco a salvare tutto'; else j.r.g.conf = { ok: j.ok, at: new Date().toISOString(), who: SESSION ? SESSION.name : '', note: j.note || null }; if (!j.ok) miss++; }); }); });
     p.then(function () { toast(err || (miss ? 'Confermato · segnalato che mancano ' + miss + (miss === 1 ? ' cosa' : ' cose') : 'Tutto ricevuto ✓')); cafLoad(true).then(render); });
   }
   function fmtQ(q) { return String(+q).replace('.', ','); }
@@ -11664,6 +11664,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var a = el.getAttribute('data-act');
     if (a === 'smnext') {
       if (!S.shift) return; var o = smList()[+el.getAttribute('data-k')]; if (!o || o.done) return;
+      var spd = placePending(S.shift.day, o.name, o.t, null); if (spd.length) { pendSheet(o.name, spd, o.cf ? null : o.i); return; }
       if (o.cf) { S.shift.cfDone[o.key] = Date.now(); save(); toast('Tappa completata'); render(); }
       else finish(o.i, 'ok', '', true);
     }
@@ -11671,7 +11672,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (a === 'smdel') {
       var ids = String(el.getAttribute('data-ids') || '').split(',').filter(Boolean), p = Promise.resolve(); toast('Invio…');
       ids.forEach(function (id) { p = p.then(function () { return cl('rpc_cf_item_status', { p_id: id, p_status: 'in_sede', p_note: 'consegnato da ' + (SESSION ? SESSION.name : '') }); }); });
-      p.then(function () { toast('Consegna segnata ✓'); cafLoad(true).then(render); });
+      var cur = smList().filter(function (o) { return !o.done; })[0];
+      p.then(function () { if (cur) vgStops().forEach(function (sp) { if (sp.kind === 'drop' && smPlace(sp.place, cur.name)) vgMark(sp.key); }); toast('Consegna segnata ✓'); cafLoad(true).then(render); });
     }
   });
   /* ---------- Scaletta personale: per chiunque abbia un compito (trasportatori, furgone, referente camerieri, chiunque riceva o consegni) ---------- */
@@ -11782,7 +11784,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     jobs.forEach(function (j) { if (!j.ok) miss++; p = p.then(function () {
       var q = pick ? cl('rpc_cf_receive', { p_item: j.r.i.id, p_leg: j.r.n, p_ok: j.ok, p_note: j.note })
         : cl('rpc_cf_item_status', { p_id: j.r.i.id, p_status: !j.ok ? 'mancante' : j.r.i.status === 'magazzino' || j.r.i.status === 'mancante' ? 'caricato' : j.r.i.status, p_note: (j.ok ? 'consegnato da ' : 'manca alla consegna di ') + me + ' · ' + s.place + ' → ' + s.to + (j.note ? ' · ' + j.note : '') });
-      return q.then(function (x) { if (!x || !x.ok) err = x && x.error === 'presto' ? 'Puoi confermare dalle ' + x.from : 'Non riesco a salvare tutto'; });
+      return q.then(function (x) { if (!x || !x.ok) err = x && x.error === 'presto' ? 'Puoi confermare dalle ' + x.from : 'Non riesco a salvare tutto'; else if (pick) j.r.g.conf = { ok: j.ok, at: new Date().toISOString(), who: me, note: j.note || null }; });
     }); });
     p.then(function () {
       if (!err && !pick) vgMark(s.key);
@@ -12068,6 +12070,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (!sh.away || sh.away.k !== k) { sh.away = { k: k, t: Date.now() }; save(); return false; }
     if (Date.now() - sh.away.t < LEAVE_MS) return false;
     if ($('sigScreen') || $('ddView')) return false; // sta firmando o guardando il DDT: aspetta
+    if (stopPending(i).length) { if (sh.awayWarn !== k) { sh.awayWarn = k; save(); toast('⚠ Sei ripartito da ' + s.name + ' ma devi ancora confermare ritiri, consegne o firme: la tappa resta aperta'); if (S.voice) say('Attenzione: a ' + s.name + ' devi ancora confermare. La tappa resta aperta.'); } return false; }
     sh.away = null;
     try { closeSheet(); } catch (x) {}
     finish(i, 'ok', 'Fatta in automatico: il GPS ha visto la partenza dalla tappa', true);
@@ -12661,8 +12664,37 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   });
   function holdIdx() { var sh = S.shift; return sh && sh.hold != null && sh.done[sh.hold] ? sh.hold : null; }
   function holdNext() { if (S.shift) { S.shift.hold = null; save(); } spoken = ''; view = 'guida'; render(); var n = curIdx(); if (n >= 0) say('Prossima tappa: ' + stops()[n].name + '.'); else say(boatDay().onCall ? 'Hai finito le tappe. Resta reperibile per le emergenze, poi chiudi il turno.' : 'Hai finito il giro. Chiudi il turno.'); }
+  /* ---------- Obbligatorio per tutti: prima di passare alla tappa dopo si spuntano ritiri/consegne di oggetti e si fanno firmare i DDT disponibili ---------- */
+  function placePending(day, name, t, cfk) {
+    var out = []; if (!name) return out;
+    if (CAF.loaded === todayKey() && day === todayKey()) vgStops().forEach(function (sp) {
+      if (sp.done) return;
+      if (cfk ? 'cf|' + sp.key === cfk : smPlace(sp.place, name) && cfNear(sp.t, t)) out.push({ cf: sp });
+    });
+    if (DD.loaded) ddtOfStop(day, name).forEach(function (x) { if (x.mine && x.status === 'pending') out.push({ ddt: x }); });
+    return out;
+  }
+  function stopPending(i) {
+    var sh = S.shift, s = sh ? stops()[i] : null; if (!s || s.maint || s.cancelled) return [];
+    return placePending(sh.day, s.name, s.t, s.cf ? s.cfk : null);
+  }
+  function pendSheet(name, pd, i) {
+    var h = pd.map(function (p) {
+      if (p.ddt) return '<button class="btn primary smact" data-act="ddtsign" data-id="' + p.ddt.id + '">✍️ Fai firmare il DDT<small>' + esc(p.ddt.customer || '') + '</small></button>';
+      var sp = p.cf, w = sp.rows.filter(function (r) { return sp.kind !== 'pick' || !r.g.conf; }).map(function (r) { return r.i.what; }).join(', ');
+      return '<button class="btn primary smact" data-act="pendcf" data-k="' + esc(sp.key) + '"' + (i != null ? ' data-i="' + i + '"' : '') + '>' + (sp.kind === 'pick' ? '📥 Spunta cosa ricevi' + (sp.from ? ' da ' + esc(sp.from.replace(/\s*\(.*$/, '')) : '') : '📦 Spunta cosa consegni a ' + esc(String(sp.to || '').replace(/\s*[(·].*$/, ''))) + '<small>' + esc(w) + '</small></button>';
+    }).join('');
+    openSheet('<h2>Prima di andare avanti</h2><p class="muted">A <b>' + esc(name) + '</b> devi ancora:</p><div class="smacts">' + h + '</div>' +
+      '<p class="hint">Se manca qualcosa togli la spunta e scrivi cosa: va bene lo stesso. Se non puoi farlo usa “Salta tappa”.</p><div class="btns"><button class="btn quiet" data-act="close">Indietro</button></div>');
+    if (S.voice) say('Prima di andare avanti devi confermare ' + (pd.length === 1 ? 'una cosa' : pd.length + ' cose') + ' a ' + name + '.');
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act="pendcf"]') : null; if (!el) return;
+    closeSheet(); var si = el.getAttribute('data-i'); cfConfirmOpen(el.getAttribute('data-k'), si == null ? null : +si);
+  });
   function finish(i, status, reason, auto) {
     if (S.shift.done[i]) return; // già consegnata: vale la prima
+    if (status === 'ok') { var pd = stopPending(i); if (pd.length) { pendSheet(stops()[i].name, pd, i); return; } }
     S.shift.done[i] = { status: status, reason: reason, t: Date.now(), gps: !!auto }; S.shift.rev = null;
     // arrivato: la tappa resta sullo schermo con il tasto Avanti (le tappe saltate passano subito)
     S.shift.hold = null;
@@ -12688,7 +12720,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var el = e.target.closest('[data-act]'); if (!el) return;
     var a = el.getAttribute('data-act'), sh = S.shift;
     if (a === 'veil') { if (e.target === el) closeSheet(); return; }
-    if (a === 'nav') { view = el.getAttribute('data-v'); try { $('main').scrollTop = 0; window.scrollTo(0, 0); } catch (x) {} if (view !== 'richieste') draft = null; if (view === 'admin') adminOpen = null; render(); if (view === 'contatti') loadContacts(); if (view === 'admin') loadAdmin(); if (view === 'logistica' || view === 'nuovo') loadMgr(true); if (view === 'programma') { loadMgr(false); if (isOff()) Promise.all([loadDdt(), loadXT()]).then(function () { if (view === 'programma') render(); }); } if (view === 'ore') loadHrs(); if (view === 'notifiche') { NT.hl = {}; loadNotif(); } if (view === 'ddt') loadDdt(); if (view === 'barca') { loadFiles(curBoatCode()); loadBoatInfo(); } return; }
+    if (a === 'nav') { view = el.getAttribute('data-v'); try { $('main').scrollTop = 0; window.scrollTo(0, 0); } catch (x) {} if (view !== 'richieste') draft = null; if (view === 'admin') adminOpen = null; render(); if (view === 'contatti') loadContacts(); if (view === 'admin') loadAdmin(); if (view === 'logistica' || view === 'nuovo') loadMgr(true); if (view === 'programma') { loadMgr(false); if (hasCf() && tok() && !CAF.busy) { CAF.day = todayKey(); cafLoad(true).then(function () { if (view === 'programma') render(); }); } if (isOff()) Promise.all([loadDdt(), loadXT()]).then(function () { if (view === 'programma') render(); }); } if (view === 'ore') loadHrs(); if (view === 'notifiche') { NT.hl = {}; loadNotif(); } if (view === 'ddt') loadDdt(); if (view === 'barca') { loadFiles(curBoatCode()); loadBoatInfo(); } return; }
     if (a === 'bdati') { BF.dati = true; render(); window.scrollTo(0, 0); Array.prototype.forEach.call(document.querySelectorAll('main,.main,#app'), function (m) { m.scrollTop = 0; }); loadFiles(curBoatCode()); return; }
     if (a === 'bdatix') { BF.dati = false; BF.edit = null; render(); return; }
     if (a === 'bsel') { BF.sel = el.getAttribute('data-c'); BF.edit = null; render(); loadFiles(BF.sel); return; }
