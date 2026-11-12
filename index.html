@@ -11849,21 +11849,25 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var bs = (PB.d && PB.d.batches) || [], t = todayKey(), last = null;
     bs.forEach(function (b) { var d = String(b.day).slice(0, 10); if (d < t && (+b.n || 0) > 0 && (!last || d > String(last.day).slice(0, 10))) last = b; });
     var one = function (f) { return last && f(last.stage) ? [last] : []; };
-    return { pick: one(function (st) { return st >= 1 && st < 3; }), wait: one(function (st) { return st === 0; }), drop: one(function (st) { return st === 3; }), n: function (l) { return l.reduce(function (a, b) { return a + (+b.n || 0); }, 0); } };
+    return { last: last, pick: one(function (st) { return st >= 1 && st < 3; }), wait: one(function (st) { return st === 0; }), drop: one(function (st) { return st === 3; }), n: function (l) { return l.reduce(function (a, b) { return a + (+b.n || 0); }, 0); } };
   }
+  var VS_CF = false;
   function vsList() {
     var day = todayKey(), d = VAN[day], dn = vsDone(), out = [], pb = vsPb();
     (d ? d.stops : []).forEach(function (z, i) {
       var k = 'v|' + i + '|' + ddtNorm(z.name);
-      out.push({ key: k, t: z.t || '', place: z.name, note: z.note || '', van: true, done: !!dn[k], cf: [], pbx: /tronchet|scalo/i.test(z.name) ? 'pick' : /zelarin/i.test(z.name) ? 'drop' : '' });
+      out.push({ key: k, t: z.t || '', place: z.name, note: z.note || '', van: true, done: !!dn[k], cf: [], pbx: /tronchet|scalo/i.test(z.name) ? (t2m(z.t) != null && t2m(z.t) < 720 ? 'give' : 'pick') : /zelarin/i.test(z.name) && (t2m(z.t) == null || t2m(z.t) >= 720) ? 'drop' : '' });
     });
     // polybox: se nel programma del furgone non c'è la tappa, la aggiungo io
+    // 10:15 a Tronchetto: polybox pieni per Murano (solo nei giorni in cui il programma delle barche va a Murano)
+    var P = PROGRAM[day], mu = !!(P && Object.keys(P.boats || {}).some(function (b) { return (P.boats[b].stops || []).some(function (z) { return !z.cancelled && /murano/i.test(z.name || ''); }); }));
+    if (mu && !out.some(function (s) { return s.pbx === 'give'; })) out.push({ key: 'pb|give', t: '10:15', place: 'Tronchetto · Scalo fluviale', note: 'Consegna i polybox pieni per Murano', cf: [], pbx: 'give', done: !!dn['pb|give'] });
     var pt = (PB.d && PB.d.pickup_t) || '13:00';
-    if ((pb.pick.length || pb.wait.length) && !out.some(function (s) { return s.pbx === 'pick'; })) out.push({ key: 'pb|pick', t: pt, place: 'Tronchetto · Scalo fluviale', note: 'Ritira i polybox vuoti di Murano', cf: [], pbx: 'pick', done: false });
-    if ((pb.drop.length || pb.pick.length || pb.wait.length) && !out.some(function (s) { return s.pbx === 'drop'; })) out.push({ key: 'pb|drop', t: '', place: 'Zelarino', note: 'Scarica i polybox di Murano', cf: [], pbx: 'drop', done: false });
-    out.forEach(function (s) { if (s.pbx && !s.van) s.done = s.pbx === 'pick' ? !pb.pick.length && !pb.wait.length : !pb.drop.length && !pb.pick.length && !pb.wait.length; });
-    // Ca' Foscari: se il posto coincide con una tappa del furgone va dentro quella tappa, altrimenti è un passo a sé
-    (hasCf() && CAF.loaded === day ? vgStops() : []).forEach(function (c) {
+    if (pb.last && !out.some(function (s) { return s.pbx === 'pick'; })) out.push({ key: 'pb|pick', t: pt, place: 'Tronchetto · Scalo fluviale', note: 'Ritira i polybox vuoti di Murano', cf: [], pbx: 'pick', done: false });
+    if (pb.last && !out.some(function (s) { return s.pbx === 'drop'; })) out.push({ key: 'pb|drop', t: '', place: 'Zelarino', note: 'Scarica i polybox di Murano', cf: [], pbx: 'drop', done: false });
+    out.forEach(function (s) { if (s.pbx && s.pbx !== 'give' && !s.van) s.done = !pb.last || pb.last.stage >= (s.pbx === 'pick' ? 3 : 4); });
+    // Ca' Foscari: per ora NON nella schermata semplice di Sergio (per non confonderlo); si rimette con VS_CF = true
+    (VS_CF && hasCf() && CAF.loaded === day ? vgStops() : []).forEach(function (c) {
       var m = out.filter(function (s) { return s.van && smPlace(s.place, c.place) && (!s.t || !c.t || Math.abs(t2m(s.t) - t2m(c.t)) <= 60); })[0];
       if (m) m.cf.push(c); else out.push({ key: 'cf|' + c.key, t: c.t || '', place: c.place, note: '', cf: [c], cfOnly: true, done: c.done });
     });
@@ -11881,7 +11885,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     return '';
   }
   function viewVanSimple() {
-    var day = todayKey(); vgEnsure();
+    var day = todayKey(); if (VS_CF) vgEnsure();
     if (!PB.d && !PB.loading) pbLoad();
     if (!DD.loaded && !DD.busy) loadDdt().then(function () { if (vanSimple()) render(); });
     var nm = SESSION && SESSION.name ? String(SESSION.name).split(' ')[0] : '';
@@ -11896,7 +11900,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var list = vsList(), ci = -1; list.some(function (s, k) { if (!s.done) { ci = k; return true; } return false; });
     var nDone = list.filter(function (s) { return s.done; }).length;
     h += (list.length ? '<span class="pill">' + Math.min(nDone + 1, list.length) + ' / ' + list.length + '</span>' : '') + '</div>';
-    var loading = (!PB.d && !PB.err) || (hasCf() && CAF.loaded !== day && !!CAF.busy);
+    var loading = !PB.d && !PB.err;
     if (!list.length) return h + '<section class="card smcard"><div class="smbig">' + (loading ? 'Carico…' : 'Oggi niente da fare') + '</div>' + (loading ? '' : '<p class="muted">Se cambia qualcosa te lo scrive Pietro.</p>') + '</section>' + foot + '</div>';
     if (ci < 0) return h + '<section class="card smcard"><div class="smbig">🎉 Giro finito</div><p class="muted">Hai fatto tutto. Grazie!</p></section>' + foot + '</div>';
     var s = list[ci], acts = '', pbBtn = vsPbBtn(s);
