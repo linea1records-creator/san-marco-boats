@@ -1210,6 +1210,7 @@ body.drive .stpanel .gdl { font-size: 16px; }
 .callrow { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; } .callbtn { display: flex; align-items: center; gap: 10px; flex: 1 1 180px; padding: 10px 14px; border-radius: 14px; background: #16a34a; color: #fff; text-decoration: none; text-align: left; font-size: 16px; border: 0; min-height: 52px; } .callbtn > span:first-child { font-size: 22px; } .callbtn small { display: block; font-weight: 400; font-size: 13px; opacity: .85; } .callbtn.nonum { background: rgba(127,127,127,.18); color: inherit; }
 .smact small { font-weight: 400; font-size: 13.5px; opacity: .85; margin-top: 2px; } .smok { color: #166534; background: #dcfce7; border-radius: 10px; padding: 8px 12px; font-size: 14.5px; }
 .smgo { width: 100%; min-height: 64px; font-size: 21px; margin-top: 8px; }
+.vsfoot { display: flex; gap: 10px; margin-top: 12px; } .vsfoot .btn { flex: 1; min-height: 56px; font-size: 18px; } body.drive .vsfoot .btn { background: #0E1A20; border: 1px solid #24343B; color: #DCE8E5; } .vsw { max-width: 560px; width: 100%; margin: 0 auto; }
 .smlist { list-style: none; padding: 0; margin: 12px 0 0; } .smlist li { display: flex; gap: 10px; padding: 7px 4px; border-bottom: 1px solid rgba(127,127,127,.15); color: var(--muted); }
 .smlist li span { width: 18px; } .smlist li.now { color: inherit; font-weight: 700; } .smlist li.dn { text-decoration: line-through; opacity: .6; }
 .pnbtn { flex: 1; display: flex; flex-direction: column; align-items: flex-start; text-align: left; background: none; border: 0; padding: 0; color: inherit; font: inherit; position: relative; padding-right: 22px; cursor: pointer; }
@@ -6508,7 +6509,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
       if (!r[0] || r[0].error) { PB.err = 'Non riesco a leggere i polybox. Controlla la connessione.'; }
       else { PB.d = r[0]; PB.err = ''; }
       if (r[1] && r[1].items) { PB.msgs = r[1].items; PB.drivers = r[1].drivers || []; }
-      if (view === 'polybox' && !PB.qty && !PB.comp) render();
+      if ((view === 'polybox' || vanSimple()) && !PB.qty && !PB.comp) render();
     }).catch(function () { PB.loading = false; });
   }
   setInterval(function () { if (view === 'polybox' && !document.hidden && !PB.qty && !PB.comp && Date.now() - PB.t > 25000) pbLoad(); }, 5000);
@@ -11201,7 +11202,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     document.body.classList.toggle('fspl', view === 'home' && isMioUser());
     document.body.classList.toggle('phonev', view === 'contatti' && !(CTE && CTE.on));
     document.body.classList.toggle('snapv', view === 'snap');
-    document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm));
+    document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm) || vanSimple());
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
     var fn = { invita: viewInv, calendario: viewCal, confeziona: viewConf, admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, mybarche: viewMyBoats, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi, orari: viewOrari, navi: viewNavi, snap: viewSnap, cafoscari: viewCafoscari, furgone: viewFurgone, scaletta: viewScaletta }[view] || viewTurno;
@@ -11836,6 +11837,109 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     return h + vgListHtml(list, ci) + '</div>';
   }
   var viewFurgone = viewScaletta;
+  /* ---------- Sergio (furgone): schermata semplice a schermo intero, solo i passaggi con i tasti da schiacciare ----------
+     Un passo alla volta: tappe del programma del furgone + polybox di Murano (Tronchetto → Zelarino) + cose Ca' Foscari.
+     Il programma si apre solo con il tasto 📅; "Altre funzioni" riporta alla Home con tutte le sezioni. */
+  function vanSimple() { return !!(SESSION && isVan() && view === 'home' && !S.vanFull && !HM.edit); }
+  function vsKey() { return 'smb-vs-' + todayKey(); }
+  function vsDone() { try { return JSON.parse(localStorage.getItem(vsKey()) || '{}'); } catch (e) { return {}; } }
+  function vsMark(k) { var d = vsDone(); d[k] = Date.now(); try { localStorage.setItem(vsKey(), JSON.stringify(d)); } catch (e) {} }
+  function vsPb() {
+    var bs = (PB.d && PB.d.batches) || [], t = todayKey();
+    var pick = bs.filter(function (b) { return b.stage >= 1 && b.stage < 3; }), wait = bs.filter(function (b) { return b.stage === 0 && String(b.day).slice(0, 10) < t; });
+    return { pick: pick, wait: wait, drop: bs.filter(function (b) { return b.stage === 3; }), n: function (l) { return l.reduce(function (a, b) { return a + (+b.n || 0); }, 0); } };
+  }
+  function vsList() {
+    var day = todayKey(), d = VAN[day], dn = vsDone(), out = [], pb = vsPb();
+    (d ? d.stops : []).forEach(function (z, i) {
+      var k = 'v|' + i + '|' + ddtNorm(z.name);
+      out.push({ key: k, t: z.t || '', place: z.name, note: z.note || '', van: true, done: !!dn[k], cf: [], pbx: /tronchet|scalo/i.test(z.name) ? 'pick' : /zelarin/i.test(z.name) ? 'drop' : '' });
+    });
+    // polybox: se nel programma del furgone non c'è la tappa, la aggiungo io
+    var pt = (PB.d && PB.d.pickup_t) || '13:00';
+    if ((pb.pick.length || pb.wait.length) && !out.some(function (s) { return s.pbx === 'pick'; })) out.push({ key: 'pb|pick', t: pt, place: 'Tronchetto · Scalo fluviale', note: 'Ritira i polybox vuoti di Murano', cf: [], pbx: 'pick', done: false });
+    if ((pb.drop.length || pb.pick.length || pb.wait.length) && !out.some(function (s) { return s.pbx === 'drop'; })) out.push({ key: 'pb|drop', t: '', place: 'Zelarino', note: 'Scarica i polybox di Murano', cf: [], pbx: 'drop', done: false });
+    out.forEach(function (s) { if (s.pbx && !s.van) s.done = s.pbx === 'pick' ? !pb.pick.length && !pb.wait.length : !pb.drop.length && !pb.pick.length && !pb.wait.length; });
+    // Ca' Foscari: se il posto coincide con una tappa del furgone va dentro quella tappa, altrimenti è un passo a sé
+    (hasCf() && CAF.loaded === day ? vgStops() : []).forEach(function (c) {
+      var m = out.filter(function (s) { return s.van && smPlace(s.place, c.place) && (!s.t || !c.t || Math.abs(t2m(s.t) - t2m(c.t)) <= 60); })[0];
+      if (m) m.cf.push(c); else out.push({ key: 'cf|' + c.key, t: c.t || '', place: c.place, note: '', cf: [c], cfOnly: true, done: c.done });
+    });
+    out.forEach(function (s) { if (s.cfOnly) s.done = s.cf.every(function (c) { return c.done; }); });
+    out.sort(function (a, b) { var x = t2m(a.t), y = t2m(b.t); return (x == null ? 9999 : x) - (y == null ? 9999 : y); });
+    return out;
+  }
+  function vsPbBtn(s) {
+    var pb = vsPb();
+    if (s.pbx === 'pick') {
+      if (pb.pick.length) return '<button class="btn primary smgo" data-act="vspb" data-x="pick" data-k="' + esc(s.key) + '">🚐 Ho ritirato ' + pb.n(pb.pick) + ' polybox</button>';
+      if (pb.wait.length) return '<div class="smok" style="background:#fef3c7;color:#92400e">⏳ ' + pb.n(pb.wait) + ' polybox: la patana non li ha ancora lasciati a Tronchetto</div><button class="btn primary smgo" data-act="vspb" data-x="pickf" data-k="' + esc(s.key) + '">🚐 Li ho ritirati lo stesso</button>';
+    }
+    if (s.pbx === 'drop' && pb.drop.length) return '<button class="btn primary smgo" data-act="vspb" data-x="drop" data-k="' + esc(s.key) + '">🏁 Ho scaricato ' + pb.n(pb.drop) + ' polybox a Zelarino</button>';
+    return '';
+  }
+  function viewVanSimple() {
+    var day = todayKey(); vgEnsure();
+    if (!PB.d && !PB.loading) pbLoad();
+    if (!DD.loaded && !DD.busy) loadDdt().then(function () { if (vanSimple()) render(); });
+    var nm = SESSION && SESSION.name ? String(SESSION.name).split(' ')[0] : '';
+    var foot = '<div class="vsfoot"><button class="btn" data-act="nav" data-v="programma">📅 Programma</button><button class="btn" data-act="nav" data-v="contatti">📞 Rubrica</button></div><button class="aslink" data-act="vsall" style="display:block;margin:12px auto;color:#93c5fd">Altre funzioni ›</button>';
+    var h = '<div class="wrap smw vsw"><div class="row"><h2>🚐 ' + esc(nm || 'Furgone') + '</h2>';
+    // messaggi di Pietro non letti: prima di tutto
+    var un = (PB.msgs || []).filter(function (m) { return !m.seen; });
+    if (un.length) {
+      var m = un[un.length - 1], extra = [m.day ? pbDayLab(m.day) : '', m.t ? 'ore ' + m.t : '', m.n != null ? m.n + ' polybox' : ''].filter(Boolean).join(' · ');
+      return h + '</div><section class="card smcard"><div class="smlbl">💬 Messaggio da ' + esc(m.from || 'Pietro') + '</div>' + (extra ? '<div class="smbig" style="font-size:24px">' + esc(extra) + '</div>' : '') + '<p class="smnote" style="white-space:pre-wrap">' + esc(m.body) + '</p><button class="btn primary smgo" data-act="vsseen" data-id="' + esc(m.id) + '">✓ Ho letto</button>' + (un.length > 1 ? '<div class="muted" style="text-align:center;margin-top:6px">Altri ' + (un.length - 1) + ' messaggi</div>' : '') + '</section>' + foot + '</div>';
+    }
+    var list = vsList(), ci = -1; list.some(function (s, k) { if (!s.done) { ci = k; return true; } return false; });
+    var nDone = list.filter(function (s) { return s.done; }).length;
+    h += (list.length ? '<span class="pill">' + Math.min(nDone + 1, list.length) + ' / ' + list.length + '</span>' : '') + '</div>';
+    var loading = (!PB.d && !PB.err) || (hasCf() && CAF.loaded !== day && !!CAF.busy);
+    if (!list.length) return h + '<section class="card smcard"><div class="smbig">' + (loading ? 'Carico…' : 'Oggi niente da fare') + '</div>' + (loading ? '' : '<p class="muted">Se cambia qualcosa te lo scrive Pietro.</p>') + '</section>' + foot + '</div>';
+    if (ci < 0) return h + '<section class="card smcard"><div class="smbig">🎉 Giro finito</div><p class="muted">Hai fatto tutto. Grazie!</p></section>' + foot + '</div>';
+    var s = list[ci], acts = '', pbBtn = vsPbBtn(s);
+    ddtOfStop(day, s.place).filter(function (x) { return x.mine; }).forEach(function (x) { acts += x.status === 'pending' ? '<button class="btn smact" data-act="ddtsign" data-id="' + x.id + '">✍️ Fai firmare il DDT<small>' + esc(x.customer) + '</small></button>' : '<div class="smok">✓ DDT firmato · ' + esc(x.customer) + '</div>'; });
+    var ev = function (x) { return (x.room || x.venue).split(' · ')[0].replace(/\s*\(.*\)$/, ''); };
+    s.cf.forEach(function (c) {
+      if (c.done) { acts += '<div class="smok">✓ ' + (c.kind === 'pick' ? 'Ricevuto' : 'Consegnato') + ' · Ca’ Foscari</div>'; return; }
+      if (c.kind === 'pick') {
+        var by = {}; c.rows.forEach(function (r) { if (!r.g.conf) (by[r.x.id] = by[r.x.id] || { x: r.x, w: [] }).w.push(r.i.what); });
+        Object.keys(by).forEach(function (eid) { acts += '<button class="btn primary smact" data-act="cafrcv" data-e="' + eid + '" data-k="' + esc(c.lk) + '">📥 Spunta cosa hai ricevuto' + (c.from ? ' da ' + esc(c.from.replace(/\s*\(.*\)$/, '')) : '') + '<small>' + esc(ev(by[eid].x) + ': ' + by[eid].w.join(', ')) + '</small></button>'; });
+      } else {
+        var g = {}, o = []; c.rows.forEach(function (r) { var n = ev(r.x); if (!g[n]) { g[n] = []; o.push(n); } g[n].push(r.i.what); });
+        acts += '<button class="btn primary smact" data-act="vgdrop" data-k="' + esc(c.key) + '">✅ Consegnato a ' + esc(c.to) + '<small>' + esc(o.map(function (n) { return n + ': ' + g[n].join(', '); }).join(' · ')) + '</small></button>';
+      }
+    });
+    var nx = list.filter(function (o, k) { return k > ci && !o.done; })[0];
+    h += '<section class="card smcard"><div class="smlbl">Adesso vai a</div><div class="smbig">' + esc(s.place) + '</div>' + (s.t ? '<div class="muted" style="font-size:18px">ore ' + esc(s.t) + '</div>' : '') +
+      (s.note ? '<p class="smnote">' + esc(s.note) + '</p>' : '') + (acts ? '<div class="smacts">' + acts + '</div>' : '') +
+      callRow(ctRecips(s.place, s.cf.filter(function (c) { return !c.done; }))) +
+      (pbBtn || (s.cfOnly ? '' : '<button class="btn primary smgo" data-act="vsnext" data-k="' + esc(s.key) + '">✓ Fatto · avanti</button>')) +
+      (nx ? '<div class="muted" style="text-align:center;margin-top:8px">Poi: ' + esc((nx.t ? nx.t + ' ' : '') + nx.place) + '</div>' : '') + '</section>';
+    return h + foot + '</div>';
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act^="vs"]') : null; if (!el || !isVan()) return;
+    var a = el.getAttribute('data-act'), k = el.getAttribute('data-k');
+    if (a === 'vsall') { S.vanFull = true; save(); render(); }
+    else if (a === 'vssimple') { S.vanFull = false; save(); view = 'home'; render(); }
+    else if (a === 'vsseen') { el.disabled = true; cl('rpc_van_msg_seen', { p_id: el.getAttribute('data-id') }).then(function () { return pbLoad(); }).then(render); }
+    else if (a === 'vsnext') {
+      var s = vsList().filter(function (z) { return z.key === k; })[0]; if (!s) return;
+      if (s.cf.some(function (c) { return !c.done; }) && !confirm('Non hai ancora confermato le cose di Ca’ Foscari. Andare avanti lo stesso?')) return;
+      vsMark(k); toast('Fatto ✓'); render();
+    }
+    else if (a === 'vspb') {
+      var x = el.getAttribute('data-x'), pb = vsPb(), l = x === 'drop' ? pb.drop : x === 'pickf' ? pb.wait.concat(pb.pick) : pb.pick, p = Promise.resolve(true);
+      el.disabled = true; toast('Invio…');
+      l.forEach(function (b) { p = p.then(function (ok) { return cl('rpc_polybox_van', { p_day: b.day, p_action: x === 'drop' ? 'drop' : 'pick' }).then(function (r) { return ok && !!(r && r.ok); }); }); });
+      p.then(function (ok) {
+        if (!ok) { toast('Non salvato: controlla la connessione'); el.disabled = false; return; }
+        if (k && k.indexOf('v|') === 0) vsMark(k);
+        toast(x === 'drop' ? 'Polybox arrivati a Zelarino ✓' : 'Polybox sul furgone ✓'); return pbLoad().then(render);
+      }).catch(function () { toast('Serve la connessione'); el.disabled = false; });
+    }
+  });
   function vgListHtml(list, ci) {
     return '<ol class="smlist">' + list.map(function (s, k) { return '<li class="' + (s.done ? 'dn' : k === ci ? 'now' : '') + '"><span>' + (s.done ? '✓' : k === ci ? '➜' : '') + '</span>' + esc((s.t ? s.t + ' ' : '') + s.place) + ' · ' + (s.kind === 'pick' ? 'ricevi' : 'consegna') + '</li>'; }).join('') + '</ol>';
   }
@@ -12023,6 +12127,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   }
   function viewHome() {
     if (isMioUser()) return viewPlancia();
+    if (vanSimple()) return viewVanSimple();
     var nm = SESSION && SESSION.name ? String(SESSION.name).split(' ')[0] : '', hr = new Date().getHours();
     var h = '<div class="wrap hmwrap"><div class="hmhi">' + (hr < 13 ? 'Buongiorno' : hr < 18 ? 'Buon pomeriggio' : 'Buonasera') + (nm ? ', ' + esc(nm) : '') + '</div><div class="muted">' + esc(new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })) + '</div>';
     var boatish = !isVan() && !isOff() && !isCfOnly(); // camerieri e ufficio Ca' Foscari: niente turni né barche
@@ -12037,6 +12142,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (_ord && (isMgr() || isFullAcc()) && !isVan() && !isOff()) { ogLoad(false); h += homeMgr([]).replace(/<section class="hmarea[\s\S]*$/, '') + '<div class="hmgrid hmg2" role="list">' + _ord.map(homeTile).join('') + '</div><button class="aslink hmcus" data-act="hmedit">✎ Personalizza la Home</button></div>'; }
     else if ((isMgr() || isFullAcc()) && !isVan() && !isOff()) h += homeMgr(_apps) + '<button class="aslink hmcus" data-act="hmedit">✎ Personalizza la Home</button></div>';
     else h += '<div class="hmgrid" role="list">' + (_ord || _apps).map(homeTile).join('') + '</div><button class="aslink hmcus" data-act="hmedit">✎ Personalizza la Home</button></div>';
+    if (isVan() && !HM.edit) h = h.replace(/<\/div>$/, '') + '<button class="btn primary" data-act="vssimple" style="display:block;margin:4px auto 16px">🚐 Torna alla schermata semplice</button></div>';
     setTimeout(function () { ntBadge(); ddtBadge(); }, 0);
     return h;
   }
