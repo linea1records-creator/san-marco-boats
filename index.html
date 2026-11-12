@@ -11844,10 +11844,12 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   function vsKey() { return 'smb-vs-' + todayKey(); }
   function vsDone() { try { return JSON.parse(localStorage.getItem(vsKey()) || '{}'); } catch (e) { return {}; } }
   function vsMark(k) { var d = vsDone(); d[k] = Date.now(); try { localStorage.setItem(vsKey(), JSON.stringify(d)); } catch (e) {} }
+  // solo l'ultimo carico di Murano conta: i giorni vecchi mai chiusi a mano sono già arrivati a Zelarino
   function vsPb() {
-    var bs = (PB.d && PB.d.batches) || [], t = todayKey();
-    var pick = bs.filter(function (b) { return b.stage >= 1 && b.stage < 3; }), wait = bs.filter(function (b) { return b.stage === 0 && String(b.day).slice(0, 10) < t; });
-    return { pick: pick, wait: wait, drop: bs.filter(function (b) { return b.stage === 3; }), n: function (l) { return l.reduce(function (a, b) { return a + (+b.n || 0); }, 0); } };
+    var bs = (PB.d && PB.d.batches) || [], t = todayKey(), last = null;
+    bs.forEach(function (b) { var d = String(b.day).slice(0, 10); if (d < t && (+b.n || 0) > 0 && (!last || d > String(last.day).slice(0, 10))) last = b; });
+    var one = function (f) { return last && f(last.stage) ? [last] : []; };
+    return { pick: one(function (st) { return st >= 1 && st < 3; }), wait: one(function (st) { return st === 0; }), drop: one(function (st) { return st === 3; }), n: function (l) { return l.reduce(function (a, b) { return a + (+b.n || 0); }, 0); } };
   }
   function vsList() {
     var day = todayKey(), d = VAN[day], dn = vsDone(), out = [], pb = vsPb();
