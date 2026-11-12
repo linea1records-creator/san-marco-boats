@@ -453,6 +453,15 @@ body.tbfs .tb{position:fixed;top:0;right:0;bottom:0;left:0;z-index:40;border-rad
 .calpub>span:first-child{font-size:26px}.calpub>span:nth-child(2){flex:1}.calpub small{display:block;color:var(--muted);font-size:12px}
 .calpub i{width:46px;height:28px;border-radius:14px;background:#cbd5e1;position:relative;flex:none}.calpub i:after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:11px;background:#fff;transition:left .15s}
 .calpub[aria-pressed="true"]{border-color:#2563eb}.calpub[aria-pressed="true"] i{background:#2563eb}.calpub[aria-pressed="true"] i:after{left:21px}
+.whsr{display:flex;gap:8px;margin:6px 0 10px}.whsr input{flex:1}
+.whcat{margin:14px 0 6px;font-size:12.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.whit{border:1px solid var(--line);border-radius:16px;padding:10px 12px;margin-bottom:8px}
+.whhd{display:flex;align-items:center;gap:8px}.whhd b{flex:1;font-size:16.5px;color:var(--ink)}.whu{font-size:12px;font-weight:700;border-radius:999px;padding:2px 8px;background:#fef3c7;color:#92400e;white-space:nowrap}
+.whtot{font-family:var(--font-mono);font-weight:800;color:var(--ink);white-space:nowrap}
+.whrow{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px dashed var(--line)}.whrow:first-of-type{border-top:0}.whrow span{flex:1;min-width:0;color:var(--ink)}.whrow small{display:block;color:var(--muted);font-size:11.5px}
+.whst{display:flex;align-items:center;gap:4px}.whst button{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:20px;font-weight:800}
+.whst input{width:64px;height:40px;text-align:center;border:1px solid var(--line);border-radius:10px;font:inherit;font-weight:800;font-size:16px;background:transparent;color:var(--ink)}
+.whadd{display:flex;gap:6px;margin-top:6px}.whadd input{flex:1}.whzero b{color:#b42318}
 .cfb{border:1px solid var(--line);border-radius:16px;padding:6px 14px 10px;background:var(--surface,transparent);margin-bottom:12px}.cfb h3{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:6px 0 2px}.cfb h3 small{font-size:14px;color:var(--muted);font-weight:600}
 .cfdays{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px}.cfdays button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:8px 14px;font:inherit;font-weight:700}.cfdays button[aria-pressed="true"]{background:#ca8a04;border-color:#ca8a04;color:#fff}
 .cftot{display:flex;justify-content:space-between;font-weight:800;font-size:18px;padding:10px 4px;color:var(--ink)}.cfok{color:#1E8E4E;font-size:12px;font-weight:700;margin-left:6px}
@@ -1964,6 +1973,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     benzina: '<path d="M4 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16M3 21h13M7 8h5M15 9l3 2v7a1.5 1.5 0 0 0 3 0V9l-3-3"/>',
     polybox: '<path d="M3 8l9-4 9 4v9l-9 4-9-4z"/><path d="M3 8l9 4 9-4M12 12v9"/>',
     confeziona: '<path d="M3 8l9-4 9 4v9l-9 4-9-4z"/><path d="M3 8l9 4 9-4M12 12v9"/><path d="M16.5 6.2L7.5 10"/>',
+    magazzino: '<path d="M3 9l9-5 9 5v11H3z"/><path d="M7 20v-7h10v7M7 16h10"/>',
     invita: '<circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><path d="M17 3l4 0 0 4M21 3l-5 5"/>',
     calendario: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 14h2M14 14h2M8 17h2"/>',
     nuovo: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/>',
@@ -11150,7 +11160,8 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     if (view === 'presenze' && !isOff() && !isMgr() && !isFullAcc()) view = 'home';
     if (isCfOnly() && ['home', 'cafoscari', 'scaletta', 'calendario', 'contatti', 'impost'].indexOf(view) < 0) view = 'cafoscari';
     if (view === 'cafoscari' && !hasCf()) view = 'home';
-    if (isSigner() && ['home', 'ddtgiro', 'programma', 'calendario', 'contatti', 'impost', 'cafoscari', 'scaletta'].indexOf(view) < 0) view = 'ddtgiro';
+    if (isSigner() && ['home', 'ddtgiro', 'magazzino', 'programma', 'calendario', 'contatti', 'impost', 'cafoscari', 'scaletta'].indexOf(view) < 0) view = 'ddtgiro';
+    if (view === 'magazzino' && !isSigner() && !isMgr() && !isFullAcc() && !(SESSION && SESSION.role === 'admin')) view = 'home';
     if (isPack() && ['home', 'confeziona', 'programma', 'impost', 'contatti', 'snap', 'calendario'].indexOf(view) < 0) view = 'confeziona';
     if (isBoatRole() && ['home', 'calendario', 'barca', 'impost', 'contatti', 'snap', 'programma'].indexOf(view) < 0) view = 'calendario';
     if (view === 'confeziona' && !isPack() && !isMgr() && !isFullAcc()) view = 'home';
@@ -11205,7 +11216,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     document.body.classList.toggle('drive', !!(S.shift && view === 'guida' && !isAdm) || vanSimple());
     document.body.classList.toggle('chatopen', view === 'notifiche' && !!(TC.open || NTC.open));
     if (view !== 'guida') document.body.classList.remove('drive-open');
-    var fn = { invita: viewInv, calendario: viewCal, confeziona: viewConf, admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, mybarche: viewMyBoats, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi, orari: viewOrari, navi: viewNavi, snap: viewSnap, cafoscari: viewCafoscari, furgone: viewFurgone, scaletta: viewScaletta }[view] || viewTurno;
+    var fn = { magazzino: viewWh, invita: viewInv, calendario: viewCal, confeziona: viewConf, admin: viewAdmin, turno: viewTurnoOff, guida: viewGuida, programma: viewProgramma, logistica: viewLogistica, ore: viewOre, notifiche: viewNotifiche, ddt: viewDdt, ddtgiro: viewDdtGiro, programmi: viewProgrammi, nuovo: viewNuovo, altro: viewAltro, richieste: viewRichieste, contatti: viewContatti, barca: viewBarca, mybarche: viewMyBoats, impost: viewImpost, pin: viewPin, home: viewHome, presenze: viewPresenze, spedizioni: viewShip, turni: viewTurni, murano: viewMurano, polybox: viewPolybox, benzina: viewBenzina, tracking: viewTracking, cucina: viewCucina, stat: viewStat, velox: viewVelox, oggi: viewOggi, mio: viewMio, foodcost: viewFoodcost, allergeni: viewAllergeni, listini: viewListini, porzione: viewPorzione, menu: viewMenu, fatturato: viewFatturato, carena: viewCarena, percorsi: viewPercorsi, orari: viewOrari, navi: viewNavi, snap: viewSnap, cafoscari: viewCafoscari, furgone: viewFurgone, scaletta: viewScaletta }[view] || viewTurno;
     document.body.classList.toggle('offpc', isOff() && isWide());
     diag('disegno ' + view); var _t0 = Date.now(), m = $('main'), sc = m.scrollTop; m.innerHTML = (isOff() && isWide() ? deskTabs() : '') + fn(); if (view === 'percorsi') setTimeout(rtDraw, 0); m.scrollTop = (view === 'guida') ? 0 : sc; diag('fatto ' + view + ' ' + (Date.now() - _t0) + 'ms');
     if (LITE && Date.now() - _t0 > 2500 && window.__smbErr) window.__smbErr('Pagina lenta: ' + view + ' ' + (Date.now() - _t0) + ' ms');
@@ -11294,7 +11305,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     ['Pianifica', 'Programmi, calendario, orari, navigatore, nuovi turni e consegne, cucina, Ca’ Foscari', ['logistica', 'cafoscari', 'calendario', 'programma', 'orari', 'navi', 'turno', 'cucina']],
     ['Cucina e costi', 'Food cost, allergeni e listini dei fornitori', ['menu', 'foodcost', 'porzione', 'allergeni', 'listini']],
     ['Flotta', 'Barche, documenti, benzina, carena e velox', ['barca', 'benzina', 'carena', 'velox']],
-    ['Tracking e oggetti', 'Tracking, posizioni condivise, polybox e cose in viaggio', ['spedizioni', 'invita', 'tracking', 'polybox', 'confeziona']],
+    ['Tracking e oggetti', 'Tracking, posizioni condivise, polybox, magazzino e cose in viaggio', ['spedizioni', 'invita', 'tracking', 'polybox', 'confeziona', 'magazzino']],
     ['Archivio', 'Percorsi, statistiche, turni, presenze e DDT', ['percorsi', 'stat', 'turni', 'presenze', 'ddtgiro', 'fatturato']],
     ['Persone', 'Messaggi, Snap, telefono e opzioni', ['notifiche', 'snap', 'contatti', 'impost']]
   ];
@@ -11320,7 +11331,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
   /* ---------- Home: ogni strumento è un'icona come un'app del telefono ---------- */
   var APPS = {
     furgone: ['Giro furgone', '#ea580c'], cafoscari: ['Ca’ Foscari', '#8a1538'], logistica: ['Logistica', '#1d4ed8'], turno: ['Turno', '#0f766e'], programma: ['Programma', '#7c3aed'], ddtgiro: ['DDT', '#b45309'], ddt: ['DDT', '#b45309'],
-    barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], confeziona: ['Polybox Seminario', '#b45309'], invita: ['Invia tracking', '#db2777'], calendario: ['Calendario', '#7c3aed'], notifiche: ['Notifiche', '#db2777'],
+    barca: ['Barche', '#0369a1'], benzina: ['Benzina', '#dc2626'], tracking: ['Dov’è', '#059669'], spedizioni: ['Tracking', '#0d9488'], turni: ['Turni', '#9a3412'], presenze: ['Presenze', '#be185d'], polybox: ['Polybox', '#ca8a04'], confeziona: ['Polybox Seminario', '#b45309'], invita: ['Invia tracking', '#db2777'], magazzino: ['Magazzino', '#92400e'], calendario: ['Calendario', '#7c3aed'], notifiche: ['Notifiche', '#db2777'],
     oggi: ['Oggi', '#0f172a'], foodcost: ['Food Cost', '#15803d'], allergeni: ['Allergeni', '#a16207'], listini: ['Listini', '#0e7490'], porzione: ['Costo porzione', '#7c2d12'], menu: ['Menu', '#9d174d'], fatturato: ['Fatturato', '#047857'], carena: ['Carena', '#0e7490'], percorsi: ['Percorsi', '#0f766e'], orari: ['Orari reali', '#6d28d9'], navi: ['Navigatore', '#1a73e8'], snap: ['Snap', '#e6c300'], stat: ['Statistiche', '#4f46e5'], velox: ['Velox', '#b91c1c'], cucina: ['Cucina', '#ea580c'], contatti: ['Telefono', '#34c759'], impost: ['Opzioni', '#475569'], ore: ['Ore', '#4338ca']
   };
   /* ---------- Ca' Foscari: programma eventi, inventario, statistiche, DDT ---------- */
@@ -12121,14 +12132,14 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     var isFull = !!(SESSION && SESSION.role === 'admin' && SESSION.works), isAdm = !!(SESSION && SESSION.role === 'admin') && !isFull;
     if (isBoatRole()) return ['calendario', 'barca', 'programma', 'snap', 'contatti', 'impost'];
     if (isCfOnly()) return ['calendario', 'contatti', 'impost'];
-    if (isSigner()) return ['ddtgiro', 'programma', 'calendario', 'contatti', 'impost'];
+    if (isSigner()) return ['ddtgiro', 'magazzino', 'programma', 'calendario', 'contatti', 'impost'];
     if (isPack()) return ['confeziona', 'calendario', 'programma', 'snap', 'contatti', 'impost'];
     if (isVan()) return ['furgone', 'polybox', 'tracking', 'programma', 'calendario', 'navi', 'snap', 'contatti', 'impost'];
     if (isBill()) return ['fatturato', 'calendario', 'contatti', 'impost'];
     if (isOff()) return ['presenze', 'ddt', 'cucina', 'programma', 'calendario', 'notifiche', 'snap', 'contatti', 'impost'];
-    if (isAdm) return ['logistica', 'calendario', 'notifiche', 'snap', 'turni', 'presenze'].concat(canMoney() ? ['fatturato'] : [], ['spedizioni', 'invita', 'tracking', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'barca', 'benzina', 'programma', 'contatti', 'impost']);
-    if (isFull) return ['logistica', 'turno', 'calendario', 'turni', 'presenze', 'programma', 'ddtgiro', 'fatturato', 'barca', 'benzina', 'spedizioni', 'invita', 'tracking', 'polybox', 'confeziona', 'notifiche', 'snap', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'cucina', 'menu', 'foodcost', 'porzione', 'allergeni', 'listini', 'contatti', 'impost'];
-    if (isMgr()) return ['logistica', 'turno', 'calendario', 'turni', 'programma', 'notifiche', 'snap', 'barca', 'benzina', 'spedizioni', 'invita', 'tracking', 'polybox', 'confeziona', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'contatti', 'impost'];
+    if (isAdm) return ['logistica', 'calendario', 'notifiche', 'snap', 'turni', 'presenze'].concat(canMoney() ? ['fatturato'] : [], ['spedizioni', 'invita', 'magazzino', 'tracking', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'barca', 'benzina', 'programma', 'contatti', 'impost']);
+    if (isFull) return ['logistica', 'turno', 'calendario', 'turni', 'presenze', 'programma', 'ddtgiro', 'fatturato', 'barca', 'benzina', 'spedizioni', 'invita', 'tracking', 'polybox', 'confeziona', 'magazzino', 'notifiche', 'snap', 'stat', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'cucina', 'menu', 'foodcost', 'porzione', 'allergeni', 'listini', 'contatti', 'impost'];
+    if (isMgr()) return ['logistica', 'turno', 'calendario', 'turni', 'programma', 'notifiche', 'snap', 'barca', 'benzina', 'spedizioni', 'invita', 'tracking', 'polybox', 'confeziona', 'magazzino', 'percorsi', 'orari', 'navi', 'velox', 'carena', 'contatti', 'impost'];
     return ['turno', 'navi', 'programma', 'calendario', 'ddtgiro', 'barca', 'notifiche', 'snap', 'tracking', 'benzina', 'impost'];
   }
   function viewHome() {
@@ -12693,6 +12704,96 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     }
   });
   setInterval(function () { if (view === 'calendario' && !document.hidden && !document.querySelector('#layer .sheet')) calLoad(true); }, 120000);
+
+  /* ---------- Magazzino: inventario con quantità (pezzi, confezioni, scatole, casse) e specifiche per oggetto ---------- */
+  var WH = { d: null, busy: false, q: '', t: {}, ed: null, open: {} };
+  var WH_UNIT = { pz: ['pz', 'pezzi'], conf: ['conf.', 'confezioni'], scatola: ['scatole', 'scatole'], cassa: ['casse', 'casse'] };
+  var WH_CATS = ['Bicchieri e stoviglie', 'Monouso', 'Cibo e bevande', 'Arredo e allestimento', 'Contenitori e trasporto', 'Attrezzature', 'Altro'];
+  function whLoad() { if (!tok() || WH.busy) return; WH.busy = true; cl('rpc_wh_list', {}).then(function (r) { WH.busy = false; if (Array.isArray(r)) { WH.d = r; if (view === 'magazzino' && !(document.activeElement && document.activeElement.tagName === 'INPUT')) render(); } }).catch(function () { WH.busy = false; }); }
+  function whNum(n) { n = +n || 0; return String(Math.round(n * 10) / 10).replace('.', ','); }
+  function whTot(it) { return (it.stock || []).reduce(function (a, s) { return a + (+s.qty || 0); }, 0); }
+  function viewWh() {
+    if (!WH.d) setTimeout(whLoad, 0);
+    var h = '<div class="wrap"><h2>🏬 Magazzino</h2><p class="muted">Scrivi quanti ce ne sono adesso: si salva da solo. Con “+ specifica” dividi un oggetto per tipo, colore o misura.</p>' +
+      '<div class="whsr"><input class="field txt" id="whQ" style="text-transform:none" placeholder="Cerca un oggetto…" value="' + esc(WH.q) + '"><button class="btn primary" data-act="whnew">＋ Nuovo</button></div>';
+    if (!WH.d) return h + '<p class="muted">Carico…</p></div>';
+    var q = ddtNorm(WH.q || ''), L = WH.d.filter(function (it) { return !q || ddtNorm(it.name + ' ' + (it.stock || []).map(function (s) { return s.spec; }).join(' ')).indexOf(q) >= 0; });
+    var cats = []; L.forEach(function (it) { if (cats.indexOf(it.cat) < 0) cats.push(it.cat); });
+    cats.sort(function (a, b) { var x = WH_CATS.indexOf(a), y = WH_CATS.indexOf(b); return (x < 0 ? 99 : x) - (y < 0 ? 99 : y); });
+    if (!L.length) h += '<p class="muted">Nessun oggetto trovato. Tocca “＋ Nuovo” per aggiungerlo.</p>';
+    cats.forEach(function (c) {
+      h += '<div class="whcat">' + esc(c) + '</div>';
+      L.filter(function (it) { return it.cat === c; }).forEach(function (it) {
+        var u = WH_UNIT[it.unit] || WH_UNIT.pz, tot = whTot(it), st = it.stock || [], multi = st.length > 1 || (st[0] && st[0].spec);
+        h += '<div class="whit' + (tot === 0 ? ' whzero' : '') + '"><div class="whhd"><b>' + esc(it.name) + '</b><span class="whu">' + esc(u[1]) + (it.per ? ' da ' + it.per : '') + '</span><span class="whtot">' + whNum(tot) + (it.per && tot ? ' <small class="muted">= ' + whNum(tot * it.per) + ' pz</small>' : '') + '</span><button class="btn quiet sm" data-act="whedit" data-id="' + esc(it.id) + '" aria-label="Modifica ' + esc(it.name) + '">✎</button></div>' +
+          st.map(function (sx) {
+            return '<div class="whrow"><span>' + (sx.spec ? esc(sx.spec) : (multi ? '<i class="muted">senza specifica</i>' : '<i class="muted">quantità</i>')) + (sx.by ? '<small>' + esc(String(sx.by).split(' ')[0]) + ' · ' + esc(agoText(sx.at)) + '</small>' : '') + '</span>' +
+              '<div class="whst"><button data-act="whm" data-id="' + esc(sx.id) + '" aria-label="Meno">−</button><input type="number" inputmode="decimal" min="0" step="1" data-whi="' + esc(it.id) + '" data-whs="' + esc(sx.spec) + '" data-whid="' + esc(sx.id) + '" value="' + whNum(sx.qty).replace(',', '.') + '" aria-label="' + esc(it.name + (sx.spec ? ' ' + sx.spec : '')) + '"><button data-act="whp" data-id="' + esc(sx.id) + '" aria-label="Più">+</button></div>' +
+              (sx.spec ? '<button class="btn quiet sm" data-act="whsdel" data-id="' + esc(sx.id) + '" aria-label="Togli la specifica">✕</button>' : '') + '</div>';
+          }).join('') +
+          (WH.open[it.id] ? '<div class="whadd"><input class="field txt" id="whS_' + esc(it.id) + '" style="text-transform:none" placeholder="' + esc(it.hint || 'Specifica (es. colore, misura, tipo)') + '"><button class="btn sm primary" data-act="whsadd" data-id="' + esc(it.id) + '">Aggiungi</button></div>' : '<button class="btn quiet sm" data-act="whsopen" data-id="' + esc(it.id) + '" style="margin-top:4px">+ specifica</button>') + '</div>';
+      });
+    });
+    return h + '</div>';
+  }
+  function whFind(sid) { var o = null; (WH.d || []).forEach(function (it) { (it.stock || []).forEach(function (s) { if (s.id === sid) o = { it: it, s: s }; }); }); return o; }
+  function whSave(item, spec, qty, inp) {
+    var key = item + '|' + spec; clearTimeout(WH.t[key]);
+    WH.t[key] = setTimeout(function () { cl('rpc_wh_qty_set', { p_item: item, p_spec: spec, p_qty: qty }).then(function (r) { if (!r || !r.ok) toast('Non salvato: controlla la connessione'); else if (inp) { inp.style.borderColor = '#1E8E4E'; setTimeout(function () { inp.style.borderColor = ''; }, 900); } }); }, 600);
+  }
+  function whSheet(it) {
+    var u = it ? it.unit : 'pz';
+    openSheet('<div class="dfxs"><h2>' + (it ? 'Modifica oggetto' : 'Nuovo oggetto') + '</h2>' +
+      '<div class="clsec">Nome</div><input class="field txt" id="whN" maxlength="80" style="text-transform:none" placeholder="es. Tovaglie" value="' + esc(it ? it.name : '') + '">' +
+      '<div class="clsec">Si conta in</div><div class="seg2" id="whU">' + ['pz', 'conf', 'scatola', 'cassa'].map(function (k) { return '<button data-act="whu" data-u="' + k + '"' + (u === k ? ' aria-pressed="true"' : '') + '>' + WH_UNIT[k][1].charAt(0).toUpperCase() + WH_UNIT[k][1].slice(1) + '</button>'; }).join('') + '</div>' +
+      '<div class="clsec">Pezzi per confezione / cassa (facoltativo)</div><input class="field" type="number" inputmode="numeric" min="0" id="whP" placeholder="es. 25" value="' + (it && it.per ? it.per : '') + '">' +
+      '<div class="clsec">Categoria</div><input class="field txt" id="whC" list="whCats" style="text-transform:none" value="' + esc(it ? it.cat : 'Altro') + '"><datalist id="whCats">' + WH_CATS.map(function (c) { return '<option value="' + esc(c) + '">'; }).join('') + '</datalist>' +
+      '<div class="clsec">Esempio di specifica (facoltativo)</div><input class="field txt" id="whH" maxlength="80" style="text-transform:none" placeholder="es. Grande rosso, Piccolo bianco" value="' + esc(it && it.hint ? it.hint : '') + '">' +
+      '<div class="btns"><button class="btn primary" data-act="whsave"' + (it ? ' data-id="' + esc(it.id) + '"' : '') + '>Salva</button>' + (it ? '<button class="btn danger" data-act="whdel" data-id="' + esc(it.id) + '">Togli dal magazzino</button>' : '') + '<button class="btn quiet" data-act="close">Annulla</button></div></div>');
+    if (!it) setTimeout(function () { var x = $('whN'); if (x) x.focus(); }, 60);
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act^="wh"]') : null; if (!el) return; var a = el.getAttribute('data-act');
+    if (a === 'whm' || a === 'whp') {
+      var f = whFind(el.getAttribute('data-id')); if (!f) return; var n = Math.max(0, (+f.s.qty || 0) + (a === 'whp' ? 1 : -1)); f.s.qty = n;
+      var inp = document.querySelector('input[data-whid="' + f.s.id + '"]'); if (inp) inp.value = n;
+      var card = inp && inp.closest('.whit'), tt = card && card.querySelector('.whtot'); if (tt) tt.textContent = whNum(whTot(f.it));
+      whSave(f.it.id, f.s.spec, n, inp);
+    }
+    else if (a === 'whsopen') { WH.open[el.getAttribute('data-id')] = 1; render(); setTimeout(function () { var x = $('whS_' + el.getAttribute('data-id')); if (x) x.focus(); }, 30); }
+    else if (a === 'whsadd') {
+      var id = el.getAttribute('data-id'), v = (($('whS_' + id) || {}).value || '').trim(); if (!v) { toast('Scrivi la specifica, es. il colore'); return; }
+      var it = (WH.d || []).filter(function (x) { return x.id === id; })[0]; if (it && (it.stock || []).some(function (s) { return s.spec.toLowerCase() === v.toLowerCase(); })) { toast('Questa specifica c’è già'); return; }
+      delete WH.open[id];
+      cl('rpc_wh_qty_set', { p_item: id, p_spec: v, p_qty: 0 }).then(function (r) { if (r && r.ok) { toast('Aggiunta: ' + v); whLoad(); } else toast('Non salvato'); });
+    }
+    else if (a === 'whsdel') {
+      if (el.getAttribute('data-sure') !== '1') { el.setAttribute('data-sure', '1'); el.textContent = 'Togli?'; setTimeout(function () { if (el.isConnected) { el.removeAttribute('data-sure'); el.textContent = '✕'; } }, 4000); return; }
+      cl('rpc_wh_spec_del', { p_id: el.getAttribute('data-id') }).then(function () { whLoad(); });
+    }
+    else if (a === 'whnew') whSheet(null);
+    else if (a === 'whedit') { var it2 = (WH.d || []).filter(function (x) { return x.id === el.getAttribute('data-id'); })[0]; if (it2) whSheet(it2); }
+    else if (a === 'whu') { Array.prototype.forEach.call(document.querySelectorAll('#whU button'), function (b) { b.setAttribute('aria-pressed', b === el ? 'true' : 'false'); }); }
+    else if (a === 'whsave') {
+      var nm = (($('whN') || {}).value || '').trim(); if (!nm) { toast('Scrivi il nome'); return; }
+      var ub = document.querySelector('#whU [aria-pressed="true"]'), unit = ub ? ub.getAttribute('data-u') : 'pz';
+      closeSheet();
+      cl('rpc_wh_item_save', { p_id: el.getAttribute('data-id') || null, p_name: nm, p_unit: unit, p_per: Math.max(0, Math.round(+($('whP') || {}).value || 0)) || null, p_cat: ($('whC') || {}).value || 'Altro', p_hint: ($('whH') || {}).value || '' })
+        .then(function (r) { if (r && r.ok) { toast('Salvato: ' + nm); WH.q = ''; whLoad(); } else toast('Non salvato'); });
+    }
+    else if (a === 'whdel') {
+      if (el.getAttribute('data-sure') !== '1') { el.style.width = el.offsetWidth + 'px'; el.setAttribute('data-sure', '1'); el.textContent = 'Conferma'; return; }
+      closeSheet(); cl('rpc_wh_item_del', { p_id: el.getAttribute('data-id') }).then(function () { toast('Tolto dal magazzino'); whLoad(); });
+    }
+  });
+  document.addEventListener('input', function (e) {
+    var t = e.target; if (!t) return;
+    if (t.id === 'whQ') { WH.q = t.value; var pos = t.selectionStart; render(); var n = $('whQ'); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (x) {} } return; }
+    var item = t.getAttribute && t.getAttribute('data-whi'); if (!item || t.value === '') return;
+    var v = Math.max(0, +String(t.value).replace(',', '.') || 0), f = whFind(t.getAttribute('data-whid')); if (f) { f.s.qty = v; var card = t.closest('.whit'), tt = card && card.querySelector('.whtot'); if (tt) tt.textContent = whNum(whTot(f.it)); }
+    whSave(item, t.getAttribute('data-whs') || '', v, t);
+  });
+  setInterval(function () { if (view === 'magazzino' && !document.hidden && !(document.activeElement && document.activeElement.tagName === 'INPUT') && !document.querySelector('#layer .sheet')) whLoad(); }, 60000);
   function semSheet(i, auto) {
     var sh = S.shift; if (!sh) return; var all = stops(), sp = all[i]; if (!sp) return;
     SEM.i = i; var l = semLeg(i), ck = (sh.semck && sh.semck[semKey(i)]) || {}, lv = semLive(i), nDdt = 0;
