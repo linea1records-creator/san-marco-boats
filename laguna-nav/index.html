@@ -354,6 +354,15 @@
   .pact{display:flex;border-top:1px solid var(--line);margin:8px 12px 0} .pact button{flex:1;padding:10px 0;font-size:14px;font-weight:700;color:var(--muted)} .pact button.on{color:#4d8dff}
   .pcoms{padding:6px 12px 6px} .pc{background:var(--panel2);border-radius:14px;padding:7px 11px;margin:5px 0;font-size:14px;line-height:1.35}
   .pmore{font-size:13px;color:var(--muted);padding:4px 0}
+  .wkseg{margin-bottom:10px} .wkseg button{font-size:13px}
+  .job{cursor:pointer} .job .jt{font-weight:800;font-size:16px} .job .jc{font-size:13px;color:var(--muted);margin-top:3px} .job .jf{font-size:12px;color:var(--muted);margin-top:6px}
+  .chipsw{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px} .chipsw span{background:#1d2e52;color:#cfe0ff;border-radius:10px;padding:3px 8px;font-size:12px}
+  .wkhd{display:flex;align-items:center;gap:10px} .wkline{margin:6px 0 0;font-size:13.5px;color:var(--muted);line-height:1.4}
+  [data-prof]{cursor:pointer}
+  .exprow{display:flex;justify-content:space-between;align-items:center;font-size:14px;padding:6px 0;border-bottom:1px solid var(--line)} .exprow button{color:var(--muted);padding:0 6px}
+  .lbl2{display:block;font-size:13px;color:var(--muted);margin:6px 0}
+  #pfSeg button{font-size:12.5px;padding-left:2px;padding-right:2px}
+  #splash{overflow-y:auto}
   .soonbox{text-align:center;padding:26px 16px}
   .soonbox .big{font-size:44px}
 
@@ -475,6 +484,11 @@
       <div class="hint" id="regNameHint"></div></div>
     <div class="field"><label>Password</label><input id="regPass" type="password" autocomplete="current-password" maxlength="72" placeholder="almeno 6 caratteri"></div>
     <div class="field hidden" id="regPass2Box"><label>Ripeti la password</label><input id="regPass2" type="password" autocomplete="new-password" maxlength="72"></div>
+    <div class="hidden" id="regKindBox">
+      <label class="lbl2">Tipo di account</label>
+      <div class="seg" id="kindSeg"><button data-k="privato" class="on">👤 Persona</button><button data-k="azienda">🏢 Azienda</button></div>
+      <div class="hidden" id="regCo"></div>
+    </div>
     <label class="check">
       <input type="checkbox" id="agree">
       <span>So che la parte nautica <b>non sostituisce la carta nautica</b> né gli avvisi ufficiali: profondità, zone e percorsi sono indicativi. Resto io responsabile della navigazione.</span>
@@ -704,7 +718,7 @@
   <section class="view hidden" id="v-profile">
     <div class="scroll" id="pfScroll">
       <div class="mchead"><h2>myClick</h2><button id="pfFrBtn" class="mcic" title="Amici">👥<i id="frBadge" class="hidden"></i></button><button id="pfMeBtn" class="mcic" title="Il mio profilo"><span class="av" id="pfMini">?</span></button></div>
-      <div class="seg mcseg" id="pfSeg"><button data-pt="home" class="on">🏠 Home</button><button data-pt="friends">👥 Amici</button><button data-pt="me">👤 Profilo</button></div>
+      <div class="seg mcseg" id="pfSeg"><button data-pt="home" class="on">🏠 Home</button><button data-pt="friends">👥 Amici</button><button data-pt="work">💼 Lavoro</button><button data-pt="me">👤 Profilo</button></div>
 
       <div id="pt-home">
         <div class="card compose">
@@ -728,6 +742,12 @@
           <div id="frList"><p class="muted">Carico…</p></div>
           <div id="frSent"></div>
         </div>
+      </div>
+
+      <div id="pt-work" class="hidden">
+        <div class="field" style="margin-bottom:8px"><input id="wkQ" type="search" placeholder="🔍 Cerca lavoro, competenze, zona…"></div>
+        <div class="seg wkseg" id="wkSeg"><button data-wt="jobs" class="on">📋 Offerte</button><button data-wt="people">🧑‍🔧 Lavoratori</button><button data-wt="mine">⭐ Il mio spazio</button></div>
+        <div id="wkBody"><p class="muted">Carico la bacheca…</p></div>
       </div>
 
       <div id="pt-me" class="hidden">
@@ -782,7 +802,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.3</p>
+      <p class="sub">1Click · ClickVenice · versione 3.4</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa ClickVenice</button>
@@ -902,14 +922,42 @@ const NAME_RX = /^[A-Za-z0-9_.]{3,20}$/;
 let authMode = "login", nameOk = false, nameTimer = null;
 document.querySelectorAll("#authSeg [data-a]").forEach(b => b.onclick = () => {
   authMode = b.dataset.a; document.querySelectorAll("#authSeg [data-a]").forEach(x => x.classList.toggle("on", x === b));
-  $("#regPass2Box").classList.toggle("hidden", authMode !== "reg");
+  $("#regPass2Box").classList.toggle("hidden", authMode !== "reg"); $("#regKindBox").classList.toggle("hidden", authMode !== "reg");
   $("#regPass").autocomplete = authMode === "reg" ? "new-password" : "current-password";
   enter.textContent = authMode === "reg" ? "Crea l'account" : "Accedi";
   $("#regMsg").textContent = ""; nameCheck();
 });
+/* ---------- account aziendale: i dati che servono a un'azienda ---------- */
+let regKind = "privato";
+const SETTORI = ["Ristorazione e bar", "Hotel e turismo", "Nautica e trasporti", "Logistica e consegne", "Commercio e negozi", "Artigianato", "Edilizia e manutenzione", "Pulizie", "Servizi alla persona", "Uffici e amministrazione", "Eventi e spettacolo", "Sanità e assistenza", "Altro"];
+function pivaOk(v){ v = String(v || "").replace(/\s/g, ""); if (!/^\d{11}$/.test(v)) return false; let s = 0;
+  for (let i = 0; i < 10; i++){ let d = +v[i]; if (i % 2 === 1){ d *= 2; if (d > 9) d -= 9; } s += d; } return (10 - s % 10) % 10 === +v[10]; }
+function companyFields(p, d){ d = d || {};
+  return `<div class="field"><label>Ragione sociale *</label><input id="${p}RS" maxlength="120" placeholder="es. Rossi Ristorazione Srl" value="${esc(d.ragione_sociale || "")}"></div>
+    <div class="field"><label>Partita IVA *</label><input id="${p}PI" inputmode="numeric" maxlength="13" placeholder="11 cifre" value="${esc(d.piva || "")}"><div class="hint" id="${p}PIh"></div></div>
+    <div class="field"><label>Settore *</label><select id="${p}SE"><option value="">Scegli…</option>${SETTORI.map(s => `<option ${s === d.settore ? "selected" : ""}>${s}</option>`).join("")}</select></div>
+    <div class="field"><label>Indirizzo della sede</label><input id="${p}IN" maxlength="120" placeholder="es. Cannaregio 1234" value="${esc(d.indirizzo || "")}"></div>
+    <div class="field"><label>Città *</label><input id="${p}CI" maxlength="60" value="${esc(d.citta || "Venezia")}"></div>
+    <div class="field"><label>Referente</label><input id="${p}RE" maxlength="80" placeholder="Nome e cognome" value="${esc(d.referente || "")}"></div>
+    <div class="field"><label>Email aziendale *</label><input id="${p}EM" type="email" maxlength="120" value="${esc(d.email || "")}"></div>
+    <div class="field"><label>Telefono</label><input id="${p}TE" type="tel" maxlength="30" value="${esc(d.telefono || "")}"></div>
+    <div class="field"><label>Sito web</label><input id="${p}SI" maxlength="120" placeholder="www…" value="${esc(d.sito || "")}"></div>
+    <div class="field"><label>Dipendenti</label><select id="${p}DI">${["", "1-5", "6-15", "16-50", "51-250", "oltre 250"].map(x => `<option ${x === d.dipendenti ? "selected" : ""}>${x}</option>`).join("")}</select></div>`; }
+function readCompany(p){ const v = id => ($("#" + p + id) || {}).value || "";
+  return { ragione_sociale: v("RS").trim(), piva: v("PI").replace(/\s/g, ""), settore: v("SE"), indirizzo: v("IN"), citta: v("CI").trim(), referente: v("RE"), email: v("EM").trim(), telefono: v("TE"), sito: v("SI"), dipendenti: v("DI") }; }
+function companyValid(d){ return d.ragione_sociale.length >= 2 && pivaOk(d.piva) && d.settore && d.citta && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email); }
+function companyHints(p){ const el = $("#" + p + "PI"); if (!el) return; el.addEventListener("input", () => { const ok = pivaOk(el.value), h = $("#" + p + "PIh");
+  h.textContent = !el.value ? "" : ok ? "Partita IVA valida ✓" : "Controlla la partita IVA: 11 cifre"; h.className = "hint" + (ok ? " ok" : ""); }); }
+document.querySelectorAll("#kindSeg [data-k]").forEach(b => b.onclick = () => {
+  regKind = b.dataset.k; document.querySelectorAll("#kindSeg [data-k]").forEach(x => x.classList.toggle("on", x === b));
+  const box = $("#regCo"); box.classList.toggle("hidden", regKind !== "azienda");
+  if (regKind === "azienda" && !box.innerHTML){ box.innerHTML = `<p class="hint" style="margin:8px 0 10px">I dati dell'azienda servono per pubblicare offerte di lavoro e comparire come azienda verificabile. I campi con * sono obbligatori.</p>` + companyFields("rc");
+    companyHints("rc"); box.addEventListener("input", regCheck); box.addEventListener("change", regCheck); }
+  regCheck();
+});
 function regCheck(){
   const n = $("#regName").value.trim(), p = $("#regPass").value;
-  const okReg = authMode !== "reg" || (nameOk && p === $("#regPass2").value);
+  const okReg = authMode !== "reg" || (nameOk && p === $("#regPass2").value && (regKind !== "azienda" || companyValid(readCompany("rc"))));
   enter.disabled = !(NAME_RX.test(n) && p.length >= 6 && agree.checked && okReg);
 }
 function nameCheck(){
@@ -945,6 +993,10 @@ enter.onclick = async () => {
       : await api("rpc/account_login", { method: "POST", ret: true, body: { p_clickname: name, p_password: pass } });
   }catch(e){ $("#regMsg").textContent = "Serve la connessione internet."; regCheck(); return; }
   if (!r || !r.ok){ $("#regMsg").textContent = AUTH_ERR[r && r.errore] || "Qualcosa è andato storto, riprova."; regCheck(); return; }
+  if (authMode === "reg" && regKind === "azienda"){
+    try{ const c = await api("rpc/company_save", { method: "POST", ret: true, body: { p_token: r.token || TOKEN, p_data: readCompany("rc") } });
+      if (c && c.errore) toast("Account creato. Completa i dati dell'azienda in myClick → Lavoro."); }catch(e){}
+  }
   PROFILE = { clickname: r.clickname, city: store.get("ln_city", "venezia") }; store.set("ln_profile", PROFILE); store.set("ln_agree", Date.now());
   // l'account ha la sua chiave: se è diversa da quella del telefono, si riparte con quella (così vedi e gestisci le tue cose da qualsiasi telefono)
   if (r.token && r.token !== TOKEN){ store.set("ln_token", r.token); store.set("ln_mine", { zones: [], depths: [] }); location.reload(); return; }
@@ -1013,7 +1065,7 @@ function showView(v){
 const MODES = [
   { k: "nautica", ic: "⚓", n: "Nautica", v: "map", am: "nautica" },
   { k: "market", ic: "🛍️", n: "Shopping", v: "map", am: "market" },
-  { k: "meet", ic: "💬", n: "Click n Meet", v: "map", am: "incontra" },
+  { k: "meet", ic: "💬", n: "Meetup", v: "map", am: "incontra" },
   { k: "sport", ic: "⚽", n: "Sport", v: "map", am: "sport" },
   { k: "my", ic: "👤", n: "myClick", v: "profile" }
 ];
@@ -1106,7 +1158,7 @@ function paintFriends(){
   const am = MY.amici || [], rq = MY.ricevute || [], se = MY.inviate || [];
   $("#frCount").textContent = am.length ? "· " + am.length : "";
   $("#frBadge").textContent = rq.length; $("#frBadge").classList.toggle("hidden", !rq.length);
-  $("#frReq").innerHTML = rq.length ? `<div class="frh">Richieste ricevute</div>` + rq.map(p => `<div class="fr">${avatarHtml(p)}<b>@${esc(p.nome)}</b>
+  $("#frReq").innerHTML = rq.length ? `<div class="frh">Richieste ricevute</div>` + rq.map(p => `<div class="fr"><span data-prof="${esc(p.nome)}">${avatarHtml(p)}</span><b data-prof="${esc(p.nome)}">@${esc(p.nome)}</b>
     <button class="btn small" data-fok="${esc(p.nome)}">Accetta</button><button class="btn small ghost" data-fno="${esc(p.nome)}">✕</button></div>`).join("") : "";
   $("#frList").innerHTML = am.length ? am.map(p => `<div class="fr" data-fv="${esc(p.nome)}">${avatarHtml(p)}<span class="frt"><b>@${esc(p.nome)}</b><small>${esc(p.bio || "")}</small></span><span class="muted">›</span></div>`).join("")
     : `<p class="muted" style="margin:6px 0">Non hai ancora amici su myClick. Scrivi il clickname di un amico e tocca Aggiungi.</p>`;
@@ -1121,11 +1173,12 @@ $("#frAdd").onclick = () => { const n = $("#frName").value.trim().replace(/^@/, 
   friendDo("friend_request", { p_nome: n }, j => j.stato === "amici" ? "Ora siete amici ✓" : "Richiesta mandata a @" + n + " ✓"); };
 $("#frName").addEventListener("keydown", e => { if (e.key === "Enter") $("#frAdd").click(); });
 $("#v-profile").addEventListener("click", e => {
+  const pr0 = e.target.closest("#frReq [data-prof]"); if (pr0){ openProfile(pr0.dataset.prof); return; }
   const ok = e.target.closest("[data-fok]"), no = e.target.closest("[data-fno]"), del = e.target.closest("[data-fdel]"), fv = e.target.closest("[data-fv]");
   if (ok) friendDo("friend_answer", { p_nome: ok.dataset.fok, p_ok: true }, "Ora siete amici ✓");
   else if (no) friendDo("friend_answer", { p_nome: no.dataset.fno, p_ok: false }, "Richiesta rifiutata.");
   else if (del) friendDo("friend_remove", { p_nome: del.dataset.fdel }, "Richiesta annullata.");
-  else if (fv){ const p = (MY.amici || []).find(x => x.nome === fv.dataset.fv); if (!p) return;
+  else if (fv){ openProfile(fv.dataset.fv); return; const p = null;
     openSheet(`<div style="text-align:center">${avatarHtml(p, true)}<h3 style="margin:10px 0 4px">@${esc(p.nome)}</h3><p class="muted">${esc(p.bio || "Nessuna descrizione")}</p></div>
       <button class="btn ghost" id="fvDel" style="margin-top:12px;color:#ff6b60">Rimuovi dagli amici</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
     $("#fvDel").onclick = () => { closeSheet(); friendDo("friend_remove", { p_nome: p.nome }, "Amico rimosso."); }; }
@@ -1147,7 +1200,7 @@ $("#pfCustom").onclick = () => {
 };
 let pfTab = "home";
 function setPfTab(t){ pfTab = t; document.querySelectorAll("#pfSeg [data-pt]").forEach(b => b.classList.toggle("on", b.dataset.pt === t));
-  ["home", "friends", "me"].forEach(x => $("#pt-" + x).classList.toggle("hidden", x !== t)); $("#pfScroll").scrollTop = 0; if (t === "home") loadFeed(); }
+  ["home", "friends", "work", "me"].forEach(x => $("#pt-" + x).classList.toggle("hidden", x !== t)); $("#pfScroll").scrollTop = 0; if (t === "home") loadFeed(); if (t === "work") loadJobs(); }
 document.querySelectorAll("#pfSeg [data-pt]").forEach(b => b.onclick = () => setPfTab(b.dataset.pt));
 $("#pfFrBtn").onclick = () => setPfTab("friends");
 $("#pfMeBtn").onclick = () => setPfTab("me");
@@ -1160,12 +1213,12 @@ const agoLong = t => { const m = Math.max(0, Math.round((Date.now() - Date.parse
 const linkify = s => esc(s).replace(/\n/g, "<br>");
 function postHtml(p){
   return `<div class="card post" data-pid="${p.id}">
-    <div class="phd">${avatarHtml(p)}<span class="pwho"><b>@${esc(p.nome)}</b><small>${agoLong(p.quando)}</small></span>${p.mio ? `<button class="pmenu" data-pdel="${p.id}" title="Elimina">⋯</button>` : ""}</div>
+    <div class="phd"><span data-prof="${esc(p.nome)}">${avatarHtml(p)}</span><span class="pwho"><b data-prof="${esc(p.nome)}">@${esc(p.nome)}</b><small>${agoLong(p.quando)}</small></span>${p.mio ? `<button class="pmenu" data-pdel="${p.id}" title="Elimina">⋯</button>` : ""}</div>
     ${p.testo ? `<div class="ptx">${linkify(p.testo)}</div>` : ""}
     ${p.foto ? `<img class="pimg" src="${esc(p.foto)}" loading="lazy" alt="">` : ""}
     ${p.like || p.ncom ? `<div class="pcnt"><span>${p.like ? "👍 " + p.like : ""}</span><span>${p.ncom ? p.ncom + (p.ncom === 1 ? " commento" : " commenti") : ""}</span></div>` : ""}
     <div class="pact"><button data-plike="${p.id}" class="${p.mipiace ? "on" : ""}">👍 Mi piace</button><button data-pcom="${p.id}">💬 Commenta</button></div>
-    ${(p.com || []).length ? `<div class="pcoms">${p.com.map(c => `<div class="pc"><b>@${esc(c.nome)}</b> ${esc(c.testo)}</div>`).join("")}${p.ncom > p.com.length ? `<button class="pmore" data-pcom="${p.id}">Vedi tutti i ${p.ncom} commenti</button>` : ""}</div>` : ""}
+    ${(p.com || []).length ? `<div class="pcoms">${p.com.map(c => `<div class="pc"><b data-prof="${esc(c.nome)}">@${esc(c.nome)}</b> ${esc(c.testo)}</div>`).join("")}${p.ncom > p.com.length ? `<button class="pmore" data-pcom="${p.id}">Vedi tutti i ${p.ncom} commenti</button>` : ""}</div>` : ""}
   </div>`;
 }
 function paintFeed(){
@@ -1208,6 +1261,7 @@ async function openComments(id){
   setTimeout(() => $("#cmIn").focus(), 100);
 }
 $("#feed").addEventListener("click", async e => {
+  const pr = e.target.closest("[data-prof]"); if (pr){ openProfile(pr.dataset.prof); return; }
   const lk = e.target.closest("[data-plike]"), cm = e.target.closest("[data-pcom]"), dl = e.target.closest("[data-pdel]");
   if (lk){ const id = +lk.dataset.plike, p = FEED.find(x => x.id === id); if (!p) return; haptic();
     p.mipiace = !p.mipiace; p.like += p.mipiace ? 1 : -1; paintFeed();
@@ -1217,6 +1271,165 @@ $("#feed").addEventListener("click", async e => {
     openSheet(`<h3>Eliminare il post?</h3><button class="btn" style="background:#d32f2f;color:#fff" id="pdOk">Elimina</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
     $("#pdOk").onclick = async () => { closeSheet(); try{ await rpc("post_delete", { p_id: id }); }catch(_){} FEED = FEED.filter(x => x.id !== id); paintFeed(); }; }
 });
+/* ---------- profilo di un altro utente ---------- */
+async function openProfile(nome){
+  openSheet(`<p class="muted">Apro il profilo di @${esc(nome)}…</p>`);
+  let p; try{ p = await rpc("profile_view", { p_nome: nome }); }catch(e){ $("#sheetIn").innerHTML = `<p class="muted">Profilo non disponibile: controlla la connessione.</p><button class="btn ghost" onclick="closeSheet()">Chiudi</button>`; return; }
+  if (!p || p.errore){ $("#sheetIn").innerHTML = `<p class="muted">Profilo non trovato.</p><button class="btn ghost" onclick="closeSheet()">Chiudi</button>`; return; }
+  const az = p.azienda, cv = p.cv;
+  $("#sheetIn").innerHTML = `<div style="text-align:center">${avatarHtml(p, true)}<h3 style="margin:10px 0 2px">@${esc(p.nome)}</h3>
+      ${az ? `<div class="pill" style="font-size:12px">🏢 ${esc(az.ragione_sociale || "Azienda")}</div>` : ""}
+      <p class="muted" style="margin:6px 0">${esc(p.bio || "")}</p><p class="muted" style="font-size:12px">👥 ${p.n_amici} ${p.n_amici === 1 ? "amico" : "amici"}${p.amici ? " · siete amici" : ""}</p></div>
+    ${az ? `<div class="card" style="margin:10px 0"><h4>🏢 Azienda</h4><p class="wkline">${esc(az.settore || "")}${az.citta ? " · " + esc(az.citta) : ""}</p>
+      ${az.indirizzo ? `<p class="wkline">📍 ${esc(az.indirizzo)}</p>` : ""}<p class="wkline">P. IVA ${esc(az.piva || "")}</p>
+      ${az.sito ? `<p class="wkline">🌐 ${esc(az.sito)}</p>` : ""}${az.email ? `<p class="wkline">✉️ ${esc(az.email)}</p>` : ""}${az.telefono ? `<p class="wkline">📞 ${esc(az.telefono)}</p>` : ""}
+      ${p.offerte ? `<p class="wkline"><b>${p.offerte} ${p.offerte === 1 ? "offerta di lavoro aperta" : "offerte di lavoro aperte"}</b></p>` : ""}</div>` : ""}
+    ${cv ? `<div class="card" style="margin:10px 0">${cvHtml(cv)}</div>` : ""}
+    ${(p.post || []).length ? `<div class="frh">Ultimi post</div>` + p.post.map(x => `<div class="pc">${x.testo ? esc(x.testo) : ""}${x.foto ? `<img src="${esc(x.foto)}" style="width:100%;border-radius:10px;margin-top:6px" loading="lazy">` : ""}<div class="muted" style="font-size:11px;margin-top:4px">${agoLong(x.quando)}</div></div>`).join("") : ""}
+    ${p.sono_io ? "" : p.amici ? `<button class="btn ghost" id="pvDel" style="margin-top:12px;color:#ff6b60">Rimuovi dagli amici</button>`
+      : p.richiesta_ricevuta ? `<button class="btn" id="pvAcc" style="margin-top:12px">✓ Accetta l'amicizia</button>`
+      : p.richiesta_inviata ? `<button class="btn ghost" disabled style="margin-top:12px">⏳ Richiesta inviata</button>` : `<button class="btn" id="pvAdd" style="margin-top:12px">＋ Aggiungi agli amici</button>`}
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`;
+  const after = () => { openProfile(nome); loadFriends(); };
+  if ($("#pvAdd")) $("#pvAdd").onclick = async () => { await friendDo("friend_request", { p_nome: nome }, ""); after(); };
+  if ($("#pvAcc")) $("#pvAcc").onclick = async () => { await friendDo("friend_answer", { p_nome: nome, p_ok: true }, ""); after(); };
+  if ($("#pvDel")) $("#pvDel").onclick = async () => { await friendDo("friend_remove", { p_nome: nome }, ""); after(); };
+}
+
+/* ---------- myClick · Lavoro: bacheca con curriculum e offerte ---------- */
+let WK = null, wkTab = "jobs", wkTimer = null;
+const DISP = ["", "Tempo pieno", "Part-time", "Stagionale", "Weekend", "Sere", "Occasionale", "Subito"];
+function cvHtml(c){
+  return `<div class="wkhd"><span data-prof="${esc(c.nome)}">${avatarHtml(c)}</span><span class="pwho"><b data-prof="${esc(c.nome)}">@${esc(c.nome)}</b><small>${esc(c.titolo || "")}</small></span></div>
+    ${(c.skills || []).length ? `<div class="chipsw">${c.skills.map(s => `<span>${esc(s)}</span>`).join("")}</div>` : ""}
+    ${c.disponibilita || c.zona ? `<p class="wkline">${c.disponibilita ? "🕐 " + esc(c.disponibilita) : ""}${c.disponibilita && c.zona ? " · " : ""}${c.zona ? "📍 " + esc(c.zona) : ""}</p>` : ""}
+    ${c.chi ? `<p class="wkline" style="color:var(--text)">${esc(c.chi)}</p>` : ""}
+    ${(c.esperienze || []).length ? `<div class="frh">Esperienze</div>` + c.esperienze.map(x => `<p class="wkline">💼 <b>${esc(x.ruolo || "")}</b>${x.azienda ? " · " + esc(x.azienda) : ""}${x.periodo ? " · " + esc(x.periodo) : ""}</p>`).join("") : ""}
+    ${c.contatto ? `<p class="wkline">📞 ${esc(c.contatto)}</p>` : ""}`;
+}
+function jobCard(j){
+  return `<div class="card job" data-job="${j.id}"><div class="jt">${esc(j.titolo)}</div>
+    <div class="jc"><b data-prof="${esc(j.nome)}">🏢 ${esc(j.azienda)}</b>${j.luogo ? " · 📍 " + esc(j.luogo) : ""}</div>
+    <div class="chipsw">${[j.contratto, j.orario, j.paga, j.settore].filter(Boolean).map(s => `<span>${esc(s)}</span>`).join("")}</div>
+    <div class="jf">${agoLong(j.quando)}${j.mia ? ` · <b>${j.candidati} ${j.candidati === 1 ? "candidato" : "candidati"}</b>` : j.candidato ? " · ✓ candidatura inviata" : ""}</div></div>`;
+}
+async function loadJobs(){
+  try{ WK = await rpc("work_board", { p_q: $("#wkQ").value || "" }); }catch(e){ if (!WK){ $("#wkBody").innerHTML = `<p class="muted">Bacheca non disponibile: controlla la connessione.</p>`; return; } }
+  paintWork();
+}
+$("#wkQ").addEventListener("input", () => { clearTimeout(wkTimer); wkTimer = setTimeout(loadJobs, 400); });
+document.querySelectorAll("#wkSeg [data-wt]").forEach(b => b.onclick = () => { wkTab = b.dataset.wt; document.querySelectorAll("#wkSeg [data-wt]").forEach(x => x.classList.toggle("on", x === b)); paintWork(); });
+function paintWork(){
+  const box = $("#wkBody"); if (!WK) return;
+  const io = WK.io || {}, azienda = io.tipo === "azienda";
+  if (wkTab === "jobs"){
+    const of = WK.offerte || [];
+    box.innerHTML = (azienda ? `<button class="btn small" id="wkNewJob" style="width:100%;margin-bottom:10px">＋ Pubblica un'offerta di lavoro</button>` : "") +
+      (of.length ? of.map(jobCard).join("") : `<div class="card soonbox"><div class="big">📋</div><h3>Nessuna offerta${$("#wkQ").value ? " per questa ricerca" : " per ora"}</h3><p class="muted">Le aziende di ClickVenice pubblicano qui le richieste di personale.</p></div>`);
+  } else if (wkTab === "people"){
+    const lv = WK.lavoratori || [];
+    box.innerHTML = lv.length ? lv.map(c => `<div class="card">${cvHtml(c)}</div>`).join("") : `<div class="card soonbox"><div class="big">🧑‍🔧</div><h3>Nessun lavoratore${$("#wkQ").value ? " per questa ricerca" : " ancora"}</h3><p class="muted">Chi cerca lavoro mette qui competenze ed esperienze dal suo spazio.</p></div>`;
+  } else {
+    if (azienda){
+      const az = io.azienda || {}, mie = (WK.offerte || []).filter(j => j.mia);
+      box.innerHTML = `<div class="card"><h4>🏢 ${esc(az.ragione_sociale || "La tua azienda")}</h4><p class="wkline">${esc(az.settore || "")} · ${esc(az.citta || "")} · P. IVA ${esc(az.piva || "")}</p>
+        <button class="btn small ghost" id="wkEditCo">✏️ Modifica dati aziendali</button></div>
+        <button class="btn" id="wkNewJob" style="margin-bottom:10px">＋ Pubblica un'offerta di lavoro</button>
+        <div class="frh">Le tue offerte</div>` + (mie.length ? mie.map(jobCard).join("") : `<p class="muted">Non hai offerte aperte.</p>`);
+    } else {
+      const c = io.cv;
+      box.innerHTML = `<div class="card">${c && c.titolo ? cvHtml(Object.assign({ nome: PROFILE.clickname }, (MY && MY.io) || {}, c)) + `<p class="muted" style="font-size:12px;margin-top:8px">${c.visibile ? "👁 Visibile alle aziende" : "🙈 Nascosto"}</p>` : `<h4>Il tuo curriculum</h4><p class="muted">Metti competenze ed esperienze: le aziende ti trovano nella bacheca Lavoratori.</p>`}
+        <button class="btn small" id="wkEditCv" style="margin-top:8px">${c && c.titolo ? "✏️ Modifica il curriculum" : "＋ Crea il curriculum"}</button></div>
+        <div class="card"><h4>🏢 Hai un'azienda?</h4><p class="muted">Passa all'account aziendale per pubblicare offerte di lavoro.</p><button class="btn small ghost" id="wkToCo">Diventa account aziendale</button></div>`;
+    }
+  }
+  const nj = $("#wkNewJob"); if (nj) nj.onclick = jobForm;
+  const ec = $("#wkEditCo"), tc = $("#wkToCo"); if (ec) ec.onclick = () => coForm((WK.io || {}).azienda); if (tc) tc.onclick = () => coForm(null);
+  const cv = $("#wkEditCv"); if (cv) cv.onclick = cvForm;
+}
+$("#wkBody").addEventListener("click", e => {
+  const pr = e.target.closest("[data-prof]"); if (pr){ e.stopPropagation(); openProfile(pr.dataset.prof); return; }
+  const jb = e.target.closest("[data-job]"); if (jb) openJob((WK.offerte || []).find(j => j.id === +jb.dataset.job));
+});
+function openJob(j){
+  if (!j) return;
+  openSheet(`<h3>${esc(j.titolo)}</h3><p class="muted" style="margin-top:-4px"><a href="#" data-pj="${esc(j.nome)}" style="color:#7fc1ff">🏢 ${esc(j.azienda)}</a>${j.luogo ? " · 📍 " + esc(j.luogo) : ""}</p>
+    <div class="chipsw">${[j.settore, j.contratto, j.orario, j.paga].filter(Boolean).map(s => `<span>${esc(s)}</span>`).join("")}</div>
+    ${j.descr ? `<p style="line-height:1.45;white-space:pre-line">${esc(j.descr)}</p>` : ""}${j.requisiti ? `<div class="frh">Requisiti</div><p style="line-height:1.45;white-space:pre-line">${esc(j.requisiti)}</p>` : ""}
+    <p class="muted" style="font-size:12px">Pubblicata ${agoLong(j.quando)} fa</p>
+    ${j.mia ? `<button class="btn" id="jbApps">👥 Vedi i candidati (${j.candidati})</button><button class="btn ghost" id="jbClose" style="margin-top:10px;color:#ff6b60">Chiudi l'offerta</button>`
+      : `<div class="field" style="margin-top:10px"><label>Messaggio all'azienda</label><textarea id="jbMsg" rows="3" maxlength="600" placeholder="Presentati in due righe">${""}</textarea></div>
+         <button class="btn" id="jbApply">${j.candidato ? "Aggiorna la candidatura" : "📨 Candidati"}</button>
+         <p class="muted" style="font-size:12px;margin-top:6px">${WK.io && WK.io.cv && WK.io.cv.titolo ? "L'azienda vedrà anche il tuo curriculum." : "Consiglio: crea il curriculum in «Il mio spazio», così l'azienda vede le tue esperienze."}</p>`}
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
+  const pj = document.querySelector("[data-pj]"); if (pj) pj.onclick = ev => { ev.preventDefault(); openProfile(pj.dataset.pj); };
+  if ($("#jbApply")) $("#jbApply").onclick = async () => { try{ const r = await rpc("job_apply", { p_id: j.id, p_msg: $("#jbMsg").value }); if (r && r.errore) return toast(r.errore === "non_autorizzato" ? "Esci e rientra con il tuo account." : "Offerta non più disponibile.");
+      closeSheet(); haptic(); toast("Candidatura inviata ✓"); loadJobs(); }catch(e){ toast("Non inviata: controlla la connessione."); } };
+  if ($("#jbClose")) $("#jbClose").onclick = async () => { try{ await rpc("job_close", { p_id: j.id }); }catch(e){} closeSheet(); toast("Offerta chiusa."); loadJobs(); };
+  if ($("#jbApps")) $("#jbApps").onclick = async () => {
+    $("#sheetIn").innerHTML = `<h3>👥 Candidati · ${esc(j.titolo)}</h3><p class="muted">Carico…</p>`;
+    let l = []; try{ l = await rpc("job_applicants", { p_id: j.id }); }catch(e){}
+    $("#sheetIn").innerHTML = `<h3>👥 Candidati · ${esc(j.titolo)}</h3>` + ((l || []).length ? l.map(a => `<div class="card">${a.cv ? cvHtml(a.cv) : `<div class="wkhd"><span data-prof="${esc(a.nome)}">${avatarHtml(a)}</span><span class="pwho"><b data-prof="${esc(a.nome)}">@${esc(a.nome)}</b><small>senza curriculum</small></span></div>`}
+      ${a.messaggio ? `<p class="pc">«${esc(a.messaggio)}»</p>` : ""}<p class="muted" style="font-size:11px">candidato ${agoLong(a.quando)} fa</p></div>`).join("") : `<p class="muted">Ancora nessun candidato.</p>`) + `<button class="btn ghost" onclick="closeSheet()">Chiudi</button>`;
+    $("#sheetIn").querySelectorAll("[data-prof]").forEach(x => x.onclick = () => openProfile(x.dataset.prof));
+  };
+}
+function jobForm(){
+  openSheet(`<h3>＋ Offerta di lavoro</h3>
+    <div class="field"><label>Che lavoro è? *</label><input id="jfT" maxlength="90" placeholder="es. Cameriere/a per la sera, Autista barca"></div>
+    <div class="field"><label>Settore</label><select id="jfS">${SETTORI.map(s => `<option ${WK.io && WK.io.azienda && WK.io.azienda.settore === s ? "selected" : ""}>${s}</option>`).join("")}</select></div>
+    <div class="row"><div class="field"><label>Contratto</label><select id="jfC">${["Tempo indeterminato", "Tempo determinato", "Stagionale", "Part-time", "Apprendistato", "Stage", "Prestazione occasionale", "Partita IVA"].map(s => `<option>${s}</option>`).join("")}</select></div>
+      <div class="field"><label>Orario</label><input id="jfH" maxlength="60" placeholder="es. 7-14, sere, weekend"></div></div>
+    <div class="row"><div class="field"><label>Dove</label><input id="jfP" maxlength="90" value="${esc((WK.io && WK.io.azienda && WK.io.azienda.citta) || "Venezia")}"></div>
+      <div class="field"><label>Paga (facoltativa)</label><input id="jfR" maxlength="60" placeholder="es. 10 €/ora, 1.400 €/mese"></div></div>
+    <div class="field"><label>Descrizione *</label><textarea id="jfD" rows="4" maxlength="1500" placeholder="Cosa farà la persona, inizio, come candidarsi…"></textarea></div>
+    <div class="field"><label>Requisiti</label><textarea id="jfQ" rows="2" maxlength="600" placeholder="es. patente nautica, inglese, esperienza"></textarea></div>
+    <button class="btn" id="jfOk">Pubblica l'offerta</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
+  $("#jfOk").onclick = async () => {
+    if ($("#jfT").value.trim().length < 3 || $("#jfD").value.trim().length < 10) return toast("Scrivi che lavoro è e una descrizione.");
+    $("#jfOk").disabled = true;
+    try{ const r = await rpc("job_create", { p_title: $("#jfT").value, p_sector: $("#jfS").value, p_contract: $("#jfC").value, p_hours: $("#jfH").value, p_place: $("#jfP").value, p_pay: $("#jfR").value, p_descr: $("#jfD").value, p_reqs: $("#jfQ").value });
+      if (r && r.errore){ $("#jfOk").disabled = false; return toast(r.errore === "non_azienda" ? "Serve un account aziendale." : r.errore === "troppe" ? "Hai pubblicato tante offerte oggi." : "Non pubblicata, riprova."); }
+      closeSheet(); haptic(); toast("Offerta pubblicata ✓"); wkTab = "jobs"; document.querySelectorAll("#wkSeg [data-wt]").forEach(x => x.classList.toggle("on", x.dataset.wt === "jobs")); loadJobs();
+    }catch(e){ $("#jfOk").disabled = false; toast("Non pubblicata: controlla la connessione."); }
+  };
+}
+function coForm(d){
+  openSheet(`<h3>🏢 Dati dell'azienda</h3><p class="muted" style="line-height:1.4">Servono per pubblicare offerte. Ragione sociale, partita IVA, settore, città ed email sono obbligatori.</p>${companyFields("co", d)}
+    <button class="btn" id="coOk">Salva</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
+  companyHints("co");
+  $("#coOk").onclick = async () => { const data = readCompany("co");
+    if (!companyValid(data)) return toast(!pivaOk(data.piva) ? "Controlla la partita IVA." : "Compila i campi obbligatori (*).");
+    try{ const r = await rpc("company_save", { p_data: data }); if (r && r.errore) return toast(r.errore === "piva" ? "Partita IVA non valida." : r.errore === "email" ? "Controlla l'email." : "Non salvato, riprova.");
+      closeSheet(); toast("Dati aziendali salvati ✓"); loadJobs(); }catch(e){ toast("Non salvato: controlla la connessione."); } };
+}
+function cvForm(){
+  const c = (WK && WK.io && WK.io.cv) || {}; let exp = (c.esperienze || []).slice();
+  const expHtml = () => exp.map((x, i) => `<div class="exprow"><span>💼 <b>${esc(x.ruolo)}</b>${x.azienda ? " · " + esc(x.azienda) : ""}${x.periodo ? " · " + esc(x.periodo) : ""}</span><button data-exd="${i}">✕</button></div>`).join("");
+  openSheet(`<h3>Il tuo curriculum</h3>
+    <div class="field"><label>Che lavoro fai o cerchi? *</label><input id="cvT" maxlength="80" placeholder="es. Cameriere, marinaio, cuoco, muratore" value="${esc(c.titolo || "")}"></div>
+    <div class="field"><label>Competenze (separate da virgola)</label><input id="cvS" maxlength="600" placeholder="es. patente nautica, inglese, cassa, HACCP" value="${esc((c.skills || []).join(", "))}"></div>
+    <label class="lbl2">Esperienze</label><div id="cvExp">${expHtml()}</div>
+    <div class="row" style="gap:6px"><div class="field" style="margin:0"><input id="cvER" maxlength="60" placeholder="Ruolo"></div><div class="field" style="margin:0"><input id="cvEA" maxlength="60" placeholder="Azienda"></div></div>
+    <div class="row" style="gap:6px;margin-top:6px"><div class="field" style="margin:0"><input id="cvEP" maxlength="30" placeholder="Periodo (es. 2023-2025)"></div><button class="btn small ghost" id="cvEAdd" style="flex:0 0 auto">＋ Aggiungi</button></div>
+    <div class="row" style="margin-top:10px"><div class="field"><label>Disponibilità</label><select id="cvD">${DISP.map(x => `<option ${x === c.disponibilita ? "selected" : ""}>${x}</option>`).join("")}</select></div>
+      <div class="field"><label>Zona</label><input id="cvZ" maxlength="60" placeholder="es. Venezia, Mestre" value="${esc(c.zona || "")}"></div></div>
+    <div class="field"><label>Due righe su di te</label><textarea id="cvA" rows="3" maxlength="600">${esc(c.chi || "")}</textarea></div>
+    <div class="field"><label>Contatto per le aziende (facoltativo)</label><input id="cvC" maxlength="120" placeholder="telefono o email" value="${esc(c.contatto || "")}"></div>
+    <label class="check" style="margin:6px 0 12px"><input type="checkbox" id="cvV" ${c.visibile === false ? "" : "checked"}><span>Mostra il mio curriculum nella bacheca Lavoratori</span></label>
+    <button class="btn" id="cvOk">Salva il curriculum</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
+  const bindDel = () => document.querySelectorAll("[data-exd]").forEach(b => b.onclick = () => { exp.splice(+b.dataset.exd, 1); $("#cvExp").innerHTML = expHtml(); bindDel(); });
+  bindDel();
+  $("#cvEAdd").onclick = () => { const r = $("#cvER").value.trim(); if (!r) return toast("Scrivi almeno il ruolo."); if (exp.length >= 15) return;
+    exp.push({ ruolo: r, azienda: $("#cvEA").value.trim(), periodo: $("#cvEP").value.trim() }); ["cvER", "cvEA", "cvEP"].forEach(id => $("#" + id).value = ""); $("#cvExp").innerHTML = expHtml(); bindDel(); };
+  $("#cvOk").onclick = async () => {
+    if ($("#cvT").value.trim().length < 2) return toast("Scrivi che lavoro fai o cerchi.");
+    try{ const r = await rpc("cv_save", { p_title: $("#cvT").value, p_skills: $("#cvS").value.split(",").map(s => s.trim()).filter(Boolean), p_exp: exp, p_avail: $("#cvD").value,
+        p_zone: $("#cvZ").value, p_about: $("#cvA").value, p_contact: $("#cvC").value, p_visible: $("#cvV").checked });
+      if (r && r.errore) return toast(r.errore === "non_autorizzato" ? "Esci e rientra con il tuo account." : "Non salvato, riprova.");
+      closeSheet(); haptic(); toast("Curriculum salvato ✓"); loadJobs(); }catch(e){ toast("Non salvato: controlla la connessione."); }
+  };
+}
 function renderProfile(){
   if (!PROFILE) return;
   paintMe(); paintFriends(); loadFriends();
@@ -3573,7 +3786,7 @@ function sosOpen(s){
 setInterval(() => { if ((appMode === "nautica" && !$("#v-map").classList.contains("hidden")) || SOS.mio) sosPoll(); }, 30000);
 setTimeout(sosPoll, 6000);
 
-/* ---------- Click n Meet: feste ed eventi della settimana ---------- */
+/* ---------- Meetup: feste ed eventi della settimana ---------- */
 const EV_KINDS = { festa: "🎉 Festa", evento: "✨ Evento", concerto: "🎵 Concerto", mostra: "🖼️ Mostra", sagra: "🛍️ Mercato e sagra" };
 let EVENTS = store.get("ln_events", []), eventsAt = 0;
 const isoDay = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -3649,13 +3862,13 @@ const MEET_ZONES = { "Cannaregio": [45.4445, 12.3285], "Castello": [45.4350, 12.
 let STATI = [], meetFilter = "", meetMarkers = [], meetTimer = null, chatTimer = null;
 const rpc = (fn, body) => api("rpc/" + fn, { method: "POST", ret: true, body: { p_token: TOKEN, ...body } });
 function adultGate(){
-  openSheet(`<h3>🔞 Click n Meet è solo per maggiorenni</h3><p class="muted" style="line-height:1.45">Per entrare devi avere almeno 18 anni.</p>
+  openSheet(`<h3>🔞 Meetup è solo per maggiorenni</h3><p class="muted" style="line-height:1.45">Per entrare devi avere almeno 18 anni.</p>
     <button class="btn" id="agYes">Ho almeno 18 anni</button><button class="btn ghost" id="agNo" style="margin-top:10px">Non ho ancora 18 anni</button>`);
   $("#agYes").onclick = async () => {
     await syncAdult();
     store.set("ln_adult", true); closeSheet(); setMode("meet", 1);
   };
-  $("#agNo").onclick = () => { closeSheet(); setMode("nautica"); toast("Click n Meet è riservato ai maggiorenni. Il resto di ClickVenice puoi usarlo."); };
+  $("#agNo").onclick = () => { closeSheet(); setMode("nautica"); toast("Meetup è riservato ai maggiorenni. Il resto di ClickVenice puoi usarlo."); };
 }
 // la conferma dei 18 anni deve arrivare anche al server (prima restava solo sul telefono)
 async function syncAdult(){
