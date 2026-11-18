@@ -101,17 +101,18 @@
   .fab.rec{background:#d32f2f;color:#fff;animation:pulse 1.2s infinite}
   .fab.on{background:#1a56db;color:#fff}
   nav#dock{flex:0 0 auto;position:relative;z-index:40;display:flex;justify-content:center;align-items:center;padding:8px 10px calc(8px + var(--safe-b));background:#0b0f17;border-top:1px solid var(--line)}
-  #dial{display:flex;align-items:center;background:#1a56db;border-radius:30px;box-shadow:0 3px 14px rgba(0,0,0,.45);touch-action:pan-y;user-select:none;-webkit-user-select:none;overflow:hidden}
+  #dial{display:flex;align-items:center;background:#1a56db;transition:background .25s;border-radius:30px;box-shadow:0 3px 14px rgba(0,0,0,.45);touch-action:pan-y;user-select:none;-webkit-user-select:none;overflow:hidden}
   #dial button{color:#fff;background:none;border:0}
   #dPrev,#dNext{width:46px;height:52px;font-size:26px;font-weight:300;opacity:.75}
-  #dCur{display:flex;align-items:center;gap:10px;min-width:170px;justify-content:center;height:52px;padding:0 6px;transition:transform .18s ease,opacity .18s ease}
-  #dCur .ic{font-size:24px}
-  .dtx{display:flex;flex-direction:column;align-items:flex-start;line-height:1.1}
-  .dtx b{font-size:16px;letter-spacing:.01em}
-  .dots{display:flex;gap:4px;margin-top:4px}
+  #dCur{position:relative;width:170px;height:56px;overflow:hidden;cursor:grab;touch-action:none;
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent)}
+  #dTrack{display:flex;height:46px;will-change:transform}
+  .dItem{flex:0 0 170px;display:flex;align-items:center;justify-content:center;gap:9px;color:#fff;transition:opacity .1s}
+  .dItem .ic{font-size:24px} .dItem b{font-size:16px;letter-spacing:.01em;white-space:nowrap}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .dots{position:absolute;left:0;right:0;bottom:6px;display:flex;justify-content:center;gap:4px}
   .dots i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.4)}
   .dots i.on{background:#fff;width:12px;border-radius:3px}
-  #dCur.sl{transform:translateX(var(--sx));opacity:0}
   body.m-market #dial{background:#c8102e} body.m-mezzi #dial{background:#0a8f4e} body.m-meet #dial{background:#d6336c} body.m-my #dial{background:#6d28d9}
   #dPick{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);display:flex;gap:6px;background:#fff;border-radius:22px;padding:8px;box-shadow:0 6px 22px rgba(0,0,0,.45)}
   #dPick button{display:flex;flex-direction:column;align-items:center;gap:3px;width:62px;padding:8px 2px;border-radius:14px;color:#222;font-size:10.5px;font-weight:700;line-height:1.1}
@@ -200,6 +201,22 @@
   .rb-btns .btn{flex:1}
   .rb-btns .btn.ghost{flex:0 0 56px;color:#111;background:#f1f3f6;border:0}
   .startpin{width:18px;height:18px;border-radius:50%;background:#2ecc71;border:3px solid #fff;box-shadow:0 0 0 2px #2ecc71,0 2px 6px rgba(0,0,0,.5)}
+  /* emergenza */
+  .fab.sosfab{background:#d32f2f;color:#fff;font-weight:900;font-size:14px;letter-spacing:.04em;border:2px solid #fff}
+  body.mode-trasporti #fabSos, body.mode-incontra #fabSos, body.mode-market #fabSos{display:none}
+  #sosBar{position:absolute;z-index:24;left:50%;transform:translateX(-50%);top:calc(70px + var(--safe-t));max-width:calc(100% - 20px);display:flex;align-items:center;gap:8px;
+    background:#d32f2f;color:#fff;border-radius:16px;padding:6px 12px;font-size:13px;font-weight:700;box-shadow:0 3px 12px rgba(0,0,0,.45);white-space:nowrap;cursor:pointer}
+  #sosBar.mine{background:#7f1d1d}
+  #sosBar .sx{opacity:.8;padding-left:6px}
+  body.nav #sosBar{top:calc(104px + var(--safe-t))}
+  .sospin{width:22px;height:22px;border-radius:50%;background:#d32f2f;border:3px solid #fff;box-shadow:0 0 0 0 rgba(211,47,47,.7);animation:sosp 1.4s infinite}
+  @keyframes sosp{0%{box-shadow:0 0 0 0 rgba(211,47,47,.7)}100%{box-shadow:0 0 0 18px rgba(211,47,47,0)}}
+  .asq{font-size:19px;margin:4px 0 12px}
+  .asurg{background:#3b0d0d;border:1px solid #d32f2f;border-radius:14px;padding:10px 12px;margin-bottom:12px}
+  .asurg .row2{display:flex;gap:8px;margin-top:8px} .asurg .row2 a{flex:1;text-align:center;text-decoration:none}
+  .asopt{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:14px;padding:13px 14px;margin-bottom:8px;font-size:15px}
+  .assteps{margin:0 0 12px;padding-left:22px} .assteps li{margin-bottom:9px;line-height:1.4}
+  .asnav{display:flex;gap:8px;margin-top:6px} .asnav .btn{flex:1}
   #tideC{width:100%;height:36px;display:block;margin-top:4px;border-radius:8px;background:#06101f}
   /* ===== 1Click / ClickVenice ===== */
   #splash{background:radial-gradient(120% 80% at 50% 0%,#0d2b5a 0%,#000 70%)}
@@ -265,6 +282,24 @@
   .fr.small{font-size:14px;color:var(--muted)}
   .frh{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#8fb3ff;margin:12px 0 2px}
   .colrow{display:flex;gap:8px;flex-wrap:wrap} .colb{width:34px;height:34px;border-radius:50%;border:3px solid transparent} .colb.on{border-color:#fff;box-shadow:0 0 0 2px #1a56db}
+  .mchead{display:flex;align-items:center;gap:8px;margin-bottom:10px} .mchead h2{flex:1;margin:0;font-size:26px;background:linear-gradient(90deg,#8b5cf6,#3b82f6);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .mcic{position:relative;width:42px;height:42px;border-radius:50%;background:var(--panel2);border:1px solid var(--line);font-size:19px;display:flex;align-items:center;justify-content:center;color:var(--text)}
+  .mcic .av{width:34px;height:34px;font-size:15px}
+  .mcic i{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:#d32f2f;color:#fff;font-size:11px;font-style:normal;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px}
+  .mcseg{margin-bottom:12px}
+  .compose{padding:12px} .cmrow{display:flex;gap:10px;align-items:flex-start}
+  .compose textarea{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:18px;color:var(--text);padding:10px 14px;font-size:15px;resize:none;font-family:inherit;min-height:44px}
+  #cmImg{width:100%;max-height:280px;object-fit:cover;border-radius:12px;margin-top:10px}
+  .cmbar{display:flex;gap:8px;justify-content:flex-end;margin-top:10px} .cmbar .btn{width:auto} .cmph{cursor:pointer;margin-right:auto}
+  .post{padding:12px 0 4px} .post .phd{display:flex;align-items:center;gap:10px;padding:0 12px}
+  .pwho{flex:1;display:flex;flex-direction:column;line-height:1.2} .pwho small{color:var(--muted);font-size:12px}
+  .pmenu{font-size:20px;color:var(--muted);padding:0 6px}
+  .ptx{padding:10px 12px 4px;font-size:15px;line-height:1.45;white-space:normal;word-wrap:break-word}
+  .pimg{display:block;width:100%;max-height:520px;object-fit:cover;margin-top:8px}
+  .pcnt{display:flex;justify-content:space-between;padding:8px 12px 0;font-size:13px;color:var(--muted)}
+  .pact{display:flex;border-top:1px solid var(--line);margin:8px 12px 0} .pact button{flex:1;padding:10px 0;font-size:14px;font-weight:700;color:var(--muted)} .pact button.on{color:#4d8dff}
+  .pcoms{padding:6px 12px 6px} .pc{background:var(--panel2);border-radius:14px;padding:7px 11px;margin:5px 0;font-size:14px;line-height:1.35}
+  .pmore{font-size:13px;color:var(--muted);padding:4px 0}
   .soonbox{text-align:center;padding:26px 16px}
   .soonbox .big{font-size:44px}
 
@@ -451,6 +486,7 @@
       <div class="mtx"><div class="mdist" id="mDist">–</div><div class="mtxt" id="mText">Calcolo il percorso…</div></div>
     </div>
 
+    <div id="sosBar" class="hidden"></div>
     <div id="banner" class="hidden"></div>
     <div id="shallow" class="hidden"></div>
     <div id="modeHint" class="hidden"></div>
@@ -494,6 +530,7 @@
     </div>
 
     <div class="fabs">
+      <button class="fab sosfab" id="fabSos" title="Emergenza">SOS</button>
       <button class="fab" id="fabSat" title="Tipo di mappa">🗺️</button>
       <button class="fab" id="fabView" title="Prima persona / nord in alto">3D</button>
       <button class="fab" id="fabMenu" title="Altro">⋯</button>
@@ -598,31 +635,47 @@
 
   <!-- PROFILO -->
   <section class="view hidden" id="v-profile">
-    <div class="scroll">
-      <h2 style="margin-bottom:4px">myClick</h2>
-      <p class="sub" style="margin-top:0">Il tuo profilo e i tuoi amici su ClickVenice.</p>
-      <div class="card" style="text-align:center;padding:22px">
-        <div class="avatar" id="pfAvatar">?</div>
-        <h2 id="pfName" style="margin-top:10px">@</h2>
-        <p class="sub" id="pfSub" style="margin:0"></p>
-        <button class="btn small ghost" id="pfCustom" style="margin-top:12px">✏️ Personalizza il profilo</button>
-      </div>
-      <div class="card">
-        <h4>👥 Amici <span class="muted" id="frCount"></span></h4>
-        <div class="row" style="gap:8px;align-items:center">
-          <div class="field" style="flex:1;margin:0"><input id="frName" placeholder="Aggiungi con il clickname" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
-          <button class="btn small" id="frAdd" style="flex:0 0 auto">Aggiungi</button>
+    <div class="scroll" id="pfScroll">
+      <div class="mchead"><h2>myClick</h2><button id="pfFrBtn" class="mcic" title="Amici">👥<i id="frBadge" class="hidden"></i></button><button id="pfMeBtn" class="mcic" title="Il mio profilo"><span class="av" id="pfMini">?</span></button></div>
+      <div class="seg mcseg" id="pfSeg"><button data-pt="home" class="on">🏠 Home</button><button data-pt="friends">👥 Amici</button><button data-pt="me">👤 Profilo</button></div>
+
+      <div id="pt-home">
+        <div class="card compose">
+          <div class="cmrow"><span class="av" id="cmAv">?</span><textarea id="cmText" maxlength="1000" rows="2" placeholder="A cosa stai pensando?"></textarea></div>
+          <img id="cmImg" class="hidden" alt="">
+          <div class="cmbar"><label class="btn small ghost cmph">📷 Foto<input type="file" id="cmFile" accept="image/*" hidden></label><button class="btn small ghost hidden" id="cmNoImg">✕ Togli foto</button><button class="btn small" id="cmGo">Pubblica</button></div>
         </div>
-        <p class="muted" id="frMsg" style="margin:8px 0 0;min-height:1em"></p>
-        <div id="frReq"></div>
-        <div id="frList"><p class="muted">Carico…</p></div>
-        <div id="frSent"></div>
+        <div id="feed"><p class="muted">Carico gli aggiornamenti…</p></div>
+        <button class="btn ghost hidden" id="feedMore">Mostra altri</button>
       </div>
-      <button class="card rowbtn" data-go="boat">⛵ La mia barca <span>›</span></button>
-      <button class="card rowbtn" data-go="rider">🚶 Rider <span>›</span></button>
-      <button class="card rowbtn" data-go="info">ⓘ Impostazioni e info <span>›</span></button>
-      <button class="card rowbtn" id="pfEdit">🔑 Cambia password <span>›</span></button>
-      <button class="card rowbtn" id="pfLogout" style="color:#ff6b60">⎋ Esci dall'account <span>›</span></button>
+
+      <div id="pt-friends" class="hidden">
+        <div class="card">
+          <h4>👥 Amici <span class="muted" id="frCount"></span></h4>
+          <div class="row" style="gap:8px;align-items:center">
+            <div class="field" style="flex:1;margin:0"><input id="frName" placeholder="Aggiungi con il clickname" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+            <button class="btn small" id="frAdd" style="flex:0 0 auto">Aggiungi</button>
+          </div>
+          <p class="muted" id="frMsg" style="margin:8px 0 0;min-height:1em"></p>
+          <div id="frReq"></div>
+          <div id="frList"><p class="muted">Carico…</p></div>
+          <div id="frSent"></div>
+        </div>
+      </div>
+
+      <div id="pt-me" class="hidden">
+        <div class="card" style="text-align:center;padding:22px">
+          <div class="avatar" id="pfAvatar">?</div>
+          <h2 id="pfName" style="margin-top:10px">@</h2>
+          <p class="sub" id="pfSub" style="margin:0"></p>
+          <button class="btn small ghost" id="pfCustom" style="margin-top:12px">✏️ Personalizza il profilo</button>
+        </div>
+        <button class="card rowbtn" data-go="boat">⛵ La mia barca <span>›</span></button>
+        <button class="card rowbtn" data-go="rider">🚶 Rider <span>›</span></button>
+        <button class="card rowbtn" data-go="info">ⓘ Impostazioni e info <span>›</span></button>
+        <button class="card rowbtn" id="pfEdit">🔑 Cambia password <span>›</span></button>
+        <button class="card rowbtn" id="pfLogout" style="color:#ff6b60">⎋ Esci dall'account <span>›</span></button>
+      </div>
     </div>
   </section>
 
@@ -662,7 +715,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 2.6</p>
+      <p class="sub">1Click · ClickVenice · versione 2.7</p>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
@@ -696,7 +749,7 @@
   <nav id="dock">
     <div id="dial" role="group" aria-label="Cambia modalità">
       <button id="dPrev" aria-label="Modalità precedente">‹</button>
-      <button id="dCur" aria-label="Scegli la modalità"><span class="ic" id="dIc">⚓</span><span class="dtx"><b id="dName">Nautica</b><span class="dots" id="dDots"></span></span></button>
+      <div id="dCur" role="button" aria-label="Scegli la modalità"><div id="dTrack"></div><span class="dots" id="dDots"></span><b id="dName" class="sr">Nautica</b></div>
       <button id="dNext" aria-label="Modalità successiva">›</button>
     </div>
     <div id="dPick" class="hidden"></div>
@@ -850,39 +903,66 @@ const MODES = [
   { k: "my", ic: "👤", n: "myClick", v: "profile" }
 ];
 let modeIdx = 0;
-function paintDial(dir){
-  const m = MODES[modeIdx], cur = $("#dCur");
-  const paint = () => { $("#dIc").textContent = m.ic; $("#dName").textContent = m.n;
-    $("#dDots").innerHTML = MODES.map((_, i) => `<i class="${i === modeIdx ? "on" : ""}"></i>`).join("");
-    MODES.forEach(x => document.body.classList.toggle("m-" + x.k, x === m)); };
-  if (dir){ cur.style.setProperty("--sx", (dir > 0 ? -40 : 40) + "px"); cur.classList.add("sl");
-    setTimeout(() => { paint(); cur.style.setProperty("--sx", (dir > 0 ? 40 : -40) + "px"); requestAnimationFrame(() => { cur.classList.remove("sl"); }); }, 150); }
-  else paint();
+const DW = 170, DSTEP = 56;   // larghezza di una modalità nel tasto · quanti pixel di dito per passare alla successiva
+let dPos = 0;                    // posizione mostrata (anche a metà tra due modalità mentre trascini)
+function haptic(){
+  try{ if (navigator.vibrate){ navigator.vibrate(12); return; } }catch(e){}
+  // iPhone (Safari 18+): il tocco su un interruttore di sistema dà una piccola vibrazione
+  try{ let l = document.getElementById("hapL"); if (!l){ l = document.createElement("label"); l.id = "hapL"; l.style.cssText = "position:fixed;left:-99px;top:0;width:1px;height:1px;overflow:hidden";
+    l.innerHTML = '<input type="checkbox" switch>'; document.body.appendChild(l); } l.click(); }catch(e){}
+}
+function buildDial(){
+  $("#dTrack").innerHTML = MODES.map(x => `<div class="dItem"><span class="ic">${x.ic}</span><b>${x.n}</b></div>`).join("");
+}
+function placeDial(pos, anim){
+  const t = $("#dTrack"); t.style.transition = anim ? "transform .22s cubic-bezier(.2,.8,.2,1)" : "none";
+  t.style.transform = `translateX(${-pos * DW}px)`;
+  const r = Math.round(Math.max(0, Math.min(MODES.length - 1, pos)));
+  [...t.children].forEach((c, i) => { const d = Math.min(1, Math.abs(i - pos)); c.style.opacity = 1 - d * .6; c.style.transform = `scale(${1 - d * .18})`; });
+  $("#dDots").innerHTML = MODES.map((_, i) => `<i class="${i === r ? "on" : ""}"></i>`).join("");
+  MODES.forEach((x, i) => document.body.classList.toggle("m-" + x.k, i === r));
+}
+function paintDial(){
+  dPos = modeIdx; placeDial(dPos, true); $("#dName").textContent = MODES[modeIdx].n;
   $("#dPick").innerHTML = MODES.map((x, i) => `<button data-pm="${x.k}" class="${i === modeIdx ? "on" : ""}"><span>${x.ic}</span>${x.n}</button>`).join("");
 }
-function setMode(k, dir){
+function setMode(k){
   const i = MODES.findIndex(x => x.k === k); if (i < 0) return;
   const m = MODES[i]; $("#dPick").classList.add("hidden");
-  if (m.am === "incontra" && !store.get("ln_adult", false)){ showView("map"); setAppMode("incontra"); return; }   // prima chiede i 18 anni
-  modeIdx = i; paintDial(dir);
+  if (m.am === "incontra" && !store.get("ln_adult", false)){ paintDial(); showView("map"); setAppMode("incontra"); return; }   // prima chiede i 18 anni
+  modeIdx = i; paintDial();
   showView(m.v);
   if (m.am) setAppMode(m.am);
 }
-function stepMode(d){ setMode(MODES[(modeIdx + d + MODES.length) % MODES.length].k, d); }
+function stepMode(d){ haptic(); setMode(MODES[(modeIdx + d + MODES.length) % MODES.length].k); }
 $("#dPrev").onclick = () => stepMode(-1);
 $("#dNext").onclick = () => stepMode(1);
-(() => {   // scorrimento col dito sul tasto
-  const d = $("#dial"); let x0 = null, moved = false;
-  d.addEventListener("pointerdown", e => { x0 = e.clientX; moved = false; });
-  d.addEventListener("pointermove", e => { if (x0 !== null && Math.abs(e.clientX - x0) > 12) moved = true; });
-  d.addEventListener("pointerup", e => { if (x0 === null) return; const dx = e.clientX - x0; x0 = null;
-    if (Math.abs(dx) > 35){ stepMode(dx < 0 ? 1 : -1); d._swiped = Date.now(); } });
-  d.addEventListener("pointercancel", () => { x0 = null; });
-  $("#dCur").onclick = e => { if (d._swiped && Date.now() - d._swiped < 400) return; $("#dPick").classList.toggle("hidden"); };
+(() => {   // trascinamento in tempo reale: poco = una modalità, tanto = più modalità
+  const d = $("#dial"); let x0 = null, start = 0, last = 0, dragging = false, pid = null;
+  d.addEventListener("pointerdown", e => { if (e.target.closest("#dPrev,#dNext")) return; x0 = e.clientX; start = modeIdx; last = modeIdx; dragging = false; pid = e.pointerId; });
+  d.addEventListener("pointermove", e => {
+    if (x0 === null || e.pointerId !== pid) return;
+    const dx = e.clientX - x0; if (!dragging && Math.abs(dx) < 6) return;
+    if (!dragging){ dragging = true; try{ d.setPointerCapture(pid); }catch(_){} $("#dPick").classList.add("hidden"); }
+    let pos = start - dx / DSTEP; const max = MODES.length - 1;
+    if (pos < 0) pos = pos / 3; if (pos > max) pos = max + (pos - max) / 3;   // elastico ai bordi
+    dPos = pos; placeDial(pos, false);
+    const r = Math.round(Math.max(0, Math.min(max, pos))); if (r !== last){ last = r; haptic(); }
+  });
+  const end = e => {
+    if (x0 === null) return; const dx = e.clientX - x0; x0 = null;
+    if (!dragging){ return; }
+    dragging = false; d._swiped = Date.now();
+    let r = Math.round(Math.max(0, Math.min(MODES.length - 1, start - dx / DSTEP)));
+    if (r === start && Math.abs(dx) > 22){ r = Math.max(0, Math.min(MODES.length - 1, start + (dx < 0 ? 1 : -1))); haptic(); }
+    if (r !== start) setMode(MODES[r].k); else placeDial(modeIdx, true);
+  };
+  d.addEventListener("pointerup", end); d.addEventListener("pointercancel", e => { x0 = null; dragging = false; placeDial(modeIdx, true); });
+  $("#dCur").onclick = () => { if (d._swiped && Date.now() - d._swiped < 400) return; $("#dPick").classList.toggle("hidden"); };
 })();
-$("#dPick").addEventListener("click", e => { const b = e.target.closest("[data-pm]"); if (b){ const i = MODES.findIndex(x => x.k === b.dataset.pm); setMode(b.dataset.pm, i > modeIdx ? 1 : i < modeIdx ? -1 : 0); } });
+$("#dPick").addEventListener("click", e => { const b = e.target.closest("[data-pm]"); if (b){ haptic(); setMode(b.dataset.pm); } });
 document.addEventListener("click", e => { if (!e.target.closest("#dock")) $("#dPick").classList.add("hidden"); });
-paintDial();
+buildDial(); paintDial();
 // dal profilo si entra in Barca, Rider e Info; "‹ Profilo" torna indietro
 document.addEventListener("click", e => {
   const g = e.target.closest("[data-go]"); if (g){ showView(g.dataset.go); return; }
@@ -898,6 +978,8 @@ function paintMe(){
   const a = $("#pfAvatar"); a.textContent = me.emoji || PROFILE.clickname[0].toUpperCase(); a.style.background = me.colore || "";
   $("#pfName").textContent = "@" + PROFILE.clickname;
   $("#pfSub").textContent = me.bio || "ClickVenice";
+  ["#pfMini", "#cmAv"].forEach(s => { const el = $(s); el.textContent = me.emoji || PROFILE.clickname[0].toUpperCase(); el.style.background = me.colore || "#1a56db"; });
+  $("#cmText").placeholder = "A cosa stai pensando, @" + PROFILE.clickname + "?";
 }
 async function loadFriends(){
   try{ const j = await rpc("friend_list", {}); if (j && !j.errore){ MY = j; store.set("ln_my", j); } else if (j && j.errore === "non_autorizzato"){ $("#frList").innerHTML = `<p class="muted">Per gli amici serve l'account: esci e rientra con il tuo clickname.</p>`; return; } }
@@ -908,6 +990,7 @@ function paintFriends(){
   if (!MY) return;
   const am = MY.amici || [], rq = MY.ricevute || [], se = MY.inviate || [];
   $("#frCount").textContent = am.length ? "· " + am.length : "";
+  $("#frBadge").textContent = rq.length; $("#frBadge").classList.toggle("hidden", !rq.length);
   $("#frReq").innerHTML = rq.length ? `<div class="frh">Richieste ricevute</div>` + rq.map(p => `<div class="fr">${avatarHtml(p)}<b>@${esc(p.nome)}</b>
     <button class="btn small" data-fok="${esc(p.nome)}">Accetta</button><button class="btn small ghost" data-fno="${esc(p.nome)}">✕</button></div>`).join("") : "";
   $("#frList").innerHTML = am.length ? am.map(p => `<div class="fr" data-fv="${esc(p.nome)}">${avatarHtml(p)}<span class="frt"><b>@${esc(p.nome)}</b><small>${esc(p.bio || "")}</small></span><span class="muted">›</span></div>`).join("")
@@ -947,9 +1030,83 @@ $("#pfCustom").onclick = () => {
     catch(e){ toast("Profilo non salvato: controlla la connessione."); }
   };
 };
+let pfTab = "home";
+function setPfTab(t){ pfTab = t; document.querySelectorAll("#pfSeg [data-pt]").forEach(b => b.classList.toggle("on", b.dataset.pt === t));
+  ["home", "friends", "me"].forEach(x => $("#pt-" + x).classList.toggle("hidden", x !== t)); $("#pfScroll").scrollTop = 0; if (t === "home") loadFeed(); }
+document.querySelectorAll("#pfSeg [data-pt]").forEach(b => b.onclick = () => setPfTab(b.dataset.pt));
+$("#pfFrBtn").onclick = () => setPfTab("friends");
+$("#pfMeBtn").onclick = () => setPfTab("me");
+
+/* ---------- myClick: la home con gli aggiornamenti degli amici ---------- */
+let FEED = [], feedEnd = false, cmPhoto = null;
+const agoLong = t => { const m = Math.max(0, Math.round((Date.now() - Date.parse(t)) / 60000)); if (m < 1) return "adesso"; if (m < 60) return m + " min";
+  const hh = Math.round(m / 60); if (hh < 24) return hh + " h"; const d = Math.round(hh / 24); if (d < 7) return d + (d === 1 ? " giorno" : " giorni");
+  return new Date(t).toLocaleDateString("it-IT", { day: "numeric", month: "short" }); };
+const linkify = s => esc(s).replace(/\n/g, "<br>");
+function postHtml(p){
+  return `<div class="card post" data-pid="${p.id}">
+    <div class="phd">${avatarHtml(p)}<span class="pwho"><b>@${esc(p.nome)}</b><small>${agoLong(p.quando)}</small></span>${p.mio ? `<button class="pmenu" data-pdel="${p.id}" title="Elimina">⋯</button>` : ""}</div>
+    ${p.testo ? `<div class="ptx">${linkify(p.testo)}</div>` : ""}
+    ${p.foto ? `<img class="pimg" src="${esc(p.foto)}" loading="lazy" alt="">` : ""}
+    ${p.like || p.ncom ? `<div class="pcnt"><span>${p.like ? "👍 " + p.like : ""}</span><span>${p.ncom ? p.ncom + (p.ncom === 1 ? " commento" : " commenti") : ""}</span></div>` : ""}
+    <div class="pact"><button data-plike="${p.id}" class="${p.mipiace ? "on" : ""}">👍 Mi piace</button><button data-pcom="${p.id}">💬 Commenta</button></div>
+    ${(p.com || []).length ? `<div class="pcoms">${p.com.map(c => `<div class="pc"><b>@${esc(c.nome)}</b> ${esc(c.testo)}</div>`).join("")}${p.ncom > p.com.length ? `<button class="pmore" data-pcom="${p.id}">Vedi tutti i ${p.ncom} commenti</button>` : ""}</div>` : ""}
+  </div>`;
+}
+function paintFeed(){
+  const box = $("#feed");
+  if (!FEED.length){ box.innerHTML = `<div class="card soonbox"><div class="big">👋</div><h3>La tua home è vuota</h3><p class="muted" style="line-height:1.45">Qui vedi i post tuoi e dei tuoi amici. Scrivi il primo aggiornamento o aggiungi amici dalla scheda 👥 Amici.</p><button class="btn small" id="feedFr">👥 Trova amici</button></div>`;
+    $("#feedFr").onclick = () => setPfTab("friends"); $("#feedMore").classList.add("hidden"); return; }
+  box.innerHTML = FEED.map(postHtml).join(""); $("#feedMore").classList.toggle("hidden", feedEnd);
+}
+async function loadFeed(more){
+  try{ const j = await rpc("feed", more && FEED.length ? { p_before: FEED[FEED.length - 1].id } : {});
+    if (j && j.errore){ $("#feed").innerHTML = `<p class="muted">Per la home serve l'account: esci e rientra con il tuo clickname.</p>`; return; }
+    const list = Array.isArray(j) ? j : []; FEED = more ? FEED.concat(list) : list; feedEnd = list.length < 20; store.set("ln_feed", FEED.slice(0, 20)); paintFeed(); }
+  catch(e){ if (!FEED.length){ FEED = store.get("ln_feed", []); if (FEED.length) paintFeed(); else $("#feed").innerHTML = `<p class="muted">Aggiornamenti non disponibili: controlla la connessione.</p>`; } }
+}
+$("#feedMore").onclick = () => loadFeed(true);
+$("#cmFile").onchange = async e => { const f = e.target.files[0]; if (!f) return;
+  try{ cmPhoto = await shrinkPhoto(f); $("#cmImg").src = cmPhoto; $("#cmImg").classList.remove("hidden"); $("#cmNoImg").classList.remove("hidden"); }catch(_){ toast("Foto non valida, provane un'altra."); } e.target.value = ""; };
+$("#cmNoImg").onclick = () => { cmPhoto = null; $("#cmImg").classList.add("hidden"); $("#cmNoImg").classList.add("hidden"); };
+$("#cmGo").onclick = async () => {
+  const testo = $("#cmText").value.trim(); if (!testo && !cmPhoto) return toast("Scrivi qualcosa o aggiungi una foto.");
+  $("#cmGo").disabled = true; $("#cmGo").textContent = "Pubblico…";
+  try{ const r = await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/post", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: TOKEN, testo, foto: cmPhoto }) }, 30000);
+    const j = await r.json();
+    if (j.errore) toast(j.errore === "non_autorizzato" ? "Esci e rientra con il tuo account per pubblicare." : j.errore === "troppi" ? "Hai pubblicato tanto nell'ultima ora: riprova più tardi." : "Non pubblicato, riprova.");
+    else { $("#cmText").value = ""; $("#cmNoImg").click(); await loadFeed(); }
+  }catch(e){ toast("Non pubblicato: controlla la connessione."); }
+  $("#cmGo").disabled = false; $("#cmGo").textContent = "Pubblica";
+};
+async function openComments(id){
+  const p = FEED.find(x => x.id === id); if (!p) return;
+  openSheet(`<h3>💬 Commenti</h3><div id="cmList"><p class="muted">Carico…</p></div>
+    <div class="row" style="gap:8px;margin-top:10px"><div class="field" style="flex:1;margin:0"><input id="cmIn" maxlength="500" placeholder="Scrivi un commento…"></div><button class="btn small" id="cmSend" style="flex:0 0 auto">Invia</button></div>
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
+  const load = async () => { try{ const l = await rpc("post_comments_list", { p_id: id });
+    $("#cmList").innerHTML = (l || []).length ? l.map(c => `<div class="fr" style="cursor:default">${avatarHtml(c)}<span class="frt"><b>@${esc(c.nome)} <small style="font-weight:400">${agoLong(c.quando)}</small></b><span style="white-space:normal">${esc(c.testo)}</span></span></div>`).join("") : `<p class="muted">Nessun commento: scrivi il primo.</p>`; }catch(e){ $("#cmList").innerHTML = `<p class="muted">Commenti non disponibili.</p>`; } };
+  await load();
+  const send = async () => { const t = $("#cmIn").value.trim(); if (!t) return; $("#cmIn").value = "";
+    try{ const j = await rpc("post_comment", { p_id: id, p_body: t }); if (j && j.errore) return toast("Commento non inviato."); await load(); loadFeed(); }catch(e){ toast("Commento non inviato: controlla la connessione."); } };
+  $("#cmSend").onclick = send; $("#cmIn").addEventListener("keydown", e => { if (e.key === "Enter") send(); });
+  setTimeout(() => $("#cmIn").focus(), 100);
+}
+$("#feed").addEventListener("click", async e => {
+  const lk = e.target.closest("[data-plike]"), cm = e.target.closest("[data-pcom]"), dl = e.target.closest("[data-pdel]");
+  if (lk){ const id = +lk.dataset.plike, p = FEED.find(x => x.id === id); if (!p) return; haptic();
+    p.mipiace = !p.mipiace; p.like += p.mipiace ? 1 : -1; paintFeed();
+    try{ const j = await rpc("post_like", { p_id: id }); if (j && !j.errore){ p.like = j.like; p.mipiace = j.mipiace; paintFeed(); } }catch(_){} }
+  else if (cm) openComments(+cm.dataset.pcom);
+  else if (dl){ const id = +dl.dataset.pdel;
+    openSheet(`<h3>Eliminare il post?</h3><button class="btn" style="background:#d32f2f;color:#fff" id="pdOk">Elimina</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
+    $("#pdOk").onclick = async () => { closeSheet(); try{ await rpc("post_delete", { p_id: id }); }catch(_){} FEED = FEED.filter(x => x.id !== id); paintFeed(); }; }
+});
 function renderProfile(){
   if (!PROFILE) return;
   paintMe(); paintFriends(); loadFriends();
+  if (!FEED.length){ FEED = store.get("ln_feed", []); if (FEED.length) paintFeed(); }
+  setPfTab(pfTab);
 }
 $("#pfEdit").onclick = () => {
   openSheet(`<h3>Cambia password</h3>
@@ -2861,6 +3018,7 @@ function setAppMode(m){
   document.body.classList.toggle("mode-market", m === "market");
   if (m === "incontra") meetStart(); else meetStop();
   if (m === "incontra") loadEvents();
+  try{ paintSos(); }catch(e){}
   if (m !== "nautica" && PLAN) closePlan();
   if (m === "market"){ loadPartners(); renderMk(); }
   layerVis();
@@ -3046,6 +3204,114 @@ document.querySelectorAll("#mkCats [data-c]").forEach(b => b.onclick = () => {
 $("#mkList").addEventListener("click", e => { const r = e.target.closest("[data-mk]"); if (!r) return; const p = PARTNERS.find(x => x.id === +r.dataset.mk); if (!p) return;
   setFollow(false); if (map) map.easeTo({ center: [p.lng, p.lat], zoom: 16.5, pitch: 0, bearing: 0, duration: 600 }); openPartner(p); });
 $("#mkOrder").onclick = () => { showView("order"); };
+
+/* =========================================================
+   EMERGENZA: assistente per i problemi a bordo + SOS alle barche vicine
+   ========================================================= */
+let ASSIST = store.get("ln_assist", null), asHist = [], asPath = [];
+async function loadAssist(){
+  try{ const r = await api("assist?key=eq.barca&select=tree,updated_at"); if (r && r[0]){ ASSIST = r[0].tree; store.set("ln_assist", ASSIST); return; } }catch(e){}
+  if (!ASSIST){ try{ ASSIST = await (await fetch("assist.json", { cache: "no-cache" })).json(); store.set("ln_assist", ASSIST); }catch(e){} }
+}
+setTimeout(loadAssist, 4000);   // scaricato subito, così funziona anche senza rete in laguna
+const CALLS = `<div class="row2"><a class="btn" style="background:#d32f2f;color:#fff" href="tel:1530">📞 1530 Guardia Costiera</a><a class="btn ghost" href="tel:112">📞 112</a></div>`;
+async function openAssist(){
+  if (!ASSIST) { openSheet(`<h3>🆘 Emergenza</h3><p class="muted">Carico l'assistente…</p>${CALLS}`); await loadAssist(); }
+  if (!ASSIST){ $("#sheetIn").innerHTML = `<h3>🆘 Emergenza</h3><p class="muted">Assistente non disponibile senza rete. In pericolo chiama subito:</p>${CALLS}<button class="btn" style="margin-top:10px" id="asSos">🆘 Manda SOS alle barche vicine</button>`; $("#asSos").onclick = () => sosForm("altro"); $("#sheet").classList.remove("hidden"); return; }
+  asHist = []; asPath = []; asShow(ASSIST.start);
+}
+function asShow(id){
+  const n = ASSIST.nodes[id]; if (!n) return;
+  if (!$("#sheet").classList.contains("hidden") === false) $("#sheet").classList.remove("hidden");
+  asPath.push(id);
+  const kind = asPath.includes("pericolo") ? "persona" : asPath.includes("acqua") ? "acqua" : asPath.includes("incaglio") ? "incaglio" : asPath.some(p => /^m_|^mot$|elica|fumo/.test(p)) ? "motore" : "altro";
+  $("#sheetIn").innerHTML = `<h3>🆘 Assistente emergenza</h3>
+    ${n.urgent || id === ASSIST.start ? `<div class="asurg"><b>Se qualcuno è in pericolo chiama subito</b>${CALLS}</div>` : ""}
+    <div class="asq"><b>${esc(n.q)}</b></div>
+    ${n.opts ? n.opts.map(o => `<button class="asopt" data-as="${esc(o[1])}">${esc(o[0])}</button>`).join("") : ""}
+    ${n.steps ? `<ol class="assteps">${n.steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol>` : ""}
+    ${n.end ? `<p class="muted" style="margin:4px 0 8px"><b>Hai risolto?</b></p><div class="asnav"><button class="btn" id="asOk">👍 Sì</button><button class="btn ghost" id="asNo">👎 No</button></div>` : ""}
+    <button class="btn" style="margin-top:12px;background:#d32f2f;color:#fff" id="asSos">🆘 Manda SOS alle barche vicine</button>
+    <div class="asnav">${asHist.length ? `<button class="btn ghost" id="asBack">‹ Indietro</button>` : ""}<button class="btn ghost" onclick="closeSheet()">Chiudi</button></div>
+    <p class="muted" style="font-size:11.5px;line-height:1.4;margin-top:10px">Consigli generali per diportisti: non sostituiscono un meccanico né i soccorsi. Nel dubbio chiama il 1530.</p>`;
+  document.querySelectorAll("[data-as]").forEach(b => b.onclick = () => { asHist.push(id); asShow(b.dataset.as); });
+  if ($("#asBack")) $("#asBack").onclick = () => { asPath.pop(); const p = asHist.pop(); asPath.pop(); asShow(p); };
+  $("#asSos").onclick = () => sosForm(kind);
+  if ($("#asOk")) $("#asOk").onclick = () => { asFeedback(true, ""); $("#sheetIn").innerHTML = `<h3>👍 Ottimo!</h3><p class="muted">Grazie: la tua risposta aiuta l'assistente a migliorare.</p><button class="btn ghost" onclick="closeSheet()">Chiudi</button>`; };
+  if ($("#asNo")) $("#asNo").onclick = () => {
+    $("#sheetIn").innerHTML = `<h3>Non risolto</h3><p class="muted">Raccontaci cosa succede: lo usiamo per insegnare all'assistente nuovi casi.</p>
+      <div class="field"><input id="asNote" maxlength="400" placeholder="es. la pompetta resta molle anche col tappo aperto"></div>
+      <button class="btn" id="asSend">Invia e torna all'inizio</button>
+      <button class="btn" style="margin-top:10px;background:#d32f2f;color:#fff" id="asSos2">🆘 Manda SOS alle barche vicine</button>
+      <div style="margin-top:10px">${CALLS}</div>`;
+    $("#asSend").onclick = () => { asFeedback(false, $("#asNote").value); asHist = []; asPath = []; asShow(ASSIST.start); };
+    $("#asSos2").onclick = () => { asFeedback(false, $("#asNote").value); sosForm(kind); };
+  };
+}
+function asFeedback(ok, note){ rpc("assist_feedback_add", { p_path: asPath.join(">"), p_solved: ok, p_note: note || "" }).catch(() => {}); }
+$("#fabSos").onclick = openAssist;
+
+/* SOS */
+const SOS_KINDS = { motore: "🔧 Motore in avaria", acqua: "💧 Entra acqua", incaglio: "⚓ Incagliato", persona: "🚨 Persona in pericolo", salute: "🩹 Malore a bordo", altro: "🆘 Serve aiuto" };
+let SOS = { altri: [], mio: null }, sosSeen = store.get("ln_sos_seen", []), sosHidden = [], sosMarkers = [], sosTimer = null;
+function sosForm(kind){
+  if (watchId === null){ askCompass(); startGps(); }
+  $("#sheetIn").innerHTML = `<h3>🆘 Manda SOS</h3>
+    <p class="muted" style="line-height:1.45">Le barche vicine che usano ClickVenice in Nautica vedono un piccolo avviso con <b>la tua posizione esatta</b> per 2 ore, finché non chiudi l'SOS. <b>Non sostituisce il 1530.</b></p>
+    <div class="field"><label>Cosa succede</label><select id="soK">${Object.entries(SOS_KINDS).map(([k, v]) => `<option value="${k}"${k === kind ? " selected" : ""}>${v}</option>`).join("")}</select></div>
+    <div class="field"><label>Due parole (facoltativo)</label><input id="soN" maxlength="160" placeholder="es. motore fermo, siamo in 3, abbiamo i remi"></div>
+    <p class="muted" id="soPos">${lastPos ? "📍 Posizione GPS pronta" : "📍 Aspetto il GPS…"}</p>
+    <button class="btn" style="background:#d32f2f;color:#fff" id="soGo">🆘 Manda SOS adesso</button>
+    <div style="margin-top:10px">${CALLS}</div>
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`;
+  $("#sheet").classList.remove("hidden");
+  const wait = setInterval(() => { const p = $("#soPos"); if (!p){ clearInterval(wait); return; } if (lastPos){ p.textContent = "📍 Posizione GPS pronta"; clearInterval(wait); } }, 1000);
+  $("#soGo").onclick = async () => {
+    if (!lastPos) return toast("Aspetto il GPS: tocca ➤ e resta all'aperto.");
+    $("#soGo").disabled = true;
+    try{ const j = await rpc("sos_send", { p_kind: $("#soK").value, p_note: $("#soN").value, p_lat: lastPos.lat, p_lng: lastPos.lng });
+      if (j && j.errore){ $("#soGo").disabled = false; return toast(j.errore === "troppi" ? "Hai mandato troppi SOS oggi: chiama il 1530." : "Esci e rientra con il tuo account per mandare l'SOS. Intanto chiama il 1530."); }
+      closeSheet(); buzz([200, 100, 200]); toast("SOS mandato alle barche vicine ✓"); sosPoll();
+    }catch(e){ $("#soGo").disabled = false; toast("SOS non mandato: manca la rete. Chiama il 1530 o il 112."); }
+  };
+}
+async function sosPoll(){
+  const ref = lastPos || refPoint();
+  try{ const j = await rpc("sos_list", { p_lat: ref.lat, p_lng: ref.lng }); if (j) SOS = { altri: j.altri || [], mio: j.mio || null }; }catch(e){ return; }
+  if (SOS.mio && lastPos) rpc("sos_update", { p_lat: lastPos.lat, p_lng: lastPos.lng }).catch(() => {});
+  const nuovi = SOS.altri.filter(s => !sosSeen.includes(s.id));
+  if (nuovi.length && appMode === "nautica"){ buzz([300, 120, 300]); say("Attenzione, una barca vicina ha bisogno di aiuto"); sosSeen = sosSeen.concat(nuovi.map(s => s.id)).slice(-200); store.set("ln_sos_seen", sosSeen); }
+  paintSos();
+}
+function paintSos(){
+  const bar = $("#sosBar"), vis = SOS.altri.filter(s => !sosHidden.includes(s.id));
+  sosMarkers.forEach(m => m.remove()); sosMarkers = [];
+  if (map && appMode === "nautica") vis.forEach(s => { const el = document.createElement("div"); el.className = "sospin"; el.onclick = ev => { ev.stopPropagation(); sosOpen(s); };
+    sosMarkers.push(new maplibregl.Marker({ element: el }).setLngLat([s.lng, s.lat]).addTo(map)); });
+  bar.classList.remove("mine");
+  if (SOS.mio){ const n = SOS.mio.aiuti.length; bar.classList.add("mine");
+    bar.innerHTML = `🆘 Il tuo SOS è attivo · ${n ? n + (n === 1 ? " barca arriva" : " barche arrivano") : "nessuna risposta ancora"}<span class="sx">Chiudi ›</span>`; bar.classList.remove("hidden");
+    bar.onclick = () => openSheet(`<h3>🆘 Il tuo SOS</h3><p>${SOS_KINDS[SOS.mio.tipo] || ""} · da ${SOS.mio.min} min</p>
+      <p class="muted">${n ? "Stanno arrivando: " + SOS.mio.aiuti.map(x => "@" + esc(x)).join(", ") : "Nessuno ha ancora risposto."}</p>${CALLS}
+      <button class="btn ghost" style="margin-top:12px" id="soClose">✓ Ho risolto, chiudi l'SOS</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Indietro</button>`) || ($("#soClose").onclick = async () => { await rpc("sos_close", {}).catch(() => {}); closeSheet(); sosPoll(); });
+    return; }
+  if (!vis.length || appMode !== "nautica"){ bar.classList.add("hidden"); return; }
+  const s = vis[0];
+  bar.innerHTML = `🆘 ${esc(SOS_KINDS[s.tipo] || "Serve aiuto")} a ${fmtDist(s.m)}${vis.length > 1 ? " · +" + (vis.length - 1) : ""}<span class="sx">›</span>`;
+  bar.classList.remove("hidden"); bar.onclick = () => sosOpen(s);
+}
+function sosOpen(s){
+  openSheet(`<h3>🆘 ${esc(SOS_KINDS[s.tipo] || "Serve aiuto")}</h3>
+    <p class="muted">@${esc(s.nome)} · a ${fmtDist(s.m)} · ${s.min < 1 ? "adesso" : "da " + s.min + " min"}${s.aiuti ? " · " + s.aiuti + (s.aiuti === 1 ? " barca sta arrivando" : " barche stanno arrivando") : ""}</p>
+    ${s.nota ? `<p style="line-height:1.45">«${esc(s.nota)}»</p>` : ""}
+    <button class="btn" style="background:#d32f2f;color:#fff" id="shGo">${s.vengo ? "⚓ Portami lì" : "🚤 Sto arrivando, portami lì"}</button>
+    <p class="muted" style="font-size:12px;line-height:1.4;margin:10px 0">Aiuta solo se puoi farlo in sicurezza. Se c'è pericolo per le persone avvisa il 1530.</p>${CALLS}
+    <button class="btn ghost" style="margin-top:10px" id="shHide">Nascondi questo avviso</button>`);
+  $("#shGo").onclick = async () => { if (!s.vengo) rpc("sos_help_me", { p_id: s.id }).catch(() => {}); closeSheet(); setMode("nautica"); openPlan({ name: "SOS di @" + s.nome, lat: s.lat, lng: s.lng }); };
+  $("#shHide").onclick = () => { sosHidden.push(s.id); closeSheet(); paintSos(); };
+}
+setInterval(() => { if ((appMode === "nautica" && !$("#v-map").classList.contains("hidden")) || SOS.mio) sosPoll(); }, 30000);
+setTimeout(sosPoll, 6000);
 
 /* ---------- Click n Meet: feste ed eventi della settimana ---------- */
 const EV_KINDS = { festa: "🎉 Festa", evento: "✨ Evento", concerto: "🎵 Concerto", mostra: "🖼️ Mostra", sagra: "🛍️ Mercato e sagra" };
