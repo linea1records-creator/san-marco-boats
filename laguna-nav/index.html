@@ -241,6 +241,44 @@
   .opt .oh{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:4px}
   .leg{font-size:13px;color:#222;padding:5px 0;border-top:1px dashed #e3e8ef;line-height:1.35}
   #trPanel{max-height:52vh}
+  /* ===== Incontra ===== */
+  body:not(.mode-incontra) #meetTop, body:not(.mode-incontra) #fabMatch{display:none!important}
+  body.mode-incontra #toggles, body.mode-incontra #inst, body.mode-incontra #navMode, body.mode-incontra #fabFood, body.mode-incontra #fabMenu,
+  body.mode-incontra #fabView, body.mode-incontra #searchBox, body.mode-incontra #banner, body.mode-incontra #shallow, body.mode-incontra #depthLegend{display:none!important}
+  #meetTop{position:absolute;z-index:21;left:10px;right:10px;top:calc(10px + var(--safe-t))}
+  #meetBanner{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:linear-gradient(135deg,#ff2d78,#ff8a3d);color:#fff;border-radius:18px;padding:12px 14px;
+    box-shadow:0 4px 16px rgba(255,45,120,.45)}
+  #meetBanner #mbIcon{font-size:30px}
+  #meetBanner #mbText{flex:1;line-height:1.25}
+  #meetBanner small{display:block;opacity:.9;font-size:12px}
+  #meetFilters{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:4px;scrollbar-width:none}
+  #meetFilters button{white-space:nowrap;background:#fff;color:#333;border-radius:20px;padding:7px 12px;font-size:13px;font-weight:600;box-shadow:0 1px 6px rgba(0,0,0,.25)}
+  #meetFilters button.on{background:#ff2d78;color:#fff}
+  #fabMatch{position:absolute;z-index:18;right:10px;bottom:150px;width:56px;height:56px;font-size:24px;background:#ff2d78;color:#fff}
+  #fabMatch i{position:absolute;top:-2px;right:-2px;min-width:20px;height:20px;border-radius:10px;background:#fff;color:#ff2d78;font-size:12px;font-style:normal;font-weight:800;
+    display:flex;align-items:center;justify-content:center;padding:0 5px;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+  .stm{position:relative;cursor:pointer}
+  .stm .ph{width:46px;height:46px;border-radius:50%;border:3px solid #fff;background:#ff2d78 center/cover no-repeat;box-shadow:0 2px 8px rgba(0,0,0,.45);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px}
+  .stm span{position:absolute;right:-6px;bottom:-4px;font-size:18px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
+  .stm.mine .ph{border-color:#2f8cff} .stm.match .ph{border-color:#ffd60a}
+  .kinds{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+  .kinds button{background:var(--panel2);border:2px solid var(--line);border-radius:14px;padding:12px 8px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .kinds button span{font-size:26px}
+  .kinds button.on{border-color:#ff2d78;background:#3a0f22}
+  .photoPick{display:flex;align-items:flex-end;justify-content:center;height:150px;border-radius:14px;border:2px dashed var(--line);background:var(--panel2) center/cover no-repeat;cursor:pointer;padding:10px}
+  .photoPick.has{border-style:solid}
+  .photoPick span{background:rgba(0,0,0,.6);padding:6px 10px;border-radius:10px;font-size:14px}
+  .stcard{text-align:center}
+  .stphoto{width:100%;height:300px;border-radius:18px;background:#ff2d78 center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:80px;font-weight:800}
+  .chathead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:17px}
+  .chatbox{height:46vh;overflow-y:auto;background:#0b0b0b;border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:6px}
+  .msg{max-width:80%;background:#26262b;padding:8px 11px;border-radius:14px;font-size:15px;line-height:1.35;align-self:flex-start;word-wrap:break-word}
+  .msg.me{background:#ff2d78;align-self:flex-end}
+  .msg small{display:block;font-size:10px;opacity:.7;margin-top:2px;text-align:right}
+  .chatin{display:flex;gap:8px;margin-top:8px}
+  .chatin input{flex:1}
+
   /* Sheets / modal */
   #sheet{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
   #sheet .in{width:100%;background:var(--panel);border-radius:20px 20px 0 0;padding:20px;padding-bottom:calc(20px + var(--safe-b));
@@ -331,6 +369,15 @@
 
     <!-- nautica: navigatore o cruscotto -->
     <div id="navMode"><button data-nm="nav" class="on">🧭 Navigatore</button><button data-nm="dash">📟 Cruscotto</button></div>
+
+    <!-- incontra -->
+    <div id="meetTop">
+      <button id="meetBanner"><span id="mbIcon">✨</span><span id="mbText"><b>Aggiorna il tuo stato</b><small>Fatti trovare da chi è in giro a Venezia</small></span><span>›</span></button>
+      <div id="meetFilters">
+        <button data-mf="" class="on">Tutti</button><button data-mf="amicizie">🤝 Amicizie</button><button data-mf="aperitivo">🍹 Aperitivo</button><button data-mf="festa">🎉 Festa</button><button data-mf="incontro">❤️ Incontro</button>
+      </div>
+    </div>
+    <button class="fab" id="fabMatch" title="I tuoi match">💬<i id="matchBadge" class="hidden"></i></button>
 
     <!-- trasporti -->
     <div id="trPanel">
@@ -549,7 +596,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ Profilo</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 2.1</p>
+      <p class="sub">1Click · ClickVenice · versione 2.2</p>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
@@ -584,7 +631,7 @@
     <button data-v="map" data-mode="nautica" class="on"><span class="ic">⚓</span>Nautica</button>
     <button data-v="order"><span class="ic">🛍️</span>Market</button>
     <button data-v="map" data-mode="trasporti"><span class="ic">🚤</span>Trasporti</button>
-    <button data-v="meet"><span class="ic">💬</span>Incontra</button>
+    <button data-v="map" data-mode="incontra"><span class="ic">💬</span>Incontra</button>
     <button data-v="profile"><span class="ic">👤</span>Profilo</button>
   </nav>
 </div>
@@ -2529,8 +2576,11 @@ function drawBric3d(){
    ========================================================= */
 let appMode = "nautica";
 function setAppMode(m){
+  if (m === "incontra" && !store.get("ln_adult", false)){ adultGate(); return; }
   appMode = m;
   document.body.classList.toggle("mode-trasporti", m === "trasporti");
+  document.body.classList.toggle("mode-incontra", m === "incontra");
+  if (m === "incontra") meetStart(); else meetStop();
   if (map) ["fermate", "fermate-lbl"].forEach(l => { if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", m === "trasporti" ? "visible" : "none"); });
   if (m === "trasporti"){ loadFermate(); renderTr(); }
 }
@@ -2657,6 +2707,158 @@ function renderPlan(){
   };
 }
 setInterval(() => { if (appMode === "trasporti" && trTab === "bus"){ if (trStop) renderDepartures(); else renderTr(); } }, 30000);
+
+/* =========================================================
+   INCONTRA: stati sulla mappa (solo la zona), match reciproco, chat
+   ========================================================= */
+const MEET_KINDS = { amicizie: ["🤝", "Nuove amicizie"], aperitivo: ["🍹", "Aperitivo"], festa: ["🎉", "Festa"], incontro: ["❤️", "Incontro"] };
+const MEET_ZONES = { "Cannaregio": [45.4445, 12.3285], "Castello": [45.4350, 12.3510], "San Marco": [45.4340, 12.3360], "San Polo": [45.4380, 12.3300], "Santa Croce": [45.4400, 12.3220],
+  "Dorsoduro": [45.4310, 12.3250], "Giudecca": [45.4260, 12.3290], "Sant'Elena": [45.4290, 12.3640], "Lido": [45.4120, 12.3700], "Murano": [45.4580, 12.3530], "Burano": [45.4855, 12.4170],
+  "Sant'Erasmo": [45.4560, 12.4050], "Mestre": [45.4900, 12.2420], "Marghera": [45.4710, 12.2350], "Pellestrina": [45.2800, 12.3030], "Chioggia": [45.2190, 12.2790] };
+let STATI = [], meetFilter = "", meetMarkers = [], meetTimer = null, chatTimer = null;
+const rpc = (fn, body) => api("rpc/" + fn, { method: "POST", ret: true, body: { p_token: TOKEN, ...body } });
+function adultGate(){
+  openSheet(`<h3>🔞 Incontra è solo per maggiorenni</h3><p class="muted" style="line-height:1.45">Per entrare devi avere almeno 18 anni.</p>
+    <button class="btn" id="agYes">Ho almeno 18 anni</button><button class="btn ghost" id="agNo" style="margin-top:10px">Non ho ancora 18 anni</button>`);
+  $("#agYes").onclick = async () => {
+    try{ await rpc("meet_adult", {}); }catch(e){}
+    store.set("ln_adult", true); closeSheet(); setAppMode("incontra");
+  };
+  $("#agNo").onclick = () => { closeSheet(); document.querySelector('nav button[data-mode="nautica"]').click(); toast("Incontra è riservato ai maggiorenni. Il resto di ClickVenice puoi usarlo."); };
+}
+function meetStart(){
+  loadStati(); clearInterval(meetTimer); meetTimer = setInterval(loadStati, 30000);
+  if (map) map.easeTo({ pitch: 0, bearing: 0, zoom: Math.min(map.getZoom(), 14), duration: 600 });
+}
+function meetStop(){ clearInterval(meetTimer); meetMarkers.forEach(m => m.remove()); meetMarkers = []; }
+const ago = t => { const m = Math.round((Date.now() - Date.parse(t)) / 60000); return m < 60 ? m + " min fa" : Math.round(m / 60) + " h fa"; };
+async function loadStati(){
+  try{ STATI = await rpc("status_list", {}) || []; }catch(e){ toast("Non riesco a caricare gli stati: controlla la connessione."); return; }
+  drawStati(); paintBanner(); loadMatches(true);
+}
+function drawStati(){
+  meetMarkers.forEach(m => m.remove()); meetMarkers = [];
+  if (!map || appMode !== "incontra") return;
+  STATI.filter(s => !meetFilter || s.tipo === meetFilter).forEach(s => {
+    const el = document.createElement("div"); el.className = "stm" + (s.mio ? " mine" : "") + (s.match ? " match" : "");
+    el.innerHTML = `<div class="ph" style="${s.foto ? `background-image:url('${s.foto}')` : ""}">${s.foto ? "" : esc(s.nome[0].toUpperCase())}</div><span>${MEET_KINDS[s.tipo][0]}</span>`;
+    el.onclick = ev => { ev.stopPropagation(); openStato(s); };
+    meetMarkers.push(new maplibregl.Marker({ element: el }).setLngLat([s.lng, s.lat]).addTo(map));
+  });
+}
+document.querySelectorAll("#meetFilters [data-mf]").forEach(b => b.onclick = () => {
+  meetFilter = b.dataset.mf; document.querySelectorAll("#meetFilters [data-mf]").forEach(x => x.classList.toggle("on", x === b)); drawStati();
+});
+function paintBanner(){
+  const mine = STATI.find(s => s.mio);
+  if (mine){ const k = MEET_KINDS[mine.tipo], left = Math.max(1, 24 - Math.round((Date.now() - Date.parse(mine.quando)) / 3600e3));
+    $("#mbIcon").textContent = k[0]; $("#mbText").innerHTML = `<b>Il tuo stato: ${k[1]}</b><small>${esc(mine.zona)} · sparisce tra ${left} h · tocca per cambiarlo</small>`; }
+  else { $("#mbIcon").textContent = "✨"; $("#mbText").innerHTML = `<b>Aggiorna il tuo stato</b><small>${STATI.length ? STATI.length + (STATI.length === 1 ? " persona" : " persone") + " in giro adesso" : "Fatti trovare da chi è in giro a Venezia"}</small>`; }
+}
+function nearestZone(){
+  const p = lastPos || refPoint(); let best = "Cannaregio", bd = Infinity;
+  Object.entries(MEET_ZONES).forEach(([n, c]) => { const d = hav(p.lat, p.lng, c[0], c[1]); if (d < bd){ bd = d; best = n; } }); return best;
+}
+// foto ridotta sul telefono (max 900 px, JPEG): leggera da caricare
+function shrinkPhoto(file){
+  return new Promise((ok, ko) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => { const s = Math.min(1, 900 / Math.max(img.width, img.height)), c = document.createElement("canvas");
+      c.width = Math.round(img.width * s); c.height = Math.round(img.height * s); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); ok(c.toDataURL("image/jpeg", 0.8)); };
+    img.onerror = () => ko(new Error("foto")); img.src = url;
+  });
+}
+$("#meetBanner").onclick = () => {
+  const mine = STATI.find(s => s.mio);
+  let tipo = mine ? mine.tipo : "aperitivo", foto = null;
+  openSheet(`<h3>Il tuo stato</h3>
+    <div class="kinds">${Object.entries(MEET_KINDS).map(([k, v]) => `<button data-k="${k}" class="${k === tipo ? "on" : ""}"><span>${v[0]}</span>${v[1]}</button>`).join("")}</div>
+    <div class="field"><label>Foto</label><label class="photoPick" id="phPick"><input type="file" accept="image/*" id="phIn" hidden><span id="phTxt">📷 Scatta o scegli una foto</span></label></div>
+    <div class="field"><label>Due parole (facoltativo)</label><input id="stTxt" maxlength="140" placeholder="es. Spritz in Fondamenta della Misericordia?" value="${mine && mine.testo ? esc(mine.testo) : ""}"></div>
+    <div class="field"><label>Zona</label><select id="stZona">${Object.keys(MEET_ZONES).map(z => `<option ${z === (mine ? mine.zona : nearestZone()) ? "selected" : ""}>${esc(z)}</option>`).join("")}</select></div>
+    <p class="hint" style="line-height:1.4">Gli altri vedono solo la zona, mai dove sei. Lo stato sparisce da solo dopo 24 ore.</p>
+    <button class="btn" id="stOk">Pubblica</button>
+    ${mine ? `<button class="btn ghost" id="stDel" style="margin-top:10px">Togli il mio stato</button>` : ""}
+    <p class="hint" id="stMsg" style="text-align:center;margin-top:8px"></p>`);
+  document.querySelectorAll(".kinds [data-k]").forEach(b => b.onclick = () => { tipo = b.dataset.k; document.querySelectorAll(".kinds [data-k]").forEach(x => x.classList.toggle("on", x === b)); });
+  $("#phIn").onchange = async () => { const f = $("#phIn").files[0]; if (!f) return; $("#phTxt").textContent = "Preparo la foto…";
+    try{ foto = await shrinkPhoto(f); $("#phPick").style.backgroundImage = `url('${foto}')`; $("#phPick").classList.add("has"); $("#phTxt").textContent = "Cambia foto"; }
+    catch(e){ $("#phTxt").textContent = "Questa foto non si apre, provane un'altra"; } };
+  $("#stOk").onclick = async () => {
+    if (!foto && !(mine && mine.foto)){ $("#stMsg").textContent = "Aggiungi una foto."; return; }
+    $("#stOk").disabled = true; $("#stMsg").textContent = "Pubblico…";
+    try{
+      const r = await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/stato", { method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token: TOKEN, tipo, testo: $("#stTxt").value, zona: $("#stZona").value, foto }) }, 30000);
+      const j = await r.json();
+      if (!j.ok){ $("#stOk").disabled = false; $("#stMsg").textContent = j.errore === "non_autorizzato" ? "Accedi con il tuo account per pubblicare." : "Non riuscito, riprova."; return; }
+      closeSheet(); toast("Stato pubblicato ✓"); loadStati();
+    }catch(e){ $("#stOk").disabled = false; $("#stMsg").textContent = "Serve la connessione internet."; }
+  };
+  const d = $("#stDel"); if (d) d.onclick = async () => { try{ await rpc("status_delete", {}); }catch(e){} closeSheet(); loadStati(); };
+};
+function openStato(s){
+  const k = MEET_KINDS[s.tipo];
+  openSheet(`<div class="stcard">
+    <div class="stphoto" style="${s.foto ? `background-image:url('${s.foto}')` : ""}">${s.foto ? "" : esc(s.nome[0].toUpperCase())}</div>
+    <h3 style="margin:12px 0 2px">@${esc(s.nome)}</h3>
+    <div class="pill" style="font-size:13px">${k[0]} ${k[1]}</div>
+    ${s.testo ? `<p style="font-size:16px;line-height:1.4;margin:10px 0">${esc(s.testo)}</p>` : ""}
+    <p class="muted">📍 ${esc(s.zona)} · ${ago(s.quando)}</p>
+    ${s.mio ? `<p class="hint">È il tuo stato.</p>` : s.match ? `<button class="btn" id="stChat">💬 Scrivi a @${esc(s.nome)}</button>`
+      : s.piace ? `<button class="btn ghost" disabled>💛 Mi piace inviato: se ricambia, potrete scrivervi</button>` : `<button class="btn" id="stLike">💛 Mi piace</button>`}
+    ${s.mio ? "" : `<div class="row" style="margin-top:10px"><button class="btn ghost small" id="stRep">⚑ Segnala</button><button class="btn ghost small" id="stBlk">⛔ Blocca</button></div>`}
+  </div>`);
+  const L = $("#stLike"); if (L) L.onclick = async () => { L.disabled = true;
+    try{ const r = await rpc("status_like", { p_status: s.id }); if (r.match){ closeSheet(); toast("È un match! 🎉 Ora potete scrivervi"); await loadStati(); openChat(s.nome); } else { s.piace = true; openStato(s); } }
+    catch(e){ L.disabled = false; toast("Non riuscito, controlla la connessione."); } };
+  const C = $("#stChat"); if (C) C.onclick = () => openChat(s.nome);
+  const R = $("#stRep"); if (R) R.onclick = () => {
+    openSheet(`<h3>Segnala @${esc(s.nome)}</h3><p class="muted">Perché lo segnali?</p>` + ["Foto inappropriata", "Sembra minorenne", "Spam o pubblicità", "Mi infastidisce", "Altro"].map(x => `<button class="card rowbtn" data-rr="${esc(x)}">${esc(x)} <span>›</span></button>`).join(""));
+    document.querySelectorAll("[data-rr]").forEach(b => b.onclick = async () => { try{ await rpc("status_report", { p_status: s.id, p_reason: b.dataset.rr }); }catch(e){} closeSheet(); toast("Grazie, segnalazione inviata."); loadStati(); });
+  };
+  const B = $("#stBlk"); if (B) B.onclick = async () => { if (!confirm("Bloccare @" + s.nome + "? Non vedrete più i vostri stati e non potrete scrivervi.")) return;
+    try{ await rpc("user_block", { p_nome: s.nome }); }catch(e){} closeSheet(); toast("@" + s.nome + " bloccato."); loadStati(); };
+}
+/* match e chat */
+let MATCHES = [], seenMatches = store.get("ln_seen_matches", []);
+async function loadMatches(quiet){
+  try{ MATCHES = await rpc("my_matches", {}) || []; }catch(e){ return; }
+  const unseen = MATCHES.filter(m => !seenMatches.includes(m.nome)).length;
+  $("#matchBadge").classList.toggle("hidden", !unseen); $("#matchBadge").textContent = unseen || "";
+  if (!quiet) renderMatches();
+}
+function renderMatches(){
+  seenMatches = MATCHES.map(m => m.nome); store.set("ln_seen_matches", seenMatches); $("#matchBadge").classList.add("hidden");
+  openSheet(`<h3>💬 I tuoi match</h3>` + (MATCHES.length ? MATCHES.map(m => `<button class="card rowbtn" data-chat="${esc(m.nome)}"><span style="color:inherit;text-align:left"><b>@${esc(m.nome)}</b><br><small class="muted">${m.ultimo ? esc(m.ultimo).slice(0, 60) : "Scrivi per primo"}</small></span><span>›</span></button>`).join("")
+    : `<p class="muted" style="line-height:1.45">Ancora nessun match. Metti 💛 agli stati che ti piacciono: se l'altra persona ricambia, si apre la chat.</p>`));
+  document.querySelectorAll("[data-chat]").forEach(b => b.onclick = () => openChat(b.dataset.chat));
+}
+$("#fabMatch").onclick = () => loadMatches(false);
+async function openChat(nome){
+  clearInterval(chatTimer);
+  openSheet(`<div class="chathead"><b>@${esc(nome)}</b><button class="btn ghost small" id="chBack">‹ Match</button></div>
+    <div id="chatBox" class="chatbox"><p class="muted">Carico…</p></div>
+    <div class="chatin"><input id="chIn" maxlength="1000" placeholder="Scrivi un messaggio"><button class="btn small" id="chSend">Invia</button></div>
+    <p class="hint" style="margin-top:6px">Non condividere dati personali finché non ti fidi. Puoi bloccare in ogni momento dallo stato della persona.</p>`);
+  $("#chBack").onclick = () => { clearInterval(chatTimer); renderMatches(); };
+  let lastId = 0;
+  const pull = async () => {
+    if ($("#sheet").classList.contains("hidden") || !$("#chatBox")){ clearInterval(chatTimer); return; }
+    try{ const r = await rpc("chat_read", { p_nome: nome, p_after: lastId });
+      if (r.errore){ $("#chatBox").innerHTML = `<p class="muted">La chat non è più disponibile.</p>`; clearInterval(chatTimer); return; }
+      const box = $("#chatBox"); if (lastId === 0) box.innerHTML = r.messaggi.length ? "" : `<p class="muted" id="chEmpty">È un match! Rompi il ghiaccio 🙂</p>`;
+      if (r.messaggi.length){ const e = $("#chEmpty"); if (e) e.remove(); }
+      r.messaggi.forEach(m => { lastId = Math.max(lastId, m.id); box.insertAdjacentHTML("beforeend", `<div class="msg ${m.mio ? "me" : ""}">${esc(m.testo)}<small>${new Date(m.quando).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}</small></div>`); });
+      if (r.messaggi.length) box.scrollTop = box.scrollHeight;
+    }catch(e){}
+  };
+  await pull(); chatTimer = setInterval(pull, 4000);
+  const send = async () => { const t = $("#chIn").value.trim(); if (!t) return; $("#chIn").value = "";
+    try{ const r = await rpc("chat_send", { p_nome: nome, p_testo: t }); if (r.errore) toast(r.errore === "troppi_messaggi" ? "Stai scrivendo troppo in fretta." : "Messaggio non inviato."); await pull(); }catch(e){ toast("Messaggio non inviato: controlla la connessione."); } };
+  $("#chSend").onclick = send; $("#chIn").onkeydown = e => { if (e.key === "Enter") send(); };
+}
 /* =========================================================
    ORDINA
    ========================================================= */
