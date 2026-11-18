@@ -278,6 +278,25 @@
   body:not(.mode-incontra) #cmOv, body:not(.mode-incontra) #vcOv{display:none!important}
   body.mm-ov #meetTop{z-index:31} body.mm-ov #meetBanner, body.mm-ov #evBanner, body.mm-ov #meetFilters, body.mm-ov #fabMatch{display:none!important}
   body.mm-ov #v-map::before{content:"";position:absolute;left:0;right:0;top:0;height:calc(58px + var(--safe-t));background:#0b0b10;z-index:29}
+  /* domande una alla volta */
+  #wz{position:fixed;inset:0;z-index:6000;background:#0b0f17;color:#fff;display:flex;flex-direction:column;animation:obIn .25s ease}
+  .wzbar{display:flex;align-items:center;gap:10px;padding:calc(10px + var(--safe-t)) 12px 8px}
+  .wzbar button{font-size:24px;color:#cfd8e3;width:36px} .wzbar span{font-size:12px;color:#8fa0b5;min-width:34px;text-align:right}
+  .wzprog{flex:1;height:6px;border-radius:3px;background:#1d2738;overflow:hidden} .wzprog i{display:block;height:100%;background:linear-gradient(90deg,#2f8cff,#8b5cf6);transition:width .25s}
+  .wzmain{flex:1;overflow-y:auto;padding:14px 18px calc(24px + var(--safe-b))}
+  .wzt{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#7fa6e8;font-weight:800;margin-bottom:6px}
+  .wzq{font-size:25px;line-height:1.2;margin:0 0 8px} .wzh{color:#9fb0c5;font-size:14px;line-height:1.45;margin:0 0 14px}
+  .wzopts{display:flex;flex-direction:column;gap:9px;margin-top:10px} .wzopts.grid{display:grid;grid-template-columns:1fr 1fr} .wzopts.grid.tm{grid-template-columns:1fr 1fr 1fr} .wzopts.two{display:grid;grid-template-columns:1fr 1fr}
+  .wzo{display:block;text-align:left;background:#151d2b;border:1.5px solid #243149;color:#fff;border-radius:16px;padding:15px 16px;font-size:16.5px;font-weight:600;cursor:pointer;text-transform:none}
+  .wzopts.grid .wzo,.wzopts.two .wzo{text-align:center;padding:14px 8px;font-size:15px}
+  .wzo.on{border-color:#2f8cff;background:#14284d} .wzo:active{transform:scale(.98)}
+  .wzin{display:flex;align-items:center;gap:8px;margin-top:12px} .wzin input,.wzin textarea{flex:1;background:#151d2b;border:1.5px solid #243149;color:#fff;border-radius:14px;padding:15px 14px;font-size:18px;font-family:inherit}
+  .wzin span{color:#9fb0c5;font-size:16px}
+  .wzchips{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px} .wzchips button{background:#1d2738;color:#dbe6f5;border-radius:18px;padding:9px 13px;font-size:14px} .wzchips button.on{background:#2f8cff;color:#fff}
+  .wzgo{margin-top:16px} .wzskip{display:block;margin:16px auto 0;color:#8fa0b5;font-size:15px;text-decoration:underline}
+  .wzcols{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px} .wzcol{aspect-ratio:1;border-radius:50%;border:3px solid #243149} .wzcol.on{border-color:#fff;box-shadow:0 0 0 3px #2f8cff}
+  .wzph{height:260px;border-radius:18px;background:#151d2b center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:56px;margin-top:8px}
+  .wzsum{margin-top:6px} .wzsum .row1{display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer;font-size:14.5px} .wzsum .row1 span{color:var(--muted)} .wzsum .row1 b{text-align:right;max-width:58%}
   #tideC{width:100%;height:36px;display:block;margin-top:4px;border-radius:8px;background:#06101f}
   /* ===== 1Click / ClickVenice ===== */
   #splash{background:radial-gradient(120% 80% at 50% 0%,#0d2b5a 0%,#000 70%)}
@@ -390,6 +409,7 @@
   .pact{display:flex;border-top:1px solid var(--line);margin:8px 12px 0} .pact button{flex:1;padding:10px 0;font-size:14px;font-weight:700;color:var(--muted)} .pact button.on{color:#4d8dff}
   .pcoms{padding:6px 12px 6px} .pc{background:var(--panel2);border-radius:14px;padding:7px 11px;margin:5px 0;font-size:14px;line-height:1.35}
   .pmore{font-size:13px;color:var(--muted);padding:4px 0}
+  .regco{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:8px;display:flex;flex-direction:column;gap:3px} .regco span{font-size:12.5px;color:var(--muted)} .regco a{color:#7fc1ff;font-size:13px}
   .wkseg{margin-bottom:10px} .wkseg button{font-size:13px}
   .job{cursor:pointer} .job .jt{font-weight:800;font-size:16px} .job .jc{font-size:13px;color:var(--muted);margin-top:3px} .job .jf{font-size:12px;color:var(--muted);margin-top:6px}
   .chipsw{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px} .chipsw span{background:#1d2e52;color:#cfe0ff;border-radius:10px;padding:3px 8px;font-size:12px}
@@ -857,7 +877,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.5</p>
+      <p class="sub">1Click · ClickVenice · versione 3.6</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -1005,14 +1025,22 @@ function companyHints(p){ const el = $("#" + p + "PI"); if (!el) return; el.addE
   h.textContent = !el.value ? "" : ok ? "Partita IVA valida ✓" : "Controlla la partita IVA: 11 cifre"; h.className = "hint" + (ok ? " ok" : ""); }); }
 document.querySelectorAll("#kindSeg [data-k]").forEach(b => b.onclick = () => {
   regKind = b.dataset.k; document.querySelectorAll("#kindSeg [data-k]").forEach(x => x.classList.toggle("on", x === b));
-  const box = $("#regCo"); box.classList.toggle("hidden", regKind !== "azienda");
-  if (regKind === "azienda" && !box.innerHTML){ box.innerHTML = `<p class="hint" style="margin:8px 0 10px">I dati dell'azienda servono per pubblicare offerte di lavoro e comparire come azienda verificabile. I campi con * sono obbligatori.</p>` + companyFields("rc");
-    companyHints("rc"); box.addEventListener("input", regCheck); box.addEventListener("change", regCheck); }
+  paintRegCo(); if (regKind === "azienda" && !REGCO) askRegCompany();
   regCheck();
 });
+let REGCO = null;
+function askRegCompany(){
+  wizard({ title: "La tua azienda", values: Object.assign({}, REGCO || {}), steps: companySteps(),
+    onDone: v => { REGCO = fixPiva(v); paintRegCo(); regCheck(); },
+    onCancel: () => { paintRegCo(); regCheck(); } });
+}
+function paintRegCo(){ const box = $("#regCo"); box.classList.toggle("hidden", regKind !== "azienda");
+  box.innerHTML = REGCO ? `<div class="regco"><b>🏢 ${esc(REGCO.ragione_sociale)}</b><span>P. IVA ${esc(REGCO.piva)} · ${esc(REGCO.settore)} · ${esc(REGCO.citta)}</span><a href="#" id="regCoEd">Modifica</a></div>`
+    : `<button class="btn ghost" id="regCoGo" style="margin-top:8px">🏢 Inserisci i dati dell'azienda</button>`;
+  const a = $("#regCoEd"), g = $("#regCoGo"); if (a) a.onclick = ev => { ev.preventDefault(); askRegCompany(); }; if (g) g.onclick = askRegCompany; }
 function regCheck(){
   const n = $("#regName").value.trim(), p = $("#regPass").value;
-  const okReg = authMode !== "reg" || (nameOk && p === $("#regPass2").value && (regKind !== "azienda" || companyValid(readCompany("rc"))));
+  const okReg = authMode !== "reg" || (nameOk && p === $("#regPass2").value && (regKind !== "azienda" || (REGCO && pivaOk(REGCO.piva))));
   enter.disabled = !(NAME_RX.test(n) && p.length >= 6 && agree.checked && okReg);
 }
 function nameCheck(){
@@ -1049,7 +1077,7 @@ enter.onclick = async () => {
   }catch(e){ $("#regMsg").textContent = "Serve la connessione internet."; regCheck(); return; }
   if (!r || !r.ok){ $("#regMsg").textContent = AUTH_ERR[r && r.errore] || "Qualcosa è andato storto, riprova."; regCheck(); return; }
   if (authMode === "reg" && regKind === "azienda"){
-    try{ const c = await api("rpc/company_save", { method: "POST", ret: true, body: { p_token: r.token || TOKEN, p_data: readCompany("rc") } });
+    try{ const c = await api("rpc/company_save", { method: "POST", ret: true, body: { p_token: r.token || TOKEN, p_data: REGCO } });
       if (c && c.errore) toast("Account creato. Completa i dati dell'azienda in myClick → Lavoro."); }catch(e){}
   }
   PROFILE = { clickname: r.clickname, city: store.get("ln_city", "venezia") }; store.set("ln_profile", PROFILE); store.set("ln_agree", Date.now());
@@ -1430,60 +1458,84 @@ function openJob(j){
   };
 }
 function jobForm(){
-  openSheet(`<h3>＋ Offerta di lavoro</h3>
-    <div class="field"><label>Che lavoro è? *</label><input id="jfT" maxlength="90" placeholder="es. Cameriere/a per la sera, Autista barca"></div>
-    <div class="field"><label>Settore</label><select id="jfS">${SETTORI.map(s => `<option ${WK.io && WK.io.azienda && WK.io.azienda.settore === s ? "selected" : ""}>${s}</option>`).join("")}</select></div>
-    <div class="row"><div class="field"><label>Contratto</label><select id="jfC">${["Tempo indeterminato", "Tempo determinato", "Stagionale", "Part-time", "Apprendistato", "Stage", "Prestazione occasionale", "Partita IVA"].map(s => `<option>${s}</option>`).join("")}</select></div>
-      <div class="field"><label>Orario</label><input id="jfH" maxlength="60" placeholder="es. 7-14, sere, weekend"></div></div>
-    <div class="row"><div class="field"><label>Dove</label><input id="jfP" maxlength="90" value="${esc((WK.io && WK.io.azienda && WK.io.azienda.citta) || "Venezia")}"></div>
-      <div class="field"><label>Paga (facoltativa)</label><input id="jfR" maxlength="60" placeholder="es. 10 €/ora, 1.400 €/mese"></div></div>
-    <div class="field"><label>Descrizione *</label><textarea id="jfD" rows="4" maxlength="1500" placeholder="Cosa farà la persona, inizio, come candidarsi…"></textarea></div>
-    <div class="field"><label>Requisiti</label><textarea id="jfQ" rows="2" maxlength="600" placeholder="es. patente nautica, inglese, esperienza"></textarea></div>
-    <button class="btn" id="jfOk">Pubblica l'offerta</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
-  $("#jfOk").onclick = async () => {
-    if ($("#jfT").value.trim().length < 3 || $("#jfD").value.trim().length < 10) return toast("Scrivi che lavoro è e una descrizione.");
-    $("#jfOk").disabled = true;
-    try{ const r = await rpc("job_create", { p_title: $("#jfT").value, p_sector: $("#jfS").value, p_contract: $("#jfC").value, p_hours: $("#jfH").value, p_place: $("#jfP").value, p_pay: $("#jfR").value, p_descr: $("#jfD").value, p_reqs: $("#jfQ").value });
-      if (r && r.errore){ $("#jfOk").disabled = false; return toast(r.errore === "non_azienda" ? "Serve un account aziendale." : r.errore === "troppe" ? "Hai pubblicato tante offerte oggi." : "Non pubblicata, riprova."); }
-      closeSheet(); haptic(); toast("Offerta pubblicata ✓"); wkTab = "jobs"; document.querySelectorAll("#wkSeg [data-wt]").forEach(x => x.classList.toggle("on", x.dataset.wt === "jobs")); loadJobs();
-    }catch(e){ $("#jfOk").disabled = false; toast("Non pubblicata: controlla la connessione."); }
-  };
+  closeSheet(); const az = (WK && WK.io && WK.io.azienda) || {};
+  wizard({ title: "Nuova offerta di lavoro", values: { sector: az.settore, place: az.citta || "Venezia" },
+    steps: [
+      { k: "title", q: "Che lavoro offri?", type: "text", max: 90, ph: "es. Cameriere/a per la sera", chips: ["Cameriere/a", "Barista", "Cuoco/a", "Aiuto cuoco", "Lavapiatti", "Autista barca", "Marinaio", "Facchino", "Receptionist", "Addetto/a alle pulizie", "Commesso/a", "Rider"],
+        check: t => t.length < 3 ? "Scrivi che lavoro è." : "" },
+      { k: "sector", q: "In che settore?", type: "choice", options: SETTORI.map(s => [s, s]) },
+      { k: "contract", q: "Che contratto?", type: "choice", options: ["Tempo indeterminato", "Tempo determinato", "Stagionale", "Part-time", "Apprendistato", "Stage", "Prestazione occasionale", "Partita IVA"].map(s => [s, s]) },
+      { k: "hours", q: "Che orario?", type: "text", max: 60, ph: "es. 7-14", chips: ["Mattina", "Pomeriggio", "Sera", "Notte", "Weekend", "Turni", "Full time 40 ore", "Part time 20 ore"] },
+      { k: "place", q: "Dove si lavora?", type: "text", max: 90, chips: ["Venezia centro storico", "Mestre", "Lido", "Murano", "Burano", "Giudecca", "Marghera", "Aeroporto"] },
+      { k: "pay", q: "Quanto paghi?", type: "text", max: 60, optional: true, skipLabel: "Preferisco non dirlo", chips: ["10 €/ora", "12 €/ora", "1.300 €/mese", "1.500 €/mese", "Da contratto nazionale", "Da concordare"] },
+      { k: "descr", q: "Racconta il lavoro", hint: "Cosa farà la persona, quando si comincia, come candidarsi.", type: "long", max: 1500, check: t => t.length < 10 ? "Scrivi almeno una frase." : "" },
+      { k: "reqs", q: "Cosa deve saper fare?", type: "text", max: 600, multi: true, optional: true, skipLabel: "Nessun requisito",
+        chips: ["Esperienza", "Inglese", "Patente nautica", "Patente B", "HACCP", "Automunito", "Disponibilità nel weekend", "Residenza a Venezia"] }
+    ],
+    onDone: async v => {
+      try{ const r = await rpc("job_create", { p_title: v.title, p_sector: v.sector, p_contract: v.contract, p_hours: v.hours, p_place: v.place, p_pay: v.pay || "", p_descr: v.descr, p_reqs: v.reqs || "" });
+        if (r && r.errore) return toast(r.errore === "non_azienda" ? "Serve un account aziendale." : r.errore === "troppe" ? "Hai pubblicato tante offerte oggi." : "Non pubblicata, riprova.");
+        haptic(); toast("Offerta pubblicata ✓"); wkTab = "jobs"; document.querySelectorAll("#wkSeg [data-wt]").forEach(x => x.classList.toggle("on", x.dataset.wt === "jobs")); loadJobs();
+      }catch(e){ toast("Non pubblicata: controlla la connessione."); }
+    } });
 }
+function companySteps(){
+  return [
+    { k: "ragione_sociale", q: "Come si chiama l'azienda?", hint: "La ragione sociale, come in fattura.", type: "text", max: 120, ph: "es. Rossi Ristorazione Srl", check: t => t.length < 2 ? "Scrivi la ragione sociale." : "" },
+    { k: "piva", q: "Partita IVA", hint: "11 cifre. Controllo che sia scritta giusta.", type: "number", check: t => pivaOk(String(t).padStart(11, "0")) ? "" : "Questa partita IVA non torna: controlla le cifre." },
+    { k: "settore", q: "Di cosa si occupa?", type: "choice", options: SETTORI.map(s => [s, s]) },
+    { k: "citta", q: "In che città?", type: "text", max: 60, chips: ["Venezia", "Mestre", "Lido di Venezia", "Murano", "Chioggia", "Marghera", "Jesolo"] },
+    { k: "indirizzo", q: "Indirizzo della sede", type: "text", max: 120, optional: true, ph: "es. Cannaregio 1234" },
+    { k: "email", q: "Email aziendale", type: "text", inputType: "email", max: 120, check: t => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(t) ? "" : "Controlla l'email." },
+    { k: "telefono", q: "Telefono", type: "text", inputType: "tel", max: 30, optional: true },
+    { k: "referente", q: "Chi è il referente?", type: "text", max: 80, optional: true, ph: "Nome e cognome" },
+    { k: "sito", q: "Avete un sito web?", type: "text", max: 120, optional: true, skipLabel: "No", ph: "www…" },
+    { k: "dipendenti", q: "Quanti dipendenti?", type: "choice", options: ["1-5", "6-15", "16-50", "51-250", "oltre 250"].map(x => [x, x]), optional: true }
+  ];
+}
+const fixPiva = d => Object.assign({}, d, { piva: String(d.piva || "").replace(/\D/g, "").padStart(11, "0") });
 function coForm(d){
-  openSheet(`<h3>🏢 Dati dell'azienda</h3><p class="muted" style="line-height:1.4">Servono per pubblicare offerte. Ragione sociale, partita IVA, settore, città ed email sono obbligatori.</p>${companyFields("co", d)}
-    <button class="btn" id="coOk">Salva</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
-  companyHints("co");
-  $("#coOk").onclick = async () => { const data = readCompany("co");
-    if (!companyValid(data)) return toast(!pivaOk(data.piva) ? "Controlla la partita IVA." : "Compila i campi obbligatori (*).");
-    try{ const r = await rpc("company_save", { p_data: data }); if (r && r.errore) return toast(r.errore === "piva" ? "Partita IVA non valida." : r.errore === "email" ? "Controlla l'email." : "Non salvato, riprova.");
-      closeSheet(); toast("Dati aziendali salvati ✓"); loadJobs(); }catch(e){ toast("Non salvato: controlla la connessione."); } };
+  closeSheet();
+  wizard({ title: "Dati dell'azienda", values: Object.assign({}, d || {}), steps: companySteps(),
+    onDone: async v => { const data = fixPiva(v);
+      try{ const r = await rpc("company_save", { p_data: data }); if (r && r.errore) return toast(r.errore === "piva" ? "Partita IVA non valida." : r.errore === "email" ? "Controlla l'email." : "Non salvato, riprova.");
+        toast("Dati aziendali salvati ✓"); loadJobs(); }catch(e){ toast("Non salvato: controlla la connessione."); } } });
 }
 function cvForm(){
-  const c = (WK && WK.io && WK.io.cv) || {}; let exp = (c.esperienze || []).slice();
-  const expHtml = () => exp.map((x, i) => `<div class="exprow"><span>💼 <b>${esc(x.ruolo)}</b>${x.azienda ? " · " + esc(x.azienda) : ""}${x.periodo ? " · " + esc(x.periodo) : ""}</span><button data-exd="${i}">✕</button></div>`).join("");
-  openSheet(`<h3>Il tuo curriculum</h3>
-    <div class="field"><label>Che lavoro fai o cerchi? *</label><input id="cvT" maxlength="80" placeholder="es. Cameriere, marinaio, cuoco, muratore" value="${esc(c.titolo || "")}"></div>
-    <div class="field"><label>Competenze (separate da virgola)</label><input id="cvS" maxlength="600" placeholder="es. patente nautica, inglese, cassa, HACCP" value="${esc((c.skills || []).join(", "))}"></div>
-    <label class="lbl2">Esperienze</label><div id="cvExp">${expHtml()}</div>
-    <div class="row" style="gap:6px"><div class="field" style="margin:0"><input id="cvER" maxlength="60" placeholder="Ruolo"></div><div class="field" style="margin:0"><input id="cvEA" maxlength="60" placeholder="Azienda"></div></div>
-    <div class="row" style="gap:6px;margin-top:6px"><div class="field" style="margin:0"><input id="cvEP" maxlength="30" placeholder="Periodo (es. 2023-2025)"></div><button class="btn small ghost" id="cvEAdd" style="flex:0 0 auto">＋ Aggiungi</button></div>
-    <div class="row" style="margin-top:10px"><div class="field"><label>Disponibilità</label><select id="cvD">${DISP.map(x => `<option ${x === c.disponibilita ? "selected" : ""}>${x}</option>`).join("")}</select></div>
-      <div class="field"><label>Zona</label><input id="cvZ" maxlength="60" placeholder="es. Venezia, Mestre" value="${esc(c.zona || "")}"></div></div>
-    <div class="field"><label>Due righe su di te</label><textarea id="cvA" rows="3" maxlength="600">${esc(c.chi || "")}</textarea></div>
-    <div class="field"><label>Contatto per le aziende (facoltativo)</label><input id="cvC" maxlength="120" placeholder="telefono o email" value="${esc(c.contatto || "")}"></div>
-    <label class="check" style="margin:6px 0 12px"><input type="checkbox" id="cvV" ${c.visibile === false ? "" : "checked"}><span>Mostra il mio curriculum nella bacheca Lavoratori</span></label>
-    <button class="btn" id="cvOk">Salva il curriculum</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
-  const bindDel = () => document.querySelectorAll("[data-exd]").forEach(b => b.onclick = () => { exp.splice(+b.dataset.exd, 1); $("#cvExp").innerHTML = expHtml(); bindDel(); });
-  bindDel();
-  $("#cvEAdd").onclick = () => { const r = $("#cvER").value.trim(); if (!r) return toast("Scrivi almeno il ruolo."); if (exp.length >= 15) return;
-    exp.push({ ruolo: r, azienda: $("#cvEA").value.trim(), periodo: $("#cvEP").value.trim() }); ["cvER", "cvEA", "cvEP"].forEach(id => $("#" + id).value = ""); $("#cvExp").innerHTML = expHtml(); bindDel(); };
-  $("#cvOk").onclick = async () => {
-    if ($("#cvT").value.trim().length < 2) return toast("Scrivi che lavoro fai o cerchi.");
-    try{ const r = await rpc("cv_save", { p_title: $("#cvT").value, p_skills: $("#cvS").value.split(",").map(s => s.trim()).filter(Boolean), p_exp: exp, p_avail: $("#cvD").value,
-        p_zone: $("#cvZ").value, p_about: $("#cvA").value, p_contact: $("#cvC").value, p_visible: $("#cvV").checked });
-      if (r && r.errore) return toast(r.errore === "non_autorizzato" ? "Esci e rientra con il tuo account." : "Non salvato, riprova.");
-      closeSheet(); haptic(); toast("Curriculum salvato ✓"); loadJobs(); }catch(e){ toast("Non salvato: controlla la connessione."); }
-  };
+  closeSheet(); const c = (WK && WK.io && WK.io.cv) || {};
+  let exp = (c.esperienze || []).slice();
+  const expStep = { k: "_exp", q: "Le tue esperienze", hint: "Aggiungine quante vuoi, poi tocca Avanti.", type: "custom",
+    render: () => `<div id="wzExp">${exp.map((x, i) => `<div class="exprow"><span>💼 <b>${esc(x.ruolo)}</b>${x.azienda ? " · " + esc(x.azienda) : ""}${x.periodo ? " · " + esc(x.periodo) : ""}</span><button data-exd="${i}">✕</button></div>`).join("") || `<p class="wzh">Ancora nessuna esperienza.</p>`}</div>
+      <div class="wzopts"><button class="wzo" id="wzExpAdd">＋ Aggiungi un'esperienza</button></div><button class="btn wzgo" id="wzExpOk">Avanti ›</button>`,
+    bind: () => {
+      document.querySelectorAll("[data-exd]").forEach(b => b.onclick = () => { exp.splice(+b.dataset.exd, 1); wzPaint(); });
+      $("#wzExpOk").onclick = () => { WZ.v._exp = exp; wzNext(); };
+      $("#wzExpAdd").onclick = () => { const keep = WZ; wizard({ title: "Nuova esperienza", values: {}, steps: [
+          { k: "ruolo", q: "Che lavoro facevi?", type: "text", max: 60, chips: ["Cameriere", "Barista", "Cuoco", "Autista barca", "Marinaio", "Commesso", "Magazziniere", "Receptionist"] },
+          { k: "azienda", q: "Dove?", type: "text", max: 60, optional: true, ph: "Nome dell'azienda" },
+          { k: "periodo", q: "Quando?", type: "text", max: 30, optional: true, chips: ["Oggi", "2025-2026", "2024", "Estate 2025", "1 anno", "3 anni"] } ],
+        onDone: v => { exp.push({ ruolo: v.ruolo, azienda: v.azienda || "", periodo: v.periodo || "" }); WZ = keep; document.getElementById("wz").classList.remove("hidden"); wzPaint(); },
+        onCancel: () => { WZ = keep; document.getElementById("wz").classList.remove("hidden"); wzPaint(); } }); };
+    } };
+  wizard({ title: "Il tuo curriculum", values: { titolo: c.titolo || "", skills: (c.skills || []).join(", "), disponibilita: c.disponibilita, zona: c.zona || "", chi: c.chi || "", contatto: c.contatto || "", visibile: c.visibile !== false },
+    steps: [
+      { k: "titolo", q: "Che lavoro fai o cerchi?", type: "text", max: 80, chips: ["Cameriere/a", "Barista", "Cuoco/a", "Autista barca", "Marinaio", "Commesso/a", "Muratore", "Elettricista", "Idraulico", "Baby sitter", "Addetto/a alle pulizie", "Receptionist"],
+        check: t => t.length < 2 ? "Scrivi che lavoro fai o cerchi." : "" },
+      { k: "skills", q: "Cosa sai fare?", hint: "Tocca le competenze o scrivile separate da virgola.", type: "text", multi: true, max: 600,
+        chips: ["Patente nautica", "Patente B", "Inglese", "Tedesco", "Francese", "HACCP", "Cassa", "Caffetteria", "Cucina", "Pulizie", "Magazzino", "Computer", "Social media", "Lavori in barca"] },
+      expStep,
+      { k: "disponibilita", q: "Quando sei disponibile?", type: "choice", options: DISP.filter(Boolean).map(x => [x, x]) },
+      { k: "zona", q: "Dove vorresti lavorare?", type: "text", max: 60, chips: ["Venezia", "Mestre", "Lido", "Murano", "Ovunque in provincia"] },
+      { k: "chi", q: "Due righe su di te", type: "long", max: 600, optional: true, skipLabel: "Salta" },
+      { k: "contatto", q: "Come ti contattano le aziende?", hint: "Telefono o email. Lo vede chi apre il tuo curriculum.", type: "text", max: 120, optional: true, skipLabel: "Solo tramite l'app" },
+      { k: "visibile", q: "Vuoi comparire nella bacheca Lavoratori?", type: "yesno" }
+    ],
+    onDone: async v => {
+      try{ const r = await rpc("cv_save", { p_title: v.titolo, p_skills: String(v.skills || "").split(",").map(s => s.trim()).filter(Boolean), p_exp: v._exp || exp, p_avail: v.disponibilita || "",
+          p_zone: v.zona || "", p_about: v.chi || "", p_contact: v.contatto || "", p_visible: v.visibile !== false });
+        if (r && r.errore) return toast(r.errore === "non_autorizzato" ? "Esci e rientra con il tuo account." : "Non salvato, riprova.");
+        haptic(); toast("Curriculum salvato ✓"); loadJobs(); }catch(e){ toast("Non salvato: controlla la connessione."); }
+    } });
 }
 function renderProfile(){
   if (!PROFILE) return;
@@ -1616,6 +1668,7 @@ function initMap(){
   map.on("style.load", () => { styled = true; clearTimeout(fallback); addLayers(); });
   map.on("dragstart", e => { if (e.originalEvent) setFollow(false); });
   map.on("click", e => {
+    if (addMode === "wzpick"){ addMode = null; $("#modeHint").classList.add("hidden"); if (window._wzPick){ const f = window._wzPick; window._wzPick = null; f(e.lngLat); } return; }
     if (addMode === "picksport"){ addMode = null; $("#modeHint").classList.add("hidden"); SPF.pt = { lat: e.lngLat.lat, lng: e.lngLat.lng }; sportForm(); return; }
     if (addMode === "pickfrom"){ addMode = null; $("#modeHint").classList.add("hidden"); if (PLAN){ PLAN.from = { name: "Punto sulla mappa", lat: e.lngLat.lat, lng: e.lngLat.lng }; showPlan(); } return; }
     if (addMode === "zone") return zoneForm(e.lngLat);
@@ -2832,37 +2885,73 @@ let BOATS = store.get("ln_boats", []), boatId = store.get("ln_boat_active", null
 function activeBoat(){ return BOATS.find(b => b.id === boatId) || null; }
 function saveBoats(){ store.set("ln_boats", BOATS); store.set("ln_boat_active", boatId); }
 function newBoat(){ const b = { id: "b" + Date.now().toString(36), name: "", margin: 30, share: true }; BOATS.push(b); boatId = b.id; saveBoats(); return b; }
+function boatSteps(b, onlyMissing, onlyKey){
+  const unit = l => (l.match(/\(([^)]+)\)\s*$/) || [])[1] || "", clean = l => l.replace(/\s*\([^)]+\)\s*$/, "");
+  const steps = [];
+  BOAT_FORM.forEach(([sec, fields]) => fields.forEach(([k, label, type, extra, dep]) => {
+    if (onlyKey && k !== onlyKey) return;
+    const st = { k, q: clean(label) + (type === "check" ? "?" : ""), sec, optional: true };
+    if (dep) st.when = v => !!v[dep];
+    if (onlyMissing && !onlyKey){ const w = st.when; st.when = v => (!w || w(v)) && (v[k] === undefined || v[k] === "" || v[k] === null); }
+    if (type === "select"){ st.type = "choice"; st.options = extra.filter(Boolean).map(o => [o, o]); }
+    else if (type === "check"){ st.type = "yesno"; st.q = label + "?"; }
+    else if (type === "color") st.type = "color";
+    else if (type === "date"){ st.type = "text"; st.inputType = "date"; }
+    else if (type === "number" || type === "dec"){ st.type = "number"; st.unit = unit(label); if (extra && !extra.startsWith("es.")) st.hint = extra; }
+    else { st.type = "text"; if (extra && extra.startsWith("es.")) st.ph = extra; else if (extra) st.hint = extra; }
+    if (k === "name"){ st.q = "Come si chiama la tua barca?"; st.optional = false; }
+    if (k === "type") st.q = "Che tipo di barca è?";
+    if (k === "brand"){ st.q = "Che cantiere o marca?"; st.chips = [...new Set(BOAT_CAT.map(c => c[0]))]; st.hint = "Se è nella lista, inserisco io le misure del modello."; }
+    if (k === "model"){ st.q = "Che modello?"; st.chips = v => BOAT_CAT.filter(c => c[0] === v.brand).map(c => c[1]); }
+    if (k === "engBrand"){ st.q = "Che marca di motore?"; st.chips = [...new Set(ENG_CAT.map(c => c[0]))]; }
+    if (k === "engModel"){ st.q = "Che modello di motore?"; st.chips = v => ENG_CAT.filter(c => c[0].toLowerCase() === String(v.engBrand || "").toLowerCase()).map(c => c[1]); }
+    if (k === "hp") st.chips = [2.5, 6, 9.9, 15, 20, 25, 40, 60, 90, 115, 150].map(x => [x, x + " CV"]);
+    if (k === "margin"){ st.chips = [[20, "20 cm"], [30, "30 cm"], [50, "50 cm"]]; }
+    if (k === "persons") st.chips = [2, 3, 4, 5, 6, 8, 10].map(x => [x, String(x)]);
+    if (k === "propBlades") { st.type = "choice"; st.options = [[2, "2 pale"], [3, "3 pale"], [4, "4 pale"], [5, "5 pale"]]; }
+    steps.push(st);
+  }));
+  return steps;
+}
+function boatAsk(mode, key){
+  const b = activeBoat(); if (!b) return;
+  wizard({ title: key ? "La mia barca" : "La mia barca · " + (b.name || "nuova"), steps: boatSteps(b, mode === "missing", key), values: Object.assign({}, b),
+    onAnswer: (k, v, all) => {
+      b[k] = v; if (k === "propBlades") b[k] = Number(v);
+      if (k === "model"){ const c = BOAT_CAT.find(x => x[0] === b.brand && x[1] === v);
+        if (c){ Object.assign(b, { type: b.type || c[2], loa: c[3], beam: c[4], weight: c[5], hullDraft: c[6], airDraft: c[7] }); if (!b.name) b.name = c[1];
+          Object.assign(all, { type: b.type, loa: b.loa, beam: b.beam, weight: b.weight, hullDraft: b.hullDraft, airDraft: b.airDraft }); toast("Misure del modello inserite ✓ (controllale)"); } }
+      if (k === "engModel"){ const e2 = ENG_CAT.find(x => x[0].toLowerCase() === String(b.engBrand || "").toLowerCase() && x[1].toLowerCase() === String(v).toLowerCase());
+        if (e2){ ["hp", "stroke", "fuel"].forEach((kk, i) => { if (!b[kk]) b[kk] = [e2[2], e2[3], e2[4]][i]; }); if (!b.engType) b.engType = e2[3] === "Elettrico" ? "Elettrico" : "Fuoribordo"; Object.assign(all, { hp: b.hp, stroke: b.stroke, fuel: b.fuel, engType: b.engType }); } }
+      saveBoats(); boatSaved(); if (k === "colorHull" || k === "colorStripe") paintArrow(); paintEngChips(); if (lastPos) updateDepth(lastPos);
+    },
+    onDone: () => { renderBoat(); toast("Scheda della barca salvata ✓"); }, onCancel: renderBoat });
+}
+const fmtVal = (type, v, label) => { if (v === undefined || v === "" || v === null) return "";
+  if (type === "check") return v ? "Sì" : "No"; if (type === "color") return `<span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${esc(v)};vertical-align:middle;border:1px solid #fff4"></span>`;
+  const u = (label.match(/\(([^)]+)\)\s*$/) || [])[1]; return esc(String(v)) + (u && type !== "date" ? " " + esc(u) : ""); };
 function renderBoat(){
   if (!BOATS.length) newBoat();
   if (!activeBoat()) boatId = BOATS[0].id;
   const b = activeBoat();
   $("#boatSel").innerHTML = BOATS.map(x => `<option value="${x.id}" ${x.id === boatId ? "selected" : ""}>${esc(x.name || "Barca senza nome")}</option>`).join("");
   $("#boatShare").checked = b.share !== false;
-  $("#boatForm").innerHTML = BOAT_FORM.map(([title, fields]) => `<div class="card"><h4>${title}</h4>` + fields.map(([k, label, type, extra, dep]) => {
-    if (dep && !b[dep]) return "";
-    const v = b[k] ?? "";
-    if (type === "check") return `<label class="check" style="margin:6px 0;background:none;border:0;padding:0"><input type="checkbox" data-k="${k}" ${v ? "checked" : ""}><span>${label}</span></label>`;
-    const hint = type !== "select" && extra ? `<div class="hint">${extra}</div>` : "";
-    if (type === "select") return `<div class="field"><label>${label}</label><select data-k="${k}">${extra.map(o => `<option ${o === v ? "selected" : ""} value="${esc(o)}">${o ? esc(o) : "—"}</option>`).join("")}</select></div>`;
-    if (type === "color") return `<div class="field"><label>${label}</label><input type="color" data-k="${k}" value="${esc(v || (k === "colorHull" ? "#ffffff" : k === "colorDeck" ? "#c9b48a" : "#1a56db"))}" style="height:46px;padding:4px"></div>`;
-    const lists = { brand: "dlBrands", model: "dlModels", engBrand: "dlEngBrands", engModel: "dlEngModels" };
-    const it = (type === "dec" ? 'type="number" step="0.01" inputmode="decimal"' : type === "number" ? 'type="number" inputmode="numeric"' : type === "date" ? 'type="date"' : 'type="text"') + (lists[k] ? ` list="${lists[k]}" autocomplete="off"` : "");
-    return `<div class="field"><label>${label}</label><input ${it} data-k="${k}" value="${esc(v)}" ${type === "text" && extra && extra.startsWith("es.") ? `placeholder="${esc(extra)}"` : ""}>${type === "text" && extra && extra.startsWith("es.") ? "" : hint}</div>`;
-  }).join("") + `</div>`).join("");
-  $("#boatForm").insertAdjacentHTML("afterbegin", catalogCard(b));
+  let tot = 0, done = 0;
+  const secs = BOAT_FORM.map(([title, fields]) => { const rows = fields.filter(([, , , , dep]) => !dep || b[dep]).map(([k, label, type]) => { tot++; const val = fmtVal(type, b[k], label); if (val) done++;
+      return `<div class="row1" data-bq="${k}"><span>${esc(label.replace(/\s*\([^)]+\)\s*$/, ""))}</span><b>${val || '<i style="color:#5b6b80;font-weight:400">da rispondere ›</i>'}</b></div>`; }).join("");
+    return `<div class="card"><h4>${title}</h4><div class="wzsum">${rows}</div></div>`; }).join("");
+  const miss = tot - done;
+  $("#boatForm").innerHTML = `<div class="card" style="text-align:center">
+      <div style="font-size:15px;color:var(--muted)">Scheda compilata al <b style="color:#fff">${Math.round(done / tot * 100)}%</b></div>
+      <div class="spbar" style="margin:8px 0 12px"><i style="width:${Math.round(done / tot * 100)}%;background:#2f8cff"></i></div>
+      ${miss ? `<button class="btn" id="bqMiss">✨ Rispondi alle domande (${miss})</button>` : `<p style="margin:4px 0 10px">Scheda completa ✓</p>`}
+      <button class="btn ghost" id="bqAll" style="margin-top:8px">Rifai tutte le domande</button>
+      <p class="muted" style="font-size:12px;margin-top:8px">Tocca una riga qui sotto per cambiare solo quella risposta.</p></div>` + secs;
   $("#boatForm").insertAdjacentHTML("beforeend", docsCard());
-  fillDatalists(b); bindCatalog(b); renderDocs();
-  $("#boatForm").querySelectorAll("[data-k]").forEach(el => el.addEventListener(el.type === "checkbox" || el.tagName === "SELECT" || el.type === "color" ? "change" : "input", () => {
-    const k = el.dataset.k;
-    b[k] = el.type === "checkbox" ? el.checked : el.type === "number" ? (el.value === "" ? "" : Number(el.value)) : el.value;
-    saveBoats(); boatSaved();
-    if (k === "name") $("#boatSel").selectedOptions[0].textContent = b.name || "Barca senza nome";
-    if (k === "hasTrim" || k === "hasLift" || k === "foldable") renderBoat();
-    if (k === "brand" || k === "engBrand") fillDatalists(b);
-    if (k === "engModel") applyEngine(b, false);
-    if (k === "colorHull") paintArrow();
-    paintEngChips(); if (lastPos) updateDepth(lastPos);
-  }));
+  renderDocs();
+  if ($("#bqMiss")) $("#bqMiss").onclick = () => boatAsk("missing");
+  $("#bqAll").onclick = () => boatAsk("all");
+  $("#boatForm").querySelectorAll("[data-bq]").forEach(r => r.onclick = () => boatAsk("one", r.dataset.bq));
 }
 let shareTimer = null;
 function boatSaved(){
@@ -2876,7 +2965,7 @@ async function shareBoat(){
   try{ await api("rpc/catalog_upsert", { method: "POST", body: { p_token: TOKEN, p_key: b.id, p_specs: specs } }); $("#boatSaved").textContent = "Salvato ✓ e aggiunto al catalogo"; }catch(e){}
 }
 $("#boatSel").onchange = e => { boatId = e.target.value; saveBoats(); renderBoat(); paintEngChips(); };
-$("#boatNew").onclick = () => { newBoat(); renderBoat(); paintEngChips(); };
+$("#boatNew").onclick = () => { newBoat(); renderBoat(); paintEngChips(); boatAsk("missing"); };
 $("#boatShare").onchange = e => { const b = activeBoat(); b.share = e.target.checked; saveBoats(); if (b.share) shareBoat(); };
 $("#boatDel").onclick = () => {
   const b = activeBoat(); if (!b) return;
@@ -3881,29 +3970,25 @@ function renderEvents(){
   document.querySelectorAll("[data-evdel]").forEach(b => b.onclick = async () => { try{ await rpc("event_delete", { p_id: +b.dataset.evdel }); }catch(e){} eventsAt = 0; await loadEvents(); renderEvents(); });
 }
 function evForm(){
-  const t = isoDay(new Date());
-  $("#sheetIn").innerHTML = `<h3>Segnala un evento</h3>
-    <div class="field"><label>Titolo</label><input id="efT" maxlength="90" placeholder="es. Festa in campo Santa Margherita"></div>
-    <div class="field"><label>Tipo</label><select id="efK">${Object.entries(EV_KINDS).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}</select></div>
-    <div class="field"><label>Dove</label><input id="efP" maxlength="90" placeholder="es. Campo Santa Margherita"></div>
-    <div class="row"><div class="field"><label>Dal</label><input id="efF" type="date" value="${t}" min="${t}"></div><div class="field"><label>Al</label><input id="efTo" type="date" value="${t}" min="${t}"></div></div>
-    <div class="field"><label>Ora (facoltativa)</label><input id="efH" maxlength="20" placeholder="es. 19:00"></div>
-    <div class="field"><label>Due righe (facoltative)</label><input id="efI" maxlength="240" placeholder="es. Musica dal vivo, ingresso libero"></div>
-    <label class="check" style="margin:6px 0 10px"><input type="checkbox" id="efHere"><span>Metti il punto sulla mappa dove sono adesso</span></label>
-    <button class="btn" id="efOk">Pubblica</button><button class="btn ghost" style="margin-top:10px" id="efBack">Indietro</button>`;
-  $("#efBack").onclick = renderEvents;
-  $("#efOk").onclick = async () => {
-    const title = $("#efT").value.trim(); if (title.length < 3) return toast("Scrivi il titolo dell'evento.");
-    const from = $("#efF").value, to = $("#efTo").value < from ? from : $("#efTo").value, here = $("#efHere").checked && lastPos;
-    let place = $("#efP").value.trim(), pt = here ? { lat: lastPos.lat, lng: lastPos.lng } : null;
-    if (!pt && place){ try{ pt = await geocodeVenice(place); }catch(e){} }
-    $("#efOk").disabled = true;
-    try{ const j = await rpc("event_add", { p_title: title, p_kind: $("#efK").value, p_place: place, p_from: from, p_to: to, p_hour: $("#efH").value, p_info: $("#efI").value, p_lat: pt ? pt.lat : null, p_lng: pt ? pt.lng : null });
-      if (j && j.errore){ $("#efOk").disabled = false; return toast(j.errore === "troppi" ? "Hai già segnalato 5 eventi oggi." : j.errore === "data" ? "Controlla la data." : "Esci e rientra con il tuo account per segnalare eventi."); }
-      const mine = store.get("ln_my_events", []); mine.push(j.id); store.set("ln_my_events", mine);
-      eventsAt = 0; await loadEvents(); renderEvents(); toast("Evento pubblicato ✓");
-    }catch(e){ $("#efOk").disabled = false; toast("Non pubblicato: controlla la connessione."); }
-  };
+  closeSheet();
+  wizard({ title: "Segnala una festa o un evento", values: {},
+    steps: [
+      { k: "kind", q: "Che cos'è?", type: "choice", options: Object.entries(EV_KINDS) },
+      { k: "title", q: "Come si chiama?", type: "text", max: 90, ph: "es. Festa in campo Santa Margherita", check: t => t.length < 3 ? "Scrivi almeno 3 lettere." : "" },
+      { k: "place", q: "Dove?", type: "place", ph: "es. Campo Santa Margherita", hereName: "Qui vicino", chips: v => placeSuggest().slice(0, 10) },
+      { k: "from", q: "Quando comincia?", type: "day", days: 14 },
+      { k: "len", q: "Quanto dura?", type: "choice", options: [[0, "Solo quel giorno"], [1, "2 giorni"], [2, "3 giorni"], [6, "Una settimana"]] },
+      { k: "hour", q: "A che ora?", type: "time", optional: true, skipLabel: "Non lo so / tutto il giorno" },
+      { k: "info", q: "Due righe per spiegare?", type: "text", max: 240, optional: true, skipLabel: "No, pubblica così", ph: "es. Musica dal vivo, ingresso libero", chips: ["Ingresso libero", "Musica dal vivo", "DJ set", "Cibo e bevande", "Su prenotazione"] }
+    ],
+    onDone: async v => {
+      const to = new Date(new Date(v.from + "T12:00:00").getTime() + (v.len || 0) * 864e5).toISOString().slice(0, 10);
+      try{ const j2 = await rpc("event_add", { p_title: v.title, p_kind: v.kind, p_place: v.place.name, p_from: v.from, p_to: to, p_hour: v.hour || "", p_info: v.info || "", p_lat: v.place.lat, p_lng: v.place.lng });
+        if (j2 && j2.errore) return toast(j2.errore === "troppi" ? "Hai già segnalato 5 eventi oggi." : j2.errore === "data" ? "Controlla la data." : "Esci e rientra con il tuo account per segnalare eventi.");
+        const mine = store.get("ln_my_events", []); mine.push(j2.id); store.set("ln_my_events", mine);
+        eventsAt = 0; toast("Evento pubblicato ✓"); openEvents();
+      }catch(e){ toast("Non pubblicato: controlla la connessione."); }
+    } });
 }
 $("#evBanner").onclick = openEvents;
 
@@ -3975,36 +4060,30 @@ function shrinkPhoto(file){
 }
 $("#meetBanner").onclick = () => {
   const mine = STATI.find(s => s.mio);
-  let tipo = mine ? mine.tipo : "aperitivo", foto = null;
-  openSheet(`<h3>Il tuo stato</h3>
-    <div class="kinds">${Object.entries(MEET_KINDS).map(([k, v]) => `<button data-k="${k}" class="${k === tipo ? "on" : ""}"><span>${v[0]}</span>${v[1]}</button>`).join("")}</div>
-    <div class="field"><label>Foto</label><label class="photoPick" id="phPick"><input type="file" accept="image/*" id="phIn" hidden><span id="phTxt">📷 Scatta o scegli una foto</span></label></div>
-    <div class="field"><label>Due parole (facoltativo)</label><input id="stTxt" maxlength="140" placeholder="es. Spritz in Fondamenta della Misericordia?" value="${mine && mine.testo ? esc(mine.testo) : ""}"></div>
-    <div class="field"><label>Dove sei? Bar, campo o piazza (facoltativo)</label><input id="stLuogo" list="dlLuoghi" maxlength="60" placeholder="es. Campo Santa Margherita" value="${mine && mine.luogo ? esc(mine.luogo) : ""}"><datalist id="dlLuoghi">${placeSuggest().map(n => `<option value="${esc(n)}">`).join("")}</datalist></div>
-    <div class="field"><label>Zona</label><select id="stZona">${Object.keys(MEET_ZONES).map(z => `<option ${z === (mine ? mine.zona : nearestZone()) ? "selected" : ""}>${esc(z)}</option>`).join("")}</select></div>
-    <p class="hint" style="line-height:1.4">Gli altri vedono solo la zona, mai dove sei. Lo stato sparisce da solo dopo 24 ore.</p>
-    <button class="btn" id="stOk">Pubblica</button>
-    ${mine ? `<button class="btn ghost" id="stDel" style="margin-top:10px">Togli il mio stato</button>` : ""}
-    <p class="hint" id="stMsg" style="text-align:center;margin-top:8px"></p>`);
-  document.querySelectorAll(".kinds [data-k]").forEach(b => b.onclick = () => { tipo = b.dataset.k; document.querySelectorAll(".kinds [data-k]").forEach(x => x.classList.toggle("on", x === b)); });
-  $("#phIn").onchange = async () => { const f = $("#phIn").files[0]; if (!f) return; $("#phTxt").textContent = "Preparo la foto…";
-    try{ foto = await shrinkPhoto(f); $("#phPick").style.backgroundImage = `url('${foto}')`; $("#phPick").classList.add("has"); $("#phTxt").textContent = "Cambia foto"; }
-    catch(e){ $("#phTxt").textContent = "Questa foto non si apre, provane un'altra"; } };
-  $("#stOk").onclick = async () => {
-    if (!foto && !(mine && mine.foto)){ $("#stMsg").textContent = "Aggiungi una foto."; return; }
-    $("#stOk").disabled = true; $("#stMsg").textContent = "Pubblico…";
-    try{
-      const send = async () => (await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/stato", { method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ token: TOKEN, tipo, testo: $("#stTxt").value, luogo: $("#stLuogo").value, zona: $("#stZona").value, foto }) }, 30000)).json();
-      let j = await send();
-      // se il server non sapeva ancora dei 18 anni, glielo dice e riprova una volta
-      if (j.errore === "non_autorizzato" && await syncAdult()) j = await send();
-      if (!j.ok){ $("#stOk").disabled = false;
-        $("#stMsg").textContent = j.errore === "non_autorizzato" ? "Il server non riconosce questo telefono: esci dall'account e rientra (myClick → Esci)." : j.errore === "foto" ? "Foto non valida, provane un'altra." : "Non riuscito, riprova."; return; }
-      closeSheet(); toast("Stato pubblicato ✓"); loadStati();
-    }catch(e){ $("#stOk").disabled = false; $("#stMsg").textContent = "Serve la connessione internet."; }
-  };
-  const d = $("#stDel"); if (d) d.onclick = async () => { try{ await rpc("status_delete", {}); }catch(e){} closeSheet(); loadStati(); };
+  wizard({ title: "Il tuo stato", values: mine ? { tipo: mine.tipo, testo: mine.testo || "", luogo: mine.luogo || "", zona: mine.zona } : { zona: nearestZone() },
+    steps: [
+      ...(mine ? [{ k: "act", q: "Hai già uno stato attivo", type: "choice", options: [["new", "✨ Pubblicane uno nuovo"], ["del", "🗑️ Togli il mio stato"]] }] : []),
+      { k: "tipo", q: "Cosa ti va di fare?", type: "choice", options: Object.entries(MEET_KINDS).map(([k, v]) => [k, v[0] + " " + v[1]]), when: v => v.act !== "del" },
+      { k: "foto", q: "Mettici una foto", hint: "Scattala adesso o sceglila dalla galleria.", type: "photo", when: v => v.act !== "del" },
+      { k: "luogo", q: "Dove sei?", hint: "Bar, campo o piazza. Gli altri vedono il nome, ma sulla mappa compari solo nella zona.", type: "text", max: 60, optional: true, skipLabel: "Non lo dico",
+        chips: () => placeSuggest().slice(0, 12), when: v => v.act !== "del" },
+      { k: "zona", q: "In che zona?", type: "choice", options: () => Object.keys(MEET_ZONES).map(z => [z, z]), when: v => v.act !== "del" },
+      { k: "testo", q: "Due parole?", type: "text", max: 140, optional: true, skipLabel: "No, pubblica così", ph: "es. Spritz in Misericordia?",
+        chips: ["Chi viene per uno spritz?", "Nuovo in città, cerco compagnia", "Stasera si esce!", "Partita a carte?"], when: v => v.act !== "del" }
+    ],
+    onDone: async v => {
+      if (v.act === "del"){ try{ await rpc("status_delete", {}); }catch(e){} toast("Stato tolto."); loadStati(); return; }
+      if (!v.foto && !(mine && mine.foto)) return toast("Serve una foto per pubblicare lo stato.");
+      toast("Pubblico…");
+      try{
+        const send = async () => (await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/stato", { method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ token: TOKEN, tipo: v.tipo, testo: v.testo || "", luogo: v.luogo || "", zona: v.zona, foto: v.foto || null }) }, 30000)).json();
+        let r = await send();
+        if (r.errore === "non_autorizzato" && await syncAdult()) r = await send();
+        if (!r.ok) return toast(r.errore === "non_autorizzato" ? "Esci dall'account e rientra (myClick → Esci)." : r.errore === "foto" ? "Foto non valida, provane un'altra." : "Non riuscito, riprova.");
+        toast("Stato pubblicato ✓"); loadStati();
+      }catch(e){ toast("Serve la connessione internet."); }
+    } });
 };
 // locali e campi vicini da proporre quando aggiorni lo stato
 function placeSuggest(){
@@ -4179,34 +4258,29 @@ function openSport(e){
   $("#spGo").onclick = () => { closeSheet(); setMode("nautica"); openPlan({ name: e.luogo || e.titolo, lat: e.lat, lng: e.lng }); };
 }
 function sportForm(){
-  const nx = new Date(Date.now() + 3600e3); nx.setMinutes(0, 0, 0);
-  const loc = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-  SPF = Object.assign({ sport: "calcetto", when: loc(nx), max: 10, level: "tutti", title: "", place: "", note: "" }, SPF);
-  openSheet(`<h3>＋ Nuovo evento sportivo</h3>
-    <div class="field"><label>Sport</label><select id="sfS">${Object.entries(SPORTS).map(([k, v]) => `<option value="${k}" ${k === SPF.sport ? "selected" : ""}>${v[0]} ${v[1]}</option>`).join("")}</select></div>
-    <div class="field"><label>Titolo</label><input id="sfT" maxlength="80" placeholder="es. Calcetto 5 contro 5, manca gente!" value="${esc(SPF.title)}"></div>
-    <div class="row"><div class="field"><label>Quando</label><input id="sfW" type="datetime-local" value="${SPF.when}"></div>
-      <div class="field" style="max-width:110px"><label>Giocatori</label><input id="sfM" type="number" min="2" max="60" value="${SPF.max}"></div></div>
-    <div class="field"><label>Dove</label><input id="sfP" maxlength="90" placeholder="es. Campo di Sant'Elena, Palestra di Cannaregio" value="${esc(SPF.place)}"></div>
-    <p class="muted" id="sfPt" style="margin:-4px 0 8px">${SPF.pt ? "📍 Punto scelto sulla mappa ✓" : "📍 Se non scegli un punto uso il nome del posto o la tua posizione."} <a href="#" id="sfPick" style="color:#7fc1ff">Scegli sulla mappa</a></p>
-    <div class="field"><label>Livello</label><select id="sfL">${Object.entries(LEVELS).map(([k, v]) => `<option value="${k}" ${k === SPF.level ? "selected" : ""}>${v}</option>`).join("")}</select></div>
-    <div class="field"><label>Note (facoltative)</label><input id="sfN" maxlength="300" placeholder="es. porta la maglia bianca, campo prenotato, 5 € a testa" value="${esc(SPF.note)}"></div>
-    <button class="btn" id="sfOk">Pubblica l'evento</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
-  const save = () => { SPF.sport = $("#sfS").value; SPF.title = $("#sfT").value; SPF.when = $("#sfW").value; SPF.max = +$("#sfM").value || 10; SPF.place = $("#sfP").value; SPF.level = $("#sfL").value; SPF.note = $("#sfN").value; };
-  $("#sfS").onchange = () => { const d = SPORTS[$("#sfS").value]; if (d) $("#sfM").value = d[2]; };
-  $("#sfPick").onclick = ev => { ev.preventDefault(); save(); closeSheet(); addMode = "picksport"; const h = $("#modeHint"); h.textContent = "Tocca la mappa dove si gioca"; h.classList.remove("hidden"); };
-  $("#sfOk").onclick = async () => {
-    save(); if (SPF.title.trim().length < 3) return toast("Scrivi un titolo.");
-    const when = new Date(SPF.when); if (isNaN(when) || when < Date.now() - 600000) return toast("Controlla data e ora.");
-    let pt = SPF.pt; if (!pt && SPF.place.trim()){ try{ pt = await geocodeVenice(SPF.place); }catch(_){} }
-    if (!pt && lastPos) pt = { lat: lastPos.lat, lng: lastPos.lng };
-    if (!pt) return toast("Scegli il posto sulla mappa o scrivi un indirizzo.");
-    $("#sfOk").disabled = true;
-    try{ const j = await rpc("sport_create", { p_sport: SPF.sport, p_title: SPF.title, p_place: SPF.place, p_lat: pt.lat, p_lng: pt.lng, p_when: when.toISOString(), p_max: Math.max(2, Math.min(60, SPF.max)), p_level: SPF.level, p_note: SPF.note });
-      if (j && j.errore){ $("#sfOk").disabled = false; return toast(j.errore === "troppi" ? "Hai creato tanti eventi oggi: riprova domani." : j.errore === "data" ? "La data deve essere entro 45 giorni." : "Esci e rientra con il tuo account per creare eventi."); }
-      SPF = {}; closeSheet(); haptic(); toast("Evento pubblicato ✓"); await loadSport(); const n = SPEV.find(x => x.id === j.id); if (n) openSport(n);
-    }catch(_){ $("#sfOk").disabled = false; toast("Non pubblicato: controlla la connessione."); }
-  };
+  const TITLES = { calcetto: ["Calcetto 5 contro 5", "Partitella a calcetto", "Cerchiamo 2 giocatori"], calcio: ["Partita a calcio 11 contro 11", "Calcio a 7"], basket: ["Basket 3 contro 3", "Tiri al campetto"],
+    pallavolo: ["Pallavolo 6 contro 6", "Partita a pallavolo"], beach: ["Beach volley 2 contro 2"], tennis: ["Tennis singolo", "Tennis doppio"], padel: ["Padel, cerco il quarto"],
+    corsa: ["Corsa lungo le Zattere", "Corsa al Lido", "Corsa a Sant'Elena"], voga: ["Uscita in voga alla veneta", "Allenamento di voga"], bici: ["Giro in bici al Lido", "Giro in bici a Pellestrina"], altro: ["Allenamento insieme"] };
+  wizard({ title: "Nuovo evento sportivo", values: {},
+    steps: [
+      { k: "sport", q: "Che sport?", type: "choice", options: Object.entries(SPORTS).map(([k, v]) => [k, v[0] + " " + v[1]]) },
+      { k: "title", q: "Dagli un titolo", type: "text", max: 80, ph: "es. Calcetto, manca gente!", chips: v => TITLES[v.sport] || [], check: t => t.length < 3 ? "Scrivi almeno 3 lettere." : "" },
+      { k: "day", q: "Che giorno?", type: "day", days: 10 },
+      { k: "time", q: "A che ora?", type: "time" },
+      { k: "place", q: "Dove si gioca?", type: "place", ph: "es. Campo di Sant'Elena", hereName: "Vicino a me",
+        chips: ["Campo sportivo di Sant'Elena", "Campetto della Giudecca", "Palasport Arsenale", "Lido, spiaggia libera", "Parco San Giuliano (Mestre)", "Zattere"] },
+      { k: "max", q: "Quanti giocatori in tutto?", type: "choice", options: v => { const d = (SPORTS[v.sport] || SPORTS.altro)[2]; return [...new Set([d, 2, 4, 6, 8, 10, 12, 14, 22])].sort((a, b) => a - b).map(n => [n, n + (n === d ? " (classico)" : "")]); } },
+      { k: "level", q: "Che livello?", type: "choice", options: Object.entries(LEVELS) },
+      { k: "note", q: "Vuoi aggiungere una nota?", type: "text", max: 300, optional: true, skipLabel: "No, pubblica così", ph: "es. 5 € a testa, porta la maglia bianca",
+        chips: ["Campo già prenotato", "5 € a testa", "Porta la maglia bianca", "Porta il pallone", "Si gioca anche se piove"] }
+    ],
+    onDone: async v => {
+      const when = new Date(v.day + "T" + v.time); if (isNaN(when) || when < Date.now() - 600000) return toast("Quel giorno e quell'ora sono già passati.");
+      try{ const r = await rpc("sport_create", { p_sport: v.sport, p_title: v.title, p_place: v.place.name, p_lat: v.place.lat, p_lng: v.place.lng, p_when: when.toISOString(), p_max: v.max, p_level: v.level, p_note: v.note || "" });
+        if (r && r.errore) return toast(r.errore === "troppi" ? "Hai creato tanti eventi oggi: riprova domani." : r.errore === "data" ? "La data deve essere entro 45 giorni." : "Esci e rientra con il tuo account per creare eventi.");
+        haptic(); toast("Evento pubblicato ✓"); await loadSport(); const n = SPEV.find(x => x.id === r.id); if (n) openSport(n);
+      }catch(e){ toast("Non pubblicato: controlla la connessione."); }
+    } });
 }
 $("#spNew").onclick = () => { SPF = {}; sportForm(); };
 
@@ -4360,6 +4434,105 @@ $("#vcRep").onclick = () => {
   document.querySelectorAll("[data-vr]").forEach(b => b.onclick = async () => { closeSheet(); try{ await rpc("vc_report", { p_room: room, p_reason: b.dataset.vr }); }catch(e){} toast("Segnalato e bloccato. Grazie."); vcSearch(); });
 };
 window.addEventListener("pagehide", () => { if (VC.room || VC.timer) rpc("vc_leave", {}).catch(() => {}); });
+
+/* =========================================================
+   DOMANDE UNA ALLA VOLTA: al posto dei moduli da riempire
+   ogni domanda occupa lo schermo; toccando una risposta si passa alla successiva
+   tipi: choice · yesno · text · number · color · day · time · place · photo · custom
+   ========================================================= */
+let WZ = null;
+function wizard(o){
+  // o = { title, steps:[{k,q,hint,type,options:[[valore,etichetta]],chips:[],optional,when(v),min,max,unit}], values, onAnswer(k,v,values), onDone(values), doneLabel }
+  WZ = { o, v: Object.assign({}, o.values || {}), i: -1, hist: [] };
+  let el = document.getElementById("wz");
+  if (!el){ el = document.createElement("div"); el.id = "wz"; document.body.appendChild(el); }
+  el.classList.remove("hidden"); wzNext();
+}
+function wzClose(){ const el = document.getElementById("wz"); if (el){ el.classList.add("hidden"); el.innerHTML = ""; } if (WZ && WZ.cam){ WZ.cam.getTracks().forEach(t => t.stop()); } WZ = null; }
+function wzVisible(){ return WZ.o.steps.map((s, i) => i).filter(i => !WZ.o.steps[i].when || WZ.o.steps[i].when(WZ.v)); }
+function wzNext(){
+  const vis = wzVisible(), next = vis.find(i => i > WZ.i);
+  if (next === undefined){ const o = WZ.o, v = WZ.v; wzClose(); o.onDone && o.onDone(v); return; }
+  if (WZ.i >= 0) WZ.hist.push(WZ.i); WZ.i = next; wzPaint();
+}
+function wzBack(){ if (!WZ.hist.length){ wzClose(); return; } WZ.i = WZ.hist.pop(); wzPaint(); }
+function wzSet(val, go){
+  const s = WZ.o.steps[WZ.i]; WZ.v[s.k] = val; try{ haptic(); }catch(e){}
+  WZ.o.onAnswer && WZ.o.onAnswer(s.k, val, WZ.v);
+  if (go !== false) setTimeout(wzNext, 140);
+}
+function wzPaint(){
+  const s = WZ.o.steps[WZ.i], vis = wzVisible(), n = vis.indexOf(WZ.i) + 1, tot = vis.length, cur = WZ.v[s.k];
+  if (WZ.cam){ WZ.cam.getTracks().forEach(t => t.stop()); WZ.cam = null; }
+  const q = typeof s.q === "function" ? s.q(WZ.v) : s.q, opts = typeof s.options === "function" ? s.options(WZ.v) : s.options, chips = typeof s.chips === "function" ? s.chips(WZ.v) : s.chips;
+  let body = "";
+  if (s.type === "choice") body = `<div class="wzopts${(opts || []).length > 6 ? " grid" : ""}">${(opts || []).map(([v, l], i) => `<button class="wzo${String(v) === String(cur) ? " on" : ""}" data-wi="${i}">${l}</button>`).join("")}</div>`;
+  else if (s.type === "yesno") body = `<div class="wzopts two"><button class="wzo${cur === true ? " on" : ""}" data-yn="1">👍 Sì</button><button class="wzo${cur === false ? " on" : ""}" data-yn="0">👎 No</button></div>`;
+  else if (s.type === "color") body = `<div class="wzcols">${(opts || ["#ffffff", "#111111", "#1a56db", "#0b2a5b", "#c8102e", "#0a8f4e", "#f59e0b", "#c9b48a", "#6b7280", "#7c3aed", "#0891b2", "#8b4513"]).map(c => `<button class="wzcol${c === cur ? " on" : ""}" data-col="${c}" style="background:${c}"></button>`).join("")}</div>`;
+  else if (s.type === "text" || s.type === "number" || s.type === "long"){
+    const inp = s.type === "long" ? `<textarea id="wzIn" rows="4" maxlength="${s.max || 600}" placeholder="${esc(s.ph || "")}">${esc(cur ?? "")}</textarea>`
+      : `<input id="wzIn" ${s.type === "number" ? `type="number" inputmode="decimal" step="any"` : `type="${s.inputType || "text"}" maxlength="${s.max || 120}"`} placeholder="${esc(s.ph || "")}" value="${esc(cur ?? "")}" autocomplete="off">`;
+    body = `<div class="wzin">${inp}${s.unit ? `<span>${esc(s.unit)}</span>` : ""}</div>` +
+      ((chips || []).length ? `<div class="wzchips">${chips.map((c, i) => `<button data-ci="${i}">${esc(Array.isArray(c) ? c[1] : c)}</button>`).join("")}</div>` : "") +
+      `<button class="btn wzgo" id="wzOk">Avanti ›</button>`;
+  }
+  else if (s.type === "day"){
+    const days = []; for (let d = 0; d < (s.days || 8); d++){ const t = new Date(Date.now() + d * 864e5); days.push([t.toISOString().slice(0, 10), d === 0 ? "Oggi" : d === 1 ? "Domani" : t.toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "short" })]); }
+    body = `<div class="wzopts grid">${days.map(([v, l], i) => `<button class="wzo${v === cur ? " on" : ""}" data-day="${v}">${l}</button>`).join("")}</div><div class="wzin"><input id="wzIn" type="date" value="${esc(cur || "")}"></div><button class="btn wzgo" id="wzOk">Avanti ›</button>`;
+  }
+  else if (s.type === "time"){
+    const ts = s.times || ["08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00"];
+    body = `<div class="wzopts grid tm">${ts.map(t => `<button class="wzo${t === cur ? " on" : ""}" data-tm="${t}">${t}</button>`).join("")}</div><div class="wzin"><input id="wzIn" type="time" value="${esc(cur || "")}"></div><button class="btn wzgo" id="wzOk">Avanti ›</button>`;
+  }
+  else if (s.type === "place"){
+    body = `<div class="wzopts"><button class="wzo" id="wzHere">📍 Dove sono adesso</button><button class="wzo" id="wzMap">👆 Lo tocco sulla mappa</button></div>
+      <div class="wzin"><input id="wzIn" type="text" maxlength="90" placeholder="${esc(s.ph || "oppure scrivi il posto")}" value="${esc((cur && cur.name) || "")}"></div>
+      ${(chips || []).length ? `<div class="wzchips">${chips.map((c, i) => `<button data-ci="${i}">${esc(c)}</button>`).join("")}</div>` : ""}<button class="btn wzgo" id="wzOk">Avanti ›</button>`;
+  }
+  else if (s.type === "photo"){
+    body = `<div class="wzph" id="wzPh" style="${cur ? `background-image:url('${cur}')` : ""}">${cur ? "" : "📷"}</div>
+      <div class="wzopts two"><label class="wzo">🤳 Scatta<input type="file" accept="image/*" capture="user" id="wzCam" hidden></label><label class="wzo">🖼️ Galleria<input type="file" accept="image/*" id="wzGal" hidden></label></div>
+      ${cur ? `<button class="btn wzgo" id="wzOk">Avanti ›</button>` : ""}`;
+  }
+  else if (s.type === "custom") body = s.render(WZ.v);
+  document.getElementById("wz").innerHTML = `<div class="wzbar"><button id="wzBack" aria-label="Indietro">‹</button><div class="wzprog"><i style="width:${Math.round(n / tot * 100)}%"></i></div><span>${n}/${tot}</span><button id="wzX" aria-label="Chiudi">✕</button></div>
+    <div class="wzmain">${WZ.o.title ? `<div class="wzt">${esc(WZ.o.title)}</div>` : ""}<h2 class="wzq">${q}</h2>${s.hint ? `<p class="wzh">${s.hint}</p>` : ""}${body}
+    ${s.optional ? `<button class="wzskip" id="wzSkip">${s.skipLabel || "Salta"}</button>` : ""}</div>`;
+  $("#wzBack").onclick = wzBack; $("#wzX").onclick = () => { const o = WZ.o; wzClose(); o.onCancel && o.onCancel(); };
+  if ($("#wzSkip")) $("#wzSkip").onclick = () => { if (WZ.v[s.k] === undefined) WZ.v[s.k] = ""; wzNext(); };
+  const wzIn = $("#wzIn");
+  document.querySelectorAll("#wz [data-wi]").forEach(b => b.onclick = () => wzSet(opts[+b.dataset.wi][0]));
+  document.querySelectorAll("#wz [data-yn]").forEach(b => b.onclick = () => wzSet(b.dataset.yn === "1"));
+  document.querySelectorAll("#wz [data-col]").forEach(b => b.onclick = () => wzSet(b.dataset.col));
+  document.querySelectorAll("#wz [data-day]").forEach(b => b.onclick = () => wzSet(b.dataset.day));
+  document.querySelectorAll("#wz [data-tm]").forEach(b => b.onclick = () => wzSet(b.dataset.tm));
+  document.querySelectorAll("#wz [data-ci]").forEach(b => b.onclick = () => { const c = chips[+b.dataset.ci], val = Array.isArray(c) ? c[0] : c;
+    if (s.type === "place"){ wzIn.value = val; return $("#wzOk").click(); }
+    if (s.multi){ const parts = String(wzIn.value || "").split(",").map(x => x.trim()).filter(Boolean); if (!parts.includes(val)) parts.push(val); wzIn.value = parts.join(", "); b.classList.add("on"); return; }
+    wzSet(s.type === "number" ? Number(val) : val); });
+  const ok = $("#wzOk");
+  if (ok) ok.onclick = async () => {
+    if (s.type === "place"){ const t = wzIn.value.trim(); if (!t){ if (cur && cur.lat) return wzNext(); return toast("Scegli o scrivi un posto."); }
+      ok.disabled = true; ok.textContent = "Cerco…"; let g = null; try{ g = await geocodeVenice(t); }catch(e){} ok.disabled = false; ok.textContent = "Avanti ›";
+      if (!g) return toast("Non trovo questo posto: prova a toccarlo sulla mappa."); return wzSet({ name: t, lat: g.lat, lng: g.lng }); }
+    if (s.type === "photo") return wzNext();
+    let val = wzIn ? wzIn.value.trim() : "";
+    if (!val){ if (s.optional){ WZ.v[s.k] = ""; return wzNext(); } return toast("Rispondi o tocca una delle proposte."); }
+    if (s.type === "number"){ val = Number(String(val).replace(",", ".")); if (isNaN(val) || (s.min !== undefined && val < s.min) || (s.max !== undefined && val > s.max)) return toast("Controlla il numero."); }
+    if (s.check){ const err = s.check(val, WZ.v); if (err) return toast(err); }
+    wzSet(val);
+  };
+  if (wzIn && wzIn.tagName === "INPUT" && s.type !== "day" && s.type !== "time"){ wzIn.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); ok && ok.click(); } }); if (s.type !== "place") setTimeout(() => wzIn.focus(), 150); }
+  if (s.type === "place"){
+    $("#wzHere").onclick = () => { if (!lastPos){ if (watchId === null){ askCompass(); startGps(); } return toast("Aspetto il GPS: riprova tra un attimo."); } wzSet({ name: s.hereName || "Dove ero io", lat: lastPos.lat, lng: lastPos.lng }); };
+    $("#wzMap").onclick = () => { const keep = WZ; document.getElementById("wz").classList.add("hidden"); addMode = "wzpick"; const h = $("#modeHint"); h.textContent = "Tocca la mappa nel punto giusto"; h.classList.remove("hidden");
+      window._wzPick = ll => { WZ = keep; document.getElementById("wz").classList.remove("hidden"); wzSet({ name: (wzIn && wzIn.value.trim()) || "Punto sulla mappa", lat: ll.lat, lng: ll.lng }); };
+      if (typeof setMode === "function" && $("#v-map").classList.contains("hidden")) showView("map"); };
+  }
+  if (s.type === "photo"){ const pick = async f => { if (!f) return; try{ const p = await shrinkPhoto(f); wzSet(p, false); wzPaint(); }catch(e){ toast("Questa foto non si apre, provane un'altra."); } };
+    $("#wzCam").onchange = e => pick(e.target.files[0]); $("#wzGal").onchange = e => pick(e.target.files[0]); }
+  if (s.type === "custom" && s.bind) s.bind(WZ.v);
+}
 /* =========================================================
    ORDINA
    ========================================================= */
