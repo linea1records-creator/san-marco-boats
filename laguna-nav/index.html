@@ -132,6 +132,39 @@
   body.food #v-order .qty button{background:#fff;color:#c8102e;border-color:#c8102e}
   body.food #v-order .item{border-color:#f3d7d7}
   body.food #v-order .btn.ghost{background:#fff;color:#c8102e;border-color:#c8102e}
+  /* ===== Strumenti (pochi, accendibili) ===== */
+  #toggles{position:absolute;z-index:18;left:10px;top:calc(76px + var(--safe-t));display:flex;flex-direction:column;gap:6px}
+  body.nav #toggles{top:calc(104px + var(--safe-t))}
+  #toggles button{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.92);color:#111;font-size:16px;
+    box-shadow:0 1px 6px rgba(0,0,0,.3);opacity:.55}
+  #toggles button.on{opacity:1;background:#1a56db;color:#fff}
+  body.food #toggles{display:none}
+  #banner{left:54px} #shallow{left:54px}
+  #inst{position:absolute;z-index:18;left:10px;bottom:16px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;max-width:calc(100% - 84px)}
+  body.nav #inst{bottom:92px}
+  #inst .speedwrap{position:static}
+  .ic-card{background:rgba(8,14,28,.9);color:#fff;border-radius:16px;padding:9px 12px;box-shadow:0 2px 10px rgba(0,0,0,.35);width:200px}
+  .ic-card.small{width:auto;min-width:110px}
+  .ic-h{font-size:10px;letter-spacing:.08em;color:#8fb3ff;font-weight:700}
+  .ic-h span{color:#9aa;font-weight:600;letter-spacing:0}
+  .ic-row{display:flex;align-items:baseline;gap:6px}
+  .ic-big{font-size:28px;font-weight:800;line-height:1.1}
+  .ic-u{font-size:11px;color:#aab}
+  .ic-s{font-size:11px;color:#aab;margin-top:3px;line-height:1.3}
+  #sonar{width:100%;height:38px;display:block;margin-top:4px;border-radius:8px;background:#06101f}
+  .ic-card.ok .ic-big{color:#4ade80} .ic-card.warn .ic-big{color:#fbbf24}
+  .ic-card.alarm{background:#b3261e;animation:pulse 1s infinite} .ic-card.alarm .ic-big{color:#fff}
+  .chips{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+  .chips button{font-size:11px;padding:4px 8px;border-radius:20px;background:#1b2a44;color:#cfe0ff}
+  .chips button.on{background:#1a56db;color:#fff}
+  #menu{position:absolute;z-index:23;right:70px;bottom:16px;background:#fff;color:#111;border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,.4);overflow:hidden;min-width:220px}
+  body.nav #menu{bottom:92px}
+  #menu .mi{display:block;width:100%;text-align:left;padding:13px 16px;font-size:15px;border-top:1px solid #eee;color:#111}
+  #menu .mi:first-child{border-top:0}
+  #menu .mi.rec{color:#d32f2f;font-weight:700}
+  .fab.rec{background:#d32f2f;color:#fff}
+  #v-boat .card h4{color:#8fb3ff;margin-bottom:10px}
+  .hint{font-size:12px;color:var(--muted);margin-top:4px}
   /* Sheets / modal */
   #sheet{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
   #sheet .in{width:100%;background:var(--panel);border-radius:20px 20px 0 0;padding:20px;padding-bottom:calc(20px + var(--safe-b));
@@ -209,25 +242,78 @@
     <div id="shallow" class="hidden"></div>
     <div id="modeHint" class="hidden"></div>
 
-    <div class="speedwrap">
-      <div class="speed"><div class="v" id="spd">–</div><div class="u">km/h · <span id="kn">– nodi</span></div></div>
-      <div id="limitSign" class="hidden"><span id="limitVal">5</span></div>
+    <!-- icone piccole: accendono e spengono gli strumenti -->
+    <div id="toggles">
+      <button data-inst="speed" title="Velocità">⚡</button>
+      <button data-inst="depth" title="Ecoscandaglio">〰</button>
+      <button data-inst="tide" title="Marea">🌊</button>
+      <button data-inst="head" title="Rotta">🧭</button>
+    </div>
+
+    <!-- strumenti -->
+    <div id="inst">
+      <div class="ic-card" id="i-depth">
+        <div class="ic-h">ECOSCANDAGLIO <span id="dSrc"></span></div>
+        <div class="ic-row"><div class="ic-big" id="dUnder">–</div><div class="ic-u">sotto il piede</div></div>
+        <canvas id="sonar" width="320" height="76"></canvas>
+        <div class="ic-s" id="dInfo">Imposta la tua barca per il calcolo</div>
+        <div class="chips" id="engChips"></div>
+      </div>
+      <div class="ic-card small" id="i-tide">
+        <div class="ic-h">MAREA</div>
+        <div class="ic-row"><div class="ic-big" id="tVal">–</div><div class="ic-u" id="tSub">cm</div></div>
+      </div>
+      <div class="ic-card small" id="i-head">
+        <div class="ic-h">ROTTA</div>
+        <div class="ic-row"><div class="ic-big" id="hVal">–</div><div class="ic-u" id="hSub"></div></div>
+      </div>
+      <div class="speedwrap" id="i-speed">
+        <div class="speed"><div class="v" id="spd">–</div><div class="u">km/h · <span id="kn">– nodi</span></div></div>
+        <div id="limitSign" class="hidden"><span id="limitVal">5</span></div>
+      </div>
     </div>
 
     <div class="fabs">
       <button class="fab" id="fabFood" title="Mostra / nascondi ristoranti">🍝</button>
-      <button class="fab" id="fabRec" title="Insegna un tragitto">●</button>
-      <button class="fab" id="fabVoice" title="Voce">🔈</button>
-      <button class="fab" id="fabDepth" title="Segnala profondità">≈</button>
-      <button class="fab" id="fabZone" title="Aggiungi zona controllata">⚠︎</button>
       <button class="fab" id="fabView" title="Prima persona / nord in alto">3D</button>
+      <button class="fab" id="fabMenu" title="Altro">⋯</button>
       <button class="fab big" id="fabGps" title="Dove sono">➤</button>
+    </div>
+
+    <!-- menu "altro" -->
+    <div id="menu" class="hidden">
+      <button class="mi" id="fabVoice">🔈 Voce</button>
+      <button class="mi" id="fabRec">● Insegna un tragitto</button>
+      <button class="mi" id="fabZone">⚠︎ Aggiungi zona controllata</button>
+      <button class="mi" id="fabDepth">≈ Segnala fondale misurato</button>
+      <button class="mi" id="goBoat">⛵ La mia barca</button>
     </div>
 
     <!-- barra in basso durante la navigazione -->
     <div id="navBar" class="hidden">
       <div><div class="eta" id="eta">–</div><div class="muted" id="etaSub">–</div></div>
       <button class="btn small danger" id="stopNav">Fine</button>
+    </div>
+  </section>
+
+  <!-- LA MIA BARCA -->
+  <section class="view hidden" id="v-boat">
+    <div class="scroll">
+      <h2>La mia barca</h2>
+      <p class="sub">Più dati inserisci, più l'ecoscandaglio e i percorsi sono precisi.</p>
+      <div class="card">
+        <div class="row" style="align-items:flex-end">
+          <div class="field" style="flex:2"><label>Barca attiva</label><select id="boatSel"></select></div>
+          <div class="field" style="flex:1"><button class="btn ghost" id="boatNew" style="padding:12px">+ Nuova</button></div>
+        </div>
+      </div>
+      <div id="boatForm"></div>
+      <div class="card">
+        <label class="check" style="margin:0;background:none;border:0;padding:0"><input type="checkbox" id="boatShare">
+          <span>Aggiungi i dati tecnici al catalogo delle barche di Venezia (senza nome né targa)</span></label>
+      </div>
+      <button class="btn ghost" id="boatDel" style="margin-top:6px">Elimina questa barca</button>
+      <p class="muted" id="boatSaved" style="text-align:center;margin-top:12px"></p>
     </div>
   </section>
 
@@ -279,7 +365,7 @@
   <section class="view hidden" id="v-info">
     <div class="scroll">
       <h2>Info</h2>
-      <p class="sub">Laguna Nav · versione 0.6</p>
+      <p class="sub">Laguna Nav · versione 0.7</p>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
@@ -312,6 +398,7 @@
 
   <nav>
     <button data-v="map" class="on"><span class="ic">🧭</span>Mappa</button>
+    <button data-v="boat"><span class="ic">⛵</span>Barca</button>
     <button data-v="order"><span class="ic">🍽️</span>Ordina</button>
     <button data-v="rider"><span class="ic">🚶</span>Rider</button>
     <button data-v="info"><span class="ic">ⓘ</span>Info</button>
@@ -397,7 +484,7 @@ function openApp(){
 /* ---------- tab ---------- */
 document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
   document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x === b));
-  ["map","order","rider","info"].forEach(v => $("#v-"+v).classList.toggle("hidden", v !== b.dataset.v));
+  ["map","boat","order","rider","info"].forEach(v => $("#v-"+v).classList.toggle("hidden", v !== b.dataset.v));
   if (b.dataset.v === "map" && map) setTimeout(() => map.resize(), 50);
   setFood(foodOn);
   if (b.dataset.v === "rider") renderRider();
@@ -422,10 +509,10 @@ async function loadShared(){
   try{
     const [z, d] = await Promise.all([
       api("zones?select=id,name,limit_kmh,lat,lng,radius_m,created_at&order=id"),
-      api("depths?select=id,depth_m,note,lat,lng,created_at&order=id")
+      api("depths?select=id,depth_m,note,lat,lng,created_at,tide_cm&order=id")
     ]);
     userZones = z.map(r => ({ id: r.id, name: r.name, limit: +r.limit_kmh, lat: r.lat, lng: r.lng, r: r.radius_m }));
-    const dd = d.map(r => ({ id: r.id, lat: r.lat, lng: r.lng, d: +r.depth_m, note: r.note || "", t: Date.parse(r.created_at) }));
+    const dd = d.map(r => ({ id: r.id, lat: r.lat, lng: r.lng, d: +r.depth_m, note: r.note || "", t: Date.parse(r.created_at), tide: r.tide_cm }));
     store.set("ln_cache_zones", userZones); store.set("ln_cache_depths", dd);
     depths = DEPTH_ESEMPIO.concat(dd);
     drawZones(); drawDepths();
@@ -582,7 +669,7 @@ $("#fabView").onclick = () => {
   setFollow(true); camera(true);
 };
 $("#fabVoice").onclick = () => { voiceOn = !voiceOn; store.set("ln_voice", voiceOn); paintVoice(); if (voiceOn) say("Voce attiva"); };
-function paintVoice(){ $("#fabVoice").textContent = voiceOn ? "🔊" : "🔈"; }
+function paintVoice(){ $("#fabVoice").textContent = voiceOn ? "🔊 Voce attiva" : "🔈 Voce spenta"; }
 paintVoice();
 function say(t){ if (!voiceOn || !window.speechSynthesis) return; try{ const u = new SpeechSynthesisUtterance(t); u.lang = "it-IT"; speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} }
 
@@ -646,7 +733,7 @@ function onPos(pos){
     if (!meMarker){ meMarker = makeArrow().setLngLat([p.lng, p.lat]).addTo(map); camera(true); }
     else meMarker.setLngLat([p.lng, p.lat]);
   }
-  checkZones(p, kmh); checkShallow(p); navTick(p); recPoint(p);
+  checkZones(p, kmh); checkShallow(p); navTick(p); recPoint(p); updateDepth(p);
 }
 // direzione da seguire in questo momento
 function targetHeading(){
@@ -748,7 +835,7 @@ function zoneForm(ll){
 }
 function depthForm(ll){
   openSheet(`<h3>Segnala profondità</h3>
-    <p class="muted">Leggila dall'ecoscandaglio o misurala. Indica se c'era bassa o alta marea.</p>
+    <p class="muted">Leggila da un ecoscandaglio vero o misurala con un'asta. L'app salva anche la marea di adesso, così il dato vale con ogni marea.</p>
     <div class="field"><label>Profondità (metri)</label><input id="dD" type="number" inputmode="decimal" step="0.1" placeholder="es. 1,2"></div>
     <div class="field"><label>Nota</label><input id="dN" placeholder="es. bassa marea, fuori dalle bricole"></div>
     <button class="btn" id="dOk">Salva segnalazione</button>
@@ -758,7 +845,7 @@ function depthForm(ll){
     if (isNaN(d) || d < 0 || d > 50) { toast("Inserisci la profondità in metri."); return; }
     $("#dOk").disabled = true;
     try{ const [r] = await api("depths?select=id", { method: "POST", ret: true,
-        body: { depth_m: d, note: $("#dN").value.trim().slice(0, 200), lat: ll.lat, lng: ll.lng, owner_token: TOKEN } });
+        body: { depth_m: d, note: $("#dN").value.trim().slice(0, 200), lat: ll.lat, lng: ll.lng, owner_token: TOKEN, tide_cm: tideNow() } });
       mine.depths.push(r.id); saveMine(); closeSheet(); setAddMode(null); await loadShared(); }
     catch(err){ $("#dOk").disabled = false; toast("Segnalazione non salvata: controlla la connessione (o che il punto sia in laguna)."); }
   };
@@ -1092,7 +1179,7 @@ async function stopRec(){
     toast("Tragitto imparato ✓ (" + fmtDist(len) + ")");
   }catch(e){ toast("Tragitto non salvato: manca la connessione."); }
 }
-function paintRec(){ const b = $("#fabRec"); if (!b) return; b.classList.toggle("rec", !!REC); }
+function paintRec(){ const b = $("#fabRec"); if (!b) return; b.classList.toggle("rec", !!REC); b.textContent = REC ? "■ Ferma e salva il tragitto" : "● Insegna un tragitto"; $("#fabMenu").classList.toggle("rec", !!REC); }
 $("#fabRec").onclick = () => { if (REC) stopRec(); else { if (watchId === null){ askCompass(); startGps(); } startRec(false); } };
 
 /* ---------- navigazione ---------- */
@@ -1181,6 +1268,246 @@ function navTick(p){
   drawRoute();
 }
 
+
+/* =========================================================
+   STRUMENTI: velocità, ecoscandaglio, marea, rotta
+   ========================================================= */
+let INST = store.get("ln_inst", { speed: true, depth: false, tide: false, head: false });
+function paintInst(){
+  document.querySelectorAll("#toggles button").forEach(b => b.classList.toggle("on", !!INST[b.dataset.inst]));
+  $("#i-speed").classList.toggle("hidden", !INST.speed);
+  $("#i-depth").classList.toggle("hidden", !INST.depth);
+  $("#i-tide").classList.toggle("hidden", !INST.tide);
+  $("#i-head").classList.toggle("hidden", !INST.head);
+}
+document.querySelectorAll("#toggles button").forEach(b => b.onclick = () => {
+  INST[b.dataset.inst] = !INST[b.dataset.inst]; store.set("ln_inst", INST); paintInst();
+  if (b.dataset.inst === "depth" && INST.depth){ if (!activeBoat()) toast("Imposta la tua barca (⋯ → La mia barca) per sapere quanta acqua hai sotto il piede."); if (lastPos) updateDepth(lastPos); else toast("Tocca ➤ per attivare il GPS."); }
+  if (b.dataset.inst === "tide" || b.dataset.inst === "depth") loadTide();
+});
+paintInst();
+
+/* menu "altro" */
+$("#fabMenu").onclick = e => { e.stopPropagation(); $("#menu").classList.toggle("hidden"); };
+document.addEventListener("click", e => { if (!e.target.closest("#menu") && !e.target.closest("#fabMenu")) $("#menu").classList.add("hidden"); });
+$("#menu").addEventListener("click", e => { if (e.target.closest(".mi")) setTimeout(() => $("#menu").classList.add("hidden"), 50); });
+$("#goBoat").onclick = () => document.querySelector('nav button[data-v="boat"]').click();
+
+/* ---------- marea (Comune di Venezia, Punta della Salute) ---------- */
+let TIDE = store.get("ln_tide", null), tideManual = null;
+function tideNow(){
+  if (tideManual !== null) return tideManual;
+  return TIDE && Date.now() - TIDE.t < 40 * 60000 ? TIDE.cm : null;
+}
+async function loadTide(){
+  if (TIDE && Date.now() - TIDE.t < 4 * 60000) return paintTide();
+  try{
+    const r = await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/dati?tipo=marea", {}, 12000);
+    const j = await r.json();
+    if (typeof j.cm === "number"){ TIDE = { cm: j.cm, t: j.vecchio ? (j.t || Date.now() - 3600000) : Date.now(), st: j.stazione || "Punta Salute" }; store.set("ln_tide", TIDE); }
+  }catch(e){}
+  paintTide();
+}
+function paintTide(){
+  const v = tideNow();
+  $("#tVal").textContent = v === null ? "–" : (v > 0 ? "+" : "") + v;
+  $("#tSub").textContent = v === null ? "tocca per inserirla" : "cm · " + (tideManual !== null ? "a mano" : "P. Salute");
+}
+$("#i-tide").onclick = () => {
+  openSheet(`<h3>Marea</h3>
+    <p class="muted">${TIDE ? "Ultimo dato ufficiale: " + (TIDE.cm > 0 ? "+" : "") + TIDE.cm + " cm (" + new Date(TIDE.t).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) + ")" : "Dato ufficiale non disponibile in questo momento."}</p>
+    <div class="field"><label>Marea a mano (cm, rispetto allo zero di Punta Salute)</label><input id="tm" type="number" inputmode="numeric" placeholder="es. 40" value="${tideManual ?? ""}"></div>
+    <button class="btn" id="tOk">Usa questo valore</button>
+    <button class="btn ghost" style="margin-top:10px" id="tAuto">Usa il dato ufficiale</button>`);
+  $("#tOk").onclick = () => { const v = parseInt($("#tm").value, 10); tideManual = isNaN(v) ? null : v; closeSheet(); paintTide(); if (lastPos) updateDepth(lastPos); };
+  $("#tAuto").onclick = () => { tideManual = null; closeSheet(); loadTide(); };
+};
+setInterval(() => { if (INST.tide || INST.depth) loadTide(); }, 5 * 60000);
+if (INST.tide || INST.depth) loadTide();
+
+/* ---------- ecoscandaglio calcolato ----------
+   acqua sotto il piede = fondale (riferito allo zero di Punta Salute) + marea di adesso − pescaggio della barca
+   Il fondale viene dalle misure segnalate (e presto dalla carta ufficiale dei fondali). */
+const SONAR = [];
+let engState = store.get("ln_eng", "down"), lastAlarm = 0;
+function fondaleAt(la, lo){
+  let ws = 0, s = 0, n = 0, near = Infinity;
+  for (const p of depths){
+    if (p.ex) continue;
+    const d = hav(la, lo, p.lat, p.lng); if (d > 60) continue;
+    const z = p.d - ((typeof p.tide === "number" ? p.tide : 30) / 100);   // fondale sotto lo zero mareografico
+    const w = 1 / Math.max(4, d) ** 2; ws += w; s += z * w; n++; near = Math.min(near, d);
+  }
+  return n ? { z: s / ws, n, near } : null;
+}
+function boatDraftCm(b){
+  if (!b) return null;
+  const foot = { down: b.dDown, trim: b.dTrim || b.dDown, lift: b.dLift || b.dDown, tilt: b.dTilt }[engState];
+  const vals = [b.hullDraft, foot].map(Number).filter(v => !isNaN(v) && v > 0);
+  return vals.length ? Math.max(...vals) : null;
+}
+function paintEngChips(){
+  const b = activeBoat(), box = $("#engChips"); if (!box) return;
+  if (!b || !b.dDown){ box.innerHTML = ""; return; }
+  const opts = [["down", "Motore giù"]];
+  if (b.hasTrim) opts.push(["trim", "Trim su"]);
+  if (b.hasLift) opts.push(["lift", "Lift su"]);
+  if (b.dTilt) opts.push(["tilt", "Alzato"]);
+  if (!opts.some(o => o[0] === engState)) engState = "down";
+  box.innerHTML = opts.map(o => `<button data-eng="${o[0]}" class="${o[0] === engState ? "on" : ""}">${o[1]}</button>`).join("");
+  box.querySelectorAll("button").forEach(x => x.onclick = () => { engState = x.dataset.eng; store.set("ln_eng", engState); paintEngChips(); if (lastPos) updateDepth(lastPos); });
+}
+function updateDepth(p){
+  if (!INST.depth) return;
+  const card = $("#i-depth"), b = activeBoat(), draft = boatDraftCm(b), tide = tideNow(), f = fondaleAt(p.lat, p.lng);
+  card.classList.remove("ok", "warn", "alarm");
+  $("#dSrc").textContent = f ? "· " + f.n + (f.n === 1 ? " misura" : " misure") + " a " + Math.round(f.near) + " m" : "";
+  if (!f){
+    $("#dUnder").textContent = "–";
+    $("#dInfo").textContent = "Nessun dato di fondale qui. Arriverà con la carta ufficiale; intanto puoi segnalarlo (⋯).";
+    SONAR.push({ t: Date.now(), w: null, k: draft }); drawSonar(); return;
+  }
+  const water = f.z * 100 + (tide === null ? 30 : tide);         // cm d'acqua adesso
+  SONAR.push({ t: Date.now(), w: water, k: draft });
+  if (draft === null){
+    $("#dUnder").textContent = (water / 100).toFixed(2).replace(".", ",") + " m";
+    $("#dInfo").textContent = "Acqua stimata. Imposta il pescaggio in «La mia barca» per sapere quanto resta sotto il piede.";
+    drawSonar(); return;
+  }
+  const under = water - draft, margin = Number((b && b.margin) || 30);
+  $("#dUnder").textContent = (under < 0 ? "−" : "") + (Math.abs(under) >= 100 ? (Math.abs(under) / 100).toFixed(2).replace(".", ",") + " m" : Math.round(Math.abs(under)) + " cm");
+  $("#dInfo").textContent = `Acqua ${(water / 100).toFixed(2).replace(".", ",")} m · marea ${tide === null ? "?" : (tide > 0 ? "+" : "") + tide} cm · pescaggio ${draft} cm`;
+  card.classList.add(under < margin ? "alarm" : under < margin * 2 ? "warn" : "ok");
+  if (under < margin && Date.now() - lastAlarm > 15000){ lastAlarm = Date.now(); buzz([400, 150, 400]); say(under < 0 ? "Attenzione, rischi di toccare il fondo" : "Attenzione, poca acqua sotto il piede"); }
+  drawSonar();
+}
+function drawSonar(){
+  while (SONAR.length && Date.now() - SONAR[0].t > 180000) SONAR.shift();
+  const c = $("#sonar"); if (!c) return; const g = c.getContext("2d"), W = c.width, H = c.height;
+  g.clearRect(0, 0, W, H);
+  const vals = SONAR.filter(s => s.w !== null).map(s => s.w); if (!vals.length) return;
+  const maxW = Math.max(150, ...vals) * 1.1, y = v => (v / maxW) * H, t0 = Date.now() - 180000, x = t => (t - t0) / 180000 * W;
+  // fondale (marrone) sotto la linea dell'acqua
+  g.beginPath(); g.moveTo(0, H);
+  SONAR.forEach(s => { if (s.w !== null) g.lineTo(x(s.t), y(s.w)); });
+  g.lineTo(W, H); g.closePath(); g.fillStyle = "#7a5a2f"; g.fill();
+  g.strokeStyle = "#e0b070"; g.lineWidth = 2; g.beginPath(); let first = true;
+  SONAR.forEach(s => { if (s.w === null) return; if (first){ g.moveTo(x(s.t), y(s.w)); first = false; } else g.lineTo(x(s.t), y(s.w)); }); g.stroke();
+  // linea del pescaggio (rossa tratteggiata)
+  const k = SONAR[SONAR.length - 1].k;
+  if (k){ g.setLineDash([6, 5]); g.strokeStyle = "#ff5a5a"; g.beginPath(); g.moveTo(0, y(k)); g.lineTo(W, y(k)); g.stroke(); g.setLineDash([]); }
+}
+
+/* rotta in gradi */
+setInterval(() => {
+  if (!INST.head) return;
+  const h = Math.round(heading) % 360, dirs = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"];
+  $("#hVal").textContent = h + "°"; $("#hSub").textContent = dirs[Math.round(h / 45) % 8] + (headingSrc === "phone" && compassAt ? " · bussola" : " · GPS");
+}, 500);
+
+/* =========================================================
+   LA MIA BARCA
+   ========================================================= */
+const BOAT_FORM = [
+  ["La barca", [
+    ["name", "Nome della barca", "text", "es. Toppetta"],
+    ["type", "Tipo", "select", ["", "Topa", "Mototopo", "Cofano", "Sanpierota", "Sandolo", "Barchino", "Motoscafo", "Lancia", "Gozzo", "Gommone", "Barca a vela", "Altro"]],
+    ["brand", "Cantiere / marca", "text", "es. Cantiere Crea, Nuova Jolly…"],
+    ["model", "Modello", "text"],
+    ["year", "Anno", "number"],
+    ["hull", "Materiale dello scafo", "select", ["", "Legno", "Vetroresina", "Legno e vetroresina", "Alluminio", "Acciaio", "Altro"]],
+    ["loa", "Lunghezza fuori tutto (m)", "dec"],
+    ["beam", "Larghezza (m)", "dec"],
+    ["weight", "Peso a vuoto (kg)", "number"],
+    ["hullDraft", "Pescaggio dello scafo (cm)", "number", "Il punto più basso della carena, con il carico normale"],
+    ["persons", "Persone a bordo (massimo)", "number"],
+    ["plate", "Targa / immatricolazione", "text", "Resta solo sul telefono, non va nel catalogo"]
+  ]],
+  ["Motore", [
+    ["engType", "Tipo di motore", "select", ["", "Fuoribordo", "Entrobordo", "Entrofuoribordo", "Elettrico", "Nessuno (remi o vela)"]],
+    ["engBrand", "Marca", "text", "es. Yamaha, Honda, Suzuki, Mercury, Tohatsu, Selva"],
+    ["engModel", "Modello", "text"],
+    ["hp", "Potenza (CV)", "number"],
+    ["stroke", "Tempi", "select", ["", "4 tempi", "2 tempi", "Elettrico"]],
+    ["fuel", "Alimentazione", "select", ["", "Benzina", "Diesel", "Elettrico"]],
+    ["shaft", "Gambo", "select", ["", "Corto (S, 15\")", "Lungo (L, 20\")", "Extralungo (XL, 25\")", "Non so"]],
+    ["engYear", "Anno del motore", "number"],
+    ["hours", "Ore di moto", "number"]
+  ]],
+  ["Elica", [
+    ["propDia", "Diametro (pollici)", "dec"],
+    ["propPitch", "Passo (pollici)", "dec"],
+    ["propBlades", "Numero di pale", "number"],
+    ["propMat", "Materiale", "select", ["", "Alluminio", "Acciaio inox", "Plastica / composito", "Bronzo"]],
+    ["propSpare", "Ho un'elica di scorta a bordo", "check"]
+  ]],
+  ["Assetto e pescaggio del piede", [
+    ["hasTrim", "Il motore ha il trim", "check"],
+    ["hasLift", "Ho il lift (sollevatore / jack plate)", "check"],
+    ["dDown", "Pescaggio del piede con motore giù (cm)", "number", "Dalla superficie dell'acqua al punto più basso di elica o pinna"],
+    ["dTrim", "Pescaggio con trim alzato, ancora navigabile (cm)", "number", "", "hasTrim"],
+    ["dLift", "Pescaggio con lift alzato (cm)", "number", "", "hasLift"],
+    ["dTilt", "Pescaggio con motore alzato del tutto (cm)", "number", "Per quando sei fermo o vai a remi"]
+  ]],
+  ["Prestazioni", [
+    ["vmax", "Velocità massima (km/h)", "number"],
+    ["vcruise", "Velocità di crociera (km/h)", "number"],
+    ["cons", "Consumo in crociera (litri/ora)", "dec"],
+    ["tank", "Serbatoio (litri)", "number"]
+  ]],
+  ["Sicurezza e documenti", [
+    ["margin", "Avvisami se sotto il piede restano meno di (cm)", "number", "Consigliato almeno 30 cm"],
+    ["insurance", "Scadenza dell'assicurazione", "date"]
+  ]]
+];
+let BOATS = store.get("ln_boats", []), boatId = store.get("ln_boat_active", null);
+function activeBoat(){ return BOATS.find(b => b.id === boatId) || null; }
+function saveBoats(){ store.set("ln_boats", BOATS); store.set("ln_boat_active", boatId); }
+function newBoat(){ const b = { id: "b" + Date.now().toString(36), name: "", margin: 30, share: true }; BOATS.push(b); boatId = b.id; saveBoats(); return b; }
+function renderBoat(){
+  if (!BOATS.length) newBoat();
+  if (!activeBoat()) boatId = BOATS[0].id;
+  const b = activeBoat();
+  $("#boatSel").innerHTML = BOATS.map(x => `<option value="${x.id}" ${x.id === boatId ? "selected" : ""}>${esc(x.name || "Barca senza nome")}</option>`).join("");
+  $("#boatShare").checked = b.share !== false;
+  $("#boatForm").innerHTML = BOAT_FORM.map(([title, fields]) => `<div class="card"><h4>${title}</h4>` + fields.map(([k, label, type, extra, dep]) => {
+    if (dep && !b[dep]) return "";
+    const v = b[k] ?? "";
+    if (type === "check") return `<label class="check" style="margin:6px 0;background:none;border:0;padding:0"><input type="checkbox" data-k="${k}" ${v ? "checked" : ""}><span>${label}</span></label>`;
+    const hint = type !== "select" && extra ? `<div class="hint">${extra}</div>` : "";
+    if (type === "select") return `<div class="field"><label>${label}</label><select data-k="${k}">${extra.map(o => `<option ${o === v ? "selected" : ""} value="${esc(o)}">${o ? esc(o) : "—"}</option>`).join("")}</select></div>`;
+    const it = type === "dec" ? 'type="number" step="0.01" inputmode="decimal"' : type === "number" ? 'type="number" inputmode="numeric"' : type === "date" ? 'type="date"' : 'type="text"';
+    return `<div class="field"><label>${label}</label><input ${it} data-k="${k}" value="${esc(v)}" ${type === "text" && extra && extra.startsWith("es.") ? `placeholder="${esc(extra)}"` : ""}>${type === "text" && extra && extra.startsWith("es.") ? "" : hint}</div>`;
+  }).join("") + `</div>`).join("");
+  $("#boatForm").querySelectorAll("[data-k]").forEach(el => el.addEventListener(el.type === "checkbox" || el.tagName === "SELECT" ? "change" : "input", () => {
+    const k = el.dataset.k;
+    b[k] = el.type === "checkbox" ? el.checked : el.type === "number" ? (el.value === "" ? "" : Number(el.value)) : el.value;
+    saveBoats(); boatSaved();
+    if (k === "name") $("#boatSel").selectedOptions[0].textContent = b.name || "Barca senza nome";
+    if (k === "hasTrim" || k === "hasLift") renderBoat();
+    paintEngChips(); if (lastPos) updateDepth(lastPos);
+  }));
+}
+let shareTimer = null;
+function boatSaved(){
+  $("#boatSaved").textContent = "Salvato sul telefono ✓";
+  clearTimeout(shareTimer); shareTimer = setTimeout(shareBoat, 3000);
+}
+async function shareBoat(){
+  const b = activeBoat(); if (!b || b.share === false) return;
+  const specs = {}; BOAT_FORM.forEach(([, f]) => f.forEach(([k]) => { if (!["name", "plate", "insurance", "margin"].includes(k) && b[k] !== "" && b[k] !== undefined) specs[k] = b[k]; }));
+  if (Object.keys(specs).length < 3) return;
+  try{ await api("rpc/catalog_upsert", { method: "POST", body: { p_token: TOKEN, p_key: b.id, p_specs: specs } }); $("#boatSaved").textContent = "Salvato ✓ e aggiunto al catalogo"; }catch(e){}
+}
+$("#boatSel").onchange = e => { boatId = e.target.value; saveBoats(); renderBoat(); paintEngChips(); };
+$("#boatNew").onclick = () => { newBoat(); renderBoat(); paintEngChips(); };
+$("#boatShare").onchange = e => { const b = activeBoat(); b.share = e.target.checked; saveBoats(); if (b.share) shareBoat(); };
+$("#boatDel").onclick = () => {
+  const b = activeBoat(); if (!b) return;
+  if (!confirm("Eliminare «" + (b.name || "Barca senza nome") + "»?")) return;
+  BOATS = BOATS.filter(x => x.id !== b.id); boatId = BOATS[0] ? BOATS[0].id : null; saveBoats(); renderBoat(); paintEngChips();
+};
+renderBoat(); paintEngChips();
 /* =========================================================
    ORDINA
    ========================================================= */
