@@ -254,6 +254,13 @@
   #trPanel .stop:first-of-type{border-top:0}
   #trPanel .seg{background:#eef2f7;margin-bottom:8px} #trPanel .seg button{color:#345}
   body:not(.mode-trasporti) #trPanel{display:none}
+  .txest{background:#fff7e6;border:1px solid #fcd34d;border-radius:12px;padding:9px 11px;font-size:14px;color:#3b2a00;margin:4px 0 8px;line-height:1.35} .txest small{color:#7a5b00}
+  .txpm{width:36px!important;padding:6px 0!important;color:#111!important;background:#eee!important;border:0!important}
+  .txwait{display:flex;gap:6px;margin:6px 0} .txwait i{width:10px;height:10px;border-radius:50%;background:#f59e0b;animation:txb 1s infinite alternate} .txwait i:nth-child(2){animation-delay:.2s} .txwait i:nth-child(3){animation-delay:.4s}
+  @keyframes txb{from{opacity:.25;transform:scale(.8)}to{opacity:1;transform:scale(1.1)}}
+  .txdh{display:flex;justify-content:space-between;align-items:center;margin:14px 0 6px;padding-top:10px;border-top:1px solid #eee} .txsw{font-size:13px;color:#444;display:flex;gap:6px;align-items:center}
+  .txr{border:1px solid #eee;border-radius:12px;padding:9px 10px;margin-bottom:8px;font-size:14px} .txr.mine{border-color:#0a8f4e;background:#f0fbf5}
+  .txb{display:flex;gap:6px;margin-top:6px} .txb .btn{width:auto}
   body.mode-market #toggles, body.mode-market #inst, body.mode-market #navMode, body.mode-market #fabMenu, body.mode-market #fabView,
   body.mode-market #searchBox, body.mode-market #routeBox, body.mode-market #banner, body.mode-market #shallow, body.mode-market #depthLegend{display:none!important}
   #mkPanel{position:absolute;z-index:20;left:10px;right:76px;bottom:16px;background:#fff;color:#111;border-radius:16px;padding:12px 14px;box-shadow:0 3px 14px rgba(0,0,0,.4);max-height:44vh;overflow-y:auto}
@@ -336,7 +343,7 @@
   #fabMatch{position:absolute;z-index:18;right:10px;bottom:150px;width:56px;height:56px;font-size:24px;background:#ff2d78;color:#fff}
   #fabMatch i{position:absolute;top:-2px;right:-2px;min-width:20px;height:20px;border-radius:10px;background:#fff;color:#ff2d78;font-size:12px;font-style:normal;font-weight:800;
     display:flex;align-items:center;justify-content:center;padding:0 5px;box-shadow:0 1px 4px rgba(0,0,0,.3)}
-  .stm{position:relative;cursor:pointer}
+  .stm{cursor:pointer}
   .stm .ph{width:46px;height:46px;border-radius:50%;border:3px solid #fff;background:#ff2d78 center/cover no-repeat;box-shadow:0 2px 8px rgba(0,0,0,.45);
     display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px}
   .stm span{position:absolute;right:-6px;bottom:-4px;font-size:18px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
@@ -497,6 +504,7 @@
       <button data-inst="velox" title="Velox">📷</button>
       <button data-inst="depth" title="Ecoscandaglio">〰</button>
       <button data-inst="tide" title="Marea">🌊</button>
+      <button data-inst="water" title="Acqua adesso (fondali con la marea di ora)">💧</button>
       <button id="tgDash" class="dashbtn" title="Cruscotto"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="19" height="14" rx="2.5"/><circle cx="12" cy="10.5" r="4"/><path d="M12 6.5v1.4M12 13.1v1.4M8 10.5h1.4M14.6 10.5H16"/><path d="M12 10.5l1.8-1.8"/><path d="M8 21h8M12 17.5V21"/></svg></button>
     </div>
 
@@ -541,7 +549,6 @@
     <div id="modes" class="hidden">
       <button class="mi" data-mode="simple">🗺️ Mappa semplice</button>
       <button class="mi" data-mode="sat">🛰 Satellite</button>
-      <button class="mi" data-mode="depth">〰 Fondali</button>
     </div>
     <div id="depthLegend" class="hidden">
       <div class="lg-t">ACQUA ADESSO</div>
@@ -715,7 +722,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 2.7</p>
+      <p class="sub">1Click · ClickVenice · versione 2.8</p>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
@@ -1236,7 +1243,7 @@ function initMap(){
     if (addMode === "pickfrom"){ addMode = null; $("#modeHint").classList.add("hidden"); if (PLAN){ PLAN.from = { name: "Punto sulla mappa", lat: e.lngLat.lat, lng: e.lngLat.lng }; showPlan(); } return; }
     if (addMode === "zone") return zoneForm(e.lngLat);
     if (addMode === "depth") return depthForm(e.lngLat);
-    if (mapMode === "depth"){
+    if (INST.water && appMode === "nautica"){
       const z = fondoAt(e.lngLat.lat, e.lngLat.lng), t = tideNow() ?? 30;
       const ff = map.queryRenderedFeatures(e.point, { layers: ["partners", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
       if (!ff){
@@ -2118,7 +2125,7 @@ $("#rbGo").onclick = () => {
    ========================================================= */
 let dashOpen = false;
 const instOn = k => !!INST[k] || dashOpen;
-let INST = Object.assign({ speed: true, depth: false, tide: false, head: false, velox: true }, store.get("ln_inst", {})); INST.bridge = false; INST.head = false;
+let INST = Object.assign({ speed: true, depth: false, tide: false, head: false, velox: true, water: false }, store.get("ln_inst", {})); INST.bridge = false; INST.head = false;
 function paintInst(){
   document.querySelectorAll("#toggles button[data-inst]").forEach(b => b.classList.toggle("on", !!INST[b.dataset.inst]));
   $("#i-speed").classList.toggle("hidden", !INST.speed);
@@ -2133,6 +2140,7 @@ document.querySelectorAll("#toggles button[data-inst]").forEach(b => b.onclick =
   INST[b.dataset.inst] = !INST[b.dataset.inst]; store.set("ln_inst", INST); paintInst();
   if (b.dataset.inst === "depth" && INST.depth){ if (!activeBoat()) toast("Imposta la tua barca (⋯ → La mia barca) per sapere quanta acqua hai sotto il piede."); if (lastPos) updateDepth(lastPos); else toast("Tocca ➤ per attivare il GPS."); }
   if (b.dataset.inst === "tide" || b.dataset.inst === "depth") loadTide();
+  if (b.dataset.inst === "water"){ applyMapMode(); if (INST.water){ toast("💧 Acqua adesso: quanta acqua c'è con la marea di ora"); loadTide(); loadChart(); drawFondo(); } }
 });
 paintInst();
 
@@ -2158,7 +2166,7 @@ async function loadTide(){
   paintTide();
 }
 function paintTide(){
-  drawTideCurve(); if (mapMode === "depth") drawChart();
+  drawTideCurve(); if (INST.water) drawChart();
   const v = tideNow();
   $("#tVal").textContent = v === null ? "–" : (v > 0 ? "+" : "") + v;
   $("#tSub").textContent = v === null ? "tocca per inserirla" : "cm · " + (tideManual !== null ? "a mano" : "P. Salute");
@@ -2215,7 +2223,7 @@ function chartNear(la, lo, R){
 }
 function drawChart(){
   if (!map || !map.getSource("carta")) return;
-  const depthMode = mapMode === "depth", tide = tideNow() ?? 30;
+  const depthMode = !!INST.water, tide = tideNow() ?? 30;
   // nella modalità Fondali i numeri dicono l'acqua di ADESSO (fondale + marea)
   map.getSource("carta").setData({ type: "FeatureCollection", features: CHART.map(p => { const w = -p.d * 100 + tide;
     return { type: "Feature", properties: { d: p.d, t: depthMode ? (w <= 0 ? "asciutto" : (w / 100).toFixed(1).replace(".", ",")) : (p.d > 0 ? "+" + p.d.toFixed(1) : Math.abs(p.d).toFixed(1)) }, geometry: { type: "Point", coordinates: [p.lng, p.lat] } }; }) });
@@ -2310,7 +2318,7 @@ function drawFondo(){
   if (!map || !map.getSource("fondo")) return;
   const tide = tideNow() ?? 30;
   $("#lgTide").textContent = "Con la marea di adesso: " + (tide > 0 ? "+" : "") + tide + " cm";
-  if (mapMode !== "depth") return;
+  if (!INST.water) return;
   if (!FG.ready){ if (!FG.busy){ toast("Preparo la mappa dei fondali…"); buildFondoGrid(paintFondo); } return; }
   if (FG.tide !== tide) paintFondo();
 }
@@ -2922,6 +2930,7 @@ $("#goPontili").onclick = () => {
    MODALITÀ DELLA MAPPA: semplice (solo Venezia) o satellitare
    ========================================================= */
 let BASE_LAYERS = [], mapMode = store.get("ln_mapmode", "simple");
+if (mapMode === "depth"){ mapMode = "simple"; store.set("ln_mapmode", mapMode); INST.water = true; store.set("ln_inst", INST); }   // i fondali ora sono lo strumento «Acqua adesso»
 // nella mappa semplice restano: acqua, terra, edifici 3D, nomi dei luoghi e dei canali
 function keepSimple(l){
   if (l.type === "background" || l.type === "fill-extrusion") return true;
@@ -2932,7 +2941,7 @@ function keepSimple(l){
 }
 function applyMapMode(){
   if (!map || !map.getLayer("sat")) return;
-  const sat = mapMode === "sat", dep = mapMode === "depth";
+  const sat = mapMode === "sat", dep = !!INST.water && appMode === "nautica";
   $("#depthLegend").classList.toggle("hidden", !dep);
   layerVis();
   if (dep){ loadTide(); drawChart(); }
@@ -2940,13 +2949,13 @@ function applyMapMode(){
     const show = sat ? (l.type === "symbol" && /place/i.test(l.id)) : keepSimple(l) && !(dep && l.type === "fill-extrusion");
     map.setLayoutProperty(l.id, "visibility", show ? "visible" : "none"); });
   map.setLayoutProperty("sat", "visibility", sat ? "visible" : "none");
-  $("#fabSat").textContent = sat ? "🛰" : dep ? "〰" : "🗺️";
+  $("#fabSat").textContent = sat ? "🛰" : "🗺️";
   document.querySelectorAll("#modes [data-mode]").forEach(b => b.classList.toggle("on", b.dataset.mode === mapMode));
   document.body.classList.toggle("sat", sat);
 }
-// ogni tocco passa alla mappa successiva: semplice → satellite → fondali → semplice
-$("#fabSat").onclick = e => { e.stopPropagation(); const ord = ["simple", "sat", "depth"]; mapMode = ord[(ord.indexOf(mapMode) + 1) % ord.length];
-  store.set("ln_mapmode", mapMode); $("#modes").classList.add("hidden"); applyMapMode(); toast({ simple: "🗺️ Mappa semplice", sat: "🛰 Satellite", depth: "〰 Fondali" }[mapMode]); };
+// ogni tocco cambia mappa: semplice ⇄ satellite
+$("#fabSat").onclick = e => { e.stopPropagation(); mapMode = mapMode === "sat" ? "simple" : "sat";
+  store.set("ln_mapmode", mapMode); $("#modes").classList.add("hidden"); applyMapMode(); toast(mapMode === "sat" ? "🛰 Satellite" : "🗺️ Mappa semplice"); };
 document.querySelectorAll("#modes [data-mode]").forEach(b => b.onclick = () => { mapMode = b.dataset.mode; store.set("ln_mapmode", mapMode); $("#modes").classList.add("hidden"); applyMapMode(); });
 document.addEventListener("click", e => { if (!e.target.closest("#modes") && !e.target.closest("#fabSat")) $("#modes").classList.add("hidden"); });
 
@@ -3018,7 +3027,7 @@ function setAppMode(m){
   document.body.classList.toggle("mode-market", m === "market");
   if (m === "incontra") meetStart(); else meetStop();
   if (m === "incontra") loadEvents();
-  try{ paintSos(); }catch(e){}
+  try{ paintSos(); }catch(e){} try{ applyMapMode(); }catch(e){}
   if (m !== "nautica" && PLAN) closePlan();
   if (m === "market"){ loadPartners(); renderMk(); }
   layerVis();
@@ -3088,10 +3097,7 @@ const lineBadge = (l, c) => { const ali = /^Alilaguna /.test(l); return `<span c
 const orarioNote = od => od ? `<p class="trnote">L'orario ACTV in uso parte dal 20 novembre: ti mostro quello di ${new Date(od.slice(0, 4) + "-" + od.slice(4, 6) + "-" + od.slice(6)).toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "numeric" })}, stesso giorno della settimana.</p>` : "";
 function renderTr(){
   const box = $("#trBody"); if (!box) return;
-  if (trTab === "taxi"){
-    box.innerHTML = `<h4>🚕 Taxi acqueo</h4><p style="margin:0;color:#555;font-size:14px;line-height:1.4">Presto potrai chiamare e prenotare un taxi acqueo direttamente da qui, con prezzo e tempo di arrivo.</p>`;
-    return;
-  }
+  if (trTab === "taxi") return renderTaxi();
   const ref = refPoint();
   if (trStop) return renderDepartures();
   if (!$("#trPlanBox")){ box.innerHTML = `<div id="trPlanBox"></div><div id="trList"></div>`; renderPlan(); }
@@ -3150,6 +3156,145 @@ function renderPlan(){
     }catch(e){ $("#trRes").innerHTML = `<p class="trnote">Non riesco a calcolare: controlla la connessione.</p>`; }
   };
 }
+/* ---------- taxi acqueo: richiesta a tutti i tassisti convenzionati, il primo che accetta prende la corsa ---------- */
+let TX = { da: null, a: null, pax: 2, est: null }, txRide = store.get("ln_taxi_ride", null), txTimer = null, txBoard = null, txOn = store.get("ln_taxi_on", true), txSeen = [];
+const TX_AIRPORT = [45.5008, 12.3373], TX_LIDO = [45.4177, 12.3683], TX_MURANO = [45.4560, 12.3530];
+const near = (p, c, r) => hav(p.lat, p.lng, c[0], c[1]) < r;
+function taxiEstimate(da, a, pax){
+  let km = hav(da.lat, da.lng, a.lat, a.lng) / 1000 * 1.35;     // in linea d'aria i canali allungano il giro
+  try{ if (G.done){ const R = computeRoute(da, a); if (R && R.len) km = R.len / 1000; } }catch(e){}
+  const min = Math.max(6, Math.round(km / 13 * 60));              // circa 13 km/h di media tra rii e laguna
+  let p = 15 + 2 * min + 5;                                         // quota fissa + scatto al minuto + chiamata
+  const ends = [da, a];
+  if (ends.some(x => near(x, TX_AIRPORT, 1500))) p = Math.max(p, 160);
+  else if (ends.some(x => near(x, TX_LIDO, 2500))) p = Math.max(p, 70);
+  else if (ends.some(x => near(x, TX_MURANO, 1200))) p = Math.max(p, 60);
+  const h = new Date().getHours(); if (h >= 22 || h < 6) p += 10;  // notturno
+  if (pax > 4) p += (pax - 4) * 5;                                 // dalla quinta persona
+  p = Math.round(p / 5) * 5;
+  return { p, lo: Math.round(p * 0.9 / 5) * 5, hi: Math.round(p * 1.15 / 5) * 5, km: Math.round(km * 10) / 10, min };
+}
+async function txPlace(text){
+  const t = text.trim(); if (!t) return null;
+  const pk = PONTILI_ACTV && PONTILI_ACTV.p.find(p => p[0].toLowerCase() === t.toLowerCase()); if (pk) return { name: pk[0], lat: pk[1], lng: pk[2] };
+  const g = await geocodeVenice(t); return g ? { name: t, lat: g.lat, lng: g.lng } : null;
+}
+function renderTaxi(){
+  const box = $("#trBody"); loadPontiliActv();
+  if (txRide) return renderTaxiWait();
+  box.innerHTML = `<h4 style="color:#b45309">🚕 Chiama un taxi acqueo</h4>
+    <div class="field" style="margin-bottom:6px"><input id="txDa" list="dlPontili" placeholder="Da: 📍 la mia posizione" value="${esc(TX.da && !TX.da.me ? TX.da.name : "")}"></div>
+    <div class="field" style="margin-bottom:6px"><input id="txA" list="dlPontili" placeholder="A: pontile, hotel, indirizzo…" value="${esc(TX.a ? TX.a.name : "")}"></div>
+    <div class="row" style="gap:6px;align-items:center;margin-bottom:6px"><span style="font-size:14px;color:#444">Persone</span>
+      <button class="btn small ghost txpm" id="txM">−</button><b id="txPax" style="min-width:20px;text-align:center">${TX.pax}</b><button class="btn small ghost txpm" id="txP">＋</button></div>
+    <div class="field" style="margin-bottom:6px"><input id="txNote" maxlength="200" placeholder="Note e telefono (facoltativi): valigie, orario…"></div>
+    <div id="txEst" class="txest">Scrivi partenza e destinazione per vedere il prezzo indicativo.</div>
+    <button class="btn small" id="txGo" style="width:100%;background:#f59e0b;color:#111">🚕 Manda la richiesta ai tassisti</button>
+    <div id="txDrv"></div>`;
+  let dl = document.getElementById("dlPontili"); if (!dl){ dl = document.createElement("datalist"); dl.id = "dlPontili"; document.body.appendChild(dl); }
+  if (PONTILI_ACTV) dl.innerHTML = PONTILI_ACTV.p.map(p => `<option value="${esc(p[0])}">`).join("");
+  ["txDa", "txA", "txNote"].forEach(id => { const el = $("#" + id); el.style.background = "#f4f6f9"; el.style.color = "#111"; el.style.borderColor = "#dde3ea"; });
+  const est = async () => {
+    const vda = $("#txDa").value, va = $("#txA").value;
+    TX.da = vda.trim() ? await txPlace(vda) : (lastPos ? { name: "La mia posizione", lat: lastPos.lat, lng: lastPos.lng, me: true } : null);
+    TX.a = va.trim() ? await txPlace(va) : null;
+    const box2 = $("#txEst"); if (!box2) return;
+    if (!TX.da){ box2.textContent = vda.trim() ? "Non trovo la partenza." : "Attiva il GPS (➤) o scrivi da dove parti."; TX.est = null; return; }
+    if (!TX.a){ box2.textContent = va.trim() ? "Non trovo la destinazione: prova con un pontile della lista." : "Scrivi la destinazione."; TX.est = null; return; }
+    TX.est = taxiEstimate(TX.da, TX.a, TX.pax);
+    box2.innerHTML = `Prezzo indicativo <b>${TX.est.lo}–${TX.est.hi} €</b> · circa ${TX.est.min} min · ${String(TX.est.km).replace(".", ",")} km<br><small>Stima sulle tariffe a tassametro del Comune. Il prezzo vero lo conferma il tassista.</small>`;
+  };
+  ["txDa", "txA"].forEach(id => $("#" + id).addEventListener("change", est));
+  $("#txM").onclick = () => { TX.pax = Math.max(1, TX.pax - 1); $("#txPax").textContent = TX.pax; est(); };
+  $("#txP").onclick = () => { TX.pax = Math.min(20, TX.pax + 1); $("#txPax").textContent = TX.pax; est(); };
+  $("#txGo").onclick = async () => {
+    await est(); if (!TX.est) return toast("Indica partenza e destinazione.");
+    const note = $("#txNote").value, tel = (note.match(/\+?\d[\d\s]{7,}/) || [""])[0].replace(/\s/g, "");
+    $("#txGo").disabled = true;
+    try{ const j = await rpc("taxi_call", { p_from: TX.da.name, p_flat: TX.da.lat, p_flng: TX.da.lng, p_to: TX.a.name, p_tlat: TX.a.lat, p_tlng: TX.a.lng,
+        p_pax: TX.pax, p_note: note, p_phone: tel, p_price: TX.est.p, p_km: TX.est.km });
+      if (j && j.errore){ $("#txGo").disabled = false; return toast(j.errore === "troppe" ? "Hai fatto troppe richieste nell'ultima ora." : "Esci e rientra con il tuo account per chiamare un taxi."); }
+      txRide = { id: j.id, stato: "open", da: TX.da.name, a: TX.a.name, prezzo: TX.est.p, t: Date.now() }; store.set("ln_taxi_ride", txRide); haptic(); renderTaxiWait(); txPollStart();
+    }catch(e){ $("#txGo").disabled = false; toast("Richiesta non mandata: controlla la connessione."); }
+  };
+  if (!TX.da && lastPos) est();
+  renderDriverBox();
+}
+function renderTaxiWait(){
+  const box = $("#trBody"), r = txRide; if (!box || trTab !== "taxi") return;
+  if (r.stato === "taken"){
+    box.innerHTML = `<h4 style="color:#0a8f4e">🚕 Taxi in arrivo!</h4><p style="margin:4px 0;font-size:15px"><b>@${esc(r.tassista || "tassista")}</b>${r.barca ? " · " + esc(r.barca) : ""} ha preso la tua corsa.</p>
+      <p class="trnote">${esc(r.da)} → ${esc(r.a)} · indicativo ${r.prezzo} €</p>
+      ${r.telefono ? `<a class="btn small" style="display:block;text-align:center;text-decoration:none;background:#0a8f4e;color:#fff" href="tel:${esc(r.telefono.replace(/[^+\d]/g, ""))}">📞 Chiama il tassista</a>` : ""}
+      <button class="btn small ghost" id="txEnd" style="width:100%;margin-top:8px;color:#111;background:#eee;border:0">Fatto, chiudi</button>`;
+    $("#txEnd").onclick = () => { txRide = null; store.set("ln_taxi_ride", null); txPollStop(); renderTaxi(); }; return;
+  }
+  if (r.stato === "scaduta"){
+    box.innerHTML = `<h4>🚕 Nessun taxi disponibile</h4><p class="trnote">Nessun tassista convenzionato ha accettato in 15 minuti.</p><button class="btn small" id="txAgain" style="width:100%;background:#f59e0b;color:#111">Riprova</button>`;
+    $("#txAgain").onclick = () => { txRide = null; store.set("ln_taxi_ride", null); renderTaxi(); }; return;
+  }
+  const m = Math.floor((Date.now() - r.t) / 60000);
+  box.innerHTML = `<h4 style="color:#b45309">🚕 Cerco un taxi…</h4><div class="txwait"><i></i><i></i><i></i></div>
+    <p class="trnote">Richiesta mandata a tutti i tassisti convenzionati ${m ? "da " + m + " min" : "adesso"}. Il primo che accetta prende la corsa.</p>
+    <p class="trnote">${esc(r.da)} → ${esc(r.a)} · indicativo ${r.prezzo} €</p>
+    <button class="btn small ghost" id="txStop" style="width:100%;color:#111;background:#eee;border:0">Annulla la richiesta</button>`;
+  $("#txStop").onclick = async () => { try{ await rpc("taxi_cancel", {}); }catch(e){} txRide = null; store.set("ln_taxi_ride", null); txPollStop(); renderTaxi(); };
+}
+async function txPoll(){
+  if (!txRide){ txPollStop(); return; }
+  try{ const j = await rpc("taxi_mine", {});
+    if (!j){ if (txRide.stato === "open" && Date.now() - txRide.t > 16 * 60000) txRide.stato = "scaduta"; }
+    else { const prima = txRide.stato; txRide = { ...txRide, ...j }; if (prima !== "taken" && j.stato === "taken"){ buzz([200, 100, 200]); haptic(); say("Il taxi ha accettato la corsa"); toast("🚕 @" + (j.tassista || "tassista") + " ha accettato la tua corsa!"); } }
+    store.set("ln_taxi_ride", txRide);
+    if (txRide.stato === "scaduta" || txRide.stato === "taken") txPollStop();
+    if (appMode === "trasporti" && trTab === "taxi") renderTaxiWait();
+  }catch(e){}
+}
+function txPollStart(){ txPollStop(); txTimer = setInterval(txPoll, 5000); }
+function txPollStop(){ clearInterval(txTimer); txTimer = null; }
+if (txRide && txRide.stato === "open") txPollStart();
+
+/* lato tassista */
+async function txBoardLoad(){
+  try{ txBoard = await rpc("taxi_board", {}); }catch(e){ return; }
+  if (txBoard && !txBoard.errore && txOn){
+    const nuove = (txBoard.aperte || []).filter(r => !txSeen.includes(r.id));
+    if (nuove.length && txSeen.length + nuove.length > nuove.length - 1){ buzz([250, 100, 250]); haptic(); toast("🚕 Nuova richiesta: " + nuove[0].da + " → " + nuove[0].a); }
+    txSeen = txSeen.concat(nuove.map(r => r.id));
+  }
+  if (appMode === "trasporti" && trTab === "taxi" && !txRide) renderDriverBox();
+}
+function renderDriverBox(){
+  const box = $("#txDrv"); if (!box) return;
+  if (!txBoard){ box.innerHTML = ""; txBoardLoad(); return; }
+  if (txBoard.errore){
+    box.innerHTML = `<p class="trnote" style="margin-top:10px">${txBoard.richiesta ? "🕐 La tua richiesta di convenzione è in attesa di approvazione." : `Sei un tassista? <a href="#" id="txJoin" style="color:#b45309;font-weight:700">Chiedi la convenzione</a>`}</p>`;
+    if ($("#txJoin")) $("#txJoin").onclick = e => { e.preventDefault(); openSheet(`<h3>🚕 Diventa tassista convenzionato</h3>
+      <p class="muted" style="line-height:1.45">Riceverai le richieste dei clienti di ClickVenice. Il primo tassista che accetta prende la corsa.</p>
+      <div class="field"><label>Telefono per i clienti</label><input id="tjP" type="tel" maxlength="30"></div>
+      <div class="field"><label>Nome o numero della barca</label><input id="tjB" maxlength="60"></div>
+      <div class="field"><label>Numero di licenza</label><input id="tjL" maxlength="40"></div>
+      <button class="btn" id="tjOk">Manda la richiesta</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
+      $("#tjOk").onclick = async () => { if (!$("#tjP").value.trim() || !$("#tjL").value.trim()) return toast("Servono telefono e licenza.");
+        try{ await rpc("taxi_apply", { p_phone: $("#tjP").value, p_boat: $("#tjB").value, p_licenza: $("#tjL").value }); closeSheet(); toast("Richiesta mandata ✓"); txBoard = null; renderDriverBox(); }catch(e){ toast("Non mandata: controlla la connessione."); } }; };
+    return;
+  }
+  const ap = txBoard.aperte || [], mie = txBoard.mie || [];
+  box.innerHTML = `<div class="txdh"><b>🧑‍✈️ Sei tassista</b><label class="txsw"><input type="checkbox" id="txOnSw" ${txOn ? "checked" : ""}> ricevo corse</label></div>` +
+    mie.map(r => `<div class="txr mine"><b>In corso:</b> ${esc(r.da)} → ${esc(r.a)} · ${r.persone} pers. · ~${r.prezzo} €<br><span class="trnote">@${esc(r.cliente)}${r.nota ? " · " + esc(r.nota) : ""}</span>
+      <div class="txb">${r.telefono ? `<a class="btn small" href="tel:${esc(r.telefono)}" style="text-decoration:none">📞</a>` : ""}<button class="btn small" data-txgo="${r.id}">⚓ Portami</button><button class="btn small ghost" data-txdone="${r.id}" style="color:#111;background:#eee;border:0">Fatta ✓</button></div></div>`).join("") +
+    (txOn ? (ap.length ? ap.map(r => `<div class="txr"><b>${esc(r.da)} → ${esc(r.a)}</b><br><span class="trnote">${r.persone} pers. · ${String(r.km || "").replace(".", ",")} km · ~${r.prezzo} € · ${r.min ? r.min + " min fa" : "adesso"}${r.nota ? " · " + esc(r.nota) : ""}</span>
+      <div class="txb"><button class="btn small" data-txok="${r.id}" style="background:#0a8f4e;color:#fff">✓ Accetta la corsa</button></div></div>`).join("") : `<p class="trnote">Nessuna richiesta aperta in questo momento.</p>`) : `<p class="trnote">Non ricevi corse.</p>`);
+  $("#txOnSw").onchange = e => { txOn = e.target.checked; store.set("ln_taxi_on", txOn); renderDriverBox(); };
+  box.querySelectorAll("[data-txok]").forEach(b => b.onclick = async () => { b.disabled = true;
+    try{ const j = await rpc("taxi_accept", { p_id: +b.dataset.txok }); toast(j && j.ok ? "Corsa tua ✓ il cliente è avvisato" : "Troppo tardi: l'ha già presa un altro tassista."); haptic(); }catch(e){ toast("Controlla la connessione."); }
+    await txBoardLoad(); });
+  box.querySelectorAll("[data-txdone]").forEach(b => b.onclick = async () => { try{ await rpc("taxi_done", { p_id: +b.dataset.txdone }); }catch(e){} await txBoardLoad(); });
+  box.querySelectorAll("[data-txgo]").forEach(b => b.onclick = () => { const r = mie.find(x => x.id === +b.dataset.txgo); if (!r) return; setMode("nautica"); openPlan({ name: "Cliente: " + r.da, lat: r.dlat, lng: r.dlng }); });
+}
+setTimeout(txBoardLoad, 5000);
+setInterval(() => { if (txBoard && !txBoard.errore && txOn) txBoardLoad(); }, 10000);
+
 setInterval(() => { if (appMode === "trasporti" && trTab === "bus" && !(document.activeElement && /^tr(Da|A)$/.test(document.activeElement.id))){ if (trStop) renderDepartures(); else if (!(trPlan && trPlan.shown)) renderTr(); } }, 30000);
 
 /* =========================================================
@@ -3544,7 +3689,7 @@ async function openChat(nome){
    Nautica: bricole, velox, ponti, fondali e percorso. Trasporti: solo le fermate. Incontra: solo gli stati. */
 function layerVis(){
   if (!map || !map.isStyleLoaded()) return;
-  const n = appMode === "nautica", dep = mapMode === "depth";
+  const n = appMode === "nautica", dep = !!INST.water;
   const want = {
     "bricole": n, "bric3d": n,
     "velox": n && INST.velox, "velox-tratte": n && INST.velox,
