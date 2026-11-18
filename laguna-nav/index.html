@@ -224,6 +224,18 @@
   .asopt{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:14px;padding:13px 14px;margin-bottom:8px;font-size:15px}
   .assteps{margin:0 0 12px;padding-left:22px} .assteps li{margin-bottom:9px;line-height:1.4}
   .asnav{display:flex;gap:8px;margin-top:6px} .asnav .btn{flex:1}
+  /* mini widget strumenti */
+  #inst{display:none!important}
+  #miniW{position:absolute;z-index:18;left:10px;bottom:16px;display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,255,255,.12);border-radius:14px;overflow:hidden;
+    box-shadow:0 3px 12px rgba(0,0,0,.4);width:170px;cursor:pointer}
+  body.nav #miniW{bottom:92px}
+  body.mode-trasporti #miniW, body.mode-incontra #miniW, body.mode-market #miniW{display:none}
+  .mwc{background:rgba(11,15,23,.9);color:#fff;padding:5px 7px;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:4px;align-items:center}
+  .mwc i{font-style:normal;font-size:12px;grid-row:span 2}
+  .mwc b{font-size:13.5px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mwc small{font-size:8.5px;color:#9ab;letter-spacing:.02em;line-height:1;white-space:nowrap}
+  .mwc.warn b{color:#fbbf24} .mwc.alarm{background:#b3261e} .mwc.alarm b{color:#fff}
+  body.sat .mwc{background:rgba(0,0,0,.75)}
   #tideC{width:100%;height:36px;display:block;margin-top:4px;border-radius:8px;background:#06101f}
   /* ===== 1Click / ClickVenice ===== */
   #splash{background:radial-gradient(120% 80% at 50% 0%,#0d2b5a 0%,#000 70%)}
@@ -508,14 +520,17 @@
 
     <!-- icone piccole: accendono e spengono gli strumenti -->
     <div id="toggles">
-      <button data-inst="speed" title="Velocità">⚡</button>
-      <button data-inst="velox" title="Velox">📷</button>
-      <button data-inst="depth" title="Ecoscandaglio">〰</button>
-      <button data-inst="tide" title="Marea">🌊</button>
       <button data-inst="water" title="Acqua adesso (fondali con la marea di ora)">💧</button>
       <button id="tgDash" class="dashbtn" title="Cruscotto"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="19" height="14" rx="2.5"/><circle cx="12" cy="10.5" r="4"/><path d="M12 6.5v1.4M12 13.1v1.4M8 10.5h1.4M14.6 10.5H16"/><path d="M12 10.5l1.8-1.8"/><path d="M8 21h8M12 17.5V21"/></svg></button>
     </div>
 
+    <!-- mini widget: tutti gli strumenti in un colpo d'occhio -->
+    <div id="miniW">
+      <div class="mwc" data-mw="spd"><i>⚡</i><b id="mwSpd">–</b><small>km/h</small></div>
+      <div class="mwc" data-mw="vx"><i>📷</i><b id="mwVx">–</b><small id="mwVxL">velox</small></div>
+      <div class="mwc" data-mw="tide"><i>🌊</i><b id="mwTide">–</b><small>marea</small></div>
+      <div class="mwc" data-mw="dep"><i>〰</i><b id="mwDep">–</b><small>sotto il piede</small></div>
+    </div>
     <!-- strumenti -->
     <div id="inst">
       <div class="ic-card" id="i-depth">
@@ -731,7 +746,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.0</p>
+      <p class="sub">1Click · ClickVenice · versione 3.1</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa ClickVenice</button>
@@ -2159,7 +2174,9 @@ $("#rbGo").onclick = () => {
    ========================================================= */
 let dashOpen = false;
 const instOn = k => !!INST[k] || dashOpen;
-let INST = Object.assign({ speed: true, depth: false, tide: false, head: false, velox: true, water: false }, store.get("ln_inst", {})); INST.bridge = false; INST.head = false;
+let INST = Object.assign({ speed: true, depth: false, tide: false, head: false, velox: true, water: false }, store.get("ln_inst", {}));
+// velocità, velox, marea ed ecoscandaglio ora lavorano sempre e si vedono tutti insieme nel mini widget
+Object.assign(INST, { speed: true, velox: true, tide: true, depth: true }); INST.bridge = false; INST.head = false;
 function paintInst(){
   document.querySelectorAll("#toggles button[data-inst]").forEach(b => b.classList.toggle("on", !!INST[b.dataset.inst]));
   $("#i-speed").classList.toggle("hidden", !INST.speed);
@@ -2363,8 +2380,8 @@ function boatDraftCm(b){
   return vals.length ? Math.max(...vals) : null;
 }
 function paintEngChips(){
-  const b = activeBoat(), box = $("#engChips"); if (!box) return;
-  if (!b || !b.dDown){ box.innerHTML = ""; return; }
+  const b = activeBoat(); ["#engChipsS", "#engChips"].forEach(sel => { const box = $(sel); if (!box) return;
+  if (!b || !b.dDown){ box.innerHTML = sel === "#engChipsS" ? `<p class="muted">Imposta la tua barca (⋯ → La mia barca) per calcolare quanta acqua hai sotto il piede.</p>` : ""; return; }
   const opts = [["down", "Motore giù"]];
   if (b.hasTrim) opts.push(["trim", "Trim su"]);
   if (b.hasLift) opts.push(["lift", "Lift su"]);
@@ -2372,6 +2389,7 @@ function paintEngChips(){
   if (!opts.some(o => o[0] === engState)) engState = "down";
   box.innerHTML = opts.map(o => `<button data-eng="${o[0]}" class="${o[0] === engState ? "on" : ""}">${o[1]}</button>`).join("");
   box.querySelectorAll("button").forEach(x => x.onclick = () => { engState = x.dataset.eng; store.set("ln_eng", engState); paintEngChips(); if (lastPos) updateDepth(lastPos); });
+  });
 }
 function updateDepth(p){
   if (!instOn("depth")) return;
@@ -3738,7 +3756,7 @@ function layerVis(){
     "bricole": n, "bric3d": n,
     "velox": n && INST.velox, "velox-tratte": n && INST.velox,
     "ponti": false,
-    "carta": n && (INST.depth || dep), "carta-num": n && (INST.depth || dep), "depths": n && (INST.depth || dep),
+    "carta": n && dep, "carta-num": n && dep, "depths": n && dep,
     "fondo": n && dep,
     "route": n, "route-case": n,
     "poi": n && foodOn, "poi-label": n && foodOn,
@@ -3752,6 +3770,34 @@ function layerVis(){
 /* Trasporti dentro Nautica: il tasto 🚤 apre e chiude vaporetti e taxi */
 $("#fabTr").onclick = () => setAppMode(appMode === "trasporti" ? "nautica" : "trasporti");
 $("#trClose").onclick = () => setAppMode("nautica");
+
+/* ---------- mini widget in basso a sinistra: velocità · velox · marea · acqua sotto il piede ---------- */
+setTimeout(() => { loadTide(); }, 1500);
+function paintMini(){
+  const w = $("#miniW"); if (!w) return;
+  const tx = id => (($("#" + id) || {}).textContent || "").trim();
+  const st = id => { const c = $("#" + id); return c ? (c.classList.contains("alarm") ? "alarm" : c.classList.contains("warn") ? "warn" : "") : ""; };
+  $("#mwSpd").textContent = tx("spd") || "–";
+  let vx = tx("vxAvg"), vi = tx("vxInfo"), m = vi.match(/ a ([\d.,]+ ?k?m)/);
+  const inTratta = !!tx("vxTr");   // dentro una tratta controllata: la media; fuori: quanto manca al prossimo velox
+  $("#mwVx").textContent = inTratta ? vx : m ? m[1] : "–";
+  $("#mwVxL").textContent = inTratta ? "media tratta" : "velox";
+  $("#mwTide").textContent = tx("tVal") || "–";
+  $("#mwDep").textContent = tx("dUnder") || "–";
+  w.querySelector('[data-mw="vx"]').className = "mwc " + st("i-velox");
+  w.querySelector('[data-mw="dep"]').className = "mwc " + st("i-depth");
+}
+setInterval(paintMini, 700);
+$("#miniW").addEventListener("click", e => {
+  const c = e.target.closest("[data-mw]"); if (!c) return;
+  if (c.dataset.mw === "dep"){
+    openSheet(`<h3>〰 Acqua sotto il piede: ${esc((($("#dUnder") || {}).textContent) || "–")}</h3><p class="muted">${esc((($("#dInfo") || {}).textContent) || "")}</p>
+      <p class="muted" style="margin:10px 0 6px">Posizione del motore</p><div class="chips" id="engChipsS"></div>
+      <button class="btn ghost" style="margin-top:12px" id="mwDash">Apri il cruscotto</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
+    paintEngChips(); $("#mwDash").onclick = () => { closeSheet(); openDash(); }; return;
+  }
+  openDash();
+});
 /* =========================================================
    ORDINA
    ========================================================= */
