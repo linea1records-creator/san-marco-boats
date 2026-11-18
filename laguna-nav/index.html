@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Laguna Nav</title>
+<title>ClickVenice · 1Click</title>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>if(!window.maplibregl){document.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"><\/script>');}</script>
@@ -179,6 +179,58 @@
   .lg-bar{height:12px;border-radius:4px;margin:4px 0 2px;background:linear-gradient(90deg,#b71c1c 0%,#e53935 7%,#ff6d00 13%,#ff9800 20%,#b08c00 26%,#c7a000 29%,#deb600 32%,#f0cc00 35%,#ffe01e 38%,#ffee58 41%,#f4f782 44%,#daf08c 47%,#bee696 50%,#a0daa0 53%,#80deea 57%,#4fc3f7 68%,#29b6f6 78%,#0288d1 90%,#01579b 100%)}
   .lg-ticks{display:flex;justify-content:space-between;font-size:9px;color:#444}
   #tideC{width:100%;height:36px;display:block;margin-top:4px;border-radius:8px;background:#06101f}
+  /* ===== barra in basso ===== */
+  nav{display:flex;background:#0a0a0a;border-top:1px solid var(--line);padding-bottom:var(--safe-b)}
+  nav button{flex:1;padding:8px 0 6px;font-size:10.5px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
+  nav button .ic{font-size:21px;line-height:1}
+  /* ===== 1Click / ClickVenice ===== */
+  #splash{background:radial-gradient(120% 80% at 50% 0%,#0d2b5a 0%,#000 70%)}
+  .ob{display:flex;flex-direction:column;justify-content:center;min-height:100%;animation:obIn .35s ease}
+  @keyframes obIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .logo1{font-size:64px;font-weight:900;letter-spacing:-2px;text-align:center}
+  .logo1 span{color:#2f8cff}
+  .logoCV{font-size:48px;font-weight:900;letter-spacing:-1px;text-align:center}
+  .logoCV span{color:#2f8cff}
+  .logoCV.small{font-size:30px}
+  .obsub{text-align:center;color:#9fb3d6;margin:8px 0 26px}
+  .citybtn{display:flex;justify-content:space-between;align-items:center;width:100%;padding:18px 18px;margin-bottom:10px;border-radius:16px;
+    background:#10203d;border:1px solid #23406f;font-size:18px}
+  .citybtn span{color:#7fb3ff;font-size:14px}
+  .citybtn.soon{opacity:.45}
+  .cn{display:flex;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding-left:12px}
+  .cn span{color:#7fb3ff;font-weight:700}
+  .cn input{border:0;background:none}
+  .hint.ok{color:#4ade80} .hint.ko{color:#ff6b60}
+  .avatar{width:84px;height:84px;border-radius:50%;margin:0 auto;background:linear-gradient(135deg,#1a56db,#2f8cff);display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:800}
+  .rowbtn{display:flex;justify-content:space-between;width:100%;text-align:left;font-size:16px;font-weight:600}
+  .rowbtn span{color:var(--muted)}
+  .backbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;color:#7fb3ff;font-weight:600}
+  #navMode{position:absolute;z-index:19;left:50%;transform:translateX(-50%);top:calc(70px + var(--safe-t));display:flex;background:rgba(255,255,255,.95);border-radius:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,.3);overflow:hidden}
+  #navMode button{padding:7px 14px;font-size:13px;font-weight:700;color:#333}
+  #navMode button.on{background:#1a56db;color:#fff}
+  body.nav #navMode{display:none}
+  body.mode-trasporti #toggles, body.mode-trasporti #inst, body.mode-trasporti #navMode, body.mode-trasporti #fabFood,
+  body.mode-trasporti #fabMenu, body.mode-trasporti #fabView{display:none!important}
+  #trPanel{position:absolute;z-index:20;left:10px;right:76px;bottom:16px;background:#fff;color:#111;border-radius:16px;padding:12px 14px;box-shadow:0 3px 14px rgba(0,0,0,.4);
+    max-height:42vh;overflow-y:auto}
+  #trPanel h4{margin:0 0 6px;color:#0a5}
+  #trPanel .stop{display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid #eee;font-size:14px;cursor:pointer}
+  #trPanel .stop:first-of-type{border-top:0}
+  #trPanel .seg{background:#eef2f7;margin-bottom:8px} #trPanel .seg button{color:#345}
+  body:not(.mode-trasporti) #trPanel{display:none}
+  #dash{position:fixed;inset:0;z-index:3000;background:#000;color:#fff;padding:calc(14px + var(--safe-t)) 12px calc(14px + var(--safe-b));display:flex;flex-direction:column}
+  #dash .dh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  #dash .dgrid{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-content:stretch}
+  #dash .tile{background:#0b1426;border:1px solid #1d2e52;border-radius:18px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;min-height:0}
+  #dash .tile.big{grid-column:span 2}
+  #dash .tl{font-size:11px;letter-spacing:.1em;color:#7fa6e8;font-weight:700}
+  #dash .tv{font-size:clamp(30px,11vw,64px);font-weight:900;line-height:1}
+  #dash .ts{font-size:12px;color:#9ab;line-height:1.3}
+  #dash .tile.alarm{background:#b3261e;border-color:#ff6b60} #dash .tile.warn .tv{color:#fbbf24} #dash .tile.ok .tv{color:#4ade80}
+  .soonbox{text-align:center;padding:26px 16px}
+  .soonbox .big{font-size:44px}
+
   /* Sheets / modal */
   #sheet{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
   #sheet .in{width:100%;background:var(--panel);border-radius:20px 20px 0 0;padding:20px;padding-bottom:calc(20px + var(--safe-b));
@@ -220,13 +272,34 @@
 
 <!-- ============ SPLASH: avviso obbligatorio ============ -->
 <div id="splash">
-  <h1>Laguna Nav</h1>
-  <p>Navigatore per la laguna di Venezia: zone controllate, bassi fondali segnalati e consegne di cibo, in barca o a piedi.</p>
-  <label class="check">
-    <input type="checkbox" id="agree">
-    <span>So che <b>quest'app non sostituisce la carta nautica</b> né gli avvisi ufficiali. Le profondità e le zone sono indicative e possono essere sbagliate o non aggiornate. Resto io responsabile della navigazione.</span>
-  </label>
-  <button class="btn" id="enter" disabled>Entra</button>
+  <!-- 1) scegli la città -->
+  <div class="ob" id="ob-city">
+    <div class="logo1">1<span>Click</span></div>
+    <p class="obsub">Scegli la tua città</p>
+    <button class="citybtn" data-city="venezia"><b>Venezia</b><span>ClickVenice ›</span></button>
+    <button class="citybtn soon" disabled><b>Altre città</b><span>presto</span></button>
+  </div>
+  <!-- 2) si apre ClickVenice -->
+  <div class="ob hidden" id="ob-brand">
+    <div class="logoCV">Click<span>Venice</span></div>
+    <p class="obsub">Navigare, mangiare, muoversi, incontrarsi.</p>
+  </div>
+  <!-- 3) registrazione -->
+  <div class="ob hidden" id="ob-reg">
+    <div class="logoCV small">Click<span>Venice</span></div>
+    <h2 style="margin-top:18px">Crea il tuo profilo</h2>
+    <div class="field"><label>Clickname</label>
+      <div class="cn"><span>@</span><input id="regName" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="20" placeholder="il_tuo_nome"></div>
+      <div class="hint" id="regNameHint">Da 3 a 20 caratteri: lettere, numeri, punto o trattino basso.</div></div>
+    <div class="field"><label>Età</label><input id="regAge" type="number" inputmode="numeric" min="13" max="110" placeholder="es. 30"></div>
+    <label class="check">
+      <input type="checkbox" id="agree">
+      <span>So che la parte nautica <b>non sostituisce la carta nautica</b> né gli avvisi ufficiali: profondità, zone e percorsi sono indicativi. Resto io responsabile della navigazione.</span>
+    </label>
+    <button class="btn" id="enter" disabled>Entra in ClickVenice</button>
+    <p class="hint" id="regMsg" style="text-align:center;margin-top:10px"></p>
+    <p class="hint" style="text-align:center">«Incontra» è riservato a chi ha almeno 18 anni.</p>
+  </div>
 </div>
 
 <!-- ============ APP ============ -->
@@ -244,6 +317,15 @@
         <button id="qClear" class="hidden" aria-label="Cancella">✕</button>
       </div>
       <div id="results" class="hidden"></div>
+    </div>
+
+    <!-- nautica: navigatore o cruscotto -->
+    <div id="navMode"><button data-nm="nav" class="on">🧭 Navigatore</button><button data-nm="dash">📟 Cruscotto</button></div>
+
+    <!-- trasporti -->
+    <div id="trPanel">
+      <div class="seg"><button data-tr="bus" class="on">🚤 Vaporetti</button><button data-tr="taxi">🚕 Taxi acqueo</button></div>
+      <div id="trBody">Tocca ➤ per trovare le fermate vicine.</div>
     </div>
 
     <!-- manovra durante la navigazione -->
@@ -341,9 +423,24 @@
     </div>
   </section>
 
+  <!-- cruscotto a schermo intero -->
+  <div id="dash" class="hidden">
+    <div class="dh"><b style="font-size:18px">📟 Cruscotto</b><button class="btn small" id="dashClose">🧭 Mappa</button></div>
+    <div class="dgrid">
+      <div class="tile big" id="dt-man"><div class="tl">PROSSIMA MANOVRA</div><div class="tv" id="dtManV">–</div><div class="ts" id="dtManS">Nessuna navigazione attiva</div></div>
+      <div class="tile" id="dt-spd"><div class="tl">VELOCITÀ</div><div class="tv" id="dtSpd">–</div><div class="ts" id="dtSpdS">km/h</div></div>
+      <div class="tile" id="dt-vx"><div class="tl">VELOX · MEDIA</div><div class="tv" id="dtVx">–</div><div class="ts" id="dtVxS"></div></div>
+      <div class="tile" id="dt-dep"><div class="tl">SOTTO IL PIEDE</div><div class="tv" id="dtDep">–</div><div class="ts" id="dtDepS"></div></div>
+      <div class="tile" id="dt-tide"><div class="tl">MAREA</div><div class="tv" id="dtTide">–</div><div class="ts" id="dtTideS"></div></div>
+      <div class="tile" id="dt-head"><div class="tl">ROTTA</div><div class="tv" id="dtHead">–</div><div class="ts" id="dtHeadS"></div></div>
+      <div class="tile" id="dt-br"><div class="tl">PONTE</div><div class="tv" id="dtBr">–</div><div class="ts" id="dtBrS"></div></div>
+    </div>
+  </div>
+
   <!-- LA MIA BARCA -->
   <section class="view hidden" id="v-boat">
     <div class="scroll">
+      <div class="backbar" data-back="1">‹ Profilo</div>
       <h2>La mia barca</h2>
       <p class="sub">Più dati inserisci, più l'ecoscandaglio e i percorsi sono precisi.</p>
       <div class="card">
@@ -365,20 +462,50 @@
   <!-- ORDINA -->
   <section class="view hidden" id="v-order">
     <div class="scroll">
-      <h2>Ordina</h2>
-      <p class="sub">Cibo consegnato alla tua barca o a casa, a piedi.</p>
+      <h2>Marketplace</h2>
+      <div class="seg" id="mktSeg">
+        <button data-k="food" class="on">🍝 Food</button>
+        <button data-k="shop">🛍️ Shopping</button>
+        <button data-k="boats">⛵ Barche</button>
+        <button data-k="used">♻️ Usato</button>
+      </div>
+      <div id="mkt-other" class="hidden"></div>
+      <div id="mkt-food">
+      <p class="sub">Cibo consegnato alla tua barca o a casa, a piedi. <a href="#" id="foodOnMap" style="color:#c8102e">Vedi i ristoranti sulla mappa ›</a></p>
       <div class="seg" id="modeSeg">
         <button data-m="boat" class="on">🚤 In barca</button>
         <button data-m="foot">🚶 A piedi</button>
       </div>
       <div id="restList"></div>
       <div id="menuBox" class="hidden"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INCONTRA -->
+  <section class="view hidden" id="v-meet">
+    <div class="scroll" id="meetBox"></div>
+  </section>
+
+  <!-- PROFILO -->
+  <section class="view hidden" id="v-profile">
+    <div class="scroll">
+      <div class="card" style="text-align:center;padding:22px">
+        <div class="avatar" id="pfAvatar">?</div>
+        <h2 id="pfName" style="margin-top:10px">@</h2>
+        <p class="sub" id="pfSub" style="margin:0"></p>
+      </div>
+      <button class="card rowbtn" data-go="boat">⛵ La mia barca <span>›</span></button>
+      <button class="card rowbtn" data-go="rider">🚶 Rider <span>›</span></button>
+      <button class="card rowbtn" data-go="info">ⓘ Impostazioni e info <span>›</span></button>
+      <button class="card rowbtn" id="pfEdit">✏️ Cambia clickname o età <span>›</span></button>
     </div>
   </section>
 
   <!-- RIDER -->
   <section class="view hidden" id="v-rider">
     <div class="scroll">
+      <div class="backbar" data-back="1">‹ Profilo</div>
       <h2>Rider</h2>
       <p class="sub">Le tue consegne a piedi e il totale dell'anno.</p>
       <div class="card">
@@ -409,8 +536,9 @@
   <!-- INFO -->
   <section class="view hidden" id="v-info">
     <div class="scroll">
+      <div class="backbar" data-back="1">‹ Profilo</div>
       <h2>Info</h2>
-      <p class="sub">Laguna Nav · versione 1.3</p>
+      <p class="sub">1Click · ClickVenice · versione 2.0</p>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
@@ -442,11 +570,11 @@
   </section>
 
   <nav>
-    <button data-v="map" class="on"><span class="ic">🧭</span>Mappa</button>
-    <button data-v="boat"><span class="ic">⛵</span>Barca</button>
-    <button data-v="order"><span class="ic">🍽️</span>Ordina</button>
-    <button data-v="rider"><span class="ic">🚶</span>Rider</button>
-    <button data-v="info"><span class="ic">ⓘ</span>Info</button>
+    <button data-v="map" data-mode="nautica" class="on"><span class="ic">⚓</span>Nautica</button>
+    <button data-v="order"><span class="ic">🛍️</span>Market</button>
+    <button data-v="map" data-mode="trasporti"><span class="ic">🚤</span>Trasporti</button>
+    <button data-v="meet"><span class="ic">💬</span>Incontra</button>
+    <button data-v="profile"><span class="ic">👤</span>Profilo</button>
   </nav>
 </div>
 
@@ -515,26 +643,112 @@ async function api(path, { method = "GET", body, ret = false } = {}){
 }
 const deleteOwn = (table, id) => api("rpc/delete_own", { method: "POST", body: { p_table: table, p_id: id, p_token: TOKEN }, ret: true });
 
-/* ---------- splash ---------- */
+/* ---------- apertura: città → ClickVenice → registrazione ---------- */
+let PROFILE = store.get("ln_profile", null);
 const agree = $("#agree"), enter = $("#enter");
-agree.onchange = () => enter.disabled = !agree.checked;
-enter.onclick = () => { store.set("ln_agree", Date.now()); openApp(); };
-
+function showOb(id){ ["ob-city", "ob-brand", "ob-reg"].forEach(x => $("#" + x).classList.toggle("hidden", x !== id)); }
+document.querySelectorAll(".citybtn[data-city]").forEach(b => b.onclick = () => {
+  store.set("ln_city", b.dataset.city); showOb("ob-brand");
+  setTimeout(() => { if (PROFILE) openApp(); else { showOb("ob-reg"); if (PROFILE === null) $("#regName").focus(); } }, 1400);
+});
+const NAME_RX = /^[A-Za-z0-9_.]{3,20}$/;
+let nameOk = false, nameTimer = null;
+function regCheck(){ enter.disabled = !(nameOk && agree.checked && +$("#regAge").value >= 13 && +$("#regAge").value <= 110); }
+$("#regName").addEventListener("input", () => {
+  const v = $("#regName").value.trim(), hint = $("#regNameHint");
+  nameOk = false; regCheck(); hint.className = "hint";
+  if (!NAME_RX.test(v)){ hint.textContent = "Da 3 a 20 caratteri: lettere, numeri, punto o trattino basso."; return; }
+  if (PROFILE && v.toLowerCase() === PROFILE.clickname.toLowerCase()){ nameOk = true; hint.textContent = "È il tuo clickname"; hint.className = "hint ok"; regCheck(); return; }
+  hint.textContent = "Controllo…";
+  clearTimeout(nameTimer); nameTimer = setTimeout(async () => {
+    try{ const free = await api("rpc/clickname_free", { method: "POST", body: { p_clickname: v }, ret: true });
+      if ($("#regName").value.trim() !== v) return;
+      nameOk = !!free; hint.textContent = free ? "@" + v + " è libero ✓" : "@" + v + " è già preso"; hint.className = "hint " + (free ? "ok" : "ko"); }
+    catch(e){ nameOk = true; hint.textContent = "Non riesco a controllare adesso: lo verifico quando entri."; }
+    regCheck();
+  }, 350);
+});
+$("#regAge").addEventListener("input", regCheck);
+agree.onchange = regCheck;
+enter.onclick = async () => {
+  const name = $("#regName").value.trim(), age = parseInt($("#regAge").value, 10);
+  enter.disabled = true; $("#regMsg").textContent = "Creo il profilo…";
+  try{
+    const r = await api("rpc/register_profile", { method: "POST", ret: true, body: { p_token: TOKEN, p_clickname: name, p_age: age, p_city: store.get("ln_city", "venezia") } });
+    if (r === "preso"){ $("#regMsg").textContent = "@" + name + " è già preso, scegline un altro."; nameOk = false; regCheck(); return; }
+    if (r !== "ok"){ $("#regMsg").textContent = "Controlla clickname ed età."; regCheck(); return; }
+  }catch(e){ $("#regMsg").textContent = "Serve la connessione internet per registrarti."; regCheck(); return; }
+  PROFILE = { clickname: name, age, city: store.get("ln_city", "venezia") }; store.set("ln_profile", PROFILE);
+  store.set("ln_agree", Date.now()); openApp();
+};
 function openApp(){
   $("#splash").classList.add("hidden");
   $("#app").classList.remove("hidden");
   if (!window._mapReady) initMap();
+  renderProfile();
 }
 
-/* ---------- tab ---------- */
+/* ---------- barra in basso: Nautica · Market · Trasporti · Incontra · Profilo ---------- */
+const VIEWS = ["map", "boat", "order", "rider", "info", "meet", "profile"];
+function showView(v){
+  VIEWS.forEach(x => $("#v-" + x).classList.toggle("hidden", x !== v));
+  if (v === "map" && map) setTimeout(() => map.resize(), 50);
+  setFood(foodOn);
+  if (v === "rider") renderRider();
+  if (v === "info") renderInfo();
+  if (v === "meet") renderMeet();
+  if (v === "profile") renderProfile();
+  if (v === "boat") setTimeout(() => { renderBoat(); paintEngChips(); }, 0);
+}
 document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
   document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x === b));
-  ["map","boat","order","rider","info"].forEach(v => $("#v-"+v).classList.toggle("hidden", v !== b.dataset.v));
-  if (b.dataset.v === "map" && map) setTimeout(() => map.resize(), 50);
-  setFood(foodOn);
-  if (b.dataset.v === "rider") renderRider();
-  if (b.dataset.v === "info") renderInfo();
+  showView(b.dataset.v);
+  if (b.dataset.v === "map") setAppMode(b.dataset.mode || "nautica");
 });
+// dal profilo si entra in Barca, Rider e Info; "‹ Profilo" torna indietro
+document.addEventListener("click", e => {
+  const g = e.target.closest("[data-go]"); if (g){ showView(g.dataset.go); return; }
+  if (e.target.closest("[data-back]")) showView("profile");
+});
+function renderProfile(){
+  if (!PROFILE) return;
+  $("#pfAvatar").textContent = PROFILE.clickname[0].toUpperCase();
+  $("#pfName").textContent = "@" + PROFILE.clickname;
+  $("#pfSub").textContent = PROFILE.age + " anni · ClickVenice";
+}
+$("#pfEdit").onclick = () => {
+  $("#app").classList.add("hidden"); $("#splash").classList.remove("hidden"); showOb("ob-reg");
+  $("#regName").value = PROFILE.clickname; $("#regAge").value = PROFILE.age; agree.checked = true; nameOk = true; regCheck();
+  $("#regNameHint").textContent = "È il tuo clickname"; $("#regNameHint").className = "hint ok"; enter.textContent = "Salva";
+};
+
+/* ---------- Marketplace ---------- */
+const MKT_SOON = {
+  shop: ["🛍️", "Shopping", "Negozi di Venezia, con consegna in barca o a piedi e ritiro al pontile."],
+  boats: ["⛵", "Barche", "Compra, vendi e noleggia barche, motori e posti barca. Il catalogo dei modelli è già pronto nella pagina «La mia barca»."],
+  used: ["♻️", "Usato", "Annunci tra veneziani: attrezzatura nautica, cose di casa, bici e tutto il resto."]
+};
+document.querySelectorAll("#mktSeg [data-k]").forEach(b => b.onclick = () => {
+  document.querySelectorAll("#mktSeg [data-k]").forEach(x => x.classList.toggle("on", x === b));
+  const k = b.dataset.k, food = k === "food";
+  $("#mkt-food").classList.toggle("hidden", !food); $("#mkt-other").classList.toggle("hidden", food);
+  document.body.classList.toggle("food", food);
+  if (!food){ const [ic, t, d] = MKT_SOON[k];
+    $("#mkt-other").innerHTML = `<div class="card soonbox"><div class="big">${ic}</div><h3>${t}</h3><p class="muted" style="line-height:1.45">${d}</p><span class="pill">In arrivo</span></div>`; }
+});
+$("#foodOnMap").onclick = e => { e.preventDefault(); document.querySelector('nav button[data-mode="nautica"]').click(); setFood(true); };
+
+/* ---------- Incontra (solo maggiorenni) ---------- */
+function renderMeet(){
+  const box = $("#meetBox");
+  if (!PROFILE || PROFILE.age < 18){
+    box.innerHTML = `<div class="card soonbox"><div class="big">🔒</div><h3>Incontra è solo per maggiorenni</h3><p class="muted">Questa sezione è riservata a chi ha almeno 18 anni.</p></div>`; return;
+  }
+  box.innerHTML = `<h2>Incontra</h2><p class="sub">Conosci persone a Venezia attraverso il loro status.</p>
+    <div class="card soonbox"><div class="big">💬</div><h3>In arrivo</h3>
+    <p class="muted" style="line-height:1.45">Pubblicherai uno status con una foto, vedrai quelli delle persone in città e potrai fare match.
+    Si parla solo se il match è reciproco, con blocco e segnalazione sempre a portata di mano.</p><span class="pill">Solo 18+</span></div>`;
+}
 
 /* =========================================================
    MAPPA / NAVIGATORE
@@ -694,6 +908,7 @@ function addLayers(){
   map.addLayer({ id: "bric3d", type: "fill-extrusion", source: "bric3d", minzoom: 15.5, paint: {
     "fill-extrusion-color": ["get", "c"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-opacity": 1 } });
   drawZones(); drawDepths(); drawRoute(); drawPOI(); drawVelox(); drawBridges(); drawChart(); drawBricole(); applyMapMode();
+  addFermateLayer(); if (FERMATE.length) drawFermate();
 }
 
 function allZones(){ return CONFIG.ZONE_ESEMPIO.map(z => ({ ...z, ex: true })).concat(userZones); }
@@ -1422,7 +1637,7 @@ paintInst();
 $("#fabMenu").onclick = e => { e.stopPropagation(); $("#menu").classList.toggle("hidden"); };
 document.addEventListener("click", e => { if (!e.target.closest("#menu") && !e.target.closest("#fabMenu")) $("#menu").classList.add("hidden"); });
 $("#menu").addEventListener("click", e => { if (e.target.closest(".mi")) setTimeout(() => $("#menu").classList.add("hidden"), 50); });
-$("#goBoat").onclick = () => document.querySelector('nav button[data-v="boat"]').click();
+$("#goBoat").onclick = () => showView("boat");
 
 /* ---------- marea (Comune di Venezia, Punta della Salute) ---------- */
 let TIDE = store.get("ln_tide", null), tideManual = null;
@@ -2257,6 +2472,86 @@ function drawBric3d(){
   }
   map.getSource("bric3d").setData({ type: "FeatureCollection", features: feats });
 }
+
+/* =========================================================
+   MODALITÀ DELL'APP SULLA MAPPA: nautica o trasporti
+   ========================================================= */
+let appMode = "nautica";
+function setAppMode(m){
+  appMode = m;
+  document.body.classList.toggle("mode-trasporti", m === "trasporti");
+  if (map) ["fermate", "fermate-lbl"].forEach(l => { if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", m === "trasporti" ? "visible" : "none"); });
+  if (m === "trasporti"){ loadFermate(); renderTr(); }
+}
+/* ---------- cruscotto ---------- */
+document.querySelectorAll("#navMode [data-nm]").forEach(b => b.onclick = () => {
+  if (b.dataset.nm === "dash"){ openDash(); }
+});
+let dashTimer = null;
+function openDash(){
+  if (watchId === null){ askCompass(); startGps(); }
+  // il cruscotto mostra tutti gli strumenti, anche quelli spenti sulla mappa
+  ["velox", "depth", "tide", "bridge"].forEach(k => { if (!INST[k]){ INST[k] = true; } }); store.set("ln_inst", INST); paintInst();
+  loadTide(); loadBridges();
+  $("#dash").classList.remove("hidden");
+  const copy = () => {
+    const tx = id => ($("#" + id) || {}).textContent || "";
+    const cls = (tile, src) => { const t = $("#" + tile), s = $("#" + src); if (!t || !s) return; t.classList.remove("ok", "warn", "alarm"); ["ok", "warn", "alarm"].forEach(c => { if (s.classList.contains(c)) t.classList.add(c); }); };
+    $("#dtSpd").textContent = tx("spd"); $("#dtSpdS").textContent = "km/h · " + tx("kn");
+    $("#dtVx").textContent = tx("vxAvg"); $("#dtVxS").textContent = tx("vxLim") + " · " + tx("vxInfo"); cls("dt-vx", "i-velox");
+    $("#dtDep").textContent = tx("dUnder"); $("#dtDepS").textContent = tx("dInfo"); cls("dt-dep", "i-depth");
+    $("#dtTide").textContent = tx("tVal"); $("#dtTideS").textContent = tx("tSub") + " " + tx("tNext");
+    $("#dtHead").textContent = tx("hVal") || Math.round(heading) + "°"; $("#dtHeadS").textContent = tx("hSub");
+    $("#dtBr").textContent = tx("brVal"); $("#dtBrS").textContent = tx("brName") + " " + tx("brSub"); cls("dt-br", "i-bridge");
+    if (NAV){ $("#dtManV").textContent = tx("mIcon") + " " + tx("mDist"); $("#dtManS").textContent = tx("mText") + " · " + tx("eta"); }
+    else { $("#dtManV").textContent = "–"; $("#dtManS").textContent = "Cerca una destinazione dalla mappa per navigare"; }
+    if (lastPos){ updateDepth(lastPos); }
+  };
+  copy(); clearInterval(dashTimer); dashTimer = setInterval(copy, 500);
+}
+$("#dashClose").onclick = () => { $("#dash").classList.add("hidden"); clearInterval(dashTimer); };
+
+/* ---------- trasporti: fermate dei vaporetti ---------- */
+let FERMATE = [], trTab = "bus";
+async function loadFermate(){
+  if (FERMATE.length) return;
+  try{ const r = await fetch("fermate.json", { cache: "no-cache" }); const j = await r.json();
+    FERMATE = j.p.map(a => ({ id: a[0], n: a[1], lat: a[2], lng: a[3] })); drawFermate(); renderTr(); }catch(e){}
+}
+function drawFermate(){
+  if (!map || !map.getSource("fermate")){ if (map && map.isStyleLoaded()) addFermateLayer(); else return; }
+  map.getSource("fermate").setData({ type: "FeatureCollection", features: FERMATE.map(f => ({ type: "Feature", properties: { n: f.n.replace(/\s*"[A-Z]"\s*$/, "") }, geometry: { type: "Point", coordinates: [f.lng, f.lat] } })) });
+}
+function addFermateLayer(){
+  if (map.getSource("fermate")) return;
+  map.addSource("fermate", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+  map.addLayer({ id: "fermate", type: "circle", source: "fermate", layout: { visibility: appMode === "trasporti" ? "visible" : "none" },
+    paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 11, 3, 16, 7], "circle-color": "#0a8f4e", "circle-stroke-color": "#fff", "circle-stroke-width": 2 } });
+  if (map.getStyle().glyphs) map.addLayer({ id: "fermate-lbl", type: "symbol", source: "fermate", minzoom: 14, layout: { visibility: appMode === "trasporti" ? "visible" : "none",
+    "text-field": ["get", "n"], "text-size": 12, "text-offset": [0, 1.2], "text-anchor": "top", "text-font": ["Noto Sans Regular"] },
+    paint: { "text-color": "#065f35", "text-halo-color": "#fff", "text-halo-width": 1.5 } });
+}
+document.querySelectorAll("#trPanel [data-tr]").forEach(b => b.onclick = () => {
+  trTab = b.dataset.tr; document.querySelectorAll("#trPanel [data-tr]").forEach(x => x.classList.toggle("on", x === b)); renderTr();
+});
+function renderTr(){
+  const box = $("#trBody"); if (!box) return;
+  if (trTab === "taxi"){
+    box.innerHTML = `<h4>🚕 Taxi acqueo</h4><p style="margin:0;color:#555;font-size:14px;line-height:1.4">Presto potrai chiamare e prenotare un taxi acqueo direttamente da qui, con prezzo e tempo di arrivo.</p>`;
+    return;
+  }
+  const ref = refPoint();
+  if (!FERMATE.length){ box.textContent = "Carico le fermate…"; return; }
+  // una riga per pontile (le banchine A, B, C… insieme)
+  const by = new Map();
+  FERMATE.forEach(f => { const base = f.n.replace(/\s*"[A-Z]"\s*$/, ""), d = hav(ref.lat, ref.lng, f.lat, f.lng); const o = by.get(base); if (!o || d < o.d) by.set(base, { n: base, d, lat: f.lat, lng: f.lng }); });
+  const near = [...by.values()].sort((a, b) => a.d - b.d).slice(0, 5);
+  box.innerHTML = `<h4>🚤 Fermate più vicine${lastPos ? "" : " al centro della mappa"}</h4>` + near.map((s, i) =>
+    `<div class="stop" data-st="${i}"><span>${esc(s.n)}</span><b>${fmtDist(s.d)}</b></div>`).join("") +
+    `<p style="margin:8px 0 0;color:#777;font-size:12px">Orari e linee in tempo reale: in arrivo.</p>`;
+  box.querySelectorAll("[data-st]").forEach(el => el.onclick = () => { const s = near[+el.dataset.st]; setFollow(false); map.easeTo({ center: [s.lng, s.lat], zoom: 16.5, pitch: 0, bearing: 0, duration: 700 }); });
+}
+setInterval(() => { if (appMode === "trasporti") renderTr(); }, 15000);
 /* =========================================================
    ORDINA
    ========================================================= */
@@ -2335,7 +2630,7 @@ async function sendOrder(){
     where = `A piedi – ${v("oAddr")}`;
   }
   const lines = curRest.menu.map((m, i) => cart[i] ? `${cart[i]}× ${m.n} (${eur(m.p * cart[i])})` : null).filter(Boolean);
-  const text = `ORDINE Laguna Nav\n${curRest.name}\n\n${lines.join("\n")}\nTotale: ${eur(cartTotal())}\n\n${where}\n${v("oName")} · ${v("oTel")}` + (v("oNote") ? `\nNote: ${v("oNote")}` : "");
+  const text = `ORDINE ClickVenice\n${curRest.name}\n\n${lines.join("\n")}\nTotale: ${eur(cartTotal())}\n\n${where}\n${v("oName")} · ${v("oTel")}` + (v("oNote") ? `\nNote: ${v("oNote")}` : "");
   const orders = store.get("ln_orders", []);
   orders.unshift({ t: Date.now(), rest: curRest.name, mode: orderMode, tot: cartTotal() }); store.set("ln_orders", orders);
   let saved = true;
@@ -2430,8 +2725,8 @@ $("#learn").onchange = e => { learnOn = e.target.checked; store.set("ln_learn", 
 $("#hsrc").value = headingSrc;
 $("#hsrc").onchange = e => { headingSrc = e.target.value; store.set("ln_hsrc", headingSrc); };
 
-// avvio: se l'avviso è già stato accettato su questo telefono, apre subito l'app
-if (store.get("ln_agree", null)) openApp();
+// avvio: chi ha già un profilo entra direttamente in ClickVenice
+if (PROFILE){ showOb("ob-brand"); setTimeout(openApp, 900); }
 </script>
 </body>
 </html>
