@@ -289,6 +289,12 @@
   #meetBanner #mbIcon{font-size:30px}
   #meetBanner #mbText{flex:1;line-height:1.25}
   #meetBanner small{display:block;opacity:.9;font-size:12px}
+  #evBanner{display:flex;align-items:center;gap:10px;width:100%;text-align:left;margin-top:8px;background:linear-gradient(135deg,#5b21b6,#2563eb);color:#fff;border-radius:16px;padding:9px 14px;box-shadow:0 3px 12px rgba(0,0,0,.35)}
+  #evBanner .evi{font-size:24px} #evBanner .evt{flex:1;line-height:1.2} #evBanner small{display:block;opacity:.9;font-size:12px}
+  .evday{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#8fb3ff;margin:14px 0 4px}
+  .ev{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:11px 12px;margin-bottom:8px}
+  .ev b{display:block;font-size:15px} .ev .evm{font-size:13px;color:var(--muted);margin-top:2px} .ev p{margin:6px 0 0;font-size:13px;line-height:1.4}
+  .ev .evb{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap} .ev .evb .btn{padding:7px 11px;font-size:13px;width:auto}
   #meetFilters{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:4px;scrollbar-width:none}
   #meetFilters button{white-space:nowrap;background:#fff;color:#333;border-radius:20px;padding:7px 12px;font-size:13px;font-weight:600;box-shadow:0 1px 6px rgba(0,0,0,.25)}
   #meetFilters button.on{background:#ff2d78;color:#fff}
@@ -418,6 +424,7 @@
     <!-- incontra -->
     <div id="meetTop">
       <button id="meetBanner"><span id="mbIcon">✨</span><span id="mbText"><b>Aggiorna il tuo stato</b><small>Fatti trovare da chi è in giro a Venezia</small></span><span>›</span></button>
+      <button id="evBanner"><span class="evi">🎉</span><span class="evt"><b>Feste ed eventi della settimana</b><small id="evSub">Cosa succede a Venezia nei prossimi giorni</small></span><span>›</span></button>
       <div id="meetFilters">
         <button data-mf="" class="on">Tutti</button><button data-mf="amicizie">🤝 Amicizie</button><button data-mf="aperitivo">🍹 Aperitivo</button><button data-mf="festa">🎉 Festa</button><button data-mf="incontro">❤️ Incontro</button>
       </div>
@@ -655,7 +662,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 2.5</p>
+      <p class="sub">1Click · ClickVenice · versione 2.6</p>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
@@ -2606,7 +2613,36 @@ const BOAT_CAT = [
   ["Sessa Marine", "Key Largo 20", "Motoscafo", 6.1, 2.4, 1100, 45, 150, 200],
   ["Cranchi", "Panama 21", "Motoscafo", 6.4, 2.4, 1300, 50, 170, 200],
   ["Mano Marine", "19.50", "Barchino", 5.9, 2.3, 800, 45, 150, 150],
-  ["Pacific Craft", "550 Open", "Barchino", 5.5, 2.2, 700, 40, 140, 115]
+  ["Pacific Craft", "550 Open", "Barchino", 5.5, 2.2, 700, 40, 140, 115],
+  // barche più frequenti negli annunci usati 4.000–20.000 € in zona Venezia (Subito, novembre 2026)
+  ["Tradizionale veneziana", "Topo", "Mototopo", 8.5, 2.4, 1800, 50, 130, 60],
+  ["Tradizionale veneziana", "Gondola", "Altro", 10.8, 1.4, 600, 25, 100, 0],
+  ["Gozzo (vari cantieri)", "Gozzo ligure in legno", "Gozzo", 5.5, 2.0, 900, 50, 110, 20],
+  ["Gozzo (vari cantieri)", "Gozzo in vetroresina", "Gozzo", 5.5, 2.0, 800, 45, 110, 40],
+  ["Mardegan", "Lancino", "Lancia", 7.5, 2.3, 1500, 45, 130, 100],
+  ["Mardegan", "Lancia", "Lancia", 8.5, 2.5, 2200, 55, 140, 150],
+  ["Rio", "Rio 590", "Barchino", 5.9, 2.3, 800, 40, 150, 115],
+  ["Rio", "Rio 600 Cabin", "Motoscafo", 6.0, 2.4, 1100, 45, 190, 150],
+  ["Rio", "Rio 550", "Barchino", 5.5, 2.2, 700, 40, 140, 100],
+  ["Laver", "Manta 23.5", "Motoscafo", 7.2, 2.5, 1900, 55, 220, 250],
+  ["Laver", "Manta 19", "Motoscafo", 5.9, 2.3, 1000, 45, 170, 150],
+  ["Sessa Marine", "Oyster 18", "Barchino", 5.5, 2.2, 700, 40, 150, 115],
+  ["Sessa Marine", "Key Largo 16", "Barchino", 4.9, 2.0, 500, 35, 130, 70],
+  ["Sessa Marine", "Key Largo 19", "Motoscafo", 5.8, 2.3, 900, 45, 150, 150],
+  ["Ranieri", "Soverato 545", "Barchino", 5.5, 2.2, 650, 40, 140, 115],
+  ["Brube", "Evo 2", "Barchino", 5.0, 2.0, 450, 30, 120, 60],
+  ["Aquamar", "Samoa 19", "Barchino", 5.8, 2.3, 700, 40, 150, 115],
+  ["Bruno Abbate", "Primatist 21", "Motoscafo", 6.5, 2.4, 1300, 55, 170, 200],
+  ["Thompson", "Carrera 7.8", "Motoscafo", 7.8, 2.6, 2200, 70, 200, 270],
+  ["Mano Marine", "22 Open Fish", "Barchino", 6.6, 2.5, 1200, 45, 170, 200],
+  ["Mano Marine", "18.50", "Barchino", 5.5, 2.2, 650, 40, 140, 115],
+  ["Boston Whaler", "13 Sport", "Barchino", 4.0, 1.7, 290, 30, 100, 40],
+  ["Boston Whaler", "Sakonnet 18", "Barchino", 5.6, 2.2, 700, 40, 130, 115],
+  ["Bayliner", "175 Bowrider", "Motoscafo", 5.3, 2.1, 860, 45, 150, 135],
+  ["Arte Nautica", "Spazio 520", "Barchino", 5.2, 2.1, 550, 35, 130, 90],
+  ["Yacht & Co", "Open 19", "Barchino", 5.8, 2.3, 650, 40, 140, 115],
+  ["Pilotina (vari cantieri)", "Miami 18 semicabinato", "Motoscafo", 5.5, 2.2, 800, 45, 170, 90],
+  ["Contest", "27", "Barca a vela", 8.2, 2.8, 3000, 140, 1150, 15]
 ];
 // [marca, modello, CV, tempi, alimentazione]
 const ENG_CAT = [
@@ -2751,7 +2787,9 @@ function applyMapMode(){
   document.querySelectorAll("#modes [data-mode]").forEach(b => b.classList.toggle("on", b.dataset.mode === mapMode));
   document.body.classList.toggle("sat", sat);
 }
-$("#fabSat").onclick = e => { e.stopPropagation(); $("#modes").classList.toggle("hidden"); };
+// ogni tocco passa alla mappa successiva: semplice → satellite → fondali → semplice
+$("#fabSat").onclick = e => { e.stopPropagation(); const ord = ["simple", "sat", "depth"]; mapMode = ord[(ord.indexOf(mapMode) + 1) % ord.length];
+  store.set("ln_mapmode", mapMode); $("#modes").classList.add("hidden"); applyMapMode(); toast({ simple: "🗺️ Mappa semplice", sat: "🛰 Satellite", depth: "〰 Fondali" }[mapMode]); };
 document.querySelectorAll("#modes [data-mode]").forEach(b => b.onclick = () => { mapMode = b.dataset.mode; store.set("ln_mapmode", mapMode); $("#modes").classList.add("hidden"); applyMapMode(); });
 document.addEventListener("click", e => { if (!e.target.closest("#modes") && !e.target.closest("#fabSat")) $("#modes").classList.add("hidden"); });
 
@@ -2822,6 +2860,7 @@ function setAppMode(m){
   document.body.classList.toggle("mode-incontra", m === "incontra");
   document.body.classList.toggle("mode-market", m === "market");
   if (m === "incontra") meetStart(); else meetStop();
+  if (m === "incontra") loadEvents();
   if (m !== "nautica" && PLAN) closePlan();
   if (m === "market"){ loadPartners(); renderMk(); }
   layerVis();
@@ -3007,6 +3046,72 @@ document.querySelectorAll("#mkCats [data-c]").forEach(b => b.onclick = () => {
 $("#mkList").addEventListener("click", e => { const r = e.target.closest("[data-mk]"); if (!r) return; const p = PARTNERS.find(x => x.id === +r.dataset.mk); if (!p) return;
   setFollow(false); if (map) map.easeTo({ center: [p.lng, p.lat], zoom: 16.5, pitch: 0, bearing: 0, duration: 600 }); openPartner(p); });
 $("#mkOrder").onclick = () => { showView("order"); };
+
+/* ---------- Click n Meet: feste ed eventi della settimana ---------- */
+const EV_KINDS = { festa: "🎉 Festa", evento: "✨ Evento", concerto: "🎵 Concerto", mostra: "🖼️ Mostra", sagra: "🛍️ Mercato e sagra" };
+let EVENTS = store.get("ln_events", []), eventsAt = 0;
+const isoDay = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+async function loadEvents(){
+  if (Date.now() - eventsAt < 10 * 60000) return EVENTS;
+  try{ const r = await api("events?select=id,title,kind,place,lat,lng,day_from,day_to,hour,info,link,source&order=day_from.asc&limit=300"); if (Array.isArray(r)){ EVENTS = r; store.set("ln_events", r); eventsAt = Date.now(); } }catch(e){}
+  paintEvBanner(); return EVENTS;
+}
+function weekEvents(){
+  const t = new Date(), today = isoDay(t), end = isoDay(new Date(t.getTime() + 7 * 864e5));
+  return EVENTS.filter(e => e.day_to >= today && e.day_from <= end);
+}
+function paintEvBanner(){ const s = $("#evSub"); if (!s) return; const n = weekEvents().length;
+  s.textContent = n ? n + (n === 1 ? " appuntamento" : " appuntamenti") + " nei prossimi 7 giorni" : "Cosa succede a Venezia nei prossimi giorni"; }
+const dayLbl = iso => { const d = new Date(iso + "T12:00:00"), t = isoDay(new Date()), tm = isoDay(new Date(Date.now() + 864e5));
+  return iso === t ? "Oggi" : iso === tm ? "Domani" : d.toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" }); };
+async function openEvents(){
+  openSheet(`<h3>🎉 Feste ed eventi della settimana</h3><p class="muted">Carico…</p>`);
+  await loadEvents(); renderEvents();
+}
+function renderEvents(){
+  const list = weekEvents(), today = isoDay(new Date()), mine = store.get("ln_my_events", []);
+  // ogni evento compare nel primo giorno utile (da oggi in poi)
+  const groups = {}; list.forEach(e => { const k = e.day_from < today ? today : e.day_from; (groups[k] = groups[k] || []).push(e); });
+  const html = Object.keys(groups).sort().map(k => `<div class="evday">${dayLbl(k)}</div>` + groups[k].map(e => {
+    const span = e.day_from !== e.day_to ? `fino a ${new Date(e.day_to + "T12:00:00").toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" })}` : "";
+    return `<div class="ev"><b>${esc(e.title)}</b><div class="evm">${EV_KINDS[e.kind] || "✨ Evento"}${e.place ? " · " + esc(e.place) : ""}${e.hour ? " · ore " + esc(e.hour) : ""}${span ? " · " + span : ""}</div>
+      ${e.info ? `<p>${esc(e.info)}</p>` : ""}
+      <div class="evb">${e.lat ? `<button class="btn ghost" data-evgo="${e.id}">⚓ Portami qui</button>` : ""}${e.link ? `<a class="btn ghost" href="${esc(e.link)}" target="_blank" rel="noopener" style="text-decoration:none">Dettagli ↗</a>` : ""}${mine.includes(e.id) ? `<button class="btn ghost" data-evdel="${e.id}">Elimina</button>` : ""}</div>
+      ${e.source ? `<div class="evm" style="font-size:11px;margin-top:6px">Fonte: ${esc(e.source)}</div>` : ""}</div>`; }).join("")).join("");
+  $("#sheetIn").innerHTML = `<h3>🎉 Feste ed eventi della settimana</h3>
+    <button class="btn" id="evAdd">＋ Segnala una festa o un evento</button>` + (html || `<p class="muted" style="margin-top:14px">Nessun evento in calendario nei prossimi 7 giorni. Segnalane uno tu!</p>`) +
+    `<p class="muted" style="font-size:12px;line-height:1.4;margin-top:12px">Gli eventi vengono dal Comune di Venezia, dai teatri e dalle segnalazioni degli utenti. Controlla sempre date e orari nei dettagli.</p>
+    <button class="btn ghost" style="margin-top:6px" onclick="closeSheet()">Chiudi</button>`;
+  $("#evAdd").onclick = evForm;
+  document.querySelectorAll("[data-evgo]").forEach(b => b.onclick = () => { const e = EVENTS.find(x => x.id === +b.dataset.evgo); if (!e) return; closeSheet(); setMode("nautica"); openPlan({ name: e.place || e.title, lat: e.lat, lng: e.lng }); });
+  document.querySelectorAll("[data-evdel]").forEach(b => b.onclick = async () => { try{ await rpc("event_delete", { p_id: +b.dataset.evdel }); }catch(e){} eventsAt = 0; await loadEvents(); renderEvents(); });
+}
+function evForm(){
+  const t = isoDay(new Date());
+  $("#sheetIn").innerHTML = `<h3>Segnala un evento</h3>
+    <div class="field"><label>Titolo</label><input id="efT" maxlength="90" placeholder="es. Festa in campo Santa Margherita"></div>
+    <div class="field"><label>Tipo</label><select id="efK">${Object.entries(EV_KINDS).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}</select></div>
+    <div class="field"><label>Dove</label><input id="efP" maxlength="90" placeholder="es. Campo Santa Margherita"></div>
+    <div class="row"><div class="field"><label>Dal</label><input id="efF" type="date" value="${t}" min="${t}"></div><div class="field"><label>Al</label><input id="efTo" type="date" value="${t}" min="${t}"></div></div>
+    <div class="field"><label>Ora (facoltativa)</label><input id="efH" maxlength="20" placeholder="es. 19:00"></div>
+    <div class="field"><label>Due righe (facoltative)</label><input id="efI" maxlength="240" placeholder="es. Musica dal vivo, ingresso libero"></div>
+    <label class="check" style="margin:6px 0 10px"><input type="checkbox" id="efHere"><span>Metti il punto sulla mappa dove sono adesso</span></label>
+    <button class="btn" id="efOk">Pubblica</button><button class="btn ghost" style="margin-top:10px" id="efBack">Indietro</button>`;
+  $("#efBack").onclick = renderEvents;
+  $("#efOk").onclick = async () => {
+    const title = $("#efT").value.trim(); if (title.length < 3) return toast("Scrivi il titolo dell'evento.");
+    const from = $("#efF").value, to = $("#efTo").value < from ? from : $("#efTo").value, here = $("#efHere").checked && lastPos;
+    let place = $("#efP").value.trim(), pt = here ? { lat: lastPos.lat, lng: lastPos.lng } : null;
+    if (!pt && place){ try{ pt = await geocodeVenice(place); }catch(e){} }
+    $("#efOk").disabled = true;
+    try{ const j = await rpc("event_add", { p_title: title, p_kind: $("#efK").value, p_place: place, p_from: from, p_to: to, p_hour: $("#efH").value, p_info: $("#efI").value, p_lat: pt ? pt.lat : null, p_lng: pt ? pt.lng : null });
+      if (j && j.errore){ $("#efOk").disabled = false; return toast(j.errore === "troppi" ? "Hai già segnalato 5 eventi oggi." : j.errore === "data" ? "Controlla la data." : "Esci e rientra con il tuo account per segnalare eventi."); }
+      const mine = store.get("ln_my_events", []); mine.push(j.id); store.set("ln_my_events", mine);
+      eventsAt = 0; await loadEvents(); renderEvents(); toast("Evento pubblicato ✓");
+    }catch(e){ $("#efOk").disabled = false; toast("Non pubblicato: controlla la connessione."); }
+  };
+}
+$("#evBanner").onclick = openEvents;
 
 /* =========================================================
    INCONTRA: stati sulla mappa (solo la zona), match reciproco, chat
