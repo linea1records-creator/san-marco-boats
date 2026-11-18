@@ -165,6 +165,16 @@
   .fab.rec{background:#d32f2f;color:#fff}
   #v-boat .card h4{color:#8fb3ff;margin-bottom:10px}
   .hint{font-size:12px;color:var(--muted);margin-top:4px}
+  #modes{position:absolute;z-index:23;right:70px;bottom:130px;background:#fff;color:#111;border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,.4);overflow:hidden;min-width:200px}
+  #modes .mi.on{background:#e8f0fe;color:#1a56db;font-weight:700}
+  body.nav #modes{bottom:206px}
+  #depthLegend{position:absolute;z-index:17;right:70px;top:calc(76px + var(--safe-t));background:rgba(255,255,255,.94);color:#111;border-radius:12px;padding:8px 10px;
+    box-shadow:0 2px 10px rgba(0,0,0,.3);font-size:11px;max-width:170px}
+  body.nav #depthLegend{top:calc(104px + var(--safe-t))}
+  .lg-t{font-weight:800;letter-spacing:.06em;margin-bottom:4px}
+  .lg-r{display:flex;align-items:center;gap:6px;margin:2px 0}
+  .lg-r i{width:14px;height:10px;border-radius:3px;display:inline-block}
+  .lg-s{color:#555;margin-top:4px;line-height:1.25}
   #tideC{width:100%;height:36px;display:block;margin-top:4px;border-radius:8px;background:#06101f}
   /* Sheets / modal */
   #sheet{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
@@ -289,10 +299,28 @@
 
     <div class="fabs">
       <button class="fab" id="fabFood" title="Mostra / nascondi ristoranti">🍝</button>
-      <button class="fab" id="fabSat" title="Satellite / mappa semplice">🛰</button>
+      <button class="fab" id="fabSat" title="Tipo di mappa">🗺️</button>
       <button class="fab" id="fabView" title="Prima persona / nord in alto">3D</button>
       <button class="fab" id="fabMenu" title="Altro">⋯</button>
       <button class="fab big" id="fabGps" title="Dove sono">➤</button>
+    </div>
+
+    <!-- tipo di mappa -->
+    <div id="modes" class="hidden">
+      <button class="mi" data-mode="simple">🗺️ Mappa semplice</button>
+      <button class="mi" data-mode="sat">🛰 Satellite</button>
+      <button class="mi" data-mode="depth">〰 Fondali</button>
+    </div>
+    <div id="depthLegend" class="hidden">
+      <div class="lg-t">ACQUA ADESSO</div>
+      <div class="lg-r"><i style="background:#1565c0"></i>oltre 4 m</div>
+      <div class="lg-r"><i style="background:#4fc3f7"></i>2 – 4 m</div>
+      <div class="lg-r"><i style="background:#ffea00"></i>1 – 2 m</div>
+      <div class="lg-r"><i style="background:#ff9100"></i>50 cm – 1 m</div>
+      <div class="lg-r"><i style="background:#ff1744"></i>sotto 50 cm</div>
+      <div class="lg-r"><i style="background:#8d6e63"></i>asciutto / barena</div>
+      <div class="lg-s" id="lgTide"></div>
+      <div class="lg-s">Stima dalla carta del Comune (±200 m) e dalle misure degli utenti</div>
     </div>
 
     <!-- menu "altro" -->
@@ -381,7 +409,7 @@
   <section class="view hidden" id="v-info">
     <div class="scroll">
       <h2>Info</h2>
-      <p class="sub">Laguna Nav · versione 1.0</p>
+      <p class="sub">Laguna Nav · versione 1.1</p>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
@@ -620,12 +648,17 @@ function addLayers(){
       "text-field": ["get", "n"], "text-size": 12, "text-offset": [0, 1.1], "text-anchor": "top", "text-optional": true,
       "text-font": ["Noto Sans Regular"] }, paint: { "text-color": "#333", "text-halo-color": "#fff", "text-halo-width": 1.5 } });
   }
+  map.addSource("fondo", { type: "geojson", data: empty });
+  map.addLayer({ id: "fondo", type: "circle", source: "fondo", layout: { visibility: "none" }, paint: {
+    "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], 10, 4, 13, 22, 15, 80, 17, 300],
+    "circle-blur": 0.9, "circle-opacity": 0.55,
+    "circle-color": ["step", ["get", "w"], "#8d6e63", 0, "#ff1744", 50, "#ff9100", 100, "#ffea00", 200, "#4fc3f7", 400, "#1565c0"] } });
   map.addSource("carta", { type: "geojson", data: empty });
   map.addLayer({ id: "carta", type: "circle", source: "carta", minzoom: 12, layout: { visibility: INST.depth ? "visible" : "none" }, paint: {
     "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 1.5, 16, 4], "circle-opacity": 0.8,
     "circle-color": ["case", [">", ["get", "d"], 0], "#9e9d24", [">", ["get", "d"], -1], "#ff3b30", [">", ["get", "d"], -2], "#ff9f0a", [">", ["get", "d"], -4], "#4fc3f7", "#1565c0"] } });
   if (map.getStyle().glyphs) map.addLayer({ id: "carta-num", type: "symbol", source: "carta", minzoom: 14.5, layout: { visibility: INST.depth ? "visible" : "none",
-    "text-field": ["get", "t"], "text-size": 10, "text-offset": [0, 0.9], "text-font": ["Noto Sans Regular"], "text-allow-overlap": false },
+    "text-field": ["get", "t"], "text-size": ["interpolate", ["linear"], ["zoom"], 14, 10, 17, 13], "text-offset": [0, 0.9], "text-font": ["Noto Sans Regular"], "text-allow-overlap": false },
     paint: { "text-color": "#0d3b66", "text-halo-color": "#fff", "text-halo-width": 1.2 } });
   map.addSource("velox-tratte", { type: "geojson", data: empty });
   map.addLayer({ id: "velox-tratte", type: "line", source: "velox-tratte", layout: { visibility: INST.velox ? "visible" : "none" },
@@ -639,8 +672,9 @@ function addLayers(){
     "circle-radius": 5, "circle-color": ["case", ["get", "known"], "#6d4c41", "#bcaaa4"], "circle-stroke-color": "#fff", "circle-stroke-width": 1.5 } });
   // bricole: puntini da lontano, 3D da vicino
   map.addSource("bricole", { type: "geojson", data: empty });
-  map.addLayer({ id: "bricole", type: "circle", source: "bricole", minzoom: 12, maxzoom: 15.6, paint: {
-    "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 1.2, 15.5, 3], "circle-color": ["get", "c"], "circle-stroke-color": "#3e2a14", "circle-stroke-width": 0.5 } });
+  map.addLayer({ id: "bricole", type: "circle", source: "bricole", paint: {
+    "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 1, 12, 1.8, 14, 2.8, 16, 4],
+    "circle-color": ["get", "c"], "circle-stroke-color": "#ffffff", "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 9, 0, 13, 0.8] } });
   map.addSource("bric3d", { type: "geojson", data: empty });
   map.addLayer({ id: "bric3d", type: "fill-extrusion", source: "bric3d", minzoom: 15.5, paint: {
     "fill-extrusion-color": ["get", "c"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-opacity": 1 } });
@@ -1391,7 +1425,7 @@ async function loadTide(){
   paintTide();
 }
 function paintTide(){
-  drawTideCurve();
+  drawTideCurve(); if (mapMode === "depth") drawChart();
   const v = tideNow();
   $("#tVal").textContent = v === null ? "–" : (v > 0 ? "+" : "") + v;
   $("#tSub").textContent = v === null ? "tocca per inserirla" : "cm · " + (tideManual !== null ? "a mano" : "P. Salute");
@@ -1448,7 +1482,20 @@ function chartNear(la, lo, R){
 }
 function drawChart(){
   if (!map || !map.getSource("carta")) return;
-  map.getSource("carta").setData({ type: "FeatureCollection", features: CHART.map(p => ({ type: "Feature", properties: { d: p.d, t: p.d > 0 ? "+" + p.d.toFixed(1) : Math.abs(p.d).toFixed(1) }, geometry: { type: "Point", coordinates: [p.lng, p.lat] } })) });
+  const depthMode = mapMode === "depth", tide = tideNow() ?? 30;
+  // nella modalità Fondali i numeri dicono l'acqua di ADESSO (fondale + marea)
+  map.getSource("carta").setData({ type: "FeatureCollection", features: CHART.map(p => { const w = -p.d * 100 + tide;
+    return { type: "Feature", properties: { d: p.d, t: depthMode ? (w <= 0 ? "asciutto" : (w / 100).toFixed(1).replace(".", ",")) : (p.d > 0 ? "+" + p.d.toFixed(1) : Math.abs(p.d).toFixed(1)) }, geometry: { type: "Point", coordinates: [p.lng, p.lat] } }; }) });
+  drawFondo();
+}
+function drawFondo(){
+  if (!map || !map.getSource("fondo")) return;
+  const tide = tideNow() ?? 30, f = [];
+  CHART.forEach(p => f.push({ type: "Feature", properties: { w: Math.round(-p.d * 100 + tide) }, geometry: { type: "Point", coordinates: [p.lng, p.lat] } }));
+  depths.forEach(p => { if (p.ex) return; const z = p.d - ((typeof p.tide === "number" ? p.tide : 30) / 100);
+    f.push({ type: "Feature", properties: { w: Math.round(z * 100 + tide) }, geometry: { type: "Point", coordinates: [p.lng, p.lat] } }); });
+  map.getSource("fondo").setData({ type: "FeatureCollection", features: f });
+  const lg = $("#depthLegend"); if (lg) $("#lgTide").textContent = "Acqua adesso, con marea " + (tide > 0 ? "+" : "") + tide + " cm";
 }
 function boatDraftCm(b){
   if (!b) return null;
@@ -2039,16 +2086,22 @@ function keepSimple(l){
 }
 function applyMapMode(){
   if (!map || !map.getLayer("sat")) return;
-  const sat = mapMode === "sat";
+  const sat = mapMode === "sat", dep = mapMode === "depth";
+  $("#depthLegend").classList.toggle("hidden", !dep);
+  ["fondo"].forEach(l => map.setLayoutProperty(l, "visibility", dep ? "visible" : "none"));
+  ["carta", "carta-num"].forEach(l => { if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", dep || INST.depth ? "visible" : "none"); });
+  if (dep){ loadTide(); drawChart(); if (!INST.depth){ INST.depth = true; store.set("ln_inst", INST); paintInst(); } }
   BASE_LAYERS.forEach(l => { if (!map.getLayer(l.id)) return;
-    const show = sat ? (l.type === "symbol" && /place/i.test(l.id)) : keepSimple(l);
+    const show = sat ? (l.type === "symbol" && /place/i.test(l.id)) : keepSimple(l) && !(dep && l.type === "fill-extrusion");
     map.setLayoutProperty(l.id, "visibility", show ? "visible" : "none"); });
   map.setLayoutProperty("sat", "visibility", sat ? "visible" : "none");
-  $("#fabSat").classList.toggle("on", sat);
-  $("#fabSat").textContent = sat ? "🗺️" : "🛰";
+  $("#fabSat").textContent = sat ? "🛰" : dep ? "〰" : "🗺️";
+  document.querySelectorAll("#modes [data-mode]").forEach(b => b.classList.toggle("on", b.dataset.mode === mapMode));
   document.body.classList.toggle("sat", sat);
 }
-$("#fabSat").onclick = () => { mapMode = mapMode === "sat" ? "simple" : "sat"; store.set("ln_mapmode", mapMode); applyMapMode(); };
+$("#fabSat").onclick = e => { e.stopPropagation(); $("#modes").classList.toggle("hidden"); };
+document.querySelectorAll("#modes [data-mode]").forEach(b => b.onclick = () => { mapMode = b.dataset.mode; store.set("ln_mapmode", mapMode); $("#modes").classList.add("hidden"); applyMapMode(); });
+document.addEventListener("click", e => { if (!e.target.closest("#modes") && !e.target.closest("#fabSat")) $("#modes").classList.add("hidden"); });
 
 /* =========================================================
    BRICOLE (da OpenStreetMap / OpenSeaMap) in 3D
