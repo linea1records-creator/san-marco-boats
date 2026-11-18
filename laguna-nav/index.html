@@ -300,6 +300,7 @@
       <button class="mi" id="fabRec">● Insegna un tragitto</button>
       <button class="mi" id="fabZone">⚠︎ Aggiungi zona controllata</button>
       <button class="mi" id="fabDepth">≈ Segnala fondale misurato</button>
+      <button class="mi" id="goPontili">⚓ Pontili pubblici</button>
       <button class="mi" id="goBoat">⛵ La mia barca</button>
     </div>
 
@@ -379,7 +380,7 @@
   <section class="view hidden" id="v-info">
     <div class="scroll">
       <h2>Info</h2>
-      <p class="sub">Laguna Nav · versione 0.8</p>
+      <p class="sub">Laguna Nav · versione 0.9</p>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
@@ -405,7 +406,7 @@
       </div>
       <div class="card">
         <h4>Mappe</h4>
-        <p class="muted" style="line-height:1.45">Mappa © OpenStreetMap contributors, stile OpenFreeMap. Segnali nautici © OpenSeaMap. Ricerca dei posti: Nominatim (OpenStreetMap). Percorsi: rete dei canali OpenStreetMap e tragitti abituali delle barche di lavoro.</p>
+        <p class="muted" style="line-height:1.45">Mappa © OpenStreetMap contributors, stile OpenFreeMap. Segnali nautici © OpenSeaMap. Ricerca dei posti: Nominatim e Photon (OpenStreetMap). Marea, previsioni, fondali e pontili pubblici: Comune di Venezia (le mappe dei fondali del Comune sono indicate come non ufficiali e non valide per la navigazione). Percorsi: rete dei canali OpenStreetMap e tragitti abituali delle barche di lavoro.</p>
       </div>
     </div>
   </section>
@@ -587,7 +588,7 @@ function initMap(){
     if (f) popupFor(f, e.lngLat);
   });
   loadShared(); setInterval(loadShared, 60000);
-  loadGraph(); loadPOI(); loadVelox(); if (INST.bridge) loadBridges();
+  loadGraph(); loadPOI(); loadVelox(); loadChart(); loadPontili(); if (INST.bridge) loadBridges();
 }
 function addLayers(){
   map.addSource("sea", { type: "raster", tileSize: 256, maxzoom: 18, attribution: "© OpenSeaMap", tiles: ["https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png"] });
@@ -613,6 +614,13 @@ function addLayers(){
       "text-field": ["get", "n"], "text-size": 12, "text-offset": [0, 1.1], "text-anchor": "top", "text-optional": true,
       "text-font": ["Noto Sans Regular"] }, paint: { "text-color": "#333", "text-halo-color": "#fff", "text-halo-width": 1.5 } });
   }
+  map.addSource("carta", { type: "geojson", data: empty });
+  map.addLayer({ id: "carta", type: "circle", source: "carta", minzoom: 12, layout: { visibility: INST.depth ? "visible" : "none" }, paint: {
+    "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 1.5, 16, 4], "circle-opacity": 0.8,
+    "circle-color": ["case", [">", ["get", "d"], 0], "#9e9d24", [">", ["get", "d"], -1], "#ff3b30", [">", ["get", "d"], -2], "#ff9f0a", [">", ["get", "d"], -4], "#4fc3f7", "#1565c0"] } });
+  if (map.getStyle().glyphs) map.addLayer({ id: "carta-num", type: "symbol", source: "carta", minzoom: 14.5, layout: { visibility: INST.depth ? "visible" : "none",
+    "text-field": ["get", "t"], "text-size": 10, "text-offset": [0, 0.9], "text-font": ["Noto Sans Regular"], "text-allow-overlap": false },
+    paint: { "text-color": "#0d3b66", "text-halo-color": "#fff", "text-halo-width": 1.2 } });
   map.addSource("velox-tratte", { type: "geojson", data: empty });
   map.addLayer({ id: "velox-tratte", type: "line", source: "velox-tratte", layout: { visibility: INST.velox ? "visible" : "none" },
     paint: { "line-color": ["case", ["<=", ["get", "v"], 7], "#d32f2f", "#f57c00"], "line-width": 3, "line-opacity": 0.5, "line-dasharray": [1, 1.5] } });
@@ -623,7 +631,7 @@ function addLayers(){
   map.addSource("ponti", { type: "geojson", data: empty });
   map.addLayer({ id: "ponti", type: "circle", source: "ponti", minzoom: 14.5, layout: { visibility: INST.bridge ? "visible" : "none" }, paint: {
     "circle-radius": 5, "circle-color": ["case", ["get", "known"], "#6d4c41", "#bcaaa4"], "circle-stroke-color": "#fff", "circle-stroke-width": 1.5 } });
-  drawZones(); drawDepths(); drawRoute(); drawPOI(); drawVelox(); drawBridges();
+  drawZones(); drawDepths(); drawRoute(); drawPOI(); drawVelox(); drawBridges(); drawChart();
 }
 
 function allZones(){ return CONFIG.ZONE_ESEMPIO.map(z => ({ ...z, ex: true })).concat(userZones); }
@@ -910,6 +918,7 @@ function renderResults(list, title){
   resBox.classList.remove("hidden");
   resBox.querySelectorAll("[data-r]").forEach(el => el.onclick = () => {
     const r = list[+el.dataset.r]; resBox.classList.add("hidden"); qIn.blur(); qIn.value = r.name;
+    if (r.geo && !r.lat){ toast("Cerco il pontile…"); geocodeVenice(r.geo).then(p => { if (!p) return toast("Non trovo la posizione di questo pontile: prova a cercare la fondamenta."); startNav({ ...r, lat: p.lat, lng: p.lng }); }); return; }
     const rec = store.get("ln_recent", []).filter(x => x.name !== r.name); rec.unshift(r); store.set("ln_recent", rec.slice(0, 8));
     startNav(r);
   });
@@ -958,6 +967,27 @@ function drawPOI(){
     type: "Feature", properties: { i, n: p.n, k: p.k }, geometry: { type: "Point", coordinates: [p.lng, p.lat] } })) });
 }
 function refPoint(){ if (lastPos) return lastPos; if (map){ const c = map.getCenter(); return { lat: c.lat, lng: c.lng }; } return { lat: 45.4371, lng: 12.3326 }; }
+/* ---------- pontili pubblici del Comune ---------- */
+let PONTILI = [];
+async function loadPontili(){
+  let c = store.get("ln_pontili_v1", null);
+  if (!(c && c.r && Date.now() - c.t < 30 * 864e5)){ const s = await fromServer("pontili");
+    if (s && s.fogli){ const r = []; s.fogli.forEach(f => f.righe.forEach(x => { if (typeof x[0] === "number" && x[1]) r.push([String(x[1]).trim(), String(x[2] || "").trim()]); })); if (r.length){ c = { t: Date.now(), r }; store.set("ln_pontili_v1", c); } } }
+  if (c && c.r) PONTILI = c.r.map(a => ({ n: a[0], u: a[1], s: norm(a[0] + " " + a[1]) }));
+}
+const USO = u => ({ "VEDI ORDINANZA": "regole nell'ordinanza", "MERCI": "carico e scarico merci", "NOLO CON CONDUCENTE": "noleggio con conducente", "PROGETTO": "in progetto" }[u.toUpperCase()] || u.toLowerCase());
+function pontiliSearch(q){
+  const w = norm(q).split(" ").filter(x => x.length > 1); if (!w.length || !PONTILI.length) return [];
+  const want = /pontil|attracc|ormegg|sosta|merci/.test(norm(q));
+  return PONTILI.filter(p => w.every(x => p.s.includes(x)) || (want && w.some(x => p.s.includes(x) && x.length > 3)))
+    .slice(0, 5).map(p => ({ name: p.n, sub: "Pontile pubblico · " + USO(p.u), geo: p.n }));
+}
+async function geocodeVenice(text){
+  const t = text.replace(/\(.*?\)/g, "").replace(/^pontil[ei]\s+(in\s+|di\s+|darsena\s+)?/i, "").replace(/\b(presso|fronte|sx|dx)\b/gi, " ");
+  try{ const r = await fetch("https://photon.komoot.io/api/?limit=1&lat=45.437&lon=12.333&bbox=12.25,45.38,12.45,45.50&q=" + encodeURIComponent(t + " Venezia"));
+    const j = await r.json(); const f = (j.features || [])[0]; if (f) return { lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] }; }catch(e){}
+  return null;
+}
 function localSearch(q){
   const words = norm(q).split(" ").filter(Boolean); if (!words.length) return [];
   const words2 = words.map(w => w.replace(/s$/, ""));        // "mcdonald's" → "mcdonald"
@@ -989,7 +1019,7 @@ async function nominatim(q){
 async function search(){
   const q = qIn.value.trim(); if (q.length < 2){ if (!q) showRecents(); return; }
   const my = ++qSeq;
-  const local = localSearch(q);
+  const local = localSearch(q).concat(pontiliSearch(q));
   if (local.length) renderResults(local);
   else { resBox.innerHTML = `<div class="res info">Cerco…</div>`; resBox.classList.remove("hidden"); }
   const [a, b] = await Promise.all([photon(q).catch(() => []), nominatim(q).catch(() => [])]);
@@ -1316,7 +1346,7 @@ function paintInst(){
   $("#i-head").classList.toggle("hidden", !INST.head);
   $("#i-velox").classList.toggle("hidden", !INST.velox);
   $("#i-bridge").classList.toggle("hidden", !INST.bridge);
-  if (map) ["velox", "velox-tratte", "ponti"].forEach(l => { if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", (l === "ponti" ? INST.bridge : INST.velox) ? "visible" : "none"); });
+  if (map) ["velox", "velox-tratte", "ponti", "carta", "carta-num"].forEach(l => { if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", (l === "ponti" ? INST.bridge : l.startsWith("carta") ? INST.depth : INST.velox) ? "visible" : "none"); });
 }
 document.querySelectorAll("#toggles button").forEach(b => b.onclick = () => {
   INST[b.dataset.inst] = !INST[b.dataset.inst]; store.set("ln_inst", INST); paintInst();
@@ -1379,7 +1409,33 @@ function fondaleAt(la, lo){
     const z = p.d - ((typeof p.tide === "number" ? p.tide : 30) / 100);   // fondale sotto lo zero mareografico
     const w = 1 / Math.max(4, d) ** 2; ws += w; s += z * w; n++; near = Math.min(near, d);
   }
-  return n ? { z: s / ws, n, near } : null;
+  if (n) return { z: s / ws, n, near, src: "misure" };
+  // carta del Comune (stima: posizione con errore di circa 100-200 m)
+  ws = 0; s = 0; n = 0; near = Infinity;
+  for (const c of chartNear(la, lo, 250)){
+    const w = 1 / Math.max(30, c.m) ** 2; ws += w; s += (-c.d) * w; n++; near = Math.min(near, c.m);
+  }
+  return n ? { z: s / ws, n, near, src: "carta" } : null;
+}
+/* ---------- fondali dalla mappa del Comune ---------- */
+let CHART = [], CHART_G = new Map();
+async function loadChart(){
+  let c = store.get("ln_fondali_v1", null);
+  if (!(c && c.p)){ const s = await fromServer("fondali"); if (s && s.p && s.p.length > 100){ c = { t: Date.now(), p: s.p }; store.set("ln_fondali_v1", c); } }
+  if (!(c && c.p)) return;
+  CHART = c.p.map(a => ({ lat: a[0], lng: a[1], d: a[2] }));
+  CHART_G = new Map(); CHART.forEach((p, i) => { const k = Math.floor(p.lat / 0.003) + ":" + Math.floor(p.lng / 0.004); if (!CHART_G.has(k)) CHART_G.set(k, []); CHART_G.get(k).push(i); });
+  drawChart();
+}
+function chartNear(la, lo, R){
+  const gy = Math.floor(la / 0.003), gx = Math.floor(lo / 0.004), out = [];
+  for (let y = gy - 1; y <= gy + 1; y++) for (let x = gx - 1; x <= gx + 1; x++){ const c = CHART_G.get(y + ":" + x); if (!c) continue;
+    for (const i of c){ const p = CHART[i], m = hav(la, lo, p.lat, p.lng); if (m <= R) out.push({ d: p.d, m }); } }
+  return out;
+}
+function drawChart(){
+  if (!map || !map.getSource("carta")) return;
+  map.getSource("carta").setData({ type: "FeatureCollection", features: CHART.map(p => ({ type: "Feature", properties: { d: p.d, t: p.d > 0 ? "+" + p.d.toFixed(1) : Math.abs(p.d).toFixed(1) }, geometry: { type: "Point", coordinates: [p.lng, p.lat] } })) });
 }
 function boatDraftCm(b){
   if (!b) return null;
@@ -1402,10 +1458,10 @@ function updateDepth(p){
   if (!INST.depth) return;
   const card = $("#i-depth"), b = activeBoat(), draft = boatDraftCm(b), tide = tideNow(), f = fondaleAt(p.lat, p.lng);
   card.classList.remove("ok", "warn", "alarm");
-  $("#dSrc").textContent = f ? "· " + f.n + (f.n === 1 ? " misura" : " misure") + " a " + Math.round(f.near) + " m" : "";
+  $("#dSrc").textContent = !f ? "" : f.src === "carta" ? "· STIMA DALLA CARTA (±200 m)" : "· " + f.n + (f.n === 1 ? " misura" : " misure") + " a " + Math.round(f.near) + " m";
   if (!f){
     $("#dUnder").textContent = "–";
-    $("#dInfo").textContent = "Nessun dato di fondale qui. Arriverà con la carta ufficiale; intanto puoi segnalarlo (⋯).";
+    $("#dInfo").textContent = "Nessun dato di fondale qui. Puoi segnalarlo tu (⋯ → Segnala fondale misurato).";
     SONAR.push({ t: Date.now(), w: null, k: draft }); drawSonar(); return;
   }
   const water = f.z * 100 + (tide === null ? 30 : tide);         // cm d'acqua adesso
@@ -1418,7 +1474,7 @@ function updateDepth(p){
   const under = water - draft, margin = Number((b && b.margin) || 30);
   $("#dUnder").textContent = (under < 0 ? "−" : "") + (Math.abs(under) >= 100 ? (Math.abs(under) / 100).toFixed(2).replace(".", ",") + " m" : Math.round(Math.abs(under)) + " cm");
   $("#dInfo").textContent = `Acqua ${(water / 100).toFixed(2).replace(".", ",")} m · marea ${tide === null ? "?" : (tide > 0 ? "+" : "") + tide} cm · pescaggio ${draft} cm`;
-  card.classList.add(under < margin ? "alarm" : under < margin * 2 ? "warn" : "ok");
+  card.classList.add(under < margin ? "alarm" : under < margin * 2 || f.src === "carta" ? "warn" : "ok");
   if (under < margin && Date.now() - lastAlarm > 15000){ lastAlarm = Date.now(); buzz([400, 150, 400]); say(under < 0 ? "Attenzione, rischi di toccare il fondo" : "Attenzione, poca acqua sotto il piede"); }
   drawSonar();
 }
@@ -1941,6 +1997,20 @@ async function renderDocs(){
   BOATS.forEach(b => { if (b.insurance && Date.parse(b.insurance) - Date.now() < 30 * 864e5) soon.push({ type: "Assicurazione di " + (b.name || "barca") }); });
   if (soon.length) setTimeout(() => toast("⚠︎ In scadenza: " + soon.map(d => d.type).slice(0, 2).join(", ") + (soon.length > 2 ? "…" : "")), 2500);
 }catch(e){} })();
+
+/* lista dei pontili pubblici */
+$("#goPontili").onclick = () => {
+  if (!PONTILI.length){ toast("Lista dei pontili non ancora scaricata: riprova tra poco."); loadPontili(); return; }
+  const groups = {}; PONTILI.forEach((p, i) => { const g = USO(p.u) || "altro"; (groups[g] = groups[g] || []).push(i); });
+  openSheet(`<h3>Pontili pubblici</h3><p class="muted">Lista del Comune di Venezia. Tocca un pontile per andarci.</p>` +
+    Object.entries(groups).map(([g, ids]) => `<div class="card"><h4 style="text-transform:capitalize">${esc(g)} (${ids.length})</h4>` +
+      ids.map(i => `<div class="list-row" data-pon="${i}" style="cursor:pointer"><span>${esc(PONTILI[i].n)}</span><span style="color:#7fc1ff">›</span></div>`).join("") + `</div>`).join(""));
+  document.querySelectorAll("[data-pon]").forEach(el => el.onclick = async () => {
+    const p = PONTILI[+el.dataset.pon]; closeSheet(); toast("Cerco il pontile…");
+    const g = await geocodeVenice(p.n); if (!g) return toast("Non trovo la posizione di questo pontile.");
+    startNav({ name: p.n, lat: g.lat, lng: g.lng });
+  });
+};
 /* =========================================================
    ORDINA
    ========================================================= */
