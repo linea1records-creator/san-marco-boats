@@ -209,6 +209,8 @@
   /* emergenza */
   .fab.sosfab{background:#d32f2f;color:#fff;font-weight:900;font-size:14px;letter-spacing:.04em;border:2px solid #fff}
   body.mode-trasporti #fabSos, body.mode-incontra #fabSos, body.mode-market #fabSos{display:none}
+  body.mode-incontra #fabTr, body.mode-market #fabTr{display:none}
+  .trh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px} .trh b{color:#0a5;font-size:16px} .trh button{font-size:18px;color:#666;padding:2px 6px}
   #sosBar{position:absolute;z-index:24;left:50%;transform:translateX(-50%);top:calc(70px + var(--safe-t));max-width:calc(100% - 20px);display:flex;align-items:center;gap:8px;
     background:#d32f2f;color:#fff;border-radius:16px;padding:6px 12px;font-size:13px;font-weight:700;box-shadow:0 3px 12px rgba(0,0,0,.45);white-space:nowrap;cursor:pointer}
   #sosBar.mine{background:#7f1d1d}
@@ -480,13 +482,14 @@
 
     <!-- trasporti -->
     <div id="trPanel">
+      <div class="trh"><b>🚤 Trasporti</b><button id="trClose" aria-label="Chiudi">✕</button></div>
       <div class="seg"><button data-tr="bus" class="on">🚤 Mezzi pubblici</button><button data-tr="taxi">🚕 Taxi</button></div>
       <div id="trBody">Tocca ➤ per trovare le fermate vicine.</div>
     </div>
 
-    <!-- ClickMarket: attività convenzionate sulla mappa -->
+    <!-- Shopping: attività convenzionate sulla mappa -->
     <div id="mkPanel">
-      <div class="mkh"><b>🛍️ ClickMarket</b><span id="mkCount"></span></div>
+      <div class="mkh"><b>🛍️ Shopping</b><span id="mkCount"></span></div>
       <div class="mkcats" id="mkCats"><button data-c="" class="on">Tutto</button><button data-c="food">🍝 Food</button><button data-c="shop">🛍️ Shopping</button><button data-c="boats">⛵ Barche</button><button data-c="used">♻️ Usato</button></div>
       <div id="mkList"></div>
       <button class="btn small" id="mkOrder">🍝 Ordina cibo in barca o a casa</button>
@@ -544,6 +547,7 @@
 
     <div class="fabs">
       <button class="fab sosfab" id="fabSos" title="Emergenza">SOS</button>
+      <button class="fab" id="fabTr" title="Trasporti: vaporetti e taxi">🚤</button>
       <button class="fab" id="fabSat" title="Tipo di mappa">🗺️</button>
       <button class="fab" id="fabView" title="Prima persona / nord in alto">3D</button>
       <button class="fab" id="fabMenu" title="Altro">⋯</button>
@@ -619,8 +623,8 @@
   <!-- ORDINA -->
   <section class="view hidden" id="v-order">
     <div class="scroll">
-      <div class="backbar" data-back="market">‹ ClickMarket</div>
-      <h2>ClickMarket · Food</h2>
+      <div class="backbar" data-back="market">‹ Shopping</div>
+      <h2>Shopping · Food</h2>
       <div class="seg" id="mktSeg">
         <button data-k="food" class="on">🍝 Food</button>
         <button data-k="shop">🛍️ Shopping</button>
@@ -727,7 +731,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 2.9</p>
+      <p class="sub">1Click · ClickVenice · versione 3.0</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa ClickVenice</button>
@@ -935,8 +939,7 @@ function showView(v){
 }
 const MODES = [
   { k: "nautica", ic: "⚓", n: "Nautica", v: "map", am: "nautica" },
-  { k: "mezzi", ic: "🚤", n: "Mezzi", v: "map", am: "trasporti" },
-  { k: "market", ic: "🛍️", n: "ClickMarket", v: "map", am: "market" },
+  { k: "market", ic: "🛍️", n: "Shopping", v: "map", am: "market" },
   { k: "meet", ic: "💬", n: "Click n Meet", v: "map", am: "incontra" },
   { k: "my", ic: "👤", n: "myClick", v: "profile" }
 ];
@@ -3064,6 +3067,7 @@ function setAppMode(m){
   layerVis();
   if (map) ["fermate", "fermate-lbl"].forEach(l => { if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", m === "trasporti" ? "visible" : "none"); });
   if (m === "trasporti"){ loadFermate(); renderTr(); }
+  const ft = $("#fabTr"); if (ft) ft.classList.toggle("on", m === "trasporti");
 }
 /* ---------- cruscotto ---------- */
 document.querySelectorAll("#navMode [data-nm]").forEach(b => b.onclick = () => {
@@ -3329,7 +3333,7 @@ setInterval(() => { if (txBoard && !txBoard.errore && txOn) txBoardLoad(); }, 10
 setInterval(() => { if (appMode === "trasporti" && trTab === "bus" && !(document.activeElement && /^tr(Da|A)$/.test(document.activeElement.id))){ if (trStop) renderDepartures(); else if (!(trPlan && trPlan.shown)) renderTr(); } }, 30000);
 
 /* =========================================================
-   CLICKMARKET: le attività convenzionate sulla mappa
+   SHOPPING: le attività convenzionate sulla mappa
    ========================================================= */
 const MK_CATS = { food: ["🍝", "Food", "#c8102e"], shop: ["🛍️", "Shopping", "#7c3aed"], boats: ["⛵", "Barche", "#1a56db"], used: ["♻️", "Usato", "#0a8f4e"] };
 let PARTNERS = store.get("ln_partners", []), mkCat = "", partnersAt = 0;
@@ -3360,7 +3364,7 @@ function renderMk(){
   const ref = refPoint(), list = mkShown().map(p => ({ p, d: hav(ref.lat, ref.lng, p.lat, p.lng) })).sort((a, b) => a.d - b.d);
   $("#mkCount").textContent = list.length ? list.length + (list.length === 1 ? " attività" : " attività") : "";
   if (!list.length){
-    box.innerHTML = `<p class="trnote">${PARTNERS.length ? "Nessuna attività convenzionata in questa categoria." : "Le attività convenzionate compariranno qui sulla mappa, appena entrano in ClickMarket."}</p>`; return; }
+    box.innerHTML = `<p class="trnote">${PARTNERS.length ? "Nessuna attività convenzionata in questa categoria." : "Le attività convenzionate compariranno qui sulla mappa, appena entrano in Shopping."}</p>`; return; }
   box.innerHTML = list.slice(0, 6).map((x, i) => `<div class="stop" data-mk="${x.p.id}"><span>${MK_CATS[x.p.category][0]} ${esc(x.p.name)}</span><b>${fmtDist(x.d)} ›</b></div>`).join("");
 }
 function openPartner(p){
@@ -3628,6 +3632,7 @@ $("#meetBanner").onclick = () => {
     <div class="kinds">${Object.entries(MEET_KINDS).map(([k, v]) => `<button data-k="${k}" class="${k === tipo ? "on" : ""}"><span>${v[0]}</span>${v[1]}</button>`).join("")}</div>
     <div class="field"><label>Foto</label><label class="photoPick" id="phPick"><input type="file" accept="image/*" id="phIn" hidden><span id="phTxt">📷 Scatta o scegli una foto</span></label></div>
     <div class="field"><label>Due parole (facoltativo)</label><input id="stTxt" maxlength="140" placeholder="es. Spritz in Fondamenta della Misericordia?" value="${mine && mine.testo ? esc(mine.testo) : ""}"></div>
+    <div class="field"><label>Dove sei? Bar, campo o piazza (facoltativo)</label><input id="stLuogo" list="dlLuoghi" maxlength="60" placeholder="es. Campo Santa Margherita" value="${mine && mine.luogo ? esc(mine.luogo) : ""}"><datalist id="dlLuoghi">${placeSuggest().map(n => `<option value="${esc(n)}">`).join("")}</datalist></div>
     <div class="field"><label>Zona</label><select id="stZona">${Object.keys(MEET_ZONES).map(z => `<option ${z === (mine ? mine.zona : nearestZone()) ? "selected" : ""}>${esc(z)}</option>`).join("")}</select></div>
     <p class="hint" style="line-height:1.4">Gli altri vedono solo la zona, mai dove sei. Lo stato sparisce da solo dopo 24 ore.</p>
     <button class="btn" id="stOk">Pubblica</button>
@@ -3642,7 +3647,7 @@ $("#meetBanner").onclick = () => {
     $("#stOk").disabled = true; $("#stMsg").textContent = "Pubblico…";
     try{
       const send = async () => (await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/stato", { method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ token: TOKEN, tipo, testo: $("#stTxt").value, zona: $("#stZona").value, foto }) }, 30000)).json();
+        body: JSON.stringify({ token: TOKEN, tipo, testo: $("#stTxt").value, luogo: $("#stLuogo").value, zona: $("#stZona").value, foto }) }, 30000)).json();
       let j = await send();
       // se il server non sapeva ancora dei 18 anni, glielo dice e riprova una volta
       if (j.errore === "non_autorizzato" && await syncAdult()) j = await send();
@@ -3653,6 +3658,14 @@ $("#meetBanner").onclick = () => {
   };
   const d = $("#stDel"); if (d) d.onclick = async () => { try{ await rpc("status_delete", {}); }catch(e){} closeSheet(); loadStati(); };
 };
+// locali e campi vicini da proporre quando aggiorni lo stato
+function placeSuggest(){
+  const ref = lastPos || refPoint(), bars = POI.filter(p => /bar|cafe|pub|restaurant|ice_cream|biergarten/.test(p.k || "") && p.n)
+    .map(p => ({ n: p.n, d: hav(ref.lat, ref.lng, p.lat, p.lng) })).filter(x => x.d < 600).sort((a, b) => a.d - b.d).slice(0, 25).map(x => x.n);
+  const campi = ["Campo Santa Margherita", "Campo San Polo", "Campo Santo Stefano", "Campo San Giacomo dall'Orio", "Campo Bandiera e Moro", "Campo de l'Erbaria (Rialto)",
+    "Fondamenta della Misericordia", "Fondamenta degli Ormesini", "Fondamenta Nove", "Zattere", "Piazza San Marco", "Strada Nova", "Via Garibaldi", "Campo San Luca", "Piazza Ferretto (Mestre)"];
+  return [...new Set(bars.concat(campi))];
+}
 function openStato(s){
   const k = MEET_KINDS[s.tipo];
   openSheet(`<div class="stcard">
@@ -3660,7 +3673,7 @@ function openStato(s){
     <h3 style="margin:12px 0 2px">@${esc(s.nome)}</h3>
     <div class="pill" style="font-size:13px">${k[0]} ${k[1]}</div>
     ${s.testo ? `<p style="font-size:16px;line-height:1.4;margin:10px 0">${esc(s.testo)}</p>` : ""}
-    <p class="muted">📍 ${esc(s.zona)} · ${ago(s.quando)}</p>
+    <p class="muted">📍 ${s.luogo ? "<b>" + esc(s.luogo) + "</b> · " : ""}${esc(s.zona)} · ${ago(s.quando)}</p>
     ${s.mio ? `<p class="hint">È il tuo stato.</p>` : s.match ? `<button class="btn" id="stChat">💬 Scrivi a @${esc(s.nome)}</button>`
       : s.piace ? `<button class="btn ghost" disabled>💛 Mi piace inviato: se ricambia, potrete scrivervi</button>` : `<button class="btn" id="stLike">💛 Mi piace</button>`}
     ${s.mio ? "" : `<div class="row" style="margin-top:10px"><button class="btn ghost small" id="stRep">⚑ Segnala</button><button class="btn ghost small" id="stBlk">⛔ Blocca</button></div>`}
@@ -3735,6 +3748,10 @@ function layerVis(){
   Object.entries(want).forEach(([id, v]) => { if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", v ? "visible" : "none"); });
   if (destMarker) destMarker.getElement().style.display = n ? "" : "none";
 }
+
+/* Trasporti dentro Nautica: il tasto 🚤 apre e chiude vaporetti e taxi */
+$("#fabTr").onclick = () => setAppMode(appMode === "trasporti" ? "nautica" : "trasporti");
+$("#trClose").onclick = () => setAppMode("nautica");
 /* =========================================================
    ORDINA
    ========================================================= */
