@@ -244,6 +244,16 @@
   .logo1{font-size:64px;font-weight:900;letter-spacing:-2px;text-align:center}
   .logo1 span{color:#2f8cff}
   .logoCV{font-size:48px;font-weight:900;letter-spacing:-1px;text-align:center}
+  /* intro: il mouse arriva e clicca sul logo, poi si apre la mappa */
+  #obCursor{position:fixed;left:0;top:0;width:30px;height:38px;z-index:5001;pointer-events:none;filter:drop-shadow(0 3px 6px rgba(0,0,0,.6));
+    transition:transform .85s cubic-bezier(.45,.05,.25,1),opacity .2s;opacity:0}
+  #obCursor.press svg{transform:scale(.82);transform-origin:4px 3px;transition:transform .12s}
+  .logoCV.pressed{animation:logoPress .42s ease}
+  @keyframes logoPress{0%{transform:scale(1)}35%{transform:scale(.9)}70%{transform:scale(1.08)}100%{transform:scale(1.04)}}
+  .obRip{position:fixed;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:3px solid #fff;z-index:5001;pointer-events:none;animation:obRip .55s ease-out forwards}
+  @keyframes obRip{from{transform:scale(.4);opacity:.95}to{transform:scale(7);opacity:0}}
+  #splash.leave{animation:splashOut .5s ease-in forwards}
+  @keyframes splashOut{to{opacity:0;transform:scale(1.35)}}
   .logoCV span{color:#2f8cff}
   .logoCV.small{font-size:30px}
   .obsub{text-align:center;color:#9fb3d6;margin:8px 0 26px}
@@ -746,7 +756,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.1</p>
+      <p class="sub">1Click · ClickVenice · versione 3.2</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa ClickVenice</button>
@@ -860,7 +870,7 @@ const agree = $("#agree"), enter = $("#enter");
 function showOb(id){ ["ob-city", "ob-brand", "ob-reg"].forEach(x => $("#" + x).classList.toggle("hidden", x !== id)); }
 document.querySelectorAll(".citybtn[data-city]").forEach(b => b.onclick = () => {
   store.set("ln_city", b.dataset.city); showOb("ob-brand");
-  setTimeout(() => { if (PROFILE) openApp(); else { showOb("ob-reg"); if (PROFILE === null) $("#regName").focus(); } }, 1400);
+  setTimeout(() => { if (PROFILE) introThenOpen(); else { showOb("ob-reg"); if (PROFILE === null) $("#regName").focus(); } }, 1400);
 });
 const NAME_RX = /^[A-Za-z0-9_.]{3,20}$/;
 let authMode = "login", nameOk = false, nameTimer = null;
@@ -912,8 +922,30 @@ enter.onclick = async () => {
   PROFILE = { clickname: r.clickname, city: store.get("ln_city", "venezia") }; store.set("ln_profile", PROFILE); store.set("ln_agree", Date.now());
   // l'account ha la sua chiave: se è diversa da quella del telefono, si riparte con quella (così vedi e gestisci le tue cose da qualsiasi telefono)
   if (r.token && r.token !== TOKEN){ store.set("ln_token", r.token); store.set("ln_mine", { zones: [], depths: [] }); location.reload(); return; }
-  openApp();
+  showOb("ob-brand"); setTimeout(introThenOpen, 400);
 };
+// transizione: il puntatore entra da sotto, va sul logo ClickVenice, clicca, e la mappa si apre "zoomando"
+let introDone = false;
+function introThenOpen(){
+  if (introDone){ openApp(); return; } introDone = true;
+  const logo = document.querySelector("#ob-brand .logoCV"), reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!logo || reduce){ openApp(); return; }
+  const c = document.createElement("div"); c.id = "obCursor";
+  c.innerHTML = '<svg viewBox="0 0 24 30" width="30" height="38"><path d="M3 2 L3 24 L8.6 18.6 L12.4 27.4 L16.2 25.8 L12.4 17.2 L20 17.2 Z" fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+  const r = logo.getBoundingClientRect(), tx = r.left + r.width * 0.62, ty = r.top + r.height * 0.55;
+  c.style.transition = "none"; c.style.transform = `translate(${innerWidth * 0.82}px, ${innerHeight + 20}px)`;   // parte da sotto, fuori schermo
+  document.body.appendChild(c); void c.offsetWidth; c.style.transition = "";
+  // la mappa intanto si prepara sotto
+  $("#app").classList.remove("hidden"); if (!window._mapReady) initMap();
+  requestAnimationFrame(() => { c.style.opacity = 1; requestAnimationFrame(() => { c.style.transform = `translate(${tx}px, ${ty}px)`; }); });
+  setTimeout(() => {                       // clic
+    c.classList.add("press"); logo.classList.add("pressed"); try{ haptic(); }catch(e){}
+    const rp = document.createElement("div"); rp.className = "obRip"; rp.style.left = tx + 4 + "px"; rp.style.top = ty + 3 + "px"; document.body.appendChild(rp);
+    setTimeout(() => { c.classList.remove("press"); rp.remove(); }, 560);
+  }, 950);
+  setTimeout(() => { $("#splash").classList.add("leave"); c.style.opacity = 0; }, 1250);
+  setTimeout(() => { c.remove(); $("#splash").classList.remove("leave"); openApp(); }, 1760);
+}
 function openApp(){
   $("#splash").classList.add("hidden");
   $("#app").classList.remove("hidden");
@@ -934,9 +966,9 @@ document.addEventListener("click", async e => {
       : "Apri questa pagina con <b>Chrome</b>, tocca <b>⋮</b> in alto a destra e poi <b>Installa app</b> (o «Aggiungi a schermata Home»).";
   }
   if (e.target.closest("#vibBtn")){
-    let ok = false; try{ ok = navigator.vibrate ? navigator.vibrate([60, 80, 60]) : false; }catch(_){}
-    $("#vibTxt").innerHTML = ok ? "Se non hai sentito niente: controlla che la vibrazione del telefono sia attiva (Impostazioni → Suoni e vibrazione), che il telefono non sia in modalità silenzioso totale o Non disturbare, e usa Chrome."
-      : "Questo browser non lascia vibrare le pagine web. Su Android apri ClickVenice con Chrome.";
+    let ok = false; try{ ok = navigator.vibrate ? navigator.vibrate([200, 100, 200]) : false; }catch(_){}
+    $("#vibTxt").innerHTML = (ok ? "<b>Chrome dice: vibrazione mandata ✓</b><br>" : "<b>Chrome dice: vibrazione bloccata ✗</b><br>") + (ok ? "Se non hai sentito niente: controlla che la vibrazione del telefono sia attiva (Impostazioni → Suoni e vibrazione), che il telefono non sia in modalità silenzioso totale o Non disturbare, e usa Chrome."
+      : "Questo browser non lascia vibrare le pagine web. Su Android apri ClickVenice con Chrome e tocca prima un punto qualsiasi della pagina.");
   }
 });
 
@@ -3978,7 +4010,7 @@ if (PROFILE && PROFILE.age !== undefined){
   showOb("ob-reg"); document.querySelector('#authSeg [data-a="reg"]').click();
   $("#regName").value = old; nameOk = true; agree.checked = true; regCheck();
   $("#regNameHint").textContent = "Il tuo clickname: scegli una password per proteggerlo"; $("#regNameHint").className = "hint ok";
-} else if (PROFILE){ showOb("ob-brand"); setTimeout(openApp, 900); }
+} else if (PROFILE){ showOb("ob-brand"); setTimeout(introThenOpen, 500); }
 </script>
 </body>
 </html>
