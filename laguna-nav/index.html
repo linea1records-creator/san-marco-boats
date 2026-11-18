@@ -467,7 +467,6 @@
     <div id="menu" class="hidden">
       <button class="mi" id="fabVoice">🔈 Voce</button>
       <button class="mi" id="fabRec">● Insegna un tragitto</button>
-      <button class="mi" id="fabZone">⚠︎ Aggiungi zona controllata</button>
       <button class="mi" id="fabDepth">≈ Segnala fondale misurato</button>
       <button class="mi" id="goPontili">⚓ Pontili pubblici</button>
       <button class="mi" id="goBoat">⛵ La mia barca</button>
@@ -596,7 +595,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ Profilo</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 2.2</p>
+      <p class="sub">1Click · ClickVenice · versione 2.3</p>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
@@ -650,12 +649,7 @@ const CONFIG = {
   SUPABASE_URL: "https://lzqedhmiwywrgeypivbt.supabase.co",
   SUPABASE_KEY: "sb_publishable_7Uw0Kr2j-eutseOfbuIjCw_fUdPwzwv",
   // Zone controllate di ESEMPIO: posizioni e limiti da verificare con la cartina SiSa / ordinanze del Comune
-  ZONE_ESEMPIO: [
-    { name: "Canal Grande – Rialto", limit: 5,  lat: 45.4381, lng: 12.3359, r: 350 },
-    { name: "Bacino di San Marco",   limit: 7,  lat: 45.4318, lng: 12.3425, r: 450 },
-    { name: "Canale della Giudecca", limit: 11, lat: 45.4268, lng: 12.3255, r: 550 },
-    { name: "Fondamente Nove – canale per Murano", limit: 11, lat: 45.4448, lng: 12.3445, r: 450 }
-  ],
+  ZONE_ESEMPIO: [],   // tolte: erano solo esempi da verificare
   // Ristoranti: "boat" = consegna in barca, "foot" = consegna a piedi con rider
   RISTORANTI: [
     { id: "sanmarco", name: "San Marco Ristorazione", modes: ["boat","foot"],
@@ -854,10 +848,7 @@ function renderMeet(){
 let map = null, meMarker = null, destMarker = null, watchId = null;
 let lastPos = null, prevFix = null, addMode = null, inZone = null, overNotified = false;
 let follow = true, view3d = true, heading = 0, compassHeading = null, voiceOn = store.get("ln_voice", true);
-const DEPTH_ESEMPIO = [
-  { lat: 45.4405, lng: 12.3560, d: 0.8, note: "Esempio: bassofondale fuori canale", t: 0, ex: true },
-  { lat: 45.4505, lng: 12.3520, d: 1.4, note: "Esempio: secca con bassa marea", t: 0, ex: true }
-];
+const DEPTH_ESEMPIO = [];   // tolte: erano solo punti di prova
 // copia locale dell'ultimo caricamento, così la mappa funziona anche senza rete
 let userZones = store.get("ln_cache_zones", []);
 let depths = DEPTH_ESEMPIO.concat(store.get("ln_cache_depths", []));
@@ -929,7 +920,7 @@ function initMap(){
     if (addMode === "depth") return depthForm(e.lngLat);
     if (mapMode === "depth"){
       const z = fondoAt(e.lngLat.lat, e.lngLat.lng), t = tideNow() ?? 30;
-      const ff = map.queryRenderedFeatures(e.point, { layers: ["velox", "ponti", "poi", "depths", "zones-fill"].filter(l => map.getLayer(l)) })[0];
+      const ff = map.queryRenderedFeatures(e.point, { layers: ["velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
       if (!ff){
         const b = activeBoat(), dr = boatDraftCm(b), w = z === null ? null : z * 100 + t;
         new maplibregl.Popup({ maxWidth: "240px" }).setLngLat(e.lngLat).setHTML(z === null ? "Nessun dato di fondale qui" :
@@ -939,7 +930,7 @@ function initMap(){
         return;
       }
     }
-    const f = map.queryRenderedFeatures(e.point, { layers: ["velox", "ponti", "poi", "depths", "zones-fill"].filter(l => map.getLayer(l)) })[0];
+    const f = map.queryRenderedFeatures(e.point, { layers: ["velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
     if (f) popupFor(f, e.lngLat);
   });
   loadShared(); setInterval(loadShared, 60000);
@@ -954,14 +945,13 @@ function addLayers(){
   map.addLayer({ id: "sat", type: "raster", source: "sat", layout: { visibility: "none" } });
   const empty = { type: "FeatureCollection", features: [] };
   map.addSource("zones", { type: "geojson", data: empty });
-  map.addLayer({ id: "zones-fill", type: "fill", source: "zones", paint: { "fill-color": "#ffc400", "fill-opacity": 0.16 } });
-  map.addLayer({ id: "zones-line", type: "line", source: "zones", paint: { "line-color": "#e0a800", "line-width": 2, "line-dasharray": [2, 1] } });
+  // le zone controllate non si disegnano più (i limiti veri arrivano dalle tratte dei velox)
   map.addSource("route", { type: "geojson", data: empty });
   map.addLayer({ id: "route-case", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#0b4fa8", "line-width": 13 } });
   map.addLayer({ id: "route", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#2f8cff", "line-width": 8 } });
   map.addSource("depths", { type: "geojson", data: empty });
-  map.addLayer({ id: "depths", type: "circle", source: "depths", paint: {
-    "circle-radius": 9, "circle-stroke-color": "#000", "circle-stroke-width": 2,
+  map.addLayer({ id: "depths", type: "circle", source: "depths", layout: { visibility: "none" }, paint: {
+    "circle-radius": 5, "circle-stroke-color": "#fff", "circle-stroke-width": 1.5,
     "circle-color": ["case", ["<", ["get", "d"], 1], "#ff3b30", ["<", ["get", "d"], 2], "#ff9f0a", "#30d158"] } });
   // ristoranti, bar, fast food (OpenStreetMap)
   map.addSource("poi", { type: "geojson", data: empty });
@@ -1007,6 +997,7 @@ function addLayers(){
     "fill-extrusion-color": ["get", "c"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-opacity": 1 } });
   drawZones(); drawDepths(); drawRoute(); drawPOI(); drawVelox(); drawBridges(); drawChart(); drawBricole(); applyMapMode();
   addFermateLayer(); if (FERMATE.length) drawFermate();
+  layerVis();
 }
 
 function allZones(){ return CONFIG.ZONE_ESEMPIO.map(z => ({ ...z, ex: true })).concat(userZones); }
@@ -1216,7 +1207,7 @@ function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
 /* ---------- aggiunta zone / profondità ---------- */
 function setAddMode(m){
   addMode = addMode === m ? null : m;
-  $("#fabZone").classList.toggle("on", addMode === "zone");
+  const fz = $("#fabZone"); if (fz) fz.classList.toggle("on", addMode === "zone");
   $("#fabDepth").classList.toggle("on", addMode === "depth");
   const h = $("#modeHint");
   if (!addMode){ h.classList.add("hidden"); return; }
@@ -1226,7 +1217,7 @@ function setAddMode(m){
   const u = $("#useGpsDepth");
   if (u) u.onclick = ev => { ev.stopPropagation(); if (lastPos) depthForm({ lat: lastPos.lat, lng: lastPos.lng }); else toast("Attiva prima il GPS (➤)."); };
 }
-$("#fabZone").onclick = () => setAddMode("zone");
+if ($("#fabZone")) $("#fabZone").onclick = () => setAddMode("zone");
 $("#fabDepth").onclick = () => setAddMode("depth");
 function openSheet(html){ $("#sheetIn").innerHTML = html; $("#sheet").classList.remove("hidden"); }
 function closeSheet(){ $("#sheet").classList.add("hidden"); }
@@ -1333,7 +1324,7 @@ function setFood(on){
   document.body.classList.toggle("food", on || !$("#v-order").classList.contains("hidden"));
   $("#fabFood").classList.toggle("on", on);
   qIn.placeholder = on ? "Cerca un ristorante, una pizzeria…" : "Dove vuoi andare?";
-  if (map) ["poi", "poi-label"].forEach(l => { if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", on ? "visible" : "none"); });
+  layerVis();
 }
 $("#fabFood").onclick = () => setFood(!foodOn);
 function drawPOI(){
@@ -1721,7 +1712,7 @@ function paintInst(){
   $("#i-head").classList.toggle("hidden", !INST.head);
   $("#i-velox").classList.toggle("hidden", !INST.velox);
   $("#i-bridge").classList.toggle("hidden", !INST.bridge);
-  if (map) ["velox", "velox-tratte", "ponti", "carta", "carta-num"].forEach(l => { if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", (l === "ponti" ? INST.bridge : l.startsWith("carta") ? INST.depth : INST.velox) ? "visible" : "none"); });
+  layerVis();
 }
 document.querySelectorAll("#toggles button").forEach(b => b.onclick = () => {
   INST[b.dataset.inst] = !INST[b.dataset.inst]; store.set("ln_inst", INST); paintInst();
@@ -2500,8 +2491,7 @@ function applyMapMode(){
   if (!map || !map.getLayer("sat")) return;
   const sat = mapMode === "sat", dep = mapMode === "depth";
   $("#depthLegend").classList.toggle("hidden", !dep);
-  ["fondo"].forEach(l => map.setLayoutProperty(l, "visibility", dep ? "visible" : "none"));
-  ["carta", "carta-num"].forEach(l => { if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", dep || INST.depth ? "visible" : "none"); });
+  layerVis();
   if (dep){ loadTide(); drawChart(); if (!INST.depth){ INST.depth = true; store.set("ln_inst", INST); paintInst(); } }
   BASE_LAYERS.forEach(l => { if (!map.getLayer(l.id)) return;
     const show = sat ? (l.type === "symbol" && /place/i.test(l.id)) : keepSimple(l) && !(dep && l.type === "fill-extrusion");
@@ -2581,6 +2571,7 @@ function setAppMode(m){
   document.body.classList.toggle("mode-trasporti", m === "trasporti");
   document.body.classList.toggle("mode-incontra", m === "incontra");
   if (m === "incontra") meetStart(); else meetStop();
+  layerVis();
   if (map) ["fermate", "fermate-lbl"].forEach(l => { if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", m === "trasporti" ? "visible" : "none"); });
   if (m === "trasporti"){ loadFermate(); renderTr(); }
 }
@@ -2867,6 +2858,25 @@ async function openChat(nome){
   const send = async () => { const t = $("#chIn").value.trim(); if (!t) return; $("#chIn").value = "";
     try{ const r = await rpc("chat_send", { p_nome: nome, p_testo: t }); if (r.errore) toast(r.errore === "troppi_messaggi" ? "Stai scrivendo troppo in fretta." : "Messaggio non inviato."); await pull(); }catch(e){ toast("Messaggio non inviato: controlla la connessione."); } };
   $("#chSend").onclick = send; $("#chIn").onkeydown = e => { if (e.key === "Enter") send(); };
+}
+
+/* ---------- cosa si vede in ogni modalità ----------
+   Nautica: bricole, velox, ponti, fondali e percorso. Trasporti: solo le fermate. Incontra: solo gli stati. */
+function layerVis(){
+  if (!map || !map.isStyleLoaded()) return;
+  const n = appMode === "nautica", dep = mapMode === "depth";
+  const want = {
+    "bricole": n, "bric3d": n,
+    "velox": n && INST.velox, "velox-tratte": n && INST.velox,
+    "ponti": n && INST.bridge,
+    "carta": n && (INST.depth || dep), "carta-num": n && (INST.depth || dep), "depths": n && (INST.depth || dep),
+    "fondo": n && dep,
+    "route": n, "route-case": n,
+    "poi": n && foodOn, "poi-label": n && foodOn,
+    "fermate": appMode === "trasporti", "fermate-lbl": appMode === "trasporti"
+  };
+  Object.entries(want).forEach(([id, v]) => { if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", v ? "visible" : "none"); });
+  if (destMarker) destMarker.getElement().style.display = n ? "" : "none";
 }
 /* =========================================================
    ORDINA
