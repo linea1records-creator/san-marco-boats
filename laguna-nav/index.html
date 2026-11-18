@@ -297,6 +297,12 @@
   .wzcols{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px} .wzcol{aspect-ratio:1;border-radius:50%;border:3px solid #243149} .wzcol.on{border-color:#fff;box-shadow:0 0 0 3px #2f8cff}
   .wzph{height:260px;border-radius:18px;background:#151d2b center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:56px;margin-top:8px}
   .wzsum{margin-top:6px} .wzsum .row1{display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer;font-size:14.5px} .wzsum .row1 span{color:var(--muted)} .wzsum .row1 b{text-align:right;max-width:58%}
+  .wzo.wzwrite{background:transparent;border-style:dashed;color:#9fc3ff;text-align:center}
+  .wzopts.grid .wzo.wzwrite{grid-column:1/-1}
+  .wzck{display:inline-block;width:18px;height:18px;border-radius:6px;border:2px solid #5b6b80;margin-right:8px;vertical-align:-3px}
+  .wzo.on .wzck{background:#2f8cff;border-color:#2f8cff;box-shadow:inset 0 0 0 3px #14284d}
+  .boatpick{display:flex;gap:8px;flex-wrap:wrap} .boatpick button{background:var(--panel2);border:1.5px solid var(--line);color:var(--text);border-radius:14px;padding:10px 14px;font-weight:700}
+  .boatpick button.on{border-color:#2f8cff;background:#14284d}
   #tideC{width:100%;height:36px;display:block;margin-top:4px;border-radius:8px;background:#06101f}
   /* ===== 1Click / ClickVenice ===== */
   #splash{background:radial-gradient(120% 80% at 50% 0%,#0d2b5a 0%,#000 70%)}
@@ -410,6 +416,8 @@
   .pcoms{padding:6px 12px 6px} .pc{background:var(--panel2);border-radius:14px;padding:7px 11px;margin:5px 0;font-size:14px;line-height:1.35}
   .pmore{font-size:13px;color:var(--muted);padding:4px 0}
   .regco{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:8px;display:flex;flex-direction:column;gap:3px} .regco span{font-size:12.5px;color:var(--muted)} .regco a{color:#7fc1ff;font-size:13px}
+  .txsum{background:#151d2b;border:1.5px solid #243149;border-radius:18px;padding:14px 16px;margin-top:6px;font-size:16px} .txsum .txarr{color:#7fa6e8;margin:2px 0 2px 4px}
+  .txsum p{color:#9fb0c5;font-size:14px;margin:8px 0 0} .txprice{font-size:34px;font-weight:900;color:#fbbf24;margin-top:10px}
   .wkseg{margin-bottom:10px} .wkseg button{font-size:13px}
   .job{cursor:pointer} .job .jt{font-weight:800;font-size:16px} .job .jc{font-size:13px;color:var(--muted);margin-top:3px} .job .jf{font-size:12px;color:var(--muted);margin-top:6px}
   .chipsw{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px} .chipsw span{background:#1d2e52;color:#cfe0ff;border-radius:10px;padding:3px 8px;font-size:12px}
@@ -746,8 +754,7 @@
       <p class="sub">Più dati inserisci, più l'ecoscandaglio e i percorsi sono precisi.</p>
       <div class="card">
         <div class="row" style="align-items:flex-end">
-          <div class="field" style="flex:2"><label>Barca attiva</label><select id="boatSel"></select></div>
-          <div class="field" style="flex:1"><button class="btn ghost" id="boatNew" style="padding:12px">+ Nuova</button></div>
+          <div style="flex:1"><label class="lbl2">Barca attiva</label><div class="boatpick" id="boatSel"></div></div>
         </div>
       </div>
       <div id="boatForm"></div>
@@ -856,13 +863,7 @@
       </div>
       <div class="card">
         <h4>Nuova consegna</h4>
-        <div class="field"><label>Ristorante</label><select id="rRest"></select></div>
-        <div class="row">
-          <div class="field"><label>Data</label><input type="date" id="rDate"></div>
-          <div class="field"><label>Compenso (€)</label><input type="number" inputmode="decimal" step="0.5" id="rPay" placeholder="es. 5"></div>
-        </div>
-        <div class="field"><label>Nota (facoltativa)</label><input id="rNote" placeholder="es. Campo Santa Margherita"></div>
-        <button class="btn" id="rAdd">Aggiungi consegna</button>
+        <button class="btn" id="rAdd">＋ Aggiungi una consegna</button>
       </div>
       <div class="card">
         <h4>Storico</h4>
@@ -877,7 +878,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.6</p>
+      <p class="sub">1Click · ClickVenice · versione 3.7</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -891,10 +892,7 @@
       </div>
       <div class="card">
         <h4>Direzione della mappa</h4>
-        <div class="field"><select id="hsrc">
-          <option value="phone">Dove punta il telefono (bussola)</option>
-          <option value="course">Direzione di marcia (GPS)</option>
-        </select></div>
+        <div class="boatpick" id="hsrc"><button data-hs="phone">🧭 Dove punta il telefono</button><button data-hs="course">🛥️ Direzione di marcia (GPS)</button></div>
         <p class="muted" style="line-height:1.45">Con la bussola la mappa gira quando giri il telefono. Tienilo lontano da motore e parti in ferro, che disturbano la bussola.</p>
       </div>
       <div class="card">
@@ -2934,7 +2932,9 @@ function renderBoat(){
   if (!BOATS.length) newBoat();
   if (!activeBoat()) boatId = BOATS[0].id;
   const b = activeBoat();
-  $("#boatSel").innerHTML = BOATS.map(x => `<option value="${x.id}" ${x.id === boatId ? "selected" : ""}>${esc(x.name || "Barca senza nome")}</option>`).join("");
+  $("#boatSel").innerHTML = BOATS.map(x => `<button data-boat="${x.id}" class="${x.id === boatId ? "on" : ""}">⛵ ${esc(x.name || "Barca senza nome")}</button>`).join("") + `<button id="boatNew">＋ Nuova</button>`;
+  $("#boatSel").querySelectorAll("[data-boat]").forEach(x => x.onclick = () => { boatId = x.dataset.boat; saveBoats(); renderBoat(); paintEngChips(); });
+  $("#boatNew").onclick = () => { newBoat(); renderBoat(); paintEngChips(); boatAsk("missing"); };
   $("#boatShare").checked = b.share !== false;
   let tot = 0, done = 0;
   const secs = BOAT_FORM.map(([title, fields]) => { const rows = fields.filter(([, , , , dep]) => !dep || b[dep]).map(([k, label, type]) => { tot++; const val = fmtVal(type, b[k], label); if (val) done++;
@@ -2964,8 +2964,7 @@ async function shareBoat(){
   if (Object.keys(specs).length < 3) return;
   try{ await api("rpc/catalog_upsert", { method: "POST", body: { p_token: TOKEN, p_key: b.id, p_specs: specs } }); $("#boatSaved").textContent = "Salvato ✓ e aggiunto al catalogo"; }catch(e){}
 }
-$("#boatSel").onchange = e => { boatId = e.target.value; saveBoats(); renderBoat(); paintEngChips(); };
-$("#boatNew").onclick = () => { newBoat(); renderBoat(); paintEngChips(); boatAsk("missing"); };
+
 $("#boatShare").onchange = e => { const b = activeBoat(); b.share = e.target.checked; saveBoats(); if (b.share) shareBoat(); };
 $("#boatDel").onclick = () => {
   const b = activeBoat(); if (!b) return;
@@ -3348,9 +3347,7 @@ async function docDel(id){ const db = await idb(); return new Promise(ok => { co
 function docsCard(){
   return `<div class="card"><h4>Documenti della barca</h4>
     <div id="docList" class="muted">Nessun documento.</div>
-    <div class="row" style="margin-top:10px"><div class="field"><label>Tipo</label><select id="docType">${DOC_TYPES.map(t => `<option>${t}</option>`).join("")}</select></div>
-    <div class="field"><label>Scadenza (se c'è)</label><input type="date" id="docExp"></div></div>
-    <div class="field"><label>File (foto o PDF)</label><input type="file" id="docFile" accept="image/*,application/pdf"></div>
+    <button class="btn small" id="docAdd" style="margin-top:10px;width:100%">＋ Aggiungi un documento</button>
     <div class="hint">I documenti restano solo su questo telefono, non vengono caricati su internet. Ti avviso 30 giorni prima delle scadenze.</div></div>`;
 }
 async function renderDocs(){
@@ -3366,13 +3363,18 @@ async function renderDocs(){
   }).join("") : "Nessun documento.";
   box.querySelectorAll("[data-docopen]").forEach(a => a.onclick = async e => { e.preventDefault(); const d = (await docsAll()).find(x => x.id === a.dataset.docopen); if (d) window.open(URL.createObjectURL(d.blob), "_blank"); });
   box.querySelectorAll("[data-docdel]").forEach(a => a.onclick = async e => { e.preventDefault(); if (!confirm("Eliminare il documento?")) return; await docDel(a.dataset.docdel); renderDocs(); });
-  const f = $("#docFile");
-  if (f && !f._bound){ f._bound = true; f.onchange = async () => {
-    const file = f.files[0]; if (!file) return;
-    if (file.size > 25e6){ toast("File troppo grande (massimo 25 MB)."); f.value = ""; return; }
-    try{ await docPut({ id: "d" + Date.now().toString(36), boat: activeBoat().id, type: $("#docType").value, exp: $("#docExp").value || "", name: file.name, blob: file, added: Date.now() });
-      f.value = ""; $("#docExp").value = ""; toast("Documento salvato ✓"); renderDocs(); }catch(e){ toast("Non riesco a salvare il documento su questo telefono."); }
-  }; }
+  const add = $("#docAdd");
+  if (add) add.onclick = () => { let file = null;
+    wizard({ title: "Nuovo documento della barca", values: {}, steps: [
+      { k: "type", q: "Che documento è?", type: "choice", options: DOC_TYPES.map(t => [t, t]) },
+      { k: "exp", q: "Quando scade?", hint: "Ti avviso 30 giorni prima.", type: "date" },
+      { k: "_f", q: "Fotografalo o scegli il file", hint: "Resta solo su questo telefono.", type: "custom",
+        render: () => `<div class="wzopts two"><label class="wzo">📷 Foto<input type="file" accept="image/*" capture="environment" id="wzDocC" hidden></label><label class="wzo">📄 File o PDF<input type="file" accept="image/*,application/pdf" id="wzDocF" hidden></label></div><p class="wzh" id="wzDocN" style="margin-top:12px"></p>`,
+        bind: () => { const pick = e => { const f2 = e.target.files[0]; if (!f2) return; if (f2.size > 25e6) return toast("File troppo grande (massimo 25 MB)."); file = f2; WZ.v._f = f2.name; wzNext(); };
+          $("#wzDocC").onchange = pick; $("#wzDocF").onchange = pick; } } ],
+      onDone: async v => { if (!file) return;
+        try{ await docPut({ id: "d" + Date.now().toString(36), boat: activeBoat().id, type: v.type, exp: v.exp || "", name: file.name, blob: file, added: Date.now() }); toast("Documento salvato ✓"); renderDocs(); }
+        catch(e){ toast("Non riesco a salvare il documento su questo telefono."); } } }); };
 }
 // avviso scadenze all'avvio
 (async () => { try{
@@ -3596,28 +3598,31 @@ async function renderDepartures(){
     box.innerHTML = `<div class="trback" id="trBack">‹ Fermate</div><h4>🚤 ${esc(j.pontile || s.n)}</h4>` + (list || `<p class="trnote">Nessuna partenza nelle prossime 4 ore.</p>`) +
       `<button class="btn small" id="trGoPlan" style="margin-top:8px">Calcola un percorso da qui</button>` + orarioNote(j.orario_del);
     $("#trBack").onclick = () => { trStop = null; $("#trBody").innerHTML = ""; renderTr(); };
-    $("#trGoPlan").onclick = () => { trPlan = { da: j.pontile || s.n, a: "" }; trStop = null; $("#trBody").innerHTML = ""; renderTr(); setTimeout(() => { const a = $("#trA"); if (a) a.focus(); }, 50); };
+    $("#trGoPlan").onclick = () => { trPlan = { da: j.pontile || s.n, a: "" }; trStop = null; $("#trBody").innerHTML = ""; renderTr(); setTimeout(() => { const b = $("#trAsk"); if (b) b.click(); }, 50); };
   }catch(e){ box.innerHTML = `<div class="trback" id="trBack">‹ Fermate</div><p class="trnote">Orari non disponibili: controlla la connessione.</p>`; $("#trBack").onclick = () => { trStop = null; $("#trBody").innerHTML = ""; renderTr(); }; }
 }
 function renderPlan(){
   const box = $("#trPlanBox"); if (!box) return; loadPontiliActv();
-  const names = PONTILI_ACTV ? PONTILI_ACTV.p.map(p => p[0]) : [];
-  let dl = document.getElementById("dlPontili"); if (!dl){ dl = document.createElement("datalist"); dl.id = "dlPontili"; document.body.appendChild(dl); }
-  dl.innerHTML = names.map(n => `<option value="${esc(n)}">`).join("");
   trPlan = trPlan || { da: "", a: "" };
-  box.innerHTML = `<h4>🧭 Dove vuoi andare?</h4>
-    <div class="field" style="margin-bottom:6px"><input id="trDa" list="dlPontili" placeholder="Da: vicino a me" value="${esc(trPlan.da)}"></div>
-    <div class="field" style="margin-bottom:6px"><input id="trA" list="dlPontili" placeholder="A: scrivi il pontile (es. Burano)" value="${esc(trPlan.a)}"></div>
-    <button class="btn small" id="trCalc">Trova la linea migliore</button>`;
-  ["trDa", "trA"].forEach(id => { const el = $("#" + id); el.style.background = "#f4f6f9"; el.style.color = "#111"; el.style.borderColor = "#dde3ea"; });
-  $("#trCalc").onclick = async () => {
-    trPlan = { da: $("#trDa").value.trim(), a: $("#trA").value.trim(), shown: true };
-    const lb = $("#trList"); lb.innerHTML = `<div class="trback" id="trBackP">‹ Fermate vicine</div><div id="trRes"></div>`;
-    $("#trBackP").onclick = () => { trPlan.shown = false; renderTr(); };
-    if (!trPlan.a){ $("#trRes").innerHTML = `<p class="trnote">Scrivi dove vuoi arrivare.</p>`; return; }
-    const ref = refPoint(), da = trPlan.da || (ref.lat.toFixed(6) + "," + ref.lng.toFixed(6));
-    $("#trRes").innerHTML = `<p class="trnote">Calcolo…</p>`;
-    try{
+  box.innerHTML = `<button class="btn small" id="trAsk" style="width:100%">🧭 Dove vuoi andare?</button>${trPlan.a ? `<p class="trnote" style="margin:6px 0 0">Ultimo: ${esc(trPlan.da || "vicino a me")} → ${esc(trPlan.a)}</p>` : ""}`;
+  $("#trAsk").onclick = () => {
+    const near = txNear().map(x => [x[0], x[0]]), all = PONTILI_ACTV ? PONTILI_ACTV.p.map(p => p[0]) : [];
+    const POP = ["Aeroporto", "P.le Roma", "Ferrovia", "Rialto", "S. Zaccaria", "Lido S.M.E.", "Murano Colonna", "Burano", "F.te Nove", "Giardini", "Zattere", "Tronchetto"].filter(n => !all.length || all.some(a => a.toLowerCase().startsWith(n.toLowerCase().slice(0, 5))));
+    wizard({ title: "Vaporetti e Alilaguna", values: {},
+      steps: [
+        { k: "a", q: "Dove vuoi arrivare?", type: "text", max: 60, writeLabel: "Scrivo il pontile", chips: POP, check: t => t.length < 2 ? "Scegli un pontile." : "" },
+        { k: "da", q: "Da dove parti?", type: "choice", options: [["", "📍 Dalla fermata più vicina a me"]].concat(near), when: () => !trPlan.da }
+      ],
+      onDone: v => { trPlan = { da: v.da || trPlan.da || "", a: v.a, shown: true }; doPlan(); } });
+  };
+}
+async function doPlan(){
+  const lb = $("#trList"); if (!lb) return;
+  lb.innerHTML = `<div class="trback" id="trBackP">‹ Fermate vicine</div><div id="trRes"></div>`;
+  $("#trBackP").onclick = () => { trPlan.shown = false; renderTr(); };
+  const ref = refPoint(), da = trPlan.da || (ref.lat.toFixed(6) + "," + ref.lng.toFixed(6));
+  $("#trRes").innerHTML = `<p class="trnote">Calcolo…</p>`;
+  try{
       const j = await ACTV("azione=viaggio&da=" + encodeURIComponent(da) + "&a=" + encodeURIComponent(trPlan.a));
       if (j.errore){ $("#trRes").innerHTML = `<p class="trnote">${j.errore === "pontile_non_trovato" ? "Non trovo il pontile: sceglilo dalla lista." : j.errore === "stesso_pontile" ? "Partenza e arrivo sono lo stesso pontile." : "Percorso non disponibile."}</p>`; return; }
       if (!j.opzioni || !j.opzioni.length){ $("#trRes").innerHTML = `<p class="trnote">Nessun battello utile nelle prossime ore da ${esc(j.da)} a ${esc(j.a)}.</p>`; return; }
@@ -3625,8 +3630,8 @@ function renderPlan(){
         <div class="oh"><b>${k === 0 ? "Più veloce" : "Senza cambi"}</b><span>arrivo <b>${o.arrivo}</b> · ${o.durata_min} min${o.cambi ? " · " + o.cambi + (o.cambi === 1 ? " cambio" : " cambi") : ""}</span></div>` +
         o.tappe.map(t => t.tipo === "piedi" ? `<div class="leg">🚶 a piedi fino a ${esc(t.a)} · ${t.min} min</div>`
           : `<div class="leg">${lineBadge(t.linea, t.colore)} <b>${t.parte}</b> da ${esc(t.da)}, direzione ${esc(cleanDir(t.direzione))}<br><span class="trnote">scendi a ${esc(t.a)} alle ${t.arriva} (${t.min} min)</span></div>`).join("") + `</div>`).join("") + orarioNote(j.orario_del);
-    }catch(e){ $("#trRes").innerHTML = `<p class="trnote">Non riesco a calcolare: controlla la connessione.</p>`; }
-  };
+  }catch(e){ $("#trRes").innerHTML = `<p class="trnote">Non riesco a calcolare: controlla la connessione.</p>`; }
+  renderPlan();
 }
 /* ---------- taxi acqueo: richiesta a tutti i tassisti convenzionati, il primo che accetta prende la corsa ---------- */
 let TX = { da: null, a: null, pax: 2, est: null }, txRide = store.get("ln_taxi_ride", null), txTimer = null, txBoard = null, txOn = store.get("ln_taxi_on", true), txSeen = [];
@@ -3651,45 +3656,39 @@ async function txPlace(text){
   const pk = PONTILI_ACTV && PONTILI_ACTV.p.find(p => p[0].toLowerCase() === t.toLowerCase()); if (pk) return { name: pk[0], lat: pk[1], lng: pk[2] };
   const g = await geocodeVenice(t); return g ? { name: t, lat: g.lat, lng: g.lng } : null;
 }
+function txNear(){ const ref = lastPos || refPoint(); return (PONTILI_ACTV ? PONTILI_ACTV.p : []).map(p => ({ p, d: hav(ref.lat, ref.lng, p[1], p[2]) })).sort((a, b) => a.d - b.d).slice(0, 6).map(x => [x.p[0], x.p[0], x.p[1], x.p[2]]); }
+const TX_POP = [["Aeroporto Marco Polo", "✈️ Aeroporto", 45.5008, 12.3373], ["Piazzale Roma", "🚌 Piazzale Roma", 45.4391, 12.3177], ["Stazione Santa Lucia", "🚆 Stazione", 45.4410, 12.3215],
+  ["San Marco", "🏛️ San Marco", 45.4322, 12.3384], ["Rialto", "🌉 Rialto", 45.4372, 12.3350], ["Murano", "🏺 Murano", 45.4560, 12.3530], ["Lido Santa Maria Elisabetta", "🏖️ Lido", 45.4177, 12.3683],
+  ["Tronchetto", "🅿️ Tronchetto", 45.4402, 12.3064], ["Burano", "🎨 Burano", 45.4855, 12.4170], ["Giudecca", "Giudecca", 45.4268, 12.3255]];
+function taxiAsk(){
+  loadPontiliActv();
+  wizard({ title: "🚕 Taxi acqueo", values: { pax: 2 },
+    steps: [
+      { k: "da", q: "Da dove parti?", type: "place", hereLabel: "Dove sono adesso", hereName: "La mia posizione", chips: () => txNear().concat(TX_POP.slice(0, 4)) },
+      { k: "a", q: "Dove vai?", type: "place", noHere: true, chips: () => TX_POP },
+      { k: "pax", q: "Quante persone?", type: "choice", options: [1, 2, 3, 4, 5, 6, 8, 10].map(n => [n, n + (n === 1 ? " persona" : " persone")]) },
+      { k: "note", q: "Qualcosa da sapere?", type: "text", max: 200, multi: true, optional: true, skipLabel: "No",
+        chips: ["Ho le valigie", "Con un cane", "Con passeggino", "È urgente", "Serve fattura"] },
+      { k: "_ok", q: "Riepilogo", type: "custom",
+        render: v => { const est = taxiEstimate(v.da, v.a, v.pax); WZ.v._est = est;
+          return `<div class="txsum"><div>📍 <b>${esc(v.da.name)}</b></div><div class="txarr">↓</div><div>🏁 <b>${esc(v.a.name)}</b></div>
+            <p>${v.pax} ${v.pax === 1 ? "persona" : "persone"}${v.note ? " · " + esc(v.note) : ""}</p>
+            <div class="txprice">${est.lo}–${est.hi} €</div><p class="wzh">Prezzo indicativo · circa ${est.min} min · ${String(est.km).replace(".", ",")} km. Il prezzo vero lo conferma il tassista.</p></div>
+            <div class="wzopts"><button class="wzo" id="wzTxGo" style="background:#f59e0b;border-color:#f59e0b;color:#111;text-align:center;font-size:18px">🚕 Chiama i tassisti</button></div>`; },
+        bind: v => { $("#wzTxGo").onclick = async () => { $("#wzTxGo").disabled = true; const est = WZ.v._est;
+          try{ const r = await rpc("taxi_call", { p_from: v.da.name, p_flat: v.da.lat, p_flng: v.da.lng, p_to: v.a.name, p_tlat: v.a.lat, p_tlng: v.a.lng, p_pax: v.pax, p_note: v.note || "", p_phone: "", p_price: est.p, p_km: est.km });
+            if (r && r.errore){ $("#wzTxGo").disabled = false; return toast(r.errore === "troppe" ? "Hai fatto troppe richieste nell'ultima ora." : "Esci e rientra con il tuo account per chiamare un taxi."); }
+            wzClose(); txRide = { id: r.id, stato: "open", da: v.da.name, a: v.a.name, prezzo: est.p, t: Date.now() }; store.set("ln_taxi_ride", txRide); haptic();
+            if (appMode !== "trasporti") setAppMode("trasporti"); trTab = "taxi"; document.querySelectorAll("#trPanel [data-tr]").forEach(x => x.classList.toggle("on", x.dataset.tr === "taxi")); renderTaxiWait(); txPollStart();
+          }catch(e){ $("#wzTxGo").disabled = false; toast("Richiesta non mandata: controlla la connessione."); } }; } }
+    ] });
+}
 function renderTaxi(){
   const box = $("#trBody"); loadPontiliActv();
   if (txRide) return renderTaxiWait();
-  box.innerHTML = `<h4 style="color:#b45309">🚕 Chiama un taxi acqueo</h4>
-    <div class="field" style="margin-bottom:6px"><input id="txDa" list="dlPontili" placeholder="Da: 📍 la mia posizione" value="${esc(TX.da && !TX.da.me ? TX.da.name : "")}"></div>
-    <div class="field" style="margin-bottom:6px"><input id="txA" list="dlPontili" placeholder="A: pontile, hotel, indirizzo…" value="${esc(TX.a ? TX.a.name : "")}"></div>
-    <div class="row" style="gap:6px;align-items:center;margin-bottom:6px"><span style="font-size:14px;color:#444">Persone</span>
-      <button class="btn small ghost txpm" id="txM">−</button><b id="txPax" style="min-width:20px;text-align:center">${TX.pax}</b><button class="btn small ghost txpm" id="txP">＋</button></div>
-    <div class="field" style="margin-bottom:6px"><input id="txNote" maxlength="200" placeholder="Note e telefono (facoltativi): valigie, orario…"></div>
-    <div id="txEst" class="txest">Scrivi partenza e destinazione per vedere il prezzo indicativo.</div>
-    <button class="btn small" id="txGo" style="width:100%;background:#f59e0b;color:#111">🚕 Manda la richiesta ai tassisti</button>
-    <div id="txDrv"></div>`;
-  let dl = document.getElementById("dlPontili"); if (!dl){ dl = document.createElement("datalist"); dl.id = "dlPontili"; document.body.appendChild(dl); }
-  if (PONTILI_ACTV) dl.innerHTML = PONTILI_ACTV.p.map(p => `<option value="${esc(p[0])}">`).join("");
-  ["txDa", "txA", "txNote"].forEach(id => { const el = $("#" + id); el.style.background = "#f4f6f9"; el.style.color = "#111"; el.style.borderColor = "#dde3ea"; });
-  const est = async () => {
-    const vda = $("#txDa").value, va = $("#txA").value;
-    TX.da = vda.trim() ? await txPlace(vda) : (lastPos ? { name: "La mia posizione", lat: lastPos.lat, lng: lastPos.lng, me: true } : null);
-    TX.a = va.trim() ? await txPlace(va) : null;
-    const box2 = $("#txEst"); if (!box2) return;
-    if (!TX.da){ box2.textContent = vda.trim() ? "Non trovo la partenza." : "Attiva il GPS (➤) o scrivi da dove parti."; TX.est = null; return; }
-    if (!TX.a){ box2.textContent = va.trim() ? "Non trovo la destinazione: prova con un pontile della lista." : "Scrivi la destinazione."; TX.est = null; return; }
-    TX.est = taxiEstimate(TX.da, TX.a, TX.pax);
-    box2.innerHTML = `Prezzo indicativo <b>${TX.est.lo}–${TX.est.hi} €</b> · circa ${TX.est.min} min · ${String(TX.est.km).replace(".", ",")} km<br><small>Stima sulle tariffe a tassametro del Comune. Il prezzo vero lo conferma il tassista.</small>`;
-  };
-  ["txDa", "txA"].forEach(id => $("#" + id).addEventListener("change", est));
-  $("#txM").onclick = () => { TX.pax = Math.max(1, TX.pax - 1); $("#txPax").textContent = TX.pax; est(); };
-  $("#txP").onclick = () => { TX.pax = Math.min(20, TX.pax + 1); $("#txPax").textContent = TX.pax; est(); };
-  $("#txGo").onclick = async () => {
-    await est(); if (!TX.est) return toast("Indica partenza e destinazione.");
-    const note = $("#txNote").value, tel = (note.match(/\+?\d[\d\s]{7,}/) || [""])[0].replace(/\s/g, "");
-    $("#txGo").disabled = true;
-    try{ const j = await rpc("taxi_call", { p_from: TX.da.name, p_flat: TX.da.lat, p_flng: TX.da.lng, p_to: TX.a.name, p_tlat: TX.a.lat, p_tlng: TX.a.lng,
-        p_pax: TX.pax, p_note: note, p_phone: tel, p_price: TX.est.p, p_km: TX.est.km });
-      if (j && j.errore){ $("#txGo").disabled = false; return toast(j.errore === "troppe" ? "Hai fatto troppe richieste nell'ultima ora." : "Esci e rientra con il tuo account per chiamare un taxi."); }
-      txRide = { id: j.id, stato: "open", da: TX.da.name, a: TX.a.name, prezzo: TX.est.p, t: Date.now() }; store.set("ln_taxi_ride", txRide); haptic(); renderTaxiWait(); txPollStart();
-    }catch(e){ $("#txGo").disabled = false; toast("Richiesta non mandata: controlla la connessione."); }
-  };
-  if (!TX.da && lastPos) est();
+  box.innerHTML = `<h4 style="color:#b45309">🚕 Taxi acqueo</h4><p class="trnote" style="margin-top:0">La richiesta arriva a tutti i tassisti convenzionati: il primo che accetta prende la corsa. Prima di mandarla vedi il prezzo indicativo.</p>
+    <button class="btn small" id="txStart" style="width:100%;background:#f59e0b;color:#111">🚕 Chiama un taxi</button><div id="txDrv"></div>`;
+  $("#txStart").onclick = taxiAsk;
   renderDriverBox();
 }
 function renderTaxiWait(){
@@ -3873,24 +3872,24 @@ const SOS_KINDS = { motore: "🔧 Motore in avaria", acqua: "💧 Entra acqua", 
 let SOS = { altri: [], mio: null }, sosSeen = store.get("ln_sos_seen", []), sosHidden = [], sosMarkers = [], sosTimer = null;
 function sosForm(kind){
   if (watchId === null){ askCompass(); startGps(); }
-  $("#sheetIn").innerHTML = `<h3>🆘 Manda SOS</h3>
-    <p class="muted" style="line-height:1.45">Le barche vicine che usano ClickVenice in Nautica vedono un piccolo avviso con <b>la tua posizione esatta</b> per 2 ore, finché non chiudi l'SOS. <b>Non sostituisce il 1530.</b></p>
-    <div class="field"><label>Cosa succede</label><select id="soK">${Object.entries(SOS_KINDS).map(([k, v]) => `<option value="${k}"${k === kind ? " selected" : ""}>${v}</option>`).join("")}</select></div>
-    <div class="field"><label>Due parole (facoltativo)</label><input id="soN" maxlength="160" placeholder="es. motore fermo, siamo in 3, abbiamo i remi"></div>
-    <p class="muted" id="soPos">${lastPos ? "📍 Posizione GPS pronta" : "📍 Aspetto il GPS…"}</p>
-    <button class="btn" style="background:#d32f2f;color:#fff" id="soGo">🆘 Manda SOS adesso</button>
-    <div style="margin-top:10px">${CALLS}</div>
-    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`;
-  $("#sheet").classList.remove("hidden");
-  const wait = setInterval(() => { const p = $("#soPos"); if (!p){ clearInterval(wait); return; } if (lastPos){ p.textContent = "📍 Posizione GPS pronta"; clearInterval(wait); } }, 1000);
-  $("#soGo").onclick = async () => {
-    if (!lastPos) return toast("Aspetto il GPS: tocca ➤ e resta all'aperto.");
-    $("#soGo").disabled = true;
-    try{ const j = await rpc("sos_send", { p_kind: $("#soK").value, p_note: $("#soN").value, p_lat: lastPos.lat, p_lng: lastPos.lng });
-      if (j && j.errore){ $("#soGo").disabled = false; return toast(j.errore === "troppi" ? "Hai mandato troppi SOS oggi: chiama il 1530." : "Esci e rientra con il tuo account per mandare l'SOS. Intanto chiama il 1530."); }
-      closeSheet(); buzz([200, 100, 200]); toast("SOS mandato alle barche vicine ✓"); sosPoll();
-    }catch(e){ $("#soGo").disabled = false; toast("SOS non mandato: manca la rete. Chiama il 1530 o il 112."); }
-  };
+  closeSheet();
+  wizard({ title: "🆘 SOS alle barche vicine", values: { kind },
+    steps: [
+      { k: "kind", q: "Cosa succede?", hint: "In pericolo chiama subito il 1530 o il 112.", type: "choice", options: Object.entries(SOS_KINDS) },
+      { k: "note", q: "Vuoi aggiungere qualcosa?", type: "text", max: 160, optional: true, skipLabel: "No, manda subito",
+        chips: ["Siamo in 2", "Siamo in 4", "Abbiamo i remi", "C'è un bambino", "Fermi vicino alla bricola", "Ci serve un traino"], multi: true },
+      { k: "_ok", q: "Mando l'SOS?", type: "custom",
+        render: () => `<p class="wzh">Le barche vicine che usano 1Click in Nautica vedono un piccolo avviso con <b>la tua posizione esatta</b> per 2 ore. <b>Non sostituisce il 1530.</b></p>
+          <p class="wzh" id="wzSosPos">${lastPos ? "📍 Posizione GPS pronta" : "📍 Aspetto il GPS…"}</p>
+          <div class="wzopts"><button class="wzo" id="wzSosGo" style="background:#d32f2f;border-color:#d32f2f;text-align:center;font-size:18px">🆘 Manda SOS adesso</button>
+          <a class="wzo" href="tel:1530" style="text-align:center;text-decoration:none">📞 Chiama il 1530 Guardia Costiera</a><a class="wzo" href="tel:112" style="text-align:center;text-decoration:none">📞 Chiama il 112</a></div>`,
+        bind: v => { const t = setInterval(() => { const p = $("#wzSosPos"); if (!p){ clearInterval(t); return; } if (lastPos){ p.textContent = "📍 Posizione GPS pronta"; clearInterval(t); } }, 1000);
+          $("#wzSosGo").onclick = async () => { if (!lastPos) return toast("Aspetto il GPS: tocca ➤ e resta all'aperto."); $("#wzSosGo").disabled = true;
+            try{ const r = await rpc("sos_send", { p_kind: v.kind, p_note: v.note || "", p_lat: lastPos.lat, p_lng: lastPos.lng });
+              if (r && r.errore){ $("#wzSosGo").disabled = false; return toast(r.errore === "troppi" ? "Hai mandato troppi SOS oggi: chiama il 1530." : "Esci e rientra con il tuo account. Intanto chiama il 1530."); }
+              wzClose(); buzz([200, 100, 200]); toast("SOS mandato alle barche vicine ✓"); sosPoll();
+            }catch(e){ $("#wzSosGo").disabled = false; toast("SOS non mandato: manca la rete. Chiama il 1530 o il 112."); } }; } }
+    ] });
 }
 async function sosPoll(){
   const ref = lastPos || refPoint();
@@ -4472,22 +4471,36 @@ function wzPaint(){
   else if (s.type === "text" || s.type === "number" || s.type === "long"){
     const inp = s.type === "long" ? `<textarea id="wzIn" rows="4" maxlength="${s.max || 600}" placeholder="${esc(s.ph || "")}">${esc(cur ?? "")}</textarea>`
       : `<input id="wzIn" ${s.type === "number" ? `type="number" inputmode="decimal" step="any"` : `type="${s.inputType || "text"}" maxlength="${s.max || 120}"`} placeholder="${esc(s.ph || "")}" value="${esc(cur ?? "")}" autocomplete="off">`;
-    body = `<div class="wzin">${inp}${s.unit ? `<span>${esc(s.unit)}</span>` : ""}</div>` +
-      ((chips || []).length ? `<div class="wzchips">${chips.map((c, i) => `<button data-ci="${i}">${esc(Array.isArray(c) ? c[1] : c)}</button>`).join("")}</div>` : "") +
-      `<button class="btn wzgo" id="wzOk">Avanti ›</button>`;
+    const hasCh = (chips || []).length, sel = s.multi ? String(cur || "").split(",").map(x => x.trim()).filter(Boolean) : [];
+    body = (hasCh ? `<div class="wzopts${chips.length > 5 ? " grid" : ""}">${chips.map((c, i) => { const val = Array.isArray(c) ? c[0] : c, lab = Array.isArray(c) ? c[1] : c;
+        return `<button class="wzo${(s.multi ? sel.includes(String(val)) : String(val) === String(cur)) ? " on" : ""}" data-ci="${i}">${s.multi ? '<i class="wzck"></i>' : ""}${esc(lab)}</button>`; }).join("")}
+        <button class="wzo wzwrite" id="wzWrite">✏️ ${s.writeLabel || "Scrivo io"}</button></div>` : "") +
+      `<div id="wzWriteBox" class="${hasCh && !(cur && !chips.some(c => String(Array.isArray(c) ? c[0] : c) === String(cur)) && !s.multi) ? "hidden" : ""}"><div class="wzin">${inp}${s.unit ? `<span>${esc(s.unit)}</span>` : ""}</div>${s.multi ? "" : `<button class="btn wzgo" id="wzOk">Avanti ›</button>`}</div>` +
+      (s.multi ? `<button class="btn wzgo" id="wzOk">Avanti ›</button>` : "");
   }
   else if (s.type === "day"){
     const days = []; for (let d = 0; d < (s.days || 8); d++){ const t = new Date(Date.now() + d * 864e5); days.push([t.toISOString().slice(0, 10), d === 0 ? "Oggi" : d === 1 ? "Domani" : t.toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "short" })]); }
-    body = `<div class="wzopts grid">${days.map(([v, l], i) => `<button class="wzo${v === cur ? " on" : ""}" data-day="${v}">${l}</button>`).join("")}</div><div class="wzin"><input id="wzIn" type="date" value="${esc(cur || "")}"></div><button class="btn wzgo" id="wzOk">Avanti ›</button>`;
+    body = `<div class="wzopts grid">${days.map(([v, l]) => `<button class="wzo${v === cur ? " on" : ""}" data-day="${v}">${l}</button>`).join("")}<button class="wzo wzwrite" id="wzWrite">📅 Un altro giorno</button></div>
+      <div id="wzWriteBox" class="hidden"><div class="wzin"><input id="wzIn" type="date" value="${esc(cur || "")}"></div><button class="btn wzgo" id="wzOk">Avanti ›</button></div>`;
+  }
+  else if (s.type === "date"){
+    const plus = m => { const t = new Date(); t.setMonth(t.getMonth() + m); return t.toISOString().slice(0, 10); };
+    const o2 = s.options || [["", "Non scade"], [plus(1), "Tra un mese"], [plus(6), "Tra 6 mesi"], [plus(12), "Tra un anno"]];
+    body = `<div class="wzopts">${o2.map(([v, l], i) => `<button class="wzo${v === cur && v ? " on" : ""}" data-dt="${i}">${l}</button>`).join("")}<button class="wzo wzwrite" id="wzWrite">📅 Scelgo io la data</button></div>
+      <div id="wzWriteBox" class="hidden"><div class="wzin"><input id="wzIn" type="date" value="${esc(cur || "")}"></div><button class="btn wzgo" id="wzOk">Avanti ›</button></div>`;
+    WZ._dt = o2;
   }
   else if (s.type === "time"){
     const ts = s.times || ["08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00"];
-    body = `<div class="wzopts grid tm">${ts.map(t => `<button class="wzo${t === cur ? " on" : ""}" data-tm="${t}">${t}</button>`).join("")}</div><div class="wzin"><input id="wzIn" type="time" value="${esc(cur || "")}"></div><button class="btn wzgo" id="wzOk">Avanti ›</button>`;
+    body = `<div class="wzopts grid tm">${ts.map(t => `<button class="wzo${t === cur ? " on" : ""}" data-tm="${t}">${t}</button>`).join("")}</div>
+      <div class="wzopts"><button class="wzo wzwrite" id="wzWrite">🕐 Un'altra ora</button></div>
+      <div id="wzWriteBox" class="hidden"><div class="wzin"><input id="wzIn" type="time" value="${esc(cur || "")}"></div><button class="btn wzgo" id="wzOk">Avanti ›</button></div>`;
   }
   else if (s.type === "place"){
-    body = `<div class="wzopts"><button class="wzo" id="wzHere">📍 Dove sono adesso</button><button class="wzo" id="wzMap">👆 Lo tocco sulla mappa</button></div>
-      <div class="wzin"><input id="wzIn" type="text" maxlength="90" placeholder="${esc(s.ph || "oppure scrivi il posto")}" value="${esc((cur && cur.name) || "")}"></div>
-      ${(chips || []).length ? `<div class="wzchips">${chips.map((c, i) => `<button data-ci="${i}">${esc(c)}</button>`).join("")}</div>` : ""}<button class="btn wzgo" id="wzOk">Avanti ›</button>`;
+    body = `<div class="wzopts">${s.noHere ? "" : `<button class="wzo" id="wzHere">📍 ${s.hereLabel || "Dove sono adesso"}</button>`}<button class="wzo" id="wzMap">👆 Lo tocco sulla mappa</button></div>
+      ${(chips || []).length ? `<div class="wzopts${chips.length > 5 ? " grid" : ""}" style="margin-top:9px">${chips.map((c, i) => `<button class="wzo" data-ci="${i}">${esc(Array.isArray(c) ? c[1] : c)}</button>`).join("")}</div>` : ""}
+      <div class="wzopts" style="margin-top:9px"><button class="wzo wzwrite" id="wzWrite">✏️ Scrivo il posto</button></div>
+      <div id="wzWriteBox" class="hidden"><div class="wzin"><input id="wzIn" type="text" maxlength="90" placeholder="${esc(s.ph || "es. Campo Santa Margherita")}" value="${esc((cur && cur.name) || "")}"></div><button class="btn wzgo" id="wzOk">Avanti ›</button></div>`;
   }
   else if (s.type === "photo"){
     body = `<div class="wzph" id="wzPh" style="${cur ? `background-image:url('${cur}')` : ""}">${cur ? "" : "📷"}</div>
@@ -4506,9 +4519,12 @@ function wzPaint(){
   document.querySelectorAll("#wz [data-col]").forEach(b => b.onclick = () => wzSet(b.dataset.col));
   document.querySelectorAll("#wz [data-day]").forEach(b => b.onclick = () => wzSet(b.dataset.day));
   document.querySelectorAll("#wz [data-tm]").forEach(b => b.onclick = () => wzSet(b.dataset.tm));
+  document.querySelectorAll("#wz [data-dt]").forEach(b => b.onclick = () => wzSet(WZ._dt[+b.dataset.dt][0]));
+  if ($("#wzWrite")) $("#wzWrite").onclick = () => { $("#wzWriteBox").classList.remove("hidden"); $("#wzWrite").classList.add("on"); const i2 = $("#wzIn"); if (i2){ setTimeout(() => { i2.focus(); i2.scrollIntoView({ block: "center", behavior: "smooth" }); }, 60); } };
   document.querySelectorAll("#wz [data-ci]").forEach(b => b.onclick = () => { const c = chips[+b.dataset.ci], val = Array.isArray(c) ? c[0] : c;
-    if (s.type === "place"){ wzIn.value = val; return $("#wzOk").click(); }
-    if (s.multi){ const parts = String(wzIn.value || "").split(",").map(x => x.trim()).filter(Boolean); if (!parts.includes(val)) parts.push(val); wzIn.value = parts.join(", "); b.classList.add("on"); return; }
+    if (s.type === "place"){ if (Array.isArray(c) && c[2]) return wzSet({ name: c[0], lat: c[2], lng: c[3] }); wzIn.value = val; return $("#wzOk").click(); }
+    if (s.multi){ const parts = String(wzIn.value || "").split(",").map(x => x.trim()).filter(Boolean), k2 = String(val), at = parts.indexOf(k2);
+      if (at >= 0) parts.splice(at, 1); else parts.push(k2); wzIn.value = parts.join(", "); b.classList.toggle("on", at < 0); try{ haptic(); }catch(e){} return; }
     wzSet(s.type === "number" ? Number(val) : val); });
   const ok = $("#wzOk");
   if (ok) ok.onclick = async () => {
@@ -4517,14 +4533,15 @@ function wzPaint(){
       if (!g) return toast("Non trovo questo posto: prova a toccarlo sulla mappa."); return wzSet({ name: t, lat: g.lat, lng: g.lng }); }
     if (s.type === "photo") return wzNext();
     let val = wzIn ? wzIn.value.trim() : "";
-    if (!val){ if (s.optional){ WZ.v[s.k] = ""; return wzNext(); } return toast("Rispondi o tocca una delle proposte."); }
+    if (!val){ if (s.optional || (s.type === "date")){ WZ.v[s.k] = ""; return wzNext(); } return toast("Tocca una risposta o scrivila."); }
     if (s.type === "number"){ val = Number(String(val).replace(",", ".")); if (isNaN(val) || (s.min !== undefined && val < s.min) || (s.max !== undefined && val > s.max)) return toast("Controlla il numero."); }
     if (s.check){ const err = s.check(val, WZ.v); if (err) return toast(err); }
     wzSet(val);
   };
-  if (wzIn && wzIn.tagName === "INPUT" && s.type !== "day" && s.type !== "time"){ wzIn.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); ok && ok.click(); } }); if (s.type !== "place") setTimeout(() => wzIn.focus(), 150); }
+  if (wzIn && wzIn.tagName === "INPUT" && s.type !== "day" && s.type !== "time"){ wzIn.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); ok && ok.click(); } });
+    if (s.type !== "place" && !(chips || []).length) setTimeout(() => wzIn.focus(), 150); }
   if (s.type === "place"){
-    $("#wzHere").onclick = () => { if (!lastPos){ if (watchId === null){ askCompass(); startGps(); } return toast("Aspetto il GPS: riprova tra un attimo."); } wzSet({ name: s.hereName || "Dove ero io", lat: lastPos.lat, lng: lastPos.lng }); };
+    if ($("#wzHere")) $("#wzHere").onclick = () => { if (!lastPos){ if (watchId === null){ askCompass(); startGps(); } return toast("Aspetto il GPS: riprova tra un attimo."); } wzSet({ name: s.hereName || "Dove ero io", lat: lastPos.lat, lng: lastPos.lng }); };
     $("#wzMap").onclick = () => { const keep = WZ; document.getElementById("wz").classList.add("hidden"); addMode = "wzpick"; const h = $("#modeHint"); h.textContent = "Tocca la mappa nel punto giusto"; h.classList.remove("hidden");
       window._wzPick = ll => { WZ = keep; document.getElementById("wz").classList.remove("hidden"); wzSet({ name: (wzIn && wzIn.value.trim()) || "Punto sulla mappa", lat: ll.lat, lng: ll.lng }); };
       if (typeof setMode === "function" && $("#v-map").classList.contains("hidden")) showView("map"); };
@@ -4640,23 +4657,21 @@ renderRests();
 let rides = store.get("ln_rides", []);
 $("#riderName").value = store.get("ln_rider", "");
 $("#riderName").oninput = e => store.set("ln_rider", e.target.value);
-$("#rRest").innerHTML = CONFIG.RISTORANTI.filter(r => r.modes.includes("foot"))
-  .map(r => `<option>${esc(r.name)}</option>`).join("");
-$("#rDate").value = new Date().toISOString().slice(0, 10);
-$("#rAdd").onclick = async () => {
-  const pay = parseFloat(String($("#rPay").value).replace(",", "."));
-  if (isNaN(pay) || pay <= 0 || pay >= 1000){ alert("Inserisci il compenso."); return; }
-  const ride = { date: $("#rDate").value, rest: $("#rRest").value, pay, note: $("#rNote").value.trim().slice(0, 200) };
-  $("#rAdd").disabled = true;
-  try{
-    const [r] = await api("rides?select=id", { method: "POST", ret: true, body: {
-      rider_name: ($("#riderName").value.trim() || null), restaurant: ride.rest, ride_date: ride.date,
-      pay_eur: pay, note: ride.note || null, owner_token: TOKEN } });
-    ride.id = r.id;
-  }catch(err){ alert("Consegna salvata solo sul telefono: non c'è connessione."); }
-  $("#rAdd").disabled = false;
-  rides.unshift(ride); store.set("ln_rides", rides); $("#rPay").value = ""; $("#rNote").value = ""; renderRider();
+$("#rAdd").onclick = () => {
+  const rests = CONFIG.RISTORANTI.filter(r => r.modes.includes("foot"));
+  wizard({ title: "Nuova consegna", values: {}, steps: [
+    { k: "rest", q: "Per quale ristorante?", type: "choice", options: rests.map(r => [r.name, r.name]) },
+    { k: "date", q: "Quando?", type: "choice", options: [0, 1, 2, 3].map(d => { const t = new Date(Date.now() - d * 864e5); return [t.toISOString().slice(0, 10), d === 0 ? "Oggi" : d === 1 ? "Ieri" : t.toLocaleDateString("it-IT", { weekday: "long", day: "numeric" })]; }) },
+    { k: "pay", q: "Quanto ti hanno dato?", type: "number", unit: "€", chips: [3, 4, 5, 6, 7, 8, 10, 12].map(n => [n, n + " €"]), min: 0.5, max: 999 },
+    { k: "note", q: "Dove hai consegnato?", type: "text", max: 200, optional: true, skipLabel: "Salta", chips: () => typeof placeSuggest === "function" ? placeSuggest().slice(10, 18) : [] } ],
+    onDone: async v => {
+      const ride = { date: v.date, rest: v.rest, pay: Number(v.pay), note: (v.note || "").slice(0, 200) };
+      try{ const [r] = await api("rides?select=id", { method: "POST", ret: true, body: { rider_name: ($("#riderName").value.trim() || null), restaurant: ride.rest, ride_date: ride.date, pay_eur: ride.pay, note: ride.note || null, owner_token: TOKEN } }); ride.id = r.id; }
+      catch(err){ toast("Consegna salvata solo sul telefono: non c'è connessione."); }
+      rides.unshift(ride); store.set("ln_rides", rides); renderRider(); toast("Consegna aggiunta ✓");
+    } });
 };
+
 function renderRider(){
   const y = String(new Date().getFullYear());
   const tot = rides.filter(r => r.date.startsWith(y)).reduce((s, r) => s + r.pay, 0);
@@ -4703,8 +4718,8 @@ $("#resetBtn").onclick = async () => {
 
 $("#learn").checked = learnOn;
 $("#learn").onchange = e => { learnOn = e.target.checked; store.set("ln_learn", learnOn); };
-$("#hsrc").value = headingSrc;
-$("#hsrc").onchange = e => { headingSrc = e.target.value; store.set("ln_hsrc", headingSrc); };
+const paintHs = () => document.querySelectorAll("#hsrc [data-hs]").forEach(b => b.classList.toggle("on", b.dataset.hs === headingSrc));
+document.querySelectorAll("#hsrc [data-hs]").forEach(b => b.onclick = () => { headingSrc = b.dataset.hs; store.set("ln_hsrc", headingSrc); paintHs(); haptic(); }); paintHs();
 
 // avvio: chi ha già un profilo entra direttamente in ClickVenice
 if (PROFILE && PROFILE.age !== undefined){
