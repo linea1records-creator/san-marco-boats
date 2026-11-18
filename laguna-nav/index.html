@@ -175,6 +175,9 @@
   .lg-r{display:flex;align-items:center;gap:6px;margin:2px 0}
   .lg-r i{width:14px;height:10px;border-radius:3px;display:inline-block}
   .lg-s{color:#555;margin-top:4px;line-height:1.25}
+  #depthLegend{max-width:190px}
+  .lg-bar{height:12px;border-radius:4px;margin:4px 0 2px;background:linear-gradient(90deg,#b71c1c 0%,#e53935 7%,#ff6d00 13%,#ff9800 20%,#b08c00 26%,#c7a000 29%,#deb600 32%,#f0cc00 35%,#ffe01e 38%,#ffee58 41%,#f4f782 44%,#daf08c 47%,#bee696 50%,#a0daa0 53%,#80deea 57%,#4fc3f7 68%,#29b6f6 78%,#0288d1 90%,#01579b 100%)}
+  .lg-ticks{display:flex;justify-content:space-between;font-size:9px;color:#444}
   #tideC{width:100%;height:36px;display:block;margin-top:4px;border-radius:8px;background:#06101f}
   /* Sheets / modal */
   #sheet{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
@@ -313,14 +316,12 @@
     </div>
     <div id="depthLegend" class="hidden">
       <div class="lg-t">ACQUA ADESSO</div>
-      <div class="lg-r"><i style="background:#1565c0"></i>oltre 4 m</div>
-      <div class="lg-r"><i style="background:#4fc3f7"></i>2 – 4 m</div>
-      <div class="lg-r"><i style="background:#ffea00"></i>1 – 2 m</div>
-      <div class="lg-r"><i style="background:#ff9100"></i>50 cm – 1 m</div>
-      <div class="lg-r"><i style="background:#ff1744"></i>sotto 50 cm</div>
+      <div class="lg-bar"></div>
+      <div class="lg-ticks"><span>0</span><span>0,5</span><span>1</span><span>1,5</span><span>2</span><span>3</span><span>4+ m</span></div>
       <div class="lg-r"><i style="background:#8d6e63"></i>asciutto / barena</div>
+      <div class="lg-s">Da 1 a 2 m una tonalità ogni 10 cm, con le linee di livello.</div>
       <div class="lg-s" id="lgTide"></div>
-      <div class="lg-s">Stima dalla carta del Comune (±200 m) e dalle misure degli utenti</div>
+      <div class="lg-s">Tocca la mappa per sapere quanta acqua c'è in un punto. Stima dalla carta del Comune (±200 m) e dalle misure degli utenti.</div>
     </div>
 
     <!-- menu "altro" -->
@@ -409,7 +410,7 @@
   <section class="view hidden" id="v-info">
     <div class="scroll">
       <h2>Info</h2>
-      <p class="sub">Laguna Nav · versione 1.1</p>
+      <p class="sub">Laguna Nav · versione 1.2</p>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
@@ -614,6 +615,18 @@ function initMap(){
   map.on("click", e => {
     if (addMode === "zone") return zoneForm(e.lngLat);
     if (addMode === "depth") return depthForm(e.lngLat);
+    if (mapMode === "depth"){
+      const z = fondoAt(e.lngLat.lat, e.lngLat.lng), t = tideNow() ?? 30;
+      const ff = map.queryRenderedFeatures(e.point, { layers: ["velox", "ponti", "poi", "depths", "zones-fill"].filter(l => map.getLayer(l)) })[0];
+      if (!ff){
+        const b = activeBoat(), dr = boatDraftCm(b), w = z === null ? null : z * 100 + t;
+        new maplibregl.Popup({ maxWidth: "240px" }).setLngLat(e.lngLat).setHTML(z === null ? "Nessun dato di fondale qui" :
+          `<b>${w <= 0 ? "Asciutto" : (w / 100).toFixed(2).replace(".", ",") + " m d'acqua adesso"}</b><br><span style="color:#aaa">Fondale ${(-z).toFixed(2).replace(".", ",")} m sullo zero · marea ${t > 0 ? "+" : ""}${t} cm</span>`
+          + (dr && w > 0 ? `<br>${w - dr >= 0 ? "Sotto il piede: " + Math.round(w - dr) + " cm" : "<b style='color:#ff6b60'>Tocchi il fondo</b>"}` : "")
+          + `<br><span style="color:#888;font-size:12px">Stima: ±200 m</span>`).addTo(map);
+        return;
+      }
+    }
     const f = map.queryRenderedFeatures(e.point, { layers: ["velox", "ponti", "poi", "depths", "zones-fill"].filter(l => map.getLayer(l)) })[0];
     if (f) popupFor(f, e.lngLat);
   });
@@ -648,11 +661,7 @@ function addLayers(){
       "text-field": ["get", "n"], "text-size": 12, "text-offset": [0, 1.1], "text-anchor": "top", "text-optional": true,
       "text-font": ["Noto Sans Regular"] }, paint: { "text-color": "#333", "text-halo-color": "#fff", "text-halo-width": 1.5 } });
   }
-  map.addSource("fondo", { type: "geojson", data: empty });
-  map.addLayer({ id: "fondo", type: "circle", source: "fondo", layout: { visibility: "none" }, paint: {
-    "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], 10, 4, 13, 22, 15, 80, 17, 300],
-    "circle-blur": 0.9, "circle-opacity": 0.55,
-    "circle-color": ["step", ["get", "w"], "#8d6e63", 0, "#ff1744", 50, "#ff9100", 100, "#ffea00", 200, "#4fc3f7", 400, "#1565c0"] } });
+
   map.addSource("carta", { type: "geojson", data: empty });
   map.addLayer({ id: "carta", type: "circle", source: "carta", minzoom: 12, layout: { visibility: INST.depth ? "visible" : "none" }, paint: {
     "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 1.5, 16, 4], "circle-opacity": 0.8,
@@ -670,6 +679,12 @@ function addLayers(){
   map.addSource("ponti", { type: "geojson", data: empty });
   map.addLayer({ id: "ponti", type: "circle", source: "ponti", minzoom: 14.5, layout: { visibility: INST.bridge ? "visible" : "none" }, paint: {
     "circle-radius": 5, "circle-color": ["case", ["get", "known"], "#6d4c41", "#bcaaa4"], "circle-stroke-color": "#fff", "circle-stroke-width": 1.5 } });
+  // superficie dei fondali (immagine), sotto gli edifici
+  const firstBuilding = (BASE_LAYERS.find(l => /building/i.test(l.id)) || {}).id;
+  map.addSource("fondo", { type: "image", url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+    coordinates: [[12.15, 45.60], [12.62, 45.60], [12.62, 45.18], [12.15, 45.18]] });
+  map.addLayer({ id: "fondo", type: "raster", source: "fondo", layout: { visibility: "none" }, paint: { "raster-opacity": 0.85, "raster-resampling": "linear", "raster-fade-duration": 0 } },
+    firstBuilding && map.getLayer(firstBuilding) ? firstBuilding : undefined);
   // bricole: puntini da lontano, 3D da vicino
   map.addSource("bricole", { type: "geojson", data: empty });
   map.addLayer({ id: "bricole", type: "circle", source: "bricole", paint: {
@@ -1488,14 +1503,85 @@ function drawChart(){
     return { type: "Feature", properties: { d: p.d, t: depthMode ? (w <= 0 ? "asciutto" : (w / 100).toFixed(1).replace(".", ",")) : (p.d > 0 ? "+" + p.d.toFixed(1) : Math.abs(p.d).toFixed(1)) }, geometry: { type: "Point", coordinates: [p.lng, p.lat] } }; }) });
   drawFondo();
 }
+/* ---------- superficie del fondale ----------
+   Griglia di pixel da circa 35 m su tutta la laguna. In ogni pixel il fondale è interpolato dai punti misurati
+   vicini (media pesata con la distanza). Poi si colora con l'acqua di adesso (fondale + marea), con una
+   tonalità ogni 10 cm e le linee di livello. */
+const FG = { W: 0, H: 0, lat0: 45.60, lat1: 45.18, lng0: 12.15, lng1: 12.62, z: null, ready: false, busy: false, tide: null };
+function buildFondoGrid(done){
+  if (FG.busy || !CHART.length) return; FG.busy = true;
+  const pts = CHART.map(p => ({ lat: p.lat, lng: p.lng, z: -p.d }))                       // metri sotto lo zero
+    .concat(depths.filter(p => !p.ex).map(p => ({ lat: p.lat, lng: p.lng, z: p.d - ((typeof p.tide === "number" ? p.tide : 30) / 100), w: 4 })));
+  const dLat = 35 / 110540, dLng = 35 / (111320 * Math.cos(45.4 * Math.PI / 180));
+  FG.H = Math.round((FG.lat0 - FG.lat1) / dLat); FG.W = Math.round((FG.lng1 - FG.lng0) / dLng);
+  FG.z = new Float32Array(FG.W * FG.H).fill(NaN);
+  // indice a celle di circa 300 m
+  const CS = 300, cy = la => Math.floor((FG.lat0 - la) * 110540 / CS), cx = lo => Math.floor((lo - FG.lng0) * 78300 / CS), idx = new Map();
+  pts.forEach((p, i) => { const k = cy(p.lat) + ":" + cx(p.lng); if (!idx.has(k)) idx.set(k, []); idx.get(k).push(i); });
+  const R = 650, R2 = R * R, NEAR = 480 * 480;
+  let row = 0;
+  const step = () => {
+    const t0 = performance.now();
+    while (row < FG.H && performance.now() - t0 < 30){
+      const la = FG.lat0 - (row + 0.5) * dLat, gy = cy(la);
+      for (let col = 0; col < FG.W; col++){
+        const lo = FG.lng0 + (col + 0.5) * dLng, gx = cx(lo);
+        let ws = 0, s = 0, nearest = Infinity;
+        for (let y = gy - 2; y <= gy + 2; y++) for (let x = gx - 2; x <= gx + 2; x++){
+          const c = idx.get(y + ":" + x); if (!c) continue;
+          for (const i of c){ const p = pts[i], ey = (la - p.lat) * 110540, ex = (lo - p.lng) * 78300, d2 = ey * ey + ex * ex;
+            if (d2 > R2) continue; if (d2 < nearest) nearest = d2; const w = (p.w || 1) / Math.max(400, d2); ws += w; s += p.z * w; }
+        }
+        if (ws && nearest < NEAR) FG.z[row * FG.W + col] = s / ws;
+      }
+      row++;
+    }
+    if (row < FG.H) setTimeout(step, 0); else { FG.ready = true; FG.busy = false; done && done(); }
+  };
+  step();
+}
+// scala dei colori: rosso sotto 50 cm, arancio fino a 1 m, poi 10 tonalità di giallo/verde da 1 a 2 m, azzurri e blu oltre
+const RAMP = [[-1, [141, 110, 99]], [0, [183, 28, 28]], [30, [229, 57, 53]], [50, [255, 109, 0]], [75, [255, 152, 0]], [100, [176, 140, 0]],
+  [110, [199, 160, 0]], [120, [222, 182, 0]], [130, [240, 204, 0]], [140, [255, 224, 30]], [150, [255, 238, 88]], [160, [244, 247, 130]],
+  [170, [218, 240, 140]], [180, [190, 230, 150]], [190, [160, 218, 160]], [200, [128, 222, 234]], [250, [79, 195, 247]], [300, [41, 182, 246]], [400, [2, 136, 209]], [600, [1, 87, 155]], [1200, [13, 40, 100]]];
+function rampColor(cm){
+  if (cm <= 0) return RAMP[0][1];
+  for (let i = 1; i < RAMP.length; i++) if (cm < RAMP[i][0]){ const [a, ca] = RAMP[i - 1], [b, cb] = RAMP[i], f = (cm - Math.max(a, 0)) / (b - Math.max(a, 0));
+    // dentro la fascia di 10 cm il colore resta pieno, così le fasce si distinguono bene
+    return cm >= 100 && cm < 200 ? ca : [0, 1, 2].map(k => Math.round(ca[k] + (cb[k] - ca[k]) * f)); }
+  return RAMP[RAMP.length - 1][1];
+}
+let fondoCanvas = null;
+function paintFondo(){
+  if (!FG.ready || !map || !map.getSource("fondo")) return;
+  const tide = tideNow() ?? 30; FG.tide = tide;
+  if (!fondoCanvas){ fondoCanvas = document.createElement("canvas"); fondoCanvas.width = FG.W; fondoCanvas.height = FG.H; }
+  const g = fondoCanvas.getContext("2d"), img = g.createImageData(FG.W, FG.H), D = img.data, Z = FG.z, W = FG.W;
+  const band = v => v <= 0 ? -1 : v < 100 ? Math.floor(v / 25) : v < 200 ? 4 + Math.floor((v - 100) / 10) : 14 + Math.floor((v - 200) / 50);
+  for (let i = 0; i < Z.length; i++){
+    const z = Z[i]; if (z !== z){ D[i * 4 + 3] = 0; continue; }
+    const cm = z * 100 + tide, c = rampColor(cm), o = i * 4;
+    // linea di livello: il pixel a destra o sotto cade in un'altra fascia
+    const r = Z[i + 1], dn = Z[i + W];
+    const edge = (r === r && band(r * 100 + tide) !== band(cm)) || (dn === dn && band(dn * 100 + tide) !== band(cm));
+    D[o] = edge ? c[0] * 0.55 : c[0]; D[o + 1] = edge ? c[1] * 0.55 : c[1]; D[o + 2] = edge ? c[2] * 0.55 : c[2]; D[o + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  map.getSource("fondo").updateImage({ url: fondoCanvas.toDataURL("image/png"), coordinates: [[FG.lng0, FG.lat0], [FG.lng1, FG.lat0], [FG.lng1, FG.lat1], [FG.lng0, FG.lat1]] });
+}
+function fondoAt(la, lo){
+  if (!FG.ready) return null;
+  const row = Math.floor((FG.lat0 - la) / ((FG.lat0 - FG.lat1) / FG.H)), col = Math.floor((lo - FG.lng0) / ((FG.lng1 - FG.lng0) / FG.W));
+  if (row < 0 || col < 0 || row >= FG.H || col >= FG.W) return null;
+  const z = FG.z[row * FG.W + col]; return z === z ? z : null;
+}
 function drawFondo(){
   if (!map || !map.getSource("fondo")) return;
-  const tide = tideNow() ?? 30, f = [];
-  CHART.forEach(p => f.push({ type: "Feature", properties: { w: Math.round(-p.d * 100 + tide) }, geometry: { type: "Point", coordinates: [p.lng, p.lat] } }));
-  depths.forEach(p => { if (p.ex) return; const z = p.d - ((typeof p.tide === "number" ? p.tide : 30) / 100);
-    f.push({ type: "Feature", properties: { w: Math.round(z * 100 + tide) }, geometry: { type: "Point", coordinates: [p.lng, p.lat] } }); });
-  map.getSource("fondo").setData({ type: "FeatureCollection", features: f });
-  const lg = $("#depthLegend"); if (lg) $("#lgTide").textContent = "Acqua adesso, con marea " + (tide > 0 ? "+" : "") + tide + " cm";
+  const tide = tideNow() ?? 30;
+  $("#lgTide").textContent = "Con la marea di adesso: " + (tide > 0 ? "+" : "") + tide + " cm";
+  if (mapMode !== "depth") return;
+  if (!FG.ready){ if (!FG.busy){ toast("Preparo la mappa dei fondali…"); buildFondoGrid(paintFondo); } return; }
+  if (FG.tide !== tide) paintFondo();
 }
 function boatDraftCm(b){
   if (!b) return null;
