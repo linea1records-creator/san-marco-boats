@@ -165,6 +165,7 @@
   .fab.rec{background:#d32f2f;color:#fff}
   #v-boat .card h4{color:#8fb3ff;margin-bottom:10px}
   .hint{font-size:12px;color:var(--muted);margin-top:4px}
+  #tideC{width:100%;height:36px;display:block;margin-top:4px;border-radius:8px;background:#06101f}
   /* Sheets / modal */
   #sheet{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
   #sheet .in{width:100%;background:var(--panel);border-radius:20px 20px 0 0;padding:20px;padding-bottom:calc(20px + var(--safe-b));
@@ -245,8 +246,10 @@
     <!-- icone piccole: accendono e spengono gli strumenti -->
     <div id="toggles">
       <button data-inst="speed" title="Velocità">⚡</button>
+      <button data-inst="velox" title="Velox">📷</button>
       <button data-inst="depth" title="Ecoscandaglio">〰</button>
       <button data-inst="tide" title="Marea">🌊</button>
+      <button data-inst="bridge" title="Ponti">🌉</button>
       <button data-inst="head" title="Rotta">🧭</button>
     </div>
 
@@ -259,9 +262,20 @@
         <div class="ic-s" id="dInfo">Imposta la tua barca per il calcolo</div>
         <div class="chips" id="engChips"></div>
       </div>
-      <div class="ic-card small" id="i-tide">
-        <div class="ic-h">MAREA</div>
+      <div class="ic-card" id="i-velox">
+        <div class="ic-h">VELOX <span id="vxTr"></span></div>
+        <div class="ic-row"><div class="ic-big" id="vxAvg">–</div><div class="ic-u" id="vxLim">media della tratta</div></div>
+        <div class="ic-s" id="vxInfo">Nessuna tratta attiva</div>
+      </div>
+      <div class="ic-card" id="i-bridge">
+        <div class="ic-h">PONTI <span id="brName"></span></div>
+        <div class="ic-row"><div class="ic-big" id="brVal">–</div><div class="ic-u" id="brSub"></div></div>
+        <div class="ic-s" id="brInfo">Nessun ponte davanti</div>
+      </div>
+      <div class="ic-card" id="i-tide">
+        <div class="ic-h">MAREA <span id="tNext"></span></div>
         <div class="ic-row"><div class="ic-big" id="tVal">–</div><div class="ic-u" id="tSub">cm</div></div>
+        <canvas id="tideC" width="320" height="70"></canvas>
       </div>
       <div class="ic-card small" id="i-head">
         <div class="ic-h">ROTTA</div>
@@ -365,7 +379,7 @@
   <section class="view hidden" id="v-info">
     <div class="scroll">
       <h2>Info</h2>
-      <p class="sub">Laguna Nav · versione 0.7</p>
+      <p class="sub">Laguna Nav · versione 0.8</p>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
@@ -569,11 +583,11 @@ function initMap(){
   map.on("click", e => {
     if (addMode === "zone") return zoneForm(e.lngLat);
     if (addMode === "depth") return depthForm(e.lngLat);
-    const f = map.queryRenderedFeatures(e.point, { layers: ["poi", "depths", "zones-fill"].filter(l => map.getLayer(l)) })[0];
+    const f = map.queryRenderedFeatures(e.point, { layers: ["velox", "ponti", "poi", "depths", "zones-fill"].filter(l => map.getLayer(l)) })[0];
     if (f) popupFor(f, e.lngLat);
   });
   loadShared(); setInterval(loadShared, 60000);
-  loadGraph(); loadPOI();
+  loadGraph(); loadPOI(); loadVelox(); if (INST.bridge) loadBridges();
 }
 function addLayers(){
   map.addSource("sea", { type: "raster", tileSize: 256, maxzoom: 18, attribution: "© OpenSeaMap", tiles: ["https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png"] });
@@ -599,7 +613,17 @@ function addLayers(){
       "text-field": ["get", "n"], "text-size": 12, "text-offset": [0, 1.1], "text-anchor": "top", "text-optional": true,
       "text-font": ["Noto Sans Regular"] }, paint: { "text-color": "#333", "text-halo-color": "#fff", "text-halo-width": 1.5 } });
   }
-  drawZones(); drawDepths(); drawRoute(); drawPOI();
+  map.addSource("velox-tratte", { type: "geojson", data: empty });
+  map.addLayer({ id: "velox-tratte", type: "line", source: "velox-tratte", layout: { visibility: INST.velox ? "visible" : "none" },
+    paint: { "line-color": ["case", ["<=", ["get", "v"], 7], "#d32f2f", "#f57c00"], "line-width": 3, "line-opacity": 0.5, "line-dasharray": [1, 1.5] } });
+  map.addSource("velox", { type: "geojson", data: empty });
+  map.addLayer({ id: "velox", type: "circle", source: "velox", layout: { visibility: INST.velox ? "visible" : "none" }, paint: {
+    "circle-radius": ["interpolate", ["linear"], ["zoom"], 13, 4, 17, 9], "circle-stroke-color": "#fff", "circle-stroke-width": 2,
+    "circle-color": ["match", ["get", "s"], "ok", "#d32f2f", "ko", "#757575", "#f9a825"] } });
+  map.addSource("ponti", { type: "geojson", data: empty });
+  map.addLayer({ id: "ponti", type: "circle", source: "ponti", minzoom: 14.5, layout: { visibility: INST.bridge ? "visible" : "none" }, paint: {
+    "circle-radius": 5, "circle-color": ["case", ["get", "known"], "#6d4c41", "#bcaaa4"], "circle-stroke-color": "#fff", "circle-stroke-width": 1.5 } });
+  drawZones(); drawDepths(); drawRoute(); drawPOI(); drawVelox(); drawBridges();
 }
 
 function allZones(){ return CONFIG.ZONE_ESEMPIO.map(z => ({ ...z, ex: true })).concat(userZones); }
@@ -615,7 +639,17 @@ function drawDepths(){
 }
 function popupFor(f, ll){
   let html;
-  if (f.layer.id === "poi"){
+  if (f.layer.id === "velox"){
+    const v = VELOX.byId[f.properties.id]; if (!v) return;
+    const tr = VELOX.tratte.filter(t => t.A.includes(v.id) || t.B.includes(v.id));
+    html = `<b>📷 Velox · ${esc(v.name)}</b><br><span style="color:#aaa">${{ ok: "Funzionante", ko: "Segnalato rotto", check: "Da verificare" }[v.state] || ""}</span>`
+      + (tr.length ? "<br>" + [...new Set(tr.map(t => t.note || "Tratta"))].slice(0, 3).map(n => esc(n)).join(", ") + " · limite " + Math.min(...tr.map(t => t.v)) + " km/h" : "");
+  } else if (f.layer.id === "ponti"){
+    const p = BRIDGES.byId[f.properties.id]; if (!p) return;
+    const h = bridgeH(p), t = tideNow();
+    html = `<b>🌉 ${esc(p.name || "Ponte")}</b><br>` + (h === null ? "Altezza non ancora misurata" : `Spazio libero adesso: <b>${Math.round(h - (t ?? 30))} cm</b>`)
+      + `<br><a href="#" data-measure="${p.id}" style="color:#7fc1ff">Misura questo ponte</a>`;
+  } else if (f.layer.id === "poi"){
     const p = POI[f.properties.i]; if (!p) return;
     html = `<b>${esc(p.n)}</b><br><span style="color:#aaa">${esc(poiLabel(p))}</span><br><a href="#" data-goto="${p.lat},${p.lng}" data-name="${esc(p.n)}" style="color:#7fc1ff">Portami qui</a>`;
   } else if (f.layer.id === "depths"){
@@ -652,6 +686,7 @@ function toast(msg){
 function makeArrow(){
   const el = document.createElement("div"); el.className = "me";
   el.innerHTML = `<svg viewBox="0 0 40 40"><path d="M20 3 L34 35 L20 27 L6 35 Z" fill="#1a73e8" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg>`;
+  setTimeout(paintArrow, 0);
   return new maplibregl.Marker({ element: el, rotationAlignment: "map", pitchAlignment: "map" });
 }
 
@@ -733,7 +768,7 @@ function onPos(pos){
     if (!meMarker){ meMarker = makeArrow().setLngLat([p.lng, p.lat]).addTo(map); camera(true); }
     else meMarker.setLngLat([p.lng, p.lat]);
   }
-  checkZones(p, kmh); checkShallow(p); navTick(p); recPoint(p); updateDepth(p);
+  checkZones(p, kmh); checkShallow(p); navTick(p); recPoint(p); updateDepth(p); veloxTick(p, kmh); bridgeTick(p);
 }
 // direzione da seguire in questo momento
 function targetHeading(){
@@ -1272,18 +1307,22 @@ function navTick(p){
 /* =========================================================
    STRUMENTI: velocità, ecoscandaglio, marea, rotta
    ========================================================= */
-let INST = store.get("ln_inst", { speed: true, depth: false, tide: false, head: false });
+let INST = Object.assign({ speed: true, depth: false, tide: false, head: false, velox: true, bridge: false }, store.get("ln_inst", {}));
 function paintInst(){
   document.querySelectorAll("#toggles button").forEach(b => b.classList.toggle("on", !!INST[b.dataset.inst]));
   $("#i-speed").classList.toggle("hidden", !INST.speed);
   $("#i-depth").classList.toggle("hidden", !INST.depth);
   $("#i-tide").classList.toggle("hidden", !INST.tide);
   $("#i-head").classList.toggle("hidden", !INST.head);
+  $("#i-velox").classList.toggle("hidden", !INST.velox);
+  $("#i-bridge").classList.toggle("hidden", !INST.bridge);
+  if (map) ["velox", "velox-tratte", "ponti"].forEach(l => { if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", (l === "ponti" ? INST.bridge : INST.velox) ? "visible" : "none"); });
 }
 document.querySelectorAll("#toggles button").forEach(b => b.onclick = () => {
   INST[b.dataset.inst] = !INST[b.dataset.inst]; store.set("ln_inst", INST); paintInst();
   if (b.dataset.inst === "depth" && INST.depth){ if (!activeBoat()) toast("Imposta la tua barca (⋯ → La mia barca) per sapere quanta acqua hai sotto il piede."); if (lastPos) updateDepth(lastPos); else toast("Tocca ➤ per attivare il GPS."); }
-  if (b.dataset.inst === "tide" || b.dataset.inst === "depth") loadTide();
+  if (b.dataset.inst === "tide" || b.dataset.inst === "depth" || b.dataset.inst === "bridge") loadTide();
+  if (b.dataset.inst === "bridge" && INST.bridge){ loadBridges(); if (!activeBoat() || !activeBoat().airDraft) toast("Inserisci l'altezza della barca in «La mia barca» per sapere se passi sotto i ponti."); }
 });
 paintInst();
 
@@ -1309,12 +1348,14 @@ async function loadTide(){
   paintTide();
 }
 function paintTide(){
+  drawTideCurve();
   const v = tideNow();
   $("#tVal").textContent = v === null ? "–" : (v > 0 ? "+" : "") + v;
   $("#tSub").textContent = v === null ? "tocca per inserirla" : "cm · " + (tideManual !== null ? "a mano" : "P. Salute");
 }
 $("#i-tide").onclick = () => {
   openSheet(`<h3>Marea</h3>
+    ${tideForecastHtml()}
     <p class="muted">${TIDE ? "Ultimo dato ufficiale: " + (TIDE.cm > 0 ? "+" : "") + TIDE.cm + " cm (" + new Date(TIDE.t).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) + ")" : "Dato ufficiale non disponibile in questo momento."}</p>
     <div class="field"><label>Marea a mano (cm, rispetto allo zero di Punta Salute)</label><input id="tm" type="number" inputmode="numeric" placeholder="es. 40" value="${tideManual ?? ""}"></div>
     <button class="btn" id="tOk">Usa questo valore</button>
@@ -1322,8 +1363,8 @@ $("#i-tide").onclick = () => {
   $("#tOk").onclick = () => { const v = parseInt($("#tm").value, 10); tideManual = isNaN(v) ? null : v; closeSheet(); paintTide(); if (lastPos) updateDepth(lastPos); };
   $("#tAuto").onclick = () => { tideManual = null; closeSheet(); loadTide(); };
 };
-setInterval(() => { if (INST.tide || INST.depth) loadTide(); }, 5 * 60000);
-if (INST.tide || INST.depth) loadTide();
+setInterval(() => { if (INST.tide || INST.depth || INST.bridge) loadTide(); }, 5 * 60000);
+setTimeout(() => { if (INST.tide || INST.depth) loadTide(); }, 0);
 
 /* ---------- ecoscandaglio calcolato ----------
    acqua sotto il piede = fondale (riferito allo zero di Punta Salute) + marea di adesso − pescaggio della barca
@@ -1420,13 +1461,19 @@ const BOAT_FORM = [
     ["beam", "Larghezza (m)", "dec"],
     ["weight", "Peso a vuoto (kg)", "number"],
     ["hullDraft", "Pescaggio dello scafo (cm)", "number", "Il punto più basso della carena, con il carico normale"],
+    ["airDraft", "Altezza massima sull'acqua (cm)", "number", "Dal pelo dell'acqua al punto più alto: tettuccio, parabrezza, antenne, luci"],
+    ["foldable", "Ho tettuccio / parabrezza / antenne abbattibili", "check"],
+    ["airDraftLow", "Altezza con tutto abbassato (cm)", "number", "Serve per sapere se passi sotto i ponti più bassi", "foldable"],
+    ["colorHull", "Colore dello scafo", "color"],
+    ["colorDeck", "Colore della coperta", "color"],
+    ["colorStripe", "Colore della fascia / dettagli", "color"],
     ["persons", "Persone a bordo (massimo)", "number"],
     ["plate", "Targa / immatricolazione", "text", "Resta solo sul telefono, non va nel catalogo"]
   ]],
   ["Motore", [
     ["engType", "Tipo di motore", "select", ["", "Fuoribordo", "Entrobordo", "Entrofuoribordo", "Elettrico", "Nessuno (remi o vela)"]],
     ["engBrand", "Marca", "text", "es. Yamaha, Honda, Suzuki, Mercury, Tohatsu, Selva"],
-    ["engModel", "Modello", "text"],
+    ["engModel", "Modello", "text", "Scegli dalla lista o scrivilo"],
     ["hp", "Potenza (CV)", "number"],
     ["stroke", "Tempi", "select", ["", "4 tempi", "2 tempi", "Elettrico"]],
     ["fuel", "Alimentazione", "select", ["", "Benzina", "Diesel", "Elettrico"]],
@@ -1476,15 +1523,23 @@ function renderBoat(){
     if (type === "check") return `<label class="check" style="margin:6px 0;background:none;border:0;padding:0"><input type="checkbox" data-k="${k}" ${v ? "checked" : ""}><span>${label}</span></label>`;
     const hint = type !== "select" && extra ? `<div class="hint">${extra}</div>` : "";
     if (type === "select") return `<div class="field"><label>${label}</label><select data-k="${k}">${extra.map(o => `<option ${o === v ? "selected" : ""} value="${esc(o)}">${o ? esc(o) : "—"}</option>`).join("")}</select></div>`;
-    const it = type === "dec" ? 'type="number" step="0.01" inputmode="decimal"' : type === "number" ? 'type="number" inputmode="numeric"' : type === "date" ? 'type="date"' : 'type="text"';
+    if (type === "color") return `<div class="field"><label>${label}</label><input type="color" data-k="${k}" value="${esc(v || (k === "colorHull" ? "#ffffff" : k === "colorDeck" ? "#c9b48a" : "#1a56db"))}" style="height:46px;padding:4px"></div>`;
+    const lists = { brand: "dlBrands", model: "dlModels", engBrand: "dlEngBrands", engModel: "dlEngModels" };
+    const it = (type === "dec" ? 'type="number" step="0.01" inputmode="decimal"' : type === "number" ? 'type="number" inputmode="numeric"' : type === "date" ? 'type="date"' : 'type="text"') + (lists[k] ? ` list="${lists[k]}" autocomplete="off"` : "");
     return `<div class="field"><label>${label}</label><input ${it} data-k="${k}" value="${esc(v)}" ${type === "text" && extra && extra.startsWith("es.") ? `placeholder="${esc(extra)}"` : ""}>${type === "text" && extra && extra.startsWith("es.") ? "" : hint}</div>`;
   }).join("") + `</div>`).join("");
-  $("#boatForm").querySelectorAll("[data-k]").forEach(el => el.addEventListener(el.type === "checkbox" || el.tagName === "SELECT" ? "change" : "input", () => {
+  $("#boatForm").insertAdjacentHTML("afterbegin", catalogCard(b));
+  $("#boatForm").insertAdjacentHTML("beforeend", docsCard());
+  fillDatalists(b); bindCatalog(b); renderDocs();
+  $("#boatForm").querySelectorAll("[data-k]").forEach(el => el.addEventListener(el.type === "checkbox" || el.tagName === "SELECT" || el.type === "color" ? "change" : "input", () => {
     const k = el.dataset.k;
     b[k] = el.type === "checkbox" ? el.checked : el.type === "number" ? (el.value === "" ? "" : Number(el.value)) : el.value;
     saveBoats(); boatSaved();
     if (k === "name") $("#boatSel").selectedOptions[0].textContent = b.name || "Barca senza nome";
-    if (k === "hasTrim" || k === "hasLift") renderBoat();
+    if (k === "hasTrim" || k === "hasLift" || k === "foldable") renderBoat();
+    if (k === "brand" || k === "engBrand") fillDatalists(b);
+    if (k === "engModel") applyEngine(b, false);
+    if (k === "colorHull") paintArrow();
     paintEngChips(); if (lastPos) updateDepth(lastPos);
   }));
 }
@@ -1507,7 +1562,385 @@ $("#boatDel").onclick = () => {
   if (!confirm("Eliminare «" + (b.name || "Barca senza nome") + "»?")) return;
   BOATS = BOATS.filter(x => x.id !== b.id); boatId = BOATS[0] ? BOATS[0].id : null; saveBoats(); renderBoat(); paintEngChips();
 };
-renderBoat(); paintEngChips();
+setTimeout(() => { renderBoat(); paintEngChips(); }, 0);
+
+/* =========================================================
+   VELOX: velocità media tra due velox (come misurano a Venezia)
+   ========================================================= */
+const VELOX = { list: [], byId: {}, tratte: [] };
+let VX = null, vxLastHit = {}, vxResult = null;
+async function loadVelox(){
+  try{
+    const r = await fetch("velox.json", { cache: "no-cache" }); const j = await r.json();
+    VELOX.list = j.velox.map(a => ({ id: a[0], name: a[1], lat: a[2], lng: a[3], state: a[4] }));
+    VELOX.list.forEach(v => VELOX.byId[v.id] = v);
+    VELOX.tratte = j.tratte.map(t => ({ A: t[0], B: t[1], v: t[2], note: t[3] || "", code: t[4] || "" }));
+    drawVelox();
+  }catch(e){}
+}
+const ctr = ids => { const p = ids.map(i => VELOX.byId[i]).filter(Boolean); return p.length ? { lat: p.reduce((s, x) => s + x.lat, 0) / p.length, lng: p.reduce((s, x) => s + x.lng, 0) / p.length } : null; };
+function drawVelox(){
+  if (!map || !map.getSource("velox")) return;
+  map.getSource("velox").setData({ type: "FeatureCollection", features: VELOX.list.map(v => ({ type: "Feature", properties: { id: v.id, s: v.state }, geometry: { type: "Point", coordinates: [v.lng, v.lat] } })) });
+  map.getSource("velox-tratte").setData({ type: "FeatureCollection", features: VELOX.tratte.map(t => { const a = ctr(t.A), b = ctr(t.B);
+    return a && b && hav(a.lat, a.lng, b.lat, b.lng) > 20 ? { type: "Feature", properties: { v: t.v }, geometry: { type: "LineString", coordinates: [[a.lng, a.lat], [b.lng, b.lat]] } } : null; }).filter(Boolean) });
+}
+// tratte che partono da questo velox: l'altra estremità è dove finisce la misura
+function trattesFrom(id){
+  const out = [];
+  VELOX.tratte.forEach(t => {
+    if (t.A.includes(id)) out.push({ ends: t.B.filter(x => x !== id), v: t.v, note: t.note });
+    if (t.B.includes(id)) out.push({ ends: t.A.filter(x => x !== id), v: t.v, note: t.note });
+  });
+  return out.filter(o => o.ends.length);
+}
+function veloxTick(p, kmh){
+  if (!VELOX.list.length) return;
+  // passaggio davanti a un velox
+  const hit = VELOX.list.find(v => hav(p.lat, p.lng, v.lat, v.lng) < 28);
+  if (hit && Date.now() - (vxLastHit[hit.id] || 0) > 90000){
+    vxLastHit[hit.id] = Date.now();
+    if (VX && VX.opts.some(o => o.ends.includes(hit.id))){
+      const sec = (p.t - VX.t0) / 1000, avg = sec > 0 ? VX.dist / sec * 3.6 : 0, lim = VX.opts.find(o => o.ends.includes(hit.id)).v;
+      vxResult = { avg, lim, at: Date.now(), name: hit.name };
+      say(avg > lim + 0.5 ? `Tratta finita, media ${avg.toFixed(1).replace(".", ",")}, sopra il limite` : "Tratta finita, media nel limite");
+      if (avg > lim + 0.5) buzz([300, 150, 300]);
+    }
+    const opts = trattesFrom(hit.id);
+    VX = opts.length ? { from: hit, t0: p.t, dist: 0, last: p, opts } : null;
+    if (VX) say("Velox " + hit.name + ", inizia la tratta");
+  } else if (VX){
+    const d = hav(VX.last.lat, VX.last.lng, p.lat, p.lng);
+    if (p.acc < 35 && d > 2){ VX.dist += d; VX.last = p; }
+    if ((p.t - VX.t0) > 20 * 60000) VX = null;   // misura troppo lunga: si è fermato o ha cambiato strada
+  }
+  paintVelox(p, kmh);
+}
+function paintVelox(p, kmh){
+  if (!INST.velox) return;
+  const card = $("#i-velox"); card.classList.remove("ok", "warn", "alarm");
+  if (VX){
+    // tratta più probabile: l'estremità davanti a noi più vicina
+    let best = null;
+    VX.opts.forEach(o => o.ends.forEach(id => { const e = VELOX.byId[id]; if (!e) return;
+      const d = hav(p.lat, p.lng, e.lat, e.lng), ahead = Math.abs(angDiff(heading, bearing(p.lat, p.lng, e.lat, e.lng))) < 100;
+      const score = d * (ahead ? 1 : 3); if (!best || score < best.score) best = { score, d, e, v: o.v, note: o.note }; }));
+    const sec = Math.max(1, (p.t - VX.t0) / 1000), avg = VX.dist / sec * 3.6, lim = best ? best.v : Math.min(...VX.opts.map(o => o.v));
+    $("#vxTr").textContent = "· da " + VX.from.name;
+    $("#vxAvg").textContent = (VX.dist < 15 ? kmh : avg).toFixed(1).replace(".", ",");
+    $("#vxLim").textContent = "km/h di media · limite " + lim;
+    let info = best ? `Fine tratta: ${best.e.name} a ${fmtDist(best.d)}` : "";
+    if (best && VX.dist > 15){
+      const R = best.d * 1.1, tLeft = (VX.dist + R) / (lim / 3.6) - sec;      // secondi che restano per stare nel limite
+      const vReq = tLeft > 0 ? R / tLeft * 3.6 : 0;
+      info += vReq <= 0.5 ? " · sei già sopra: rallenta molto" : ` · da qui vai al massimo a ${Math.min(99, vReq).toFixed(1).replace(".", ",")} km/h`;
+    }
+    $("#vxInfo").textContent = info;
+    card.classList.add(avg > lim + 0.5 && VX.dist > 30 ? "alarm" : avg > lim - 0.5 ? "warn" : "ok");
+    if (avg > lim + 0.5 && VX.dist > 60 && Date.now() - (VX.warned || 0) > 20000){ VX.warned = Date.now(); say("Rallenta, la media è sopra il limite"); buzz([300]); }
+    return;
+  }
+  $("#vxTr").textContent = "";
+  if (vxResult && Date.now() - vxResult.at < 60000){
+    $("#vxAvg").textContent = vxResult.avg.toFixed(1).replace(".", ",");
+    $("#vxLim").textContent = "media finale · limite " + vxResult.lim;
+    $("#vxInfo").textContent = (vxResult.avg > vxResult.lim + 0.5 ? "Sopra il limite" : "Nel limite ✓") + " · arrivo a " + vxResult.name;
+    card.classList.add(vxResult.avg > vxResult.lim + 0.5 ? "alarm" : "ok"); return;
+  }
+  // nessuna tratta: prossimo velox davanti
+  let nx = null;
+  VELOX.list.forEach(v => { const d = hav(p.lat, p.lng, v.lat, v.lng); if (d > 1500) return;
+    if (Math.abs(angDiff(heading, bearing(p.lat, p.lng, v.lat, v.lng))) < 60 && (!nx || d < nx.d)) nx = { v, d }; });
+  $("#vxAvg").textContent = kmh.toFixed(1).replace(".", ",");
+  if (nx){ const o = trattesFrom(nx.v.id); $("#vxLim").textContent = "km/h adesso" + (o.length ? " · limite " + Math.min(...o.map(x => x.v)) : "");
+    $("#vxInfo").textContent = `Prossimo velox: ${nx.v.name} a ${fmtDist(nx.d)}` + (nx.v.state === "ko" ? " (segnalato rotto)" : ""); }
+  else { $("#vxLim").textContent = "km/h adesso"; $("#vxInfo").textContent = "Nessun velox davanti a te"; }
+}
+
+/* =========================================================
+   PONTI: c'è spazio per passare con la marea di adesso?
+   altezza libera adesso = altezza del ponte sullo zero di Punta Salute − marea
+   ========================================================= */
+const BRIDGES = { list: [], byId: {}, meas: {} };
+let bridgesLoading = false, brWarned = {};
+async function loadBridges(){
+  if (BRIDGES.list.length || bridgesLoading) return; bridgesLoading = true;
+  let c = store.get("ln_ponti_v1", null);
+  if (!(c && c.p && Date.now() - c.t < 30 * 864e5)){
+    const s = await fromServer("ponti"); if (s && s.p && s.p.length > 30){ c = s; store.set("ln_ponti_v1", c); }
+  }
+  if (!(c && c.p)){
+    try{
+      const q = '[out:json][timeout:60];way["bridge"]["highway"](45.40,12.29,45.47,12.38);out tags center;';
+      const r = await fetchT("https://overpass-api.de/api/interpreter", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "data=" + encodeURIComponent(q) }, 60000);
+      const j = await r.json(), p = [];
+      (j.elements || []).forEach(el => { if (!el.center) return; const t = el.tags || {};
+        const h = parseFloat(String(t["seamark:bridge:clearance_height"] || t.maxheight || "").replace(",", "."));
+        p.push([el.id, t.name || "", +el.center.lat.toFixed(6), +el.center.lon.toFixed(6), isNaN(h) ? null : Math.round(h * 100)]); });
+      if (p.length > 30){ c = { t: Date.now(), p }; store.set("ln_ponti_v1", c); }
+    }catch(e){}
+  }
+  if (c && c.p){ BRIDGES.list = c.p.map(a => ({ id: a[0], name: a[1], lat: a[2], lng: a[3], osmH: a[4] })); BRIDGES.list.forEach(b => BRIDGES.byId[b.id] = b); }
+  try{ const m = await api("bridge_heights?select=osm_id,h_zmps_cm&limit=5000");
+    m.forEach(r => { (BRIDGES.meas[r.osm_id] = BRIDGES.meas[r.osm_id] || []).push(r.h_zmps_cm); }); }catch(e){}
+  bridgesLoading = false; drawBridges();
+}
+function bridgeH(b){
+  const m = BRIDGES.meas[b.id];
+  if (m && m.length){ const s = m.slice().sort((a, c) => a - c); return s[Math.floor(s.length / 2)]; }   // mediana delle misure
+  return b.osmH !== null && b.osmH !== undefined ? b.osmH + 30 : null;   // dato OpenStreetMap: considerato a marea media
+}
+function drawBridges(){
+  if (!map || !map.getSource("ponti")) return;
+  map.getSource("ponti").setData({ type: "FeatureCollection", features: BRIDGES.list.map(b => ({ type: "Feature", properties: { id: b.id, known: bridgeH(b) !== null }, geometry: { type: "Point", coordinates: [b.lng, b.lat] } })) });
+}
+function boatAir(b){ if (!b) return null; const v = Number(b.foldable && b.airDraftLow ? b.airDraftLow : b.airDraft); return v > 0 ? v : null; }
+let BR_NEXT = null;
+function bridgeTick(p){
+  if (!INST.bridge || !BRIDGES.list.length) return;
+  let nx = null;
+  BRIDGES.list.forEach(b => { const d = hav(p.lat, p.lng, b.lat, b.lng); if (d > 300) return;
+    const ahead = d < 15 || Math.abs(angDiff(heading, bearing(p.lat, p.lng, b.lat, b.lng))) < 40;
+    if (ahead && (!nx || d < nx.d)) nx = { b, d }; });
+  BR_NEXT = nx;
+  const card = $("#i-bridge"); card.classList.remove("ok", "warn", "alarm");
+  if (!nx){ $("#brName").textContent = ""; $("#brVal").textContent = "–"; $("#brSub").textContent = ""; $("#brInfo").textContent = "Nessun ponte davanti"; return; }
+  const h = bridgeH(nx.b), tide = tideNow(), air = boatAir(activeBoat());
+  $("#brName").textContent = "· " + (nx.b.name || "ponte") + " a " + fmtDist(nx.d);
+  if (h === null){ $("#brVal").textContent = "?"; $("#brSub").textContent = "altezza non misurata"; $("#brInfo").textContent = "Tocca qui per misurarlo quando ci passi sotto"; card.classList.add("warn"); return; }
+  const free = h - (tide === null ? 30 : tide);
+  if (air === null){ $("#brVal").textContent = Math.round(free) + " cm"; $("#brSub").textContent = "di spazio libero"; $("#brInfo").textContent = "Inserisci l'altezza della barca per sapere se passi"; return; }
+  const m = free - air;
+  $("#brVal").textContent = m >= 0 ? "Passi" : "Non passi"; $("#brSub").textContent = (m >= 0 ? "con " : "mancano ") + Math.abs(Math.round(m)) + " cm";
+  $("#brInfo").textContent = `Spazio ${Math.round(free)} cm · barca ${air} cm · marea ${tide === null ? "?" : (tide > 0 ? "+" : "") + tide}`;
+  card.classList.add(m < 0 ? "alarm" : m < 20 ? "warn" : "ok");
+  if (m < 10 && nx.d < 150 && !brWarned[nx.b.id]){ brWarned[nx.b.id] = Date.now(); buzz([400, 150, 400]); say(m < 0 ? "Attenzione, non passi sotto il prossimo ponte" : "Attenzione, ponte basso, passi con pochi centimetri"); }
+}
+function measureBridge(id){
+  const b = BRIDGES.byId[id]; if (!b) return;
+  const t = tideNow();
+  openSheet(`<h3>Misura «${esc(b.name || "ponte")}»</h3>
+    <p class="muted">Misura lo spazio libero adesso, dal pelo dell'acqua al punto più basso dell'arco. L'app lo riporta allo zero di Punta Salute, così vale con ogni marea.${t === null ? " <b>Serve la marea di adesso: inseriscila nello strumento Marea.</b>" : ""}</p>
+    <div class="field"><label>Spazio libero adesso (cm)</label><input id="bmH" type="number" inputmode="numeric" placeholder="es. 180"></div>
+    <button class="btn" id="bmOk" ${t === null ? "disabled" : ""}>Salva misura</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
+  $("#bmOk").onclick = async () => {
+    const v = parseInt($("#bmH").value, 10); if (isNaN(v) || v <= 0 || v > 1200) return toast("Inserisci i centimetri.");
+    const hz = v + tideNow();
+    try{ await api("bridge_heights", { method: "POST", body: { osm_id: b.id, h_zmps_cm: hz, owner_token: TOKEN } });
+      (BRIDGES.meas[b.id] = BRIDGES.meas[b.id] || []).push(hz); drawBridges(); closeSheet(); toast("Ponte misurato ✓ grazie!"); }
+    catch(e){ toast("Misura non salvata: controlla la connessione."); }
+  };
+}
+$("#i-bridge").onclick = () => { if (BR_NEXT) measureBridge(BR_NEXT.b.id); };
+document.addEventListener("click", e => { const m = e.target.closest("[data-measure]"); if (m){ e.preventDefault(); closePopups(); measureBridge(+m.dataset.measure); } });
+
+/* =========================================================
+   MAREA IN ARRIVO (previsione ufficiale del Comune)
+   ========================================================= */
+let TFC = store.get("ln_tfc", null);
+async function loadForecast(){
+  if (TFC && Date.now() - TFC.t < 25 * 60000) return;
+  try{ const r = await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/dati?tipo=previsione", {}, 12000); const j = await r.json();
+    if (Array.isArray(j.pts) && j.pts.length){ TFC = { t: Date.now(), pts: j.pts.map(p => ({ ts: Date.parse(p.when.replace(" ", "T")), cm: p.cm, tipo: p.tipo })) }; store.set("ln_tfc", TFC); } }catch(e){}
+  drawTideCurve();
+}
+// curva tra i picchi (andamento a coseno tra un massimo e un minimo)
+function tideAt(ts){
+  if (!TFC) return null; const P = TFC.pts;
+  for (let i = 0; i < P.length - 1; i++) if (ts >= P[i].ts && ts <= P[i + 1].ts){
+    const f = (ts - P[i].ts) / (P[i + 1].ts - P[i].ts); return P[i].cm + (P[i + 1].cm - P[i].cm) * (1 - Math.cos(Math.PI * f)) / 2; }
+  return null;
+}
+function drawTideCurve(){
+  const c = $("#tideC"); if (!c) return; const g = c.getContext("2d"), W = c.width, H = c.height; g.clearRect(0, 0, W, H);
+  if (!TFC){ $("#tNext").textContent = ""; return; }
+  const now = Date.now(), t0 = now - 2 * 3600e3, t1 = now + 22 * 3600e3, vals = [];
+  for (let t = t0; t <= t1; t += 600e3){ const v = tideAt(t); if (v !== null) vals.push([t, v]); }
+  if (vals.length < 2) return;
+  const lo = Math.min(-10, ...vals.map(v => v[1])) - 10, hi = Math.max(110, ...vals.map(v => v[1])) + 10;
+  const X = t => (t - t0) / (t1 - t0) * W, Y = v => H - (v - lo) / (hi - lo) * H;
+  // soglia acqua alta 110 cm
+  g.strokeStyle = "rgba(255,90,90,.6)"; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(0, Y(110)); g.lineTo(W, Y(110)); g.stroke(); g.setLineDash([]);
+  g.beginPath(); g.moveTo(X(vals[0][0]), H); vals.forEach(v => g.lineTo(X(v[0]), Y(v[1]))); g.lineTo(X(vals[vals.length - 1][0]), H); g.closePath();
+  g.fillStyle = "rgba(47,140,255,.35)"; g.fill();
+  g.strokeStyle = "#5fa8ff"; g.lineWidth = 2; g.beginPath(); vals.forEach((v, i) => i ? g.lineTo(X(v[0]), Y(v[1])) : g.moveTo(X(v[0]), Y(v[1]))); g.stroke();
+  g.strokeStyle = "#fff"; g.beginPath(); g.moveTo(X(now), 0); g.lineTo(X(now), H); g.stroke();
+  const nx = TFC.pts.find(p => p.ts > now);
+  if (nx) $("#tNext").textContent = "· " + (nx.tipo === "max" ? "massima" : "minima") + " " + (nx.cm > 0 ? "+" : "") + nx.cm + " alle " + new Date(nx.ts).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+  const peak = TFC.pts.find(p => p.ts > now && p.ts - now < 24 * 3600e3 && p.cm >= 110);
+  if (peak && !drawTideCurve.warned){ drawTideCurve.warned = true; toast(`Acqua alta prevista: ${peak.cm} cm alle ${new Date(peak.ts).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}`); }
+}
+function tideForecastHtml(){
+  if (!TFC) return "";
+  const now = Date.now();
+  return `<div class="card" style="margin-bottom:12px"><h4>Prossime maree</h4>` + TFC.pts.filter(p => p.ts > now - 3600e3).slice(0, 8).map(p =>
+    `<div class="list-row"><span>${new Date(p.ts).toLocaleString("it-IT", { weekday: "short", hour: "2-digit", minute: "2-digit" })}</span><b style="color:${p.cm >= 110 ? "#ff6b60" : p.tipo === "max" ? "#7fc1ff" : "#ccc"}">${p.tipo === "max" ? "▲" : "▼"} ${p.cm > 0 ? "+" : ""}${p.cm} cm</b></div>`).join("") + `</div>`;
+}
+setInterval(() => { if (INST.tide) loadForecast(); }, 30 * 60000);
+loadForecast();
+
+/* =========================================================
+   CATALOGO BARCHE E MOTORI (valori indicativi, da controllare)
+   [marca, modello, tipo, lunghezza m, larghezza m, peso kg, pescaggio scafo cm, altezza cm, CV max]
+   ========================================================= */
+const BOAT_CAT = [
+  ["Tradizionale veneziana", "Topa", "Topa", 7.0, 2.2, 900, 35, 110, 40],
+  ["Tradizionale veneziana", "Mototopo", "Mototopo", 10.0, 2.6, 2500, 60, 150, 150],
+  ["Tradizionale veneziana", "Sanpierota", "Sanpierota", 6.5, 1.7, 350, 25, 90, 20],
+  ["Tradizionale veneziana", "Sandolo", "Sandolo", 7.0, 1.4, 250, 20, 80, 10],
+  ["Tradizionale veneziana", "Cofano", "Cofano", 6.5, 2.0, 700, 35, 110, 60],
+  ["Tradizionale veneziana", "Caorlina", "Altro", 10.5, 2.0, 600, 30, 90, 20],
+  ["Tradizionale veneziana", "Lancia", "Lancia", 8.0, 2.3, 1500, 50, 140, 100],
+  ["Tradizionale veneziana", "Motoscafo (taxi)", "Motoscafo", 9.5, 2.5, 3000, 70, 190, 250],
+  ["Jeanneau", "Cap Camarat 5.5 CC", "Barchino", 5.5, 2.3, 800, 45, 160, 115],
+  ["Jeanneau", "Cap Camarat 5.5 WA", "Motoscafo", 5.5, 2.3, 900, 45, 170, 115],
+  ["Jeanneau", "Cap Camarat 6.5 WA", "Motoscafo", 6.6, 2.5, 1400, 50, 200, 200],
+  ["Jeanneau", "Cap Camarat 7.5 WA", "Motoscafo", 7.2, 2.6, 1900, 55, 220, 300],
+  ["Jeanneau", "Merry Fisher 605", "Motoscafo", 6.0, 2.4, 1300, 50, 230, 115],
+  ["Beneteau", "Flyer 5 Spacedeck", "Barchino", 5.2, 2.2, 700, 40, 160, 100],
+  ["Beneteau", "Flyer 6 Spacedeck", "Barchino", 6.1, 2.4, 1100, 45, 180, 150],
+  ["Beneteau", "Antares 7", "Motoscafo", 7.1, 2.6, 1900, 55, 250, 200],
+  ["Quicksilver", "Activ 455 Open", "Barchino", 4.5, 1.9, 450, 35, 120, 60],
+  ["Quicksilver", "Activ 505 Open", "Barchino", 5.0, 2.1, 600, 40, 130, 100],
+  ["Quicksilver", "Activ 555 Open", "Barchino", 5.5, 2.2, 750, 40, 150, 115],
+  ["Quicksilver", "Activ 605 Open", "Barchino", 5.8, 2.3, 900, 45, 160, 150],
+  ["Quicksilver", "Activ 675 Sundeck", "Motoscafo", 6.5, 2.5, 1300, 50, 180, 200],
+  ["Capelli", "Tempest 500", "Gommone", 5.0, 2.2, 400, 35, 120, 90],
+  ["Capelli", "Tempest 570", "Gommone", 5.7, 2.4, 550, 40, 130, 115],
+  ["Capelli", "Cap 20 Open", "Barchino", 6.0, 2.3, 900, 45, 150, 150],
+  ["Capelli", "Cap 21 WA", "Motoscafo", 6.3, 2.4, 1100, 45, 170, 150],
+  ["Ranieri", "Shark 19", "Barchino", 5.5, 2.1, 500, 40, 130, 128],
+  ["Ranieri", "Voyager 21S", "Barchino", 6.4, 2.4, 1000, 45, 160, 200],
+  ["Ranieri", "Next 220 SH", "Motoscafo", 6.6, 2.5, 1200, 50, 180, 250],
+  ["Saver", "585 Open", "Barchino", 5.9, 2.1, 750, 45, 150, 115],
+  ["Saver", "650 WA", "Motoscafo", 6.5, 2.4, 1100, 50, 180, 200],
+  ["Saver", "Manta 21", "Barchino", 6.4, 2.4, 1000, 45, 160, 200],
+  ["Marinello", "Eden 18", "Barchino", 5.4, 2.1, 600, 40, 140, 100],
+  ["Marinello", "Eden 22", "Barchino", 6.6, 2.4, 1100, 45, 160, 200],
+  ["Marinello", "Fisherman 16", "Barchino", 4.9, 1.9, 450, 35, 120, 60],
+  ["Idea Marine", "53 Open", "Barchino", 5.3, 2.1, 550, 40, 130, 115],
+  ["Idea Marine", "58 Open", "Barchino", 5.9, 2.3, 700, 40, 150, 150],
+  ["Nuova Jolly", "King 550", "Gommone", 5.5, 2.4, 500, 35, 120, 115],
+  ["Nuova Jolly", "Prince 23", "Gommone", 6.9, 2.6, 900, 45, 160, 250],
+  ["Joker Boat", "Coaster 470", "Gommone", 4.7, 2.0, 280, 30, 110, 60],
+  ["Joker Boat", "Clubman 22", "Gommone", 6.6, 2.6, 900, 45, 160, 225],
+  ["Zodiac", "Medline 580", "Gommone", 5.8, 2.5, 650, 40, 130, 150],
+  ["Zodiac", "Cadet 340", "Gommone", 3.4, 1.6, 50, 20, 60, 15],
+  ["Lomac", "Turismo 600", "Gommone", 6.0, 2.5, 650, 40, 130, 150],
+  ["Selva", "D.550 Fisherman", "Barchino", 5.5, 2.1, 550, 40, 130, 115],
+  ["BSC", "BSC 53", "Barchino", 5.3, 2.1, 500, 40, 130, 100],
+  ["Bayliner", "Element E16", "Barchino", 4.9, 2.1, 680, 35, 130, 60],
+  ["Bayliner", "VR5 Bowrider", "Motoscafo", 5.7, 2.4, 1300, 45, 160, 200],
+  ["Boston Whaler", "130 Super Sport", "Barchino", 4.0, 1.7, 310, 30, 100, 60],
+  ["Boston Whaler", "170 Montauk", "Barchino", 5.2, 2.1, 640, 35, 130, 90],
+  ["Sessa Marine", "Key Largo 20", "Motoscafo", 6.1, 2.4, 1100, 45, 150, 200],
+  ["Cranchi", "Panama 21", "Motoscafo", 6.4, 2.4, 1300, 50, 170, 200],
+  ["Mano Marine", "19.50", "Barchino", 5.9, 2.3, 800, 45, 150, 150],
+  ["Pacific Craft", "550 Open", "Barchino", 5.5, 2.2, 700, 40, 140, 115]
+];
+// [marca, modello, CV, tempi, alimentazione]
+const ENG_CAT = [
+  ...[2.5, 4, 6, 9.9, 15, 20, 25, 40, 50, 60, 70, 90, 100, 115, 150, 200].map(h => ["Yamaha", "F" + h, h, "4 tempi", "Benzina"]),
+  ...[2.3, 5, 10, 15, 20, 40, 60, 80, 100, 115, 150].map(h => ["Honda", "BF" + h, h, "4 tempi", "Benzina"]),
+  ...[2.5, 6, 9.9, 15, 20, 40, 60, 90, 115, 140].map(h => ["Suzuki", "DF" + h, h, "4 tempi", "Benzina"]),
+  ...[2.5, 5, 9.9, 15, 20, 40, 60, 80, 115, 150].map(h => ["Mercury", h + " FourStroke", h, "4 tempi", "Benzina"]),
+  ...[5, 9.8, 15, 20, 30, 40, 60, 90, 140].map(h => ["Tohatsu", "MFS " + h, h, "4 tempi", "Benzina"]),
+  ...[5, 10, 15, 25, 40, 60, 100].map(h => ["Selva", h + " CV", h, "4 tempi", "Benzina"]),
+  ["Yamaha", "15 2T (Enduro)", 15, "2 tempi", "Benzina"], ["Yamaha", "40 2T (Enduro)", 40, "2 tempi", "Benzina"], ["Mercury", "40 2T", 40, "2 tempi", "Benzina"],
+  ["Evinrude", "E-TEC 60", 60, "2 tempi", "Benzina"], ["Evinrude", "E-TEC 115", 115, "2 tempi", "Benzina"],
+  ["Torqeedo", "Travel 1103", 3, "Elettrico", "Elettrico"], ["Torqeedo", "Cruise 6.0", 9.9, "Elettrico", "Elettrico"], ["ePropulsion", "Spirit 1.0", 3, "Elettrico", "Elettrico"],
+  ["Volvo Penta", "D2-40 (entrobordo)", 40, "Diesel entrobordo", "Diesel"], ["Yanmar", "3YM30 (entrobordo)", 29, "Diesel entrobordo", "Diesel"], ["Lombardini", "LDW 1404 (entrobordo)", 33, "Diesel entrobordo", "Diesel"]
+];
+function fillDatalists(b){
+  const dl = (id, arr) => { let el = document.getElementById(id); if (!el){ el = document.createElement("datalist"); el.id = id; document.body.appendChild(el); }
+    el.innerHTML = [...new Set(arr)].map(x => `<option value="${esc(x)}">`).join(""); };
+  dl("dlBrands", BOAT_CAT.map(c => c[0]));
+  dl("dlModels", BOAT_CAT.filter(c => !b.brand || c[0].toLowerCase() === String(b.brand).toLowerCase()).map(c => c[1]));
+  dl("dlEngBrands", ENG_CAT.map(c => c[0]));
+  dl("dlEngModels", ENG_CAT.filter(c => !b.engBrand || c[0].toLowerCase() === String(b.engBrand).toLowerCase()).map(c => c[1]));
+}
+function catalogCard(b){
+  const brands = [...new Set(BOAT_CAT.map(c => c[0]))];
+  return `<div class="card"><h4>Scegli dal catalogo</h4>
+    <div class="row"><div class="field"><label>Marca</label><select id="catBrand"><option value="">—</option>${brands.map(x => `<option ${x === b.brand ? "selected" : ""}>${esc(x)}</option>`).join("")}</select></div>
+    <div class="field"><label>Modello</label><select id="catModel"></select></div></div>
+    <button class="btn ghost" id="catApply">Compila con i dati del modello</button>
+    <div class="hint">Valori indicativi: dopo controllali e correggili con i dati veri della tua barca. Il catalogo crescerà con le barche inserite da tutti.</div></div>`;
+}
+function bindCatalog(b){
+  const fillModels = () => { const br = $("#catBrand").value;
+    $("#catModel").innerHTML = BOAT_CAT.filter(c => c[0] === br).map(c => `<option ${c[1] === b.model ? "selected" : ""}>${esc(c[1])}</option>`).join("") || "<option value=''>—</option>"; };
+  $("#catBrand").onchange = fillModels; fillModels();
+  $("#catApply").onclick = () => {
+    const c = BOAT_CAT.find(x => x[0] === $("#catBrand").value && x[1] === $("#catModel").value); if (!c) return toast("Scegli marca e modello.");
+    Object.assign(b, { brand: c[0], model: c[1], type: c[2], loa: c[3], beam: c[4], weight: c[5], hullDraft: c[6], airDraft: c[7] });
+    if (!b.name) b.name = c[1];
+    saveBoats(); renderBoat(); boatSaved(); toast("Dati del modello inseriti: controllali ✓");
+  };
+}
+function applyEngine(b, force){
+  const e = ENG_CAT.find(x => x[0].toLowerCase() === String(b.engBrand || "").toLowerCase() && x[1].toLowerCase() === String(b.engModel || "").toLowerCase());
+  if (!e) return;
+  let ch = false;
+  [["hp", e[2]], ["stroke", e[3]], ["fuel", e[4]], ["engType", e[3] === "Diesel entrobordo" ? "Entrobordo" : e[3] === "Elettrico" ? "Elettrico" : "Fuoribordo"]].forEach(([k, v]) => { if (force || !b[k]){ b[k] = v; ch = true; } });
+  if (ch){ saveBoats(); renderBoat(); }
+}
+function paintArrow(){
+  const b = activeBoat(), path = document.querySelector(".me svg path"); if (!path) return;
+  path.setAttribute("fill", b && b.colorHull && b.colorHull.toLowerCase() !== "#ffffff" ? b.colorHull : "#1a73e8");
+  path.setAttribute("stroke", b && b.colorStripe ? b.colorStripe : "#fff");
+}
+
+/* =========================================================
+   DOCUMENTI DELLA BARCA (restano sul telefono)
+   ========================================================= */
+const DOC_TYPES = ["Licenza di navigazione", "Certificato d'uso del motore", "Assicurazione", "Patente nautica", "Ricevuta ormeggio / posto barca", "Fattura / garanzia", "Manuale", "Foto", "Altro"];
+let docDB = null;
+function idb(){
+  if (docDB) return Promise.resolve(docDB);
+  return new Promise((ok, ko) => { try{ const r = indexedDB.open("laguna-nav", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("docs", { keyPath: "id" });
+    r.onsuccess = () => { docDB = r.result; ok(docDB); }; r.onerror = () => ko(r.error); }catch(e){ ko(e); } });
+}
+async function docsAll(){ const db = await idb(); return new Promise((ok, ko) => { const q = db.transaction("docs").objectStore("docs").getAll(); q.onsuccess = () => ok(q.result || []); q.onerror = () => ko(q.error); }); }
+async function docPut(d){ const db = await idb(); return new Promise((ok, ko) => { const t = db.transaction("docs", "readwrite"); t.objectStore("docs").put(d); t.oncomplete = ok; t.onerror = () => ko(t.error); }); }
+async function docDel(id){ const db = await idb(); return new Promise(ok => { const t = db.transaction("docs", "readwrite"); t.objectStore("docs").delete(id); t.oncomplete = ok; }); }
+function docsCard(){
+  return `<div class="card"><h4>Documenti della barca</h4>
+    <div id="docList" class="muted">Nessun documento.</div>
+    <div class="row" style="margin-top:10px"><div class="field"><label>Tipo</label><select id="docType">${DOC_TYPES.map(t => `<option>${t}</option>`).join("")}</select></div>
+    <div class="field"><label>Scadenza (se c'è)</label><input type="date" id="docExp"></div></div>
+    <div class="field"><label>File (foto o PDF)</label><input type="file" id="docFile" accept="image/*,application/pdf"></div>
+    <div class="hint">I documenti restano solo su questo telefono, non vengono caricati su internet. Ti avviso 30 giorni prima delle scadenze.</div></div>`;
+}
+async function renderDocs(){
+  const box = $("#docList"); if (!box) return;
+  const b = activeBoat(); let all = [];
+  try{ all = (await docsAll()).filter(d => d.boat === b.id); }catch(e){ box.textContent = "Su questo telefono non si possono salvare documenti."; return; }
+  const now = Date.now();
+  box.innerHTML = all.length ? all.sort((x, y) => (x.exp || "9") < (y.exp || "9") ? -1 : 1).map(d => {
+    const days = d.exp ? Math.ceil((Date.parse(d.exp) - now) / 864e5) : null;
+    const st = days === null ? "" : days < 0 ? `<b style="color:#ff6b60"> · scaduto</b>` : days <= 30 ? `<b style="color:#fbbf24"> · scade tra ${days} giorni</b>` : ` · scade il ${new Date(d.exp).toLocaleDateString("it-IT")}`;
+    return `<div class="list-row"><div><b>${esc(d.type)}</b>${st}<div class="muted">${esc(d.name)}</div></div>
+      <div style="text-align:right;white-space:nowrap"><a href="#" data-docopen="${d.id}" style="color:#7fc1ff">Apri</a> · <a href="#" class="x" data-docdel="${d.id}">elimina</a></div></div>`;
+  }).join("") : "Nessun documento.";
+  box.querySelectorAll("[data-docopen]").forEach(a => a.onclick = async e => { e.preventDefault(); const d = (await docsAll()).find(x => x.id === a.dataset.docopen); if (d) window.open(URL.createObjectURL(d.blob), "_blank"); });
+  box.querySelectorAll("[data-docdel]").forEach(a => a.onclick = async e => { e.preventDefault(); if (!confirm("Eliminare il documento?")) return; await docDel(a.dataset.docdel); renderDocs(); });
+  const f = $("#docFile");
+  if (f && !f._bound){ f._bound = true; f.onchange = async () => {
+    const file = f.files[0]; if (!file) return;
+    if (file.size > 25e6){ toast("File troppo grande (massimo 25 MB)."); f.value = ""; return; }
+    try{ await docPut({ id: "d" + Date.now().toString(36), boat: activeBoat().id, type: $("#docType").value, exp: $("#docExp").value || "", name: file.name, blob: file, added: Date.now() });
+      f.value = ""; $("#docExp").value = ""; toast("Documento salvato ✓"); renderDocs(); }catch(e){ toast("Non riesco a salvare il documento su questo telefono."); }
+  }; }
+}
+// avviso scadenze all'avvio
+(async () => { try{
+  const soon = (await docsAll()).filter(d => d.exp && Date.parse(d.exp) - Date.now() < 30 * 864e5);
+  BOATS.forEach(b => { if (b.insurance && Date.parse(b.insurance) - Date.now() < 30 * 864e5) soon.push({ type: "Assicurazione di " + (b.name || "barca") }); });
+  if (soon.length) setTimeout(() => toast("⚠︎ In scadenza: " + soon.map(d => d.type).slice(0, 2).join(", ") + (soon.length > 2 ? "…" : "")), 2500);
+}catch(e){} })();
 /* =========================================================
    ORDINA
    ========================================================= */
