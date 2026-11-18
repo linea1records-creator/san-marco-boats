@@ -96,6 +96,42 @@
   .me{width:46px;height:46px}
   .me svg{width:100%;height:100%;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
   .dest{width:22px;height:22px;border-radius:50%;background:#d32f2f;border:4px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+  /* ===== Tema: blu per la navigazione, rosso e bianco (trattoria) per i ristoranti ===== */
+  #maneuver{background:#1a56db}
+  .fab.rec{background:#d32f2f;color:#fff;animation:pulse 1.2s infinite}
+  .fab.on{background:#1a56db;color:#fff}
+  nav button.on{color:#4d8dff}
+  body.food{--accent:#c8102e}
+  body.food .sbar{border:3px solid #c8102e}
+  body.food #searchBox::before{content:"";display:block;height:14px;margin:0 10px -3px;border-radius:10px 10px 0 0;
+    background:repeating-conic-gradient(#c8102e 0 25%,#fff 0 50%) 0 0/14px 14px;box-shadow:0 -1px 6px rgba(0,0,0,.25)}
+  body.food .fab{background:#fff;color:#c8102e;border:2px solid #c8102e}
+  body.food .fab.on{background:#c8102e;color:#fff;border-color:#fff}
+  body.food .fab.big{color:#c8102e}
+  body.food .speed{background:#c8102e}
+  body.food .speed .u{color:#ffd9de}
+  body.food nav{background:#c8102e;border-top:0;position:relative}
+  body.food nav::before{content:"";position:absolute;left:0;right:0;top:-10px;height:10px;
+    background:repeating-conic-gradient(#c8102e 0 25%,#fff 0 50%) 0 0/10px 10px}
+  body.food nav button{color:#ffd0d6}
+  body.food nav button.on{color:#fff}
+  body.food #results .res b{color:#c8102e}
+  body.food .btn:not(.ghost){background:#c8102e;color:#fff}
+  body.food #v-order .scroll{background:#fff7f2;color:#2b0a0a}
+  body.food #v-order h2{color:#c8102e;font-family:Georgia,"Times New Roman",serif;font-size:32px;padding-top:16px;position:relative}
+  body.food #v-order h2::before{content:"";position:absolute;left:-18px;right:-18px;top:-18px;height:16px;
+    background:repeating-conic-gradient(#c8102e 0 25%,#fff 0 50%) 0 0/16px 16px}
+  body.food #v-order .sub{color:#7a3b3b}
+  body.food #v-order .card{background:#fff;border:2px solid #f1c6c6;color:#2b0a0a}
+  body.food #v-order .card h4{color:#c8102e;font-family:Georgia,serif}
+  body.food #v-order .muted{color:#8a5a5a}
+  body.food #v-order .seg{background:#f6dede}
+  body.food #v-order .seg button{color:#8a3a3a}
+  body.food #v-order .seg button.on{background:#c8102e;color:#fff}
+  body.food #v-order input{background:#fff;color:#222;border-color:#e8bcbc}
+  body.food #v-order .qty button{background:#fff;color:#c8102e;border-color:#c8102e}
+  body.food #v-order .item{border-color:#f3d7d7}
+  body.food #v-order .btn.ghost{background:#fff;color:#c8102e;border-color:#c8102e}
   /* Sheets / modal */
   #sheet{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
   #sheet .in{width:100%;background:var(--panel);border-radius:20px 20px 0 0;padding:20px;padding-bottom:calc(20px + var(--safe-b));
@@ -179,6 +215,8 @@
     </div>
 
     <div class="fabs">
+      <button class="fab" id="fabFood" title="Mostra / nascondi ristoranti">🍝</button>
+      <button class="fab" id="fabRec" title="Insegna un tragitto">●</button>
       <button class="fab" id="fabVoice" title="Voce">🔈</button>
       <button class="fab" id="fabDepth" title="Segnala profondità">≈</button>
       <button class="fab" id="fabZone" title="Aggiungi zona controllata">⚠︎</button>
@@ -241,7 +279,7 @@
   <section class="view hidden" id="v-info">
     <div class="scroll">
       <h2>Info</h2>
-      <p class="sub">Laguna Nav · versione 0.5</p>
+      <p class="sub">Laguna Nav · versione 0.6</p>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
@@ -253,6 +291,11 @@
           <option value="course">Direzione di marcia (GPS)</option>
         </select></div>
         <p class="muted" style="line-height:1.45">Con la bussola la mappa gira quando giri il telefono. Tienilo lontano da motore e parti in ferro, che disturbano la bussola.</p>
+      </div>
+      <div class="card">
+        <h4>Imparare i tragitti</h4>
+        <label class="check" style="margin:8px 0;background:none;border:0;padding:0"><input type="checkbox" id="learn"><span>Quando navighi, l'app impara il tragitto che fai davvero e lo propone a tutti la volta dopo. Puoi anche toccare ● sulla mappa per insegnare un tragitto senza navigazione.</span></label>
+        <p class="muted" style="line-height:1.45">Si salvano solo le linee del percorso, senza i primi e gli ultimi 80 metri, senza orari né nomi.</p>
       </div>
       <div class="card">
         <h4>Le tue segnalazioni</h4>
@@ -356,6 +399,7 @@ document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
   document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x === b));
   ["map","order","rider","info"].forEach(v => $("#v-"+v).classList.toggle("hidden", v !== b.dataset.v));
   if (b.dataset.v === "map" && map) setTimeout(() => map.resize(), 50);
+  setFood(foodOn);
   if (b.dataset.v === "rider") renderRider();
   if (b.dataset.v === "info") renderInfo();
 });
@@ -460,11 +504,11 @@ function addLayers(){
     "circle-color": ["case", ["<", ["get", "d"], 1], "#ff3b30", ["<", ["get", "d"], 2], "#ff9f0a", "#30d158"] } });
   // ristoranti, bar, fast food (OpenStreetMap)
   map.addSource("poi", { type: "geojson", data: empty });
-  map.addLayer({ id: "poi", type: "circle", source: "poi", minzoom: 13.5, paint: {
+  map.addLayer({ id: "poi", type: "circle", source: "poi", minzoom: 13.5, layout: { visibility: foodOn ? "visible" : "none" }, paint: {
     "circle-radius": ["interpolate", ["linear"], ["zoom"], 14, 4, 18, 8], "circle-stroke-color": "#fff", "circle-stroke-width": 2,
     "circle-color": ["match", ["get", "k"], "fast_food", "#e8710a", "cafe", "#795548", "bar", "#8e24aa", "pub", "#8e24aa", "ice_cream", "#ec407a", "#d93025"] } });
   if (map.getStyle().glyphs){
-    map.addLayer({ id: "poi-label", type: "symbol", source: "poi", minzoom: 15.5, layout: {
+    map.addLayer({ id: "poi-label", type: "symbol", source: "poi", minzoom: 15.5, layout: { visibility: foodOn ? "visible" : "none",
       "text-field": ["get", "n"], "text-size": 12, "text-offset": [0, 1.1], "text-anchor": "top", "text-optional": true,
       "text-font": ["Noto Sans Regular"] }, paint: { "text-color": "#333", "text-halo-color": "#fff", "text-halo-width": 1.5 } });
   }
@@ -602,7 +646,7 @@ function onPos(pos){
     if (!meMarker){ meMarker = makeArrow().setLngLat([p.lng, p.lat]).addTo(map); camera(true); }
     else meMarker.setLngLat([p.lng, p.lat]);
   }
-  checkZones(p, kmh); checkShallow(p); navTick(p);
+  checkZones(p, kmh); checkShallow(p); navTick(p); recPoint(p);
 }
 // direzione da seguire in questo momento
 function targetHeading(){
@@ -757,10 +801,13 @@ function poiLabel(p){ return [POI_TYPES[p.k] || "Locale", p.c ? p.c.replace(/_/g
 async function loadPOI(){
   let c = store.get(POI_KEY, null);
   if (!(c && c.p && Date.now() - c.t < 7 * 864e5)){
+    const s = await fromServer("locali"); if (s && s.p && s.p.length > 20){ c = s; store.set(POI_KEY, c); }
+  }
+  if (!(c && c.p && Date.now() - c.t < 7 * 864e5)){
     const q = '[out:json][timeout:60];nwr["amenity"~"^(restaurant|fast_food|cafe|bar|pub|ice_cream|food_court)$"]["name"](' + POI_BBOX + ');out center tags;';
     for (const u of ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"]){
       try{
-        const r = await fetch(u, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "data=" + encodeURIComponent(q) });
+        const r = await fetchT(u, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "data=" + encodeURIComponent(q) }, 60000);
         if (!r.ok) continue;
         const j = await r.json(), p = [];
         (j.elements || []).forEach(el => {
@@ -774,6 +821,15 @@ async function loadPOI(){
   }
   if (c && c.p){ POI = c.p.map(a => ({ n: a[0], k: a[1], lat: a[2], lng: a[3], b: a[4], c: a[5], s: norm(a[0] + " " + a[4] + " " + a[5]) })); drawPOI(); }
 }
+let foodOn = false;
+function setFood(on){
+  foodOn = on;
+  document.body.classList.toggle("food", on || !$("#v-order").classList.contains("hidden"));
+  $("#fabFood").classList.toggle("on", on);
+  qIn.placeholder = on ? "Cerca un ristorante, una pizzeria…" : "Dove vuoi andare?";
+  if (map) ["poi", "poi-label"].forEach(l => { if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", on ? "visible" : "none"); });
+}
+$("#fabFood").onclick = () => setFood(!foodOn);
 function drawPOI(){
   if (!map || !map.getSource("poi")) return;
   map.getSource("poi").setData({ type: "FeatureCollection", features: POI.map((p, i) => ({
@@ -842,13 +898,19 @@ function gNear(la, lo, maxM, skip){
   }
   return best < 0 ? null : { n: best, d: bd };
 }
+function fetchT(u, opt = {}, ms = 25000){ const c = new AbortController(); const t = setTimeout(() => c.abort(), ms);
+  return fetch(u, { ...opt, signal: c.signal }).finally(() => clearTimeout(t)); }
+async function fromServer(tipo){
+  try{ const r = await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/dati?tipo=" + tipo, {}, tipo === "canali" ? 20000 : 12000); if (!r.ok) return null; const j = await r.json(); return j && !j.error ? j : null; }catch(e){ return null; }
+}
 async function loadCanals(){
   try{ const c = store.get(CAN_KEY, null); if (c && c.w && Date.now() - c.t < 30 * 864e5) return c; }catch(e){}
+  const s = await fromServer("canali"); if (s && s.w && s.w.length > 50){ store.set(CAN_KEY, s); return s; }
   const q = '[out:json][timeout:90];(way["waterway"~"^(canal|river|fairway|tidal_channel)$"](' + CAN_BBOX + ');way["seamark:type"="fairway"](' + CAN_BBOX + '););out tags geom;';
   const urls = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
   for (const u of urls){
     try{
-      const r = await fetch(u, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "data=" + encodeURIComponent(q) });
+      const r = await fetchT(u, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "data=" + encodeURIComponent(q) }, 60000);
       if (!r.ok) continue;
       const j = await r.json(), names = [], ni = {}, w = [];
       (j.elements || []).forEach(el => {
@@ -867,7 +929,7 @@ async function loadCanals(){
 async function loadWork(){ try{ const r = await fetch("rotte-lavoro.json", { cache: "no-cache" }); return r.ok ? await r.json() : null; }catch(e){ return null; } }
 function loadGraph(){
   if (G.ready) return G.ready;
-  G.ready = Promise.all([loadCanals(), loadWork()]).then(([pack, work]) => {
+  G.ready = Promise.all([loadCanals(), loadWork(), loadTracks()]).then(([pack, work, tracks]) => {
     // 1) rete dei canali (OpenStreetMap)
     if (pack){
       G.names = pack.n.slice(); const idx = new Map();
@@ -902,9 +964,24 @@ function loadGraph(){
         const nb = gNear(G.la[i], G.lo[i], 120, n => n === i || G.adj[i].some(e => e[0] === n)); if (nb) gEdge(i, nb.n, 1.4, -1, 1);
       }
     }
+    // 3) tragitti imparati da chi usa l'app
+    (tracks || []).forEach(t => addTrack(t.pts));
+    G.done = true;
     return G.la.length > 0;
   });
   return G.ready;
+}
+async function loadTracks(){ try{ return await api("tracks?select=pts&order=id.desc&limit=400"); }catch(e){ return []; } }
+function addTrack(pts){
+  if (!Array.isArray(pts) || pts.length < 2) return;
+  let prev = -1;
+  pts.forEach((p, j) => {
+    const n = gAdd(p[0], p[1]);
+    if (prev >= 0) gEdge(prev, n, 0.5, -1, 2);
+    const nb = gNear(p[0], p[1], j === 0 || j === pts.length - 1 ? 150 : 35, m => m === n || m === prev);
+    if (nb) gEdge(n, nb.n, 1, -1, 0);
+    prev = n;
+  });
 }
 // unisce i pezzi di rete separati (laguna aperta, bacini) con tratti brevi, penalizzati
 function bridgeCanals(){
@@ -918,14 +995,15 @@ function bridgeCanals(){
   }
 }
 function dijkstra(src, dst){
-  const N = G.la.length, d = new Float64Array(N).fill(Infinity), prev = new Int32Array(N).fill(-1), pe = new Array(N), h = [[0, src]];
+  const N = G.la.length, d = new Float64Array(N).fill(Infinity), prev = new Int32Array(N).fill(-1), pe = new Array(N);
+  const tla = G.la[dst], tlo = G.lo[dst], hh = n => 0.45 * hav(G.la[n], G.lo[n], tla, tlo), h = [[hh(src), src]];
   d[src] = 0;
   const push = x => { h.push(x); let i = h.length - 1; while (i > 0){ const p = (i - 1) >> 1; if (h[p][0] <= h[i][0]) break; [h[p], h[i]] = [h[i], h[p]]; i = p; } };
   const pop = () => { const top = h[0], last = h.pop(); if (h.length){ h[0] = last; let i = 0; for (;;){ const l = 2*i+1, r = l+1; let m = i;
     if (l < h.length && h[l][0] < h[m][0]) m = l; if (r < h.length && h[r][0] < h[m][0]) m = r; if (m === i) break; [h[m], h[i]] = [h[i], h[m]]; i = m; } } return top; };
   while (h.length){
-    const [du, u] = pop(); if (du > d[u]) continue; if (u === dst) break;
-    for (const e of G.adj[u]){ const nd = du + e[1]; if (nd < d[e[0]]){ d[e[0]] = nd; prev[e[0]] = u; pe[e[0]] = e; push([nd, e[0]]); } }
+    const [fu, u] = pop(); const du = d[u]; if (fu - hh(u) > du + 1e-6) continue; if (u === dst) break;
+    for (const e of G.adj[u]){ const nd = du + e[1]; if (nd < d[e[0]]){ d[e[0]] = nd; prev[e[0]] = u; pe[e[0]] = e; push([nd + hh(e[0]), e[0]]); } }
   }
   if (d[dst] === Infinity) return null;
   const path = [], segs = []; let v = dst;
@@ -969,6 +1047,54 @@ function makeSteps(R){
   R.steps = st;
 }
 
+/* ---------- imparare i tragitti ---------- */
+// Durante la navigazione (o col tasto ●) l'app registra il tragitto fatto davvero e lo manda al database:
+// la volta dopo, per tutti, quel tragitto diventa una strada preferita.
+let REC = null, learnOn = store.get("ln_learn", true);
+function startRec(auto){
+  if (REC || (auto && !learnOn)) return;
+  REC = { auto, pts: [] }; paintRec();
+  if (!auto) toast("Registro il tragitto: quando arrivi tocca di nuovo ●");
+}
+function recPoint(p){
+  if (!REC || p.acc > 30) return;
+  const l = REC.pts[REC.pts.length - 1];
+  if (!l || hav(l[0], l[1], p.lat, p.lng) >= 8) REC.pts.push([+p.lat.toFixed(6), +p.lng.toFixed(6)]);
+}
+function simplify(pts, tol){
+  if (pts.length < 3) return pts;
+  const keep = new Uint8Array(pts.length); keep[0] = keep[pts.length - 1] = 1;
+  const st = [[0, pts.length - 1]];
+  while (st.length){
+    const [a, b] = st.pop(); let md = 0, mi = -1;
+    for (let i = a + 1; i < b; i++){
+      // distanza del punto dal segmento a-b (in metri, approssimata)
+      const ax = pts[a][1] * 78000, ay = pts[a][0] * 111000, bx = pts[b][1] * 78000, by = pts[b][0] * 111000, px = pts[i][1] * 78000, py = pts[i][0] * 111000;
+      const dx = bx - ax, dy = by - ay, L = dx * dx + dy * dy, t = L ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / L)) : 0;
+      const d = Math.hypot(px - ax - t * dx, py - ay - t * dy); if (d > md){ md = d; mi = i; }
+    }
+    if (md > tol){ keep[mi] = 1; st.push([a, mi], [mi, b]); }
+  }
+  return pts.filter((_, i) => keep[i]);
+}
+async function stopRec(){
+  const R = REC; REC = null; paintRec(); if (!R) return;
+  let pts = R.pts;
+  // toglie i primi e gli ultimi 80 m (non si salva da dove parti né dove arrivi esattamente)
+  const trim = (arr) => { let d = 0, i = 1; while (i < arr.length && d < 80){ d += hav(arr[i-1][0], arr[i-1][1], arr[i][0], arr[i][1]); i++; } return arr.slice(i - 1); };
+  pts = trim(pts); pts = trim(pts.slice().reverse()).reverse();
+  let len = 0; for (let i = 1; i < pts.length; i++) len += hav(pts[i-1][0], pts[i-1][1], pts[i][0], pts[i][1]);
+  if (pts.length < 3 || len < 250){ if (!R.auto) toast("Tragitto troppo corto, non salvato."); return; }
+  pts = simplify(pts, 5).slice(0, 1500);
+  try{
+    await api("tracks", { method: "POST", body: { pts, length_m: Math.round(len), owner_token: TOKEN } });
+    if (G.done) addTrack(pts);
+    toast("Tragitto imparato ✓ (" + fmtDist(len) + ")");
+  }catch(e){ toast("Tragitto non salvato: manca la connessione."); }
+}
+function paintRec(){ const b = $("#fabRec"); if (!b) return; b.classList.toggle("rec", !!REC); }
+$("#fabRec").onclick = () => { if (REC) stopRec(); else { if (watchId === null){ askCompass(); startGps(); } startRec(false); } };
+
 /* ---------- navigazione ---------- */
 let NAV = null;
 async function startNav(dest){
@@ -981,18 +1107,28 @@ async function startNav(dest){
   if (destMarker) destMarker.remove();
   const el = document.createElement("div"); el.className = "dest";
   destMarker = new maplibregl.Marker({ element: el }).setLngLat([dest.lng, dest.lat]).addTo(map);
-  await loadGraph();
-  if (!NAV) return;
+  const myNav = NAV;
   const from = lastPos || (() => { const c = map.getCenter(); return { lat: c.lat, lng: c.lng }; })();
   if (!lastPos) toast("GPS non ancora pronto: calcolo dal centro della mappa.");
+  if (!G.done){
+    NAV.R = computeRoute(from, dest);           // intanto linea d'aria, così non resta bloccato
+    drawRoute(); navTick(lastPos);
+    $("#etaSub").textContent = "Scarico la rete dei canali…";
+    loadGraph().then(() => { if (NAV === myNav){ NAV.R = computeRoute(lastPos || from, dest); NAV.idx = 0; drawRoute(); navTick(lastPos); say("Percorso calcolato"); } });
+    if (!lastPos){ const b = new maplibregl.LngLatBounds(); NAV.R.pts.forEach(p => b.extend([p[1], p[0]])); map.fitBounds(b, { padding: 80, duration: 800 }); }
+    else { setFollow(true); camera(true); }
+    startRec(true);
+    return;
+  }
   NAV.R = computeRoute(from, dest); NAV.lastCalc = Date.now();
   drawRoute();
   if (!lastPos){ const b = new maplibregl.LngLatBounds(); NAV.R.pts.forEach(p => b.extend([p[1], p[0]])); map.fitBounds(b, { padding: 80, duration: 800 }); }
   else { setFollow(true); camera(true); }
-  navTick(lastPos);
+  navTick(lastPos); startRec(true);
   say(NAV.R.src === "lavoro" ? "Percorso calcolato sui tragitti abituali" : "Percorso calcolato");
 }
 function stopNav(){
+  if (REC && REC.auto) stopRec();
   NAV = null; document.body.classList.remove("nav");
   $("#searchBox").classList.remove("hidden"); $("#maneuver").classList.add("hidden"); $("#navBar").classList.add("hidden");
   if (destMarker){ destMarker.remove(); destMarker = null; }
@@ -1017,7 +1153,7 @@ function navTick(p){
   NAV.idx = bi;
   const toDest = hav(p.lat, p.lng, NAV.dest.lat, NAV.dest.lng);
   if (toDest < 30){
-    if (!NAV.arrived){ NAV.arrived = true; say("Sei arrivato"); buzz([200, 100, 200]); }
+    if (!NAV.arrived){ NAV.arrived = true; say("Sei arrivato"); buzz([200, 100, 200]); if (REC && REC.auto) stopRec(); }
     $("#mIcon").textContent = "⚑"; $("#mDist").textContent = "Sei arrivato"; $("#mText").textContent = NAV.dest.name;
     $("#eta").textContent = "Arrivato"; $("#etaSub").textContent = NAV.dest.name; drawRoute(); return;
   }
@@ -1213,6 +1349,8 @@ $("#resetBtn").onclick = async () => {
   }catch(err){ alert("Non riesco a cancellare: controlla la connessione."); }
 };
 
+$("#learn").checked = learnOn;
+$("#learn").onchange = e => { learnOn = e.target.checked; store.set("ln_learn", learnOn); };
 $("#hsrc").value = headingSrc;
 $("#hsrc").onchange = e => { headingSrc = e.target.value; store.set("ln_hsrc", headingSrc); };
 
