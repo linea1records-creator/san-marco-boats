@@ -289,6 +289,7 @@
 
     <div class="fabs">
       <button class="fab" id="fabFood" title="Mostra / nascondi ristoranti">🍝</button>
+      <button class="fab" id="fabSat" title="Satellite / mappa semplice">🛰</button>
       <button class="fab" id="fabView" title="Prima persona / nord in alto">3D</button>
       <button class="fab" id="fabMenu" title="Altro">⋯</button>
       <button class="fab big" id="fabGps" title="Dove sono">➤</button>
@@ -380,7 +381,7 @@
   <section class="view hidden" id="v-info">
     <div class="scroll">
       <h2>Info</h2>
-      <p class="sub">Laguna Nav · versione 0.9</p>
+      <p class="sub">Laguna Nav · versione 1.0</p>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
@@ -406,7 +407,7 @@
       </div>
       <div class="card">
         <h4>Mappe</h4>
-        <p class="muted" style="line-height:1.45">Mappa © OpenStreetMap contributors, stile OpenFreeMap. Segnali nautici © OpenSeaMap. Ricerca dei posti: Nominatim e Photon (OpenStreetMap). Marea, previsioni, fondali e pontili pubblici: Comune di Venezia (le mappe dei fondali del Comune sono indicate come non ufficiali e non valide per la navigazione). Percorsi: rete dei canali OpenStreetMap e tragitti abituali delle barche di lavoro.</p>
+        <p class="muted" style="line-height:1.45">Mappa © OpenStreetMap contributors, stile OpenFreeMap. Bricole e segnali da OpenStreetMap / OpenSeaMap (disegnate in 3D e ingrandite per vederle meglio). Foto satellitare © Esri, Maxar, Earthstar Geographics. Ricerca dei posti: Nominatim e Photon (OpenStreetMap). Marea, previsioni, fondali e pontili pubblici: Comune di Venezia (le mappe dei fondali del Comune sono indicate come non ufficiali e non valide per la navigazione). Percorsi: rete dei canali OpenStreetMap e tragitti abituali delle barche di lavoro.</p>
       </div>
     </div>
   </section>
@@ -575,6 +576,7 @@ function initMap(){
   }
   if (!window.maplibregl){ mapError("Controlla la connessione internet e ricarica la pagina."); return; }
   map = new maplibregl.Map({ container: "map", style: STYLE_VECTOR, center: [12.3326, 45.4371], zoom: 14,
+    maxBounds: [[11.95, 45.12], [12.80, 45.68]], // solo Venezia e la sua laguna
     pitch: 0, maxPitch: 70, attributionControl: { compact: true }, dragRotate: true, touchPitch: true });
   let styled = false;
   const fallback = setTimeout(() => { if (!styled) map.setStyle(STYLE_RASTER); }, 9000);
@@ -588,11 +590,15 @@ function initMap(){
     if (f) popupFor(f, e.lngLat);
   });
   loadShared(); setInterval(loadShared, 60000);
-  loadGraph(); loadPOI(); loadVelox(); loadChart(); loadPontili(); if (INST.bridge) loadBridges();
+  loadGraph(); loadPOI(); loadVelox(); loadChart(); loadPontili(); loadBricole(); if (INST.bridge) loadBridges();
+  map.on("moveend", () => { if (map.getZoom() >= 15.3) drawBric3d(); });
 }
 function addLayers(){
-  map.addSource("sea", { type: "raster", tileSize: 256, maxzoom: 18, attribution: "© OpenSeaMap", tiles: ["https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png"] });
-  map.addLayer({ id: "sea", type: "raster", source: "sea" });
+  BASE_LAYERS = map.getStyle().layers.map(l => ({ id: l.id, type: l.type, vis: (l.layout && l.layout.visibility) || "visible" }));
+  // foto satellitare (sotto a tutti i nostri strati)
+  map.addSource("sat", { type: "raster", tileSize: 256, maxzoom: 19, attribution: "Foto © Esri, Maxar, Earthstar Geographics",
+    tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"] });
+  map.addLayer({ id: "sat", type: "raster", source: "sat", layout: { visibility: "none" } });
   const empty = { type: "FeatureCollection", features: [] };
   map.addSource("zones", { type: "geojson", data: empty });
   map.addLayer({ id: "zones-fill", type: "fill", source: "zones", paint: { "fill-color": "#ffc400", "fill-opacity": 0.16 } });
@@ -631,7 +637,14 @@ function addLayers(){
   map.addSource("ponti", { type: "geojson", data: empty });
   map.addLayer({ id: "ponti", type: "circle", source: "ponti", minzoom: 14.5, layout: { visibility: INST.bridge ? "visible" : "none" }, paint: {
     "circle-radius": 5, "circle-color": ["case", ["get", "known"], "#6d4c41", "#bcaaa4"], "circle-stroke-color": "#fff", "circle-stroke-width": 1.5 } });
-  drawZones(); drawDepths(); drawRoute(); drawPOI(); drawVelox(); drawBridges(); drawChart();
+  // bricole: puntini da lontano, 3D da vicino
+  map.addSource("bricole", { type: "geojson", data: empty });
+  map.addLayer({ id: "bricole", type: "circle", source: "bricole", minzoom: 12, maxzoom: 15.6, paint: {
+    "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 1.2, 15.5, 3], "circle-color": ["get", "c"], "circle-stroke-color": "#3e2a14", "circle-stroke-width": 0.5 } });
+  map.addSource("bric3d", { type: "geojson", data: empty });
+  map.addLayer({ id: "bric3d", type: "fill-extrusion", source: "bric3d", minzoom: 15.5, paint: {
+    "fill-extrusion-color": ["get", "c"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-opacity": 1 } });
+  drawZones(); drawDepths(); drawRoute(); drawPOI(); drawVelox(); drawBridges(); drawChart(); drawBricole(); applyMapMode();
 }
 
 function allZones(){ return CONFIG.ZONE_ESEMPIO.map(z => ({ ...z, ex: true })).concat(userZones); }
@@ -2011,6 +2024,87 @@ $("#goPontili").onclick = () => {
     startNav({ name: p.n, lat: g.lat, lng: g.lng });
   });
 };
+
+/* =========================================================
+   MODALITÀ DELLA MAPPA: semplice (solo Venezia) o satellitare
+   ========================================================= */
+let BASE_LAYERS = [], mapMode = store.get("ln_mapmode", "simple");
+// nella mappa semplice restano: acqua, terra, edifici 3D, nomi dei luoghi e dei canali
+function keepSimple(l){
+  if (l.type === "background" || l.type === "fill-extrusion") return true;
+  if (l.type === "fill") return !/landuse|park|wood|grass|aeroway|pitch|cemetery|hospital|school|industrial/i.test(l.id) || /water/i.test(l.id);
+  if (l.type === "line") return /water|river|canal/i.test(l.id);
+  if (l.type === "symbol") return /place|water_name|waterway.*label|water.*label|label.*water/i.test(l.id);
+  return false;
+}
+function applyMapMode(){
+  if (!map || !map.getLayer("sat")) return;
+  const sat = mapMode === "sat";
+  BASE_LAYERS.forEach(l => { if (!map.getLayer(l.id)) return;
+    const show = sat ? (l.type === "symbol" && /place/i.test(l.id)) : keepSimple(l);
+    map.setLayoutProperty(l.id, "visibility", show ? "visible" : "none"); });
+  map.setLayoutProperty("sat", "visibility", sat ? "visible" : "none");
+  $("#fabSat").classList.toggle("on", sat);
+  $("#fabSat").textContent = sat ? "🗺️" : "🛰";
+  document.body.classList.toggle("sat", sat);
+}
+$("#fabSat").onclick = () => { mapMode = mapMode === "sat" ? "simple" : "sat"; store.set("ln_mapmode", mapMode); applyMapMode(); };
+
+/* =========================================================
+   BRICOLE (da OpenStreetMap / OpenSeaMap) in 3D
+   ========================================================= */
+let BRIC = [];
+const BRIC_Q = '[out:json][timeout:60];(node["seamark:type"~"^(beacon_lateral|beacon_cardinal|beacon_special_purpose|beacon_isolated_danger|beacon_safe_water|pile)$"](45.18,12.15,45.60,12.62);node["man_made"="dolphin"](45.18,12.15,45.60,12.62);node["mooring"="dolphin"](45.18,12.15,45.60,12.62););out;';
+async function loadBricole(){
+  let c = store.get("ln_bricole_v1", null);
+  if (!(c && c.p && Date.now() - c.t < 30 * 864e5)){
+    const s = await fromServer("bricole"); if (s && s.p && s.p.length > 50){ c = s; store.set("ln_bricole_v1", c); }
+  }
+  if (!(c && c.p && Date.now() - c.t < 30 * 864e5)){
+    for (const u of ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"]){
+      try{
+        const r = await fetchT(u, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "data=" + encodeURIComponent(BRIC_Q) }, 60000);
+        if (!r.ok) continue;
+        const j = await r.json(), p = [];
+        (j.elements || []).forEach(el => { if (!el.lat) return; const t = el.tags || {};
+          const col = (t["seamark:beacon_lateral:colour"] || t["seamark:topmark:colour"] || t["seamark:beacon_cardinal:colour"] || "").split(";")[0];
+          p.push([+el.lat.toFixed(7), +el.lon.toFixed(7), col]); });
+        if (p.length > 50){ c = { t: Date.now(), p }; store.set("ln_bricole_v1", c); break; }
+      }catch(e){}
+    }
+  }
+  if (c && c.p){ BRIC = c.p.map(a => ({ lat: a[0], lng: a[1], col: a[2] || "" })); drawBricole(); drawBric3d(); }
+}
+const WOOD = "#7a5230", WOOD_TOP = "#4e3420";
+function bricTop(col){ return /red|ross/i.test(col) ? "#d32f2f" : /green|verd/i.test(col) ? "#2e7d32" : /yellow|giall/i.test(col) ? "#f9a825" : WOOD_TOP; }
+function drawBricole(){
+  if (!map || !map.getSource("bricole")) return;
+  map.getSource("bricole").setData({ type: "FeatureCollection", features: BRIC.map(b => ({ type: "Feature", properties: { c: b.col ? bricTop(b.col) : WOOD },
+    geometry: { type: "Point", coordinates: [b.lng, b.lat] } })) });
+}
+// ogni bricola: tre pali di legno legati, con la testa colorata se è un segnale.
+// Le misure sono ingrandite (circa 3 volte) per vederle bene sullo schermo.
+function pole(lat, lng, dx, dy, r){
+  const kx = 1 / (111320 * Math.cos(lat * Math.PI / 180)), ky = 1 / 110540, ring = [];
+  for (let i = 0; i <= 10; i++){ const a = i / 10 * 2 * Math.PI; ring.push([lng + (dx + r * Math.cos(a)) * kx, lat + (dy + r * Math.sin(a)) * ky]); }
+  return [ring];
+}
+function drawBric3d(){
+  if (!map || !map.getSource("bric3d") || !BRIC.length) return;
+  const c = map.getCenter(), feats = [];
+  for (const b of BRIC){
+    if (Math.abs(b.lat - c.lat) > 0.012 || Math.abs(b.lng - c.lng) > 0.016) continue;   // solo quelle vicine (circa 1,3 km)
+    const top = bricTop(b.col);
+    [[0, 0.95], [0.82, -0.48], [-0.82, -0.48]].forEach(([dx, dy], i) => {
+      const h = i === 0 ? 5.2 : 4.6;
+      feats.push({ type: "Feature", properties: { c: WOOD, h: h - 0.6, b: 0 }, geometry: { type: "Polygon", coordinates: pole(b.lat, b.lng, dx, dy, 0.55) } });
+      feats.push({ type: "Feature", properties: { c: top, h, b: h - 0.6 }, geometry: { type: "Polygon", coordinates: pole(b.lat, b.lng, dx, dy, 0.58) } });
+    });
+    // legatura di ferro intorno ai tre pali
+    feats.push({ type: "Feature", properties: { c: "#2b2b2b", h: 3.4, b: 3.1 }, geometry: { type: "Polygon", coordinates: pole(b.lat, b.lng, 0, 0, 1.55) } });
+  }
+  map.getSource("bric3d").setData({ type: "FeatureCollection", features: feats });
+}
 /* =========================================================
    ORDINA
    ========================================================= */
