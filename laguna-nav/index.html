@@ -178,11 +178,18 @@
   #depthLegend{max-width:190px}
   .lg-bar{height:12px;border-radius:4px;margin:4px 0 2px;background:linear-gradient(90deg,#b71c1c 0%,#e53935 7%,#ff6d00 13%,#ff9800 20%,#b08c00 26%,#c7a000 29%,#deb600 32%,#f0cc00 35%,#ffe01e 38%,#ffee58 41%,#f4f782 44%,#daf08c 47%,#bee696 50%,#a0daa0 53%,#80deea 57%,#4fc3f7 68%,#29b6f6 78%,#0288d1 90%,#01579b 100%)}
   .lg-ticks{display:flex;justify-content:space-between;font-size:9px;color:#444}
+  /* pianifica tragitto */
+  #routeBox{position:absolute;z-index:21;left:10px;right:10px;top:calc(10px + var(--safe-t));background:#fff;color:#111;border-radius:16px;box-shadow:0 2px 14px rgba(0,0,0,.4);padding:10px 12px}
+  .rb-row{display:flex;align-items:center;gap:8px;margin:4px 0}
+  .rb-l{width:22px;font-weight:800;color:#666;font-size:13px}
+  .rb-f{flex:1;min-width:0;text-align:left;background:#f1f3f6;border:0;border-radius:10px;padding:10px 12px;font-size:15px;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rb-sw{width:40px;height:40px;border-radius:10px;border:0;background:#f1f3f6;font-size:18px;color:#0b63c5}
+  .rb-info{font-size:14px;color:#333;margin:8px 2px;font-weight:600}
+  .rb-btns{display:flex;gap:8px}
+  .rb-btns .btn{flex:1}
+  .rb-btns .btn.ghost{flex:0 0 56px;color:#111;background:#f1f3f6;border:0}
+  .startpin{width:18px;height:18px;border-radius:50%;background:#2ecc71;border:3px solid #fff;box-shadow:0 0 0 2px #2ecc71,0 2px 6px rgba(0,0,0,.5)}
   #tideC{width:100%;height:36px;display:block;margin-top:4px;border-radius:8px;background:#06101f}
-  /* ===== barra in basso ===== */
-  nav{display:flex;background:#0a0a0a;border-top:1px solid var(--line);padding-bottom:var(--safe-b)}
-  nav button{flex:1;padding:8px 0 6px;font-size:10.5px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
-  nav button .ic{font-size:21px;line-height:1}
   /* ===== 1Click / ClickVenice ===== */
   #splash{background:radial-gradient(120% 80% at 50% 0%,#0d2b5a 0%,#000 70%)}
   .ob{display:flex;flex-direction:column;justify-content:center;min-height:100%;animation:obIn .35s ease}
@@ -368,6 +375,14 @@
       <div id="results" class="hidden"></div>
     </div>
 
+    <!-- pianifica il tragitto: partenza e arrivo -->
+    <div id="routeBox" class="hidden">
+      <div class="rb-row"><span class="rb-l">Da</span><button id="rbFrom" class="rb-f">📍 La mia posizione</button><button id="rbSwap" class="rb-sw" title="Inverti">⇅</button></div>
+      <div class="rb-row"><span class="rb-l">A</span><button id="rbTo" class="rb-f">–</button></div>
+      <div id="rbInfo" class="rb-info">Calcolo il percorso…</div>
+      <div class="rb-btns"><button class="btn" id="rbGo">▶ Avvia</button><button class="btn ghost" id="rbX">✕</button></div>
+    </div>
+
 
     <!-- incontra -->
     <div id="meetTop">
@@ -400,7 +415,6 @@
       <button data-inst="velox" title="Velox">📷</button>
       <button data-inst="depth" title="Ecoscandaglio">〰</button>
       <button data-inst="tide" title="Marea">🌊</button>
-      <button data-inst="bridge" title="Ponti">🌉</button>
       <button id="tgDash" class="dashbtn" title="Cruscotto"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="19" height="14" rx="2.5"/><circle cx="12" cy="10.5" r="4"/><path d="M12 6.5v1.4M12 13.1v1.4M8 10.5h1.4M14.6 10.5H16"/><path d="M12 10.5l1.8-1.8"/><path d="M8 21h8M12 17.5V21"/></svg></button>
     </div>
 
@@ -417,11 +431,6 @@
         <div class="ic-h">VELOX <span id="vxTr"></span></div>
         <div class="ic-row"><div class="ic-big" id="vxAvg">–</div><div class="ic-u" id="vxLim">media della tratta</div></div>
         <div class="ic-s" id="vxInfo">Nessuna tratta attiva</div>
-      </div>
-      <div class="ic-card" id="i-bridge">
-        <div class="ic-h">PONTI <span id="brName"></span></div>
-        <div class="ic-row"><div class="ic-big" id="brVal">–</div><div class="ic-u" id="brSub"></div></div>
-        <div class="ic-s" id="brInfo">Nessun ponte davanti</div>
       </div>
       <div class="ic-card" id="i-tide">
         <div class="ic-h">MAREA <span id="tNext"></span></div>
@@ -487,7 +496,6 @@
       <div class="tile" id="dt-dep"><div class="tl">SOTTO IL PIEDE</div><div class="tv" id="dtDep">–</div><div class="ts" id="dtDepS"></div></div>
       <div class="tile" id="dt-tide"><div class="tl">MAREA</div><div class="tv" id="dtTide">–</div><div class="ts" id="dtTideS"></div></div>
       <div class="tile" id="dt-head"><div class="tl">ROTTA</div><div class="tv" id="dtHead">–</div><div class="ts" id="dtHeadS"></div></div>
-      <div class="tile" id="dt-br"><div class="tl">PONTE</div><div class="tv" id="dtBr">–</div><div class="ts" id="dtBrS"></div></div>
     </div>
   </div>
 
@@ -913,6 +921,7 @@ function initMap(){
   map.on("style.load", () => { styled = true; clearTimeout(fallback); addLayers(); });
   map.on("dragstart", e => { if (e.originalEvent) setFollow(false); });
   map.on("click", e => {
+    if (addMode === "pickfrom"){ addMode = null; $("#modeHint").classList.add("hidden"); if (PLAN){ PLAN.from = { name: "Punto sulla mappa", lat: e.lngLat.lat, lng: e.lngLat.lng }; showPlan(); } return; }
     if (addMode === "zone") return zoneForm(e.lngLat);
     if (addMode === "depth") return depthForm(e.lngLat);
     if (mapMode === "depth"){
@@ -931,7 +940,7 @@ function initMap(){
     if (f) popupFor(f, e.lngLat);
   });
   loadShared(); setInterval(loadShared, 60000);
-  loadGraph(); loadPOI(); loadVelox(); loadChart(); loadPontili(); loadBricole(); if (INST.bridge) loadBridges();
+  loadGraph(); loadPOI(); loadVelox(); loadChart(); loadPontili(); loadBricole(); loadBridges();
   map.on("moveend", () => { if (map.getZoom() >= 15.3) drawBric3d(); });
 }
 function addLayers(){
@@ -976,7 +985,7 @@ function addLayers(){
     "circle-radius": ["interpolate", ["linear"], ["zoom"], 13, 4, 17, 9], "circle-stroke-color": "#fff", "circle-stroke-width": 2,
     "circle-color": ["match", ["get", "s"], "ok", "#d32f2f", "ko", "#757575", "#f9a825"] } });
   map.addSource("ponti", { type: "geojson", data: empty });
-  map.addLayer({ id: "ponti", type: "circle", source: "ponti", minzoom: 14.5, layout: { visibility: INST.bridge ? "visible" : "none" }, paint: {
+  map.addLayer({ id: "ponti", type: "circle", source: "ponti", minzoom: 14.5, layout: { visibility: "none" }, paint: {
     "circle-radius": 5, "circle-color": ["case", ["get", "known"], "#6d4c41", "#bcaaa4"], "circle-stroke-color": "#fff", "circle-stroke-width": 1.5 } });
   // superficie dei fondali (immagine), sotto gli edifici
   const firstBuilding = (BASE_LAYERS.find(l => /building/i.test(l.id)) || {}).id;
@@ -1040,7 +1049,7 @@ function popupFor(f, ll){
 function closePopups(){ document.querySelectorAll(".maplibregl-popup").forEach(p => p.remove()); }
 document.addEventListener("click", async e => {
   const g = e.target.closest("[data-goto]");
-  if (g){ e.preventDefault(); const [la, lo] = g.dataset.goto.split(",").map(Number); closePopups(); startNav({ name: g.dataset.name || "Punto sulla mappa", lat: la, lng: lo }); return; }
+  if (g){ e.preventDefault(); const [la, lo] = g.dataset.goto.split(",").map(Number); closePopups(); openPlan({ name: g.dataset.name || "Punto sulla mappa", lat: la, lng: lo }); return; }
   const a = e.target.closest("[data-delz],[data-deld]");
   if (!a) return;
   e.preventDefault();
@@ -1268,7 +1277,7 @@ qIn.addEventListener("input", () => {
 });
 qIn.addEventListener("focus", () => { if (!qIn.value) showRecents(); });
 qIn.addEventListener("keydown", e => { if (e.key === "Enter"){ clearTimeout(qTimer); search(); } });
-$("#qClear").onclick = () => { qIn.value = ""; $("#qClear").classList.add("hidden"); resBox.classList.add("hidden"); };
+$("#qClear").onclick = () => { if (searchTarget === "from"){ endFromSearch(); qIn.value = ""; resBox.classList.add("hidden"); showPlan(); return; } qIn.value = ""; $("#qClear").classList.add("hidden"); resBox.classList.add("hidden"); };
 document.addEventListener("click", e => { if (!e.target.closest("#searchBox")) resBox.classList.add("hidden"); });
 function showRecents(){
   const rec = store.get("ln_recent", []);
@@ -1281,9 +1290,9 @@ function renderResults(list, title){
   resBox.classList.remove("hidden");
   resBox.querySelectorAll("[data-r]").forEach(el => el.onclick = () => {
     const r = list[+el.dataset.r]; resBox.classList.add("hidden"); qIn.blur(); qIn.value = r.name;
-    if (r.geo && !r.lat){ toast("Cerco il pontile…"); geocodeVenice(r.geo).then(p => { if (!p) return toast("Non trovo la posizione di questo pontile: prova a cercare la fondamenta."); startNav({ ...r, lat: p.lat, lng: p.lng }); }); return; }
+    if (r.geo && !r.lat){ toast("Cerco il pontile…"); geocodeVenice(r.geo).then(p => { if (!p) return toast("Non trovo la posizione di questo pontile: prova a cercare la fondamenta."); pickPlace({ ...r, lat: p.lat, lng: p.lng }); }); return; }
     const rec = store.get("ln_recent", []).filter(x => x.name !== r.name); rec.unshift(r); store.set("ln_recent", rec.slice(0, 8));
-    startNav(r);
+    pickPlace(r);
   });
 }
 /* ---------- ristoranti e locali (OpenStreetMap, salvati sul telefono 7 giorni) ---------- */
@@ -1509,7 +1518,16 @@ function bridgeCanals(){
     if (nb){ gEdge(i, nb.n, 2.5, -1, 1); par[f(i)] = f(nb.n); added++; }
   }
 }
-function dijkstra(src, dst){
+/* ponti dove la barca non passa con la marea di adesso: i nodi vicini sono esclusi dal calcolo */
+function blockedNodes(){
+  const air = boatAir(activeBoat()); if (air === null || !BRIDGES.list.length || !G.done) return null;
+  const tide = tideNow() ?? 30, bl = new Uint8Array(G.la.length); let n = 0;
+  BRIDGES.list.forEach(b => { const h = bridgeH(b); if (h === null || h - tide - air >= 10) return;
+    const dla = 18 / 111320, dlo = 18 / (111320 * Math.cos(b.lat * Math.PI / 180));
+    for (let i = 0; i < G.la.length; i++){ if (Math.abs(G.la[i] - b.lat) < dla && Math.abs(G.lo[i] - b.lng) < dlo && hav(G.la[i], G.lo[i], b.lat, b.lng) < 18){ bl[i] = 1; n++; } } });
+  return n ? bl : null;
+}
+function dijkstra(src, dst, bl){
   const N = G.la.length, d = new Float64Array(N).fill(Infinity), prev = new Int32Array(N).fill(-1), pe = new Array(N);
   const tla = G.la[dst], tlo = G.lo[dst], hh = n => 0.45 * hav(G.la[n], G.lo[n], tla, tlo), h = [[hh(src), src]];
   d[src] = 0;
@@ -1518,7 +1536,7 @@ function dijkstra(src, dst){
     if (l < h.length && h[l][0] < h[m][0]) m = l; if (r < h.length && h[r][0] < h[m][0]) m = r; if (m === i) break; [h[m], h[i]] = [h[i], h[m]]; i = m; } } return top; };
   while (h.length){
     const [fu, u] = pop(); const du = d[u]; if (fu - hh(u) > du + 1e-6) continue; if (u === dst) break;
-    for (const e of G.adj[u]){ const nd = du + e[1]; if (nd < d[e[0]]){ d[e[0]] = nd; prev[e[0]] = u; pe[e[0]] = e; push([nd + hh(e[0]), e[0]]); } }
+    for (const e of G.adj[u]){ if (bl && bl[e[0]] && e[0] !== dst) continue; const nd = du + e[1]; if (nd < d[e[0]]){ d[e[0]] = nd; prev[e[0]] = u; pe[e[0]] = e; push([nd + hh(e[0]), e[0]]); } }
   }
   if (d[dst] === Infinity) return null;
   const path = [], segs = []; let v = dst;
@@ -1530,7 +1548,9 @@ function computeRoute(from, to){
   let src = "linea";
   const a = gNear(from.lat, from.lng, 500), b = gNear(to.lat, to.lng, 700);
   if (a && b){
-    const res = dijkstra(a.n, b.n);
+    const bl = blockedNodes();
+    let res = dijkstra(a.n, b.n, bl);
+    if (bl && !res){ res = dijkstra(a.n, b.n); if (res) toast("Attenzione: con questa marea non c'è un percorso senza ponti bassi."); }
     if (res){
       src = "rete";
       res.path.forEach((n, j) => { pts.push([G.la[n], G.lo[n]]); const e = res.segs[j]; names.push(e && e[2] >= 0 ? (G.names[e[2]] || "") : ""); kinds.push(e ? e[3] : 1); });
@@ -1611,55 +1631,67 @@ function paintRec(){ const b = $("#fabRec"); if (!b) return; b.classList.toggle(
 $("#fabRec").onclick = () => { if (REC) stopRec(); else { if (watchId === null){ askCompass(); startGps(); } startRec(false); } };
 
 /* ---------- navigazione ---------- */
-let NAV = null;
-async function startNav(dest){
+let NAV = null, PLAN = null, startMarker = null, searchTarget = "to", planSeq = 0;
+async function startNav(dest, opt){
   if (!map){ toast("La mappa non è pronta."); return; }
+  opt = opt || {};
   if (watchId === null){ askCompass(); startGps(); }
-  NAV = { dest, R: null, idx: 0, spoken: "", lastCalc: 0, arrived: false };
+  NAV = { dest, R: null, idx: 0, spoken: "", lastCalc: 0, arrived: false, origin: opt.from || null, pending: !!opt.from };
   document.body.classList.add("nav");
-  $("#searchBox").classList.add("hidden"); $("#maneuver").classList.remove("hidden"); $("#navBar").classList.remove("hidden");
-  $("#maneuver").classList.remove("off"); $("#mIcon").textContent = "…"; $("#mDist").textContent = dest.name; $("#mText").textContent = "Preparo le rotte…";
+  $("#searchBox").classList.add("hidden"); $("#routeBox").classList.add("hidden"); $("#maneuver").classList.remove("hidden"); $("#navBar").classList.remove("hidden");
+  $("#maneuver").classList.remove("off"); $("#mIcon").textContent = "…"; $("#mDist").textContent = dest.name; $("#mText").textContent = NAV.pending ? "Vai al punto di partenza" : "Preparo le rotte…";
   if (destMarker) destMarker.remove();
   const el = document.createElement("div"); el.className = "dest";
   destMarker = new maplibregl.Marker({ element: el }).setLngLat([dest.lng, dest.lat]).addTo(map);
   const myNav = NAV;
-  const from = lastPos || (() => { const c = map.getCenter(); return { lat: c.lat, lng: c.lng }; })();
-  if (!lastPos) toast("GPS non ancora pronto: calcolo dal centro della mappa.");
+  const from = opt.from || lastPos || (() => { const c = map.getCenter(); return { lat: c.lat, lng: c.lng }; })();
+  if (!lastPos && !opt.from) toast("GPS non ancora pronto: calcolo dal centro della mappa.");
   if (!G.done){
     NAV.R = computeRoute(from, dest);           // intanto linea d'aria, così non resta bloccato
     drawRoute(); navTick(lastPos);
     $("#etaSub").textContent = "Scarico la rete dei canali…";
-    loadGraph().then(() => { if (NAV === myNav){ NAV.R = computeRoute(lastPos || from, dest); NAV.idx = 0; drawRoute(); navTick(lastPos); say("Percorso calcolato"); } });
+    loadGraph().then(() => { if (NAV === myNav){ NAV.R = computeRoute(NAV.pending ? NAV.origin : (lastPos || from), dest); NAV.idx = 0; drawRoute(); navTick(lastPos); say("Percorso calcolato"); } });
     if (!lastPos){ const b = new maplibregl.LngLatBounds(); NAV.R.pts.forEach(p => b.extend([p[1], p[0]])); map.fitBounds(b, { padding: 80, duration: 800 }); }
     else { setFollow(true); camera(true); }
-    startRec(true);
+    if (!NAV.pending) startRec(true);
     return;
   }
-  NAV.R = computeRoute(from, dest); NAV.lastCalc = Date.now();
+  NAV.R = opt.R || computeRoute(from, dest); NAV.lastCalc = Date.now();
   drawRoute();
   if (!lastPos){ const b = new maplibregl.LngLatBounds(); NAV.R.pts.forEach(p => b.extend([p[1], p[0]])); map.fitBounds(b, { padding: 80, duration: 800 }); }
   else { setFollow(true); camera(true); }
-  navTick(lastPos); startRec(true);
-  say(NAV.R.src === "lavoro" ? "Percorso calcolato sui tragitti abituali" : "Percorso calcolato");
+  navTick(lastPos); if (!NAV.pending) startRec(true);
+  if (NAV.pending) say("Vai al punto di partenza"); else say(NAV.R.src === "lavoro" ? "Percorso calcolato sui tragitti abituali" : "Percorso calcolato");
 }
 function stopNav(){
   if (REC && REC.auto) stopRec();
   NAV = null; document.body.classList.remove("nav");
   $("#searchBox").classList.remove("hidden"); $("#maneuver").classList.add("hidden"); $("#navBar").classList.add("hidden");
   if (destMarker){ destMarker.remove(); destMarker = null; }
-  drawRoute();
+  if (startMarker){ startMarker.remove(); startMarker = null; }
+  PLAN = null; drawRoute();
 }
 $("#stopNav").onclick = stopNav;
 function drawRoute(){
   if (!map || !map.getSource("route")) return;
-  const R = NAV && NAV.R;
-  const coords = R ? R.pts.slice(Math.max(0, (NAV.idx || 0))).map(p => [p[1], p[0]]) : [];
-  if (R && lastPos && coords.length) coords.unshift([lastPos.lng, lastPos.lat]);
+  const R = NAV ? NAV.R : (PLAN && PLAN.R);
+  const coords = R ? R.pts.slice(NAV && !NAV.pending ? Math.max(0, NAV.idx || 0) : 0).map(p => [p[1], p[0]]) : [];
+  if (NAV && !NAV.pending && R && lastPos && coords.length) coords.unshift([lastPos.lng, lastPos.lat]);
   map.getSource("route").setData({ type: "FeatureCollection", features: coords.length > 1 ? [{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: coords } }] : [] });
 }
 function navTick(p){
   if (!NAV || !NAV.R || !p) return;
   const R = NAV.R;
+  if (NAV.pending){
+    const o = NAV.origin, d0 = hav(p.lat, p.lng, o.lat, o.lng);
+    if (d0 < 80){ NAV.pending = false; NAV.idx = 0; NAV.lastCalc = Date.now(); say("Sei alla partenza, inizia la navigazione"); buzz(150); startRec(true); }
+    else {
+      $("#maneuver").classList.remove("off"); $("#mIcon").textContent = "⚐"; $("#mDist").textContent = fmtDist(d0);
+      $("#mText").textContent = "Vai al punto di partenza" + (o.name ? " · " + o.name : "");
+      $("#eta").textContent = `Percorso ${fmtDist(R.len)}`; $("#etaSub").textContent = "La guida parte quando arrivi alla partenza";
+      drawRoute(); return;
+    }
+  }
   // punto più vicino lungo il percorso (cerca vicino all'ultimo, poi ovunque)
   let bi = NAV.idx, bd = Infinity;
   const from = Math.max(0, NAV.idx - 5), to = Math.min(R.pts.length - 1, NAV.idx + 60);
@@ -1696,13 +1728,84 @@ function navTick(p){
   drawRoute();
 }
 
+/* ---------- pianifica: da dove parti e dove vai ---------- */
+function pickPlace(r){
+  const p = { name: r.name, lat: r.lat, lng: r.lng };
+  if (searchTarget === "from"){ endFromSearch(); qIn.value = ""; if (!PLAN) return; PLAN.from = p; showPlan(); return; }
+  qIn.value = ""; $("#qClear").classList.add("hidden"); openPlan(p);
+}
+function endFromSearch(){ searchTarget = "to"; qIn.placeholder = "Dove vuoi andare?"; $("#qClear").classList.toggle("hidden", !qIn.value); }
+function openPlan(to){
+  if (NAV) stopNav();
+  if (appMode !== "nautica" && typeof setAppMode === "function") setAppMode("nautica");
+  PLAN = { from: PLAN && PLAN.from && !PLAN.from.me ? PLAN.from : null, to, R: null };
+  if (watchId === null){ askCompass(); startGps(); }
+  showPlan();
+}
+function planFrom(){ if (PLAN.from) return PLAN.from; if (lastPos) return { lat: lastPos.lat, lng: lastPos.lng }; return null; }
+async function showPlan(){
+  if (!PLAN || !map) return;
+  $("#searchBox").classList.add("hidden"); $("#routeBox").classList.remove("hidden"); resBox.classList.add("hidden");
+  $("#rbFrom").textContent = PLAN.from ? "📌 " + PLAN.from.name : "📍 La mia posizione";
+  $("#rbTo").textContent = "⚑ " + PLAN.to.name;
+  if (destMarker) destMarker.remove();
+  const el = document.createElement("div"); el.className = "dest";
+  destMarker = new maplibregl.Marker({ element: el }).setLngLat([PLAN.to.lng, PLAN.to.lat]).addTo(map);
+  if (startMarker){ startMarker.remove(); startMarker = null; }
+  if (PLAN.from){ const s = document.createElement("div"); s.className = "startpin"; startMarker = new maplibregl.Marker({ element: s }).setLngLat([PLAN.from.lng, PLAN.from.lat]).addTo(map); }
+  const seq = ++planSeq, from = planFrom();
+  PLAN.R = null; drawRoute();
+  if (!from){ $("#rbInfo").textContent = "Aspetto il GPS… oppure scegli un punto di partenza"; setTimeout(() => { if (PLAN && seq === planSeq && lastPos) showPlan(); }, 2500); return; }
+  $("#rbInfo").textContent = "Calcolo il percorso…";
+  if (!G.done) await loadGraph();
+  if (!PLAN || seq !== planSeq) return;
+  const R = computeRoute(from, PLAN.to); PLAN.R = R; drawRoute();
+  const min = Math.max(1, Math.round(R.len / (12 / 3.6) / 60));
+  $("#rbInfo").textContent = `${min} min · ${fmtDist(R.len)} · ` + (R.src === "lavoro" ? "tragitti abituali" : R.src === "rete" ? "rete dei canali" : "linea d'aria");
+  const b = new maplibregl.LngLatBounds(); R.pts.forEach(p => b.extend([p[1], p[0]]));
+  setFollow(false); map.fitBounds(b, { padding: { top: 220, bottom: 120, left: 50, right: 50 }, duration: 700, bearing: 0, pitch: 0 });
+}
+function closePlan(){
+  PLAN = null; planSeq++; $("#routeBox").classList.add("hidden"); $("#searchBox").classList.remove("hidden");
+  if (addMode === "pickfrom"){ addMode = null; $("#modeHint").classList.add("hidden"); }
+  if (destMarker){ destMarker.remove(); destMarker = null; } if (startMarker){ startMarker.remove(); startMarker = null; }
+  drawRoute();
+}
+$("#rbX").onclick = closePlan;
+$("#rbTo").onclick = () => { endFromSearch(); qIn.value = ""; $("#routeBox").classList.add("hidden"); $("#searchBox").classList.remove("hidden"); setTimeout(() => qIn.focus(), 50); };
+$("#rbFrom").onclick = () => {
+  openSheet(`<h3>Da dove parti?</h3>
+    <button class="btn" id="pfMe">📍 La mia posizione</button>
+    <button class="btn ghost" style="margin-top:10px" id="pfSearch">🔍 Cerca un posto</button>
+    <button class="btn ghost" style="margin-top:10px" id="pfMap">👆 Scegli toccando la mappa</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
+  $("#pfMe").onclick = () => { closeSheet(); if (!PLAN) return; PLAN.from = null; showPlan(); };
+  $("#pfSearch").onclick = () => { closeSheet(); searchTarget = "from"; qIn.placeholder = "Da dove parti?"; qIn.value = "";
+    $("#routeBox").classList.add("hidden"); $("#searchBox").classList.remove("hidden"); $("#qClear").classList.remove("hidden"); setTimeout(() => qIn.focus(), 50); };
+  $("#pfMap").onclick = () => { closeSheet(); addMode = "pickfrom"; const h = $("#modeHint"); h.textContent = "Tocca la mappa nel punto di partenza"; h.classList.remove("hidden"); };
+};
+$("#rbSwap").onclick = () => {
+  if (!PLAN) return;
+  const me = lastPos ? { name: "La mia posizione", lat: lastPos.lat, lng: lastPos.lng, me: true } : null;
+  const oldFrom = PLAN.from || me; if (!oldFrom){ toast("Aspetto il GPS per sapere dove sei."); return; }
+  const newFrom = PLAN.to.me ? null : PLAN.to;
+  PLAN.to = oldFrom; PLAN.from = newFrom; showPlan();
+};
+$("#rbGo").onclick = () => {
+  if (!PLAN) return;
+  const p = PLAN; if (!p.from && !lastPos){ toast("Aspetto il GPS: tocca ➤ oppure scegli un punto di partenza."); return; }
+  if (startMarker){ startMarker.remove(); startMarker = null; }
+  PLAN = null;
+  if (p.from){ startNav(p.to, { from: p.from, R: p.R }); const s = document.createElement("div"); s.className = "startpin"; startMarker = new maplibregl.Marker({ element: s }).setLngLat([p.from.lng, p.from.lat]).addTo(map); }
+  else startNav(p.to);
+};
 
 /* =========================================================
    STRUMENTI: velocità, ecoscandaglio, marea, rotta
    ========================================================= */
 let dashOpen = false;
 const instOn = k => !!INST[k] || dashOpen;
-let INST = Object.assign({ speed: true, depth: false, tide: false, head: false, velox: true, bridge: false }, store.get("ln_inst", {}));
+let INST = Object.assign({ speed: true, depth: false, tide: false, head: false, velox: true }, store.get("ln_inst", {})); INST.bridge = false; INST.head = false;
 function paintInst(){
   document.querySelectorAll("#toggles button[data-inst]").forEach(b => b.classList.toggle("on", !!INST[b.dataset.inst]));
   $("#i-speed").classList.toggle("hidden", !INST.speed);
@@ -1710,15 +1813,13 @@ function paintInst(){
   $("#i-tide").classList.toggle("hidden", !INST.tide);
   $("#i-head").classList.add("hidden");
   $("#i-velox").classList.toggle("hidden", !INST.velox);
-  $("#i-bridge").classList.toggle("hidden", !INST.bridge);
   layerVis();
 }
 $("#tgDash").onclick = () => openDash();
 document.querySelectorAll("#toggles button[data-inst]").forEach(b => b.onclick = () => {
   INST[b.dataset.inst] = !INST[b.dataset.inst]; store.set("ln_inst", INST); paintInst();
   if (b.dataset.inst === "depth" && INST.depth){ if (!activeBoat()) toast("Imposta la tua barca (⋯ → La mia barca) per sapere quanta acqua hai sotto il piede."); if (lastPos) updateDepth(lastPos); else toast("Tocca ➤ per attivare il GPS."); }
-  if (b.dataset.inst === "tide" || b.dataset.inst === "depth" || b.dataset.inst === "bridge") loadTide();
-  if (b.dataset.inst === "bridge" && INST.bridge){ loadBridges(); if (!activeBoat() || !activeBoat().airDraft) toast("Inserisci l'altezza della barca in «La mia barca» per sapere se passi sotto i ponti."); }
+  if (b.dataset.inst === "tide" || b.dataset.inst === "depth") loadTide();
 });
 paintInst();
 
@@ -1759,7 +1860,7 @@ $("#i-tide").onclick = () => {
   $("#tOk").onclick = () => { const v = parseInt($("#tm").value, 10); tideManual = isNaN(v) ? null : v; closeSheet(); paintTide(); if (lastPos) updateDepth(lastPos); };
   $("#tAuto").onclick = () => { tideManual = null; closeSheet(); loadTide(); };
 };
-setInterval(() => { if (instOn("tide") || instOn("depth") || instOn("bridge")) loadTide(); }, 5 * 60000);
+setInterval(() => { loadTide(); }, 5 * 60000);
 setTimeout(() => { if (INST.tide || INST.depth) loadTide(); }, 0);
 
 /* ---------- ecoscandaglio calcolato ----------
@@ -2216,7 +2317,7 @@ function drawBridges(){
 function boatAir(b){ if (!b) return null; const v = Number(b.foldable && b.airDraftLow ? b.airDraftLow : b.airDraft); return v > 0 ? v : null; }
 let BR_NEXT = null;
 function bridgeTick(p){
-  if (!instOn("bridge") || !BRIDGES.list.length) return;
+  if (!$("#i-bridge") || !BRIDGES.list.length) return;
   let nx = null;
   BRIDGES.list.forEach(b => { const d = hav(p.lat, p.lng, b.lat, b.lng); if (d > 300) return;
     const ahead = d < 15 || Math.abs(angDiff(heading, bearing(p.lat, p.lng, b.lat, b.lng))) < 40;
@@ -2251,7 +2352,7 @@ function measureBridge(id){
     catch(e){ toast("Misura non salvata: controlla la connessione."); }
   };
 }
-$("#i-bridge").onclick = () => { if (BR_NEXT) measureBridge(BR_NEXT.b.id); };
+if ($("#i-bridge")) $("#i-bridge").onclick = () => { if (BR_NEXT) measureBridge(BR_NEXT.b.id); };
 document.addEventListener("click", e => { const m = e.target.closest("[data-measure]"); if (m){ e.preventDefault(); closePopups(); measureBridge(+m.dataset.measure); } });
 
 /* =========================================================
@@ -2471,7 +2572,7 @@ $("#goPontili").onclick = () => {
   document.querySelectorAll("[data-pon]").forEach(el => el.onclick = async () => {
     const p = PONTILI[+el.dataset.pon]; closeSheet(); toast("Cerco il pontile…");
     const g = await geocodeVenice(p.n); if (!g) return toast("Non trovo la posizione di questo pontile.");
-    startNav({ name: p.n, lat: g.lat, lng: g.lng });
+    openPlan({ name: p.n, lat: g.lat, lng: g.lng });
   });
 };
 
@@ -2593,8 +2694,7 @@ function openDash(){
     $("#dtVx").textContent = tx("vxAvg"); $("#dtVxS").textContent = tx("vxLim") + " · " + tx("vxInfo"); cls("dt-vx", "i-velox");
     $("#dtDep").textContent = tx("dUnder"); $("#dtDepS").textContent = tx("dInfo"); cls("dt-dep", "i-depth");
     $("#dtTide").textContent = tx("tVal"); $("#dtTideS").textContent = tx("tSub") + " " + tx("tNext");
-    $("#dtHead").textContent = tx("hVal") || Math.round(heading) + "°"; $("#dtHeadS").textContent = tx("hSub");
-    $("#dtBr").textContent = tx("brVal"); $("#dtBrS").textContent = tx("brName") + " " + tx("brSub"); cls("dt-br", "i-bridge");
+    $("#dtHead").textContent = Math.round(((heading % 360) + 360) % 360) + "°"; $("#dtHeadS").textContent = tx("hSub");
     if (NAV){ $("#dtManV").textContent = tx("mIcon") + " " + tx("mDist"); $("#dtManS").textContent = tx("mText") + " · " + tx("eta"); }
     else { $("#dtManV").textContent = "–"; $("#dtManS").textContent = "Cerca una destinazione dalla mappa per navigare"; }
     if (lastPos){ updateDepth(lastPos); }
@@ -2868,7 +2968,7 @@ function layerVis(){
   const want = {
     "bricole": n, "bric3d": n,
     "velox": n && INST.velox, "velox-tratte": n && INST.velox,
-    "ponti": n && INST.bridge,
+    "ponti": false,
     "carta": n && (INST.depth || dep), "carta-num": n && (INST.depth || dep), "depths": n && (INST.depth || dep),
     "fondo": n && dep,
     "route": n, "route-case": n,
