@@ -7,10 +7,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Laguna Nav</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>if(!window.L)document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"><\/script>');</script>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>if(!window.maplibregl){document.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"><\/script>');}</script>
 <style>
   :root{
     --bg:#000; --panel:#111; --panel2:#1a1a1a; --line:#2a2a2a;
@@ -45,38 +44,58 @@
   #app{position:fixed;inset:0;display:flex;flex-direction:column}
   .view{flex:1;position:relative;overflow:hidden}
   .scroll{position:absolute;inset:0;overflow-y:auto;padding:18px;padding-top:calc(18px + var(--safe-t));padding-bottom:30px}
-  #map{position:absolute;inset:0;background:#0b1a24}
-  nav{display:flex;background:#0a0a0a;border-top:1px solid var(--line);padding-bottom:var(--safe-b)}
-  nav button{flex:1;padding:10px 0 8px;font-size:11px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px}
-  nav button .ic{font-size:22px;line-height:1}
-  nav button.on{color:var(--accent)}
-
-  /* HUD on map */
-  .hud{position:absolute;z-index:1000;left:12px;right:12px;top:calc(12px + var(--safe-t));display:flex;gap:10px;pointer-events:none}
-  .speed{pointer-events:auto;background:rgba(0,0,0,.82);border:1px solid var(--line);border-radius:16px;padding:10px 14px;min-width:118px}
-  .speed .v{font-size:40px;font-weight:800;line-height:1}
-  .speed .u{font-size:12px;color:var(--muted)}
-  .speed .kn{font-size:14px;color:var(--muted);margin-top:4px}
-  #banner{pointer-events:auto;flex:1;border-radius:16px;padding:12px 14px;font-weight:800;display:flex;flex-direction:column;justify-content:center;
-    background:rgba(0,0,0,.82);border:1px solid var(--line);font-size:14px;color:var(--muted)}
-  #banner.zone{background:var(--warn);color:#000;border-color:var(--warn)}
-  #banner.over{background:var(--danger);color:#fff;border-color:var(--danger);animation:pulse 1s infinite}
-  #banner small{font-weight:600;opacity:.85;margin-top:2px}
+  /* ===== Navigatore ===== */
+  #map{position:absolute;inset:0;background:#dfe9ef}
+  .maplibregl-ctrl-attrib{font-size:9px!important}
+  .maplibregl-popup-content{background:#111;color:#eee;border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.4}
+  .maplibregl-popup-tip{border-top-color:#111!important;border-bottom-color:#111!important}
+  .maplibregl-popup-close-button{color:#aaa;font-size:18px}
+  #searchBox{position:absolute;z-index:20;left:10px;right:10px;top:calc(10px + var(--safe-t))}
+  .sbar{display:flex;align-items:center;background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.35);padding:0 6px 0 12px}
+  .sbar .sic{font-size:16px;opacity:.6}
+  .sbar input{background:none;border:0;color:#111;font-size:17px;padding:14px 8px;outline:none}
+  .sbar button{color:#666;font-size:18px;padding:8px 10px}
+  #results{margin-top:6px;background:#fff;color:#111;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.35);max-height:52vh;overflow-y:auto}
+  .res{padding:12px 14px;border-top:1px solid #eee;cursor:pointer}
+  .res:first-child{border-top:0}
+  .res b{display:block;font-size:15px}
+  .res span{font-size:12px;color:#777}
+  .res.info{color:#777;font-size:14px;cursor:default}
+  #maneuver{position:absolute;z-index:21;left:10px;right:10px;top:calc(10px + var(--safe-t));display:flex;gap:12px;align-items:center;
+    background:#0b7a3e;color:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 3px 14px rgba(0,0,0,.45)}
+  #maneuver.off{background:#b3261e}
+  .mic{font-size:42px;font-weight:900;width:52px;text-align:center;line-height:1}
+  .mdist{font-size:28px;font-weight:800;line-height:1.05}
+  .mtxt{font-size:16px;font-weight:600;opacity:.95}
+  #banner{position:absolute;z-index:19;left:10px;right:10px;top:calc(76px + var(--safe-t));border-radius:12px;padding:9px 12px;font-weight:800;font-size:14px;
+    background:var(--warn);color:#000;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+  #banner.over{background:var(--danger);color:#fff;animation:pulse 1s infinite}
+  #banner small{display:block;font-weight:600;opacity:.85}
+  body.nav #banner{top:calc(100px + var(--safe-t))}
   @keyframes pulse{50%{opacity:.75}}
-  #shallow{position:absolute;z-index:1000;left:12px;right:12px;top:calc(118px + var(--safe-t));
-    background:var(--danger);color:#fff;font-weight:700;border-radius:12px;padding:10px 14px;font-size:14px}
-  .fabs{position:absolute;z-index:1000;right:12px;bottom:16px;display:flex;flex-direction:column;gap:10px}
-  .fab{width:52px;height:52px;border-radius:50%;background:rgba(0,0,0,.85);border:1px solid var(--line);font-size:22px;
+  #shallow{position:absolute;z-index:19;left:10px;right:10px;top:calc(130px + var(--safe-t));background:var(--danger);color:#fff;font-weight:700;border-radius:12px;padding:9px 12px;font-size:14px}
+  #modeHint{position:absolute;z-index:22;left:10px;right:80px;bottom:16px;background:var(--accent);color:#000;font-weight:700;border-radius:12px;padding:12px 14px;font-size:14px}
+  .speedwrap{position:absolute;z-index:18;left:10px;bottom:16px;display:flex;align-items:flex-end;gap:8px}
+  body.nav .speedwrap{bottom:92px}
+  .speed{background:rgba(0,0,0,.85);color:#fff;border-radius:16px;padding:8px 12px;min-width:96px;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+  .speed .v{font-size:34px;font-weight:800;line-height:1}
+  .speed .u{font-size:11px;color:#aaa;margin-top:2px}
+  #limitSign{width:58px;height:58px;border-radius:50%;background:#fff;border:6px solid #d32f2f;color:#111;display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:22px;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+  .fabs{position:absolute;z-index:18;right:10px;bottom:16px;display:flex;flex-direction:column;gap:9px}
+  body.nav .fabs{bottom:92px}
+  .fab{width:50px;height:50px;border-radius:50%;background:#fff;color:#111;font-size:19px;font-weight:800;box-shadow:0 2px 10px rgba(0,0,0,.35);
     display:flex;align-items:center;justify-content:center}
-  .fab.on{background:var(--accent);color:#000;border-color:var(--accent)}
-  #modeHint{position:absolute;z-index:1000;left:12px;right:76px;bottom:16px;background:var(--accent);color:#000;
-    font-weight:700;border-radius:12px;padding:12px 14px;font-size:14px}
-  .leaflet-control-attribution{font-size:9px!important;background:rgba(0,0,0,.6)!important;color:#aaa!important}
-  .leaflet-control-attribution a{color:#ccc!important}
-  .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#111;color:#eee}
-  .leaflet-popup-content{margin:12px 14px;font-size:14px;line-height:1.4}
-  .leaflet-control-layers{background:#111!important;color:#eee!important;border:1px solid #333!important}
-
+  .fab.big{width:58px;height:58px;font-size:24px;color:#1a73e8}
+  .fab.on{background:var(--accent);color:#000}
+  .fab.follow{background:#1a73e8;color:#fff}
+  #navBar{position:absolute;z-index:20;left:0;right:0;bottom:0;background:#111;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+    padding:12px 16px}
+  .eta{font-size:22px;font-weight:800;color:var(--ok)}
+  .btn.danger{background:var(--danger);color:#fff}
+  .me{width:46px;height:46px}
+  .me svg{width:100%;height:100%;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+  .dest{width:22px;height:22px;border-radius:50%;background:#d32f2f;border:4px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5)}
   /* Sheets / modal */
   #sheet{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
   #sheet .in{width:100%;background:var(--panel);border-radius:20px 20px 0 0;padding:20px;padding-bottom:calc(20px + var(--safe-b));
@@ -133,20 +152,44 @@
   <!-- MAPPA -->
   <section class="view" id="v-map">
     <div id="map"></div>
-    <div class="hud">
-      <div class="speed">
-        <div class="v" id="spd">–</div>
-        <div class="u">km/h</div>
-        <div class="kn" id="kn">– nodi</div>
+
+    <!-- ricerca (come Google Maps) -->
+    <div id="searchBox">
+      <div class="sbar">
+        <span class="sic">🔍</span>
+        <input id="q" type="search" placeholder="Dove vuoi andare?" autocomplete="off" enterkeyhint="search">
+        <button id="qClear" class="hidden" aria-label="Cancella">✕</button>
       </div>
-      <div id="banner">GPS non attivo<small>Tocca ◎ per iniziare</small></div>
+      <div id="results" class="hidden"></div>
     </div>
+
+    <!-- manovra durante la navigazione -->
+    <div id="maneuver" class="hidden">
+      <div class="mic" id="mIcon">↑</div>
+      <div class="mtx"><div class="mdist" id="mDist">–</div><div class="mtxt" id="mText">Calcolo il percorso…</div></div>
+    </div>
+
+    <div id="banner" class="hidden"></div>
     <div id="shallow" class="hidden"></div>
     <div id="modeHint" class="hidden"></div>
+
+    <div class="speedwrap">
+      <div class="speed"><div class="v" id="spd">–</div><div class="u">km/h · <span id="kn">– nodi</span></div></div>
+      <div id="limitSign" class="hidden"><span id="limitVal">5</span></div>
+    </div>
+
     <div class="fabs">
+      <button class="fab" id="fabVoice" title="Voce">🔈</button>
       <button class="fab" id="fabDepth" title="Segnala profondità">≈</button>
       <button class="fab" id="fabZone" title="Aggiungi zona controllata">⚠︎</button>
-      <button class="fab" id="fabGps" title="GPS / segui">◎</button>
+      <button class="fab" id="fabView" title="Prima persona / nord in alto">3D</button>
+      <button class="fab big" id="fabGps" title="Dove sono">➤</button>
+    </div>
+
+    <!-- barra in basso durante la navigazione -->
+    <div id="navBar" class="hidden">
+      <div><div class="eta" id="eta">–</div><div class="muted" id="etaSub">–</div></div>
+      <button class="btn small danger" id="stopNav">Fine</button>
     </div>
   </section>
 
@@ -198,7 +241,7 @@
   <section class="view hidden" id="v-info">
     <div class="scroll">
       <h2>Info</h2>
-      <p class="sub">Laguna Nav · versione 0.1</p>
+      <p class="sub">Laguna Nav · versione 0.4</p>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
@@ -211,7 +254,7 @@
       </div>
       <div class="card">
         <h4>Mappe</h4>
-        <p class="muted" style="line-height:1.45">Mappa © OpenStreetMap contributors. Segnali nautici © OpenSeaMap.</p>
+        <p class="muted" style="line-height:1.45">Mappa © OpenStreetMap contributors, stile OpenFreeMap. Segnali nautici © OpenSeaMap. Ricerca dei posti: Nominatim (OpenStreetMap). Percorsi: rete dei canali OpenStreetMap e tragitti abituali delle barche di lavoro.</p>
       </div>
     </div>
   </section>
@@ -304,16 +347,17 @@ function openApp(){
 document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
   document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x === b));
   ["map","order","rider","info"].forEach(v => $("#v-"+v).classList.toggle("hidden", v !== b.dataset.v));
-  if (b.dataset.v === "map" && map) setTimeout(() => map.invalidateSize(), 50);
+  if (b.dataset.v === "map" && map) setTimeout(() => map.resize(), 50);
   if (b.dataset.v === "rider") renderRider();
   if (b.dataset.v === "info") renderInfo();
 });
 
 /* =========================================================
-   MAPPA
+   MAPPA / NAVIGATORE
    ========================================================= */
-let map, zoneLayer, depthLayer, meMarker, meCircle, follow = true, watchId = null;
-let lastPos = null, addMode = null, inZone = null, overNotified = false;
+let map = null, meMarker = null, destMarker = null, watchId = null;
+let lastPos = null, prevFix = null, addMode = null, inZone = null, overNotified = false;
+let follow = true, view3d = true, heading = 0, compassHeading = null, voiceOn = store.get("ln_voice", true);
 const DEPTH_ESEMPIO = [
   { lat: 45.4405, lng: 12.3560, d: 0.8, note: "Esempio: bassofondale fuori canale", t: 0, ex: true },
   { lat: 45.4505, lng: 12.3520, d: 1.4, note: "Esempio: secca con bassa marea", t: 0, ex: true }
@@ -332,148 +376,232 @@ async function loadShared(){
     const dd = d.map(r => ({ id: r.id, lat: r.lat, lng: r.lng, d: +r.depth_m, note: r.note || "", t: Date.parse(r.created_at) }));
     store.set("ln_cache_zones", userZones); store.set("ln_cache_depths", dd);
     depths = DEPTH_ESEMPIO.concat(dd);
-    if (map){ drawZones(); drawDepths(); }
+    drawZones(); drawDepths();
   }catch(e){ console.log("Caricamento segnalazioni non riuscito", e); }
 }
 
+/* ---------- utilità geografiche ---------- */
+function hav(la1, lo1, la2, lo2){
+  const R = 6371000, r = Math.PI / 180, dLa = (la2 - la1) * r, dLo = (lo2 - lo1) * r;
+  const h = Math.sin(dLa/2)**2 + Math.cos(la1*r) * Math.cos(la2*r) * Math.sin(dLo/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+const dist = (a, b) => hav(a.lat, a.lng, b.lat, b.lng);
+function bearing(la1, lo1, la2, lo2){
+  const r = Math.PI / 180, y = Math.sin((lo2-lo1)*r) * Math.cos(la2*r);
+  const x = Math.cos(la1*r)*Math.sin(la2*r) - Math.sin(la1*r)*Math.cos(la2*r)*Math.cos((lo2-lo1)*r);
+  return (Math.atan2(y, x) / r + 360) % 360;
+}
+const angDiff = (a, b) => ((b - a) % 360 + 540) % 360 - 180;
+function fmtDist(m){ return m < 1000 ? (Math.round(m / 10) * 10) + " m" : (m / 1000).toFixed(m < 10000 ? 1 : 0).replace(".", ",") + " km"; }
+function circlePoly(lat, lng, r){
+  const pts = [];
+  for (let i = 0; i <= 48; i++){
+    const a = i / 48 * 2 * Math.PI;
+    pts.push([lng + (r * Math.sin(a)) / (111320 * Math.cos(lat * Math.PI / 180)), lat + (r * Math.cos(a)) / 110540]);
+  }
+  return pts;
+}
+
+/* ---------- mappa ---------- */
+const STYLE_VECTOR = "https://tiles.openfreemap.org/styles/liberty";
+const STYLE_RASTER = { version: 8, sources: { osm: { type: "raster", tileSize: 256, maxzoom: 19, attribution: "© OpenStreetMap",
+  tiles: ["https://a.tile.openstreetmap.org/{z}/{x}/{y}.png","https://b.tile.openstreetmap.org/{z}/{x}/{y}.png","https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"] } },
+  layers: [{ id: "osm", type: "raster", source: "osm" }] };
+
 function mapError(msg){
-  $("#map").innerHTML = `<div style="padding:110px 24px;color:#ddd;line-height:1.5;text-align:center">
-    <div style="font-size:40px">🗺️</div><b>La mappa non si è caricata</b><br><span style="color:#999">${msg}</span></div>`;
+  $("#map").innerHTML = `<div style="padding:150px 24px;color:#333;line-height:1.5;text-align:center">
+    <div style="font-size:40px">🗺️</div><b>La mappa non si è caricata</b><br><span style="color:#666">${msg}</span></div>`;
 }
 function initMap(){
   window._mapReady = true;
   if (location.protocol !== "https:" && location.hostname !== "localhost"){
     mapError("L'app va aperta dal suo indirizzo internet (https://…github.io/…). Aperta come file sul telefono, mappa e GPS sono bloccati.");
-    setBanner("", "GPS bloccato", "Apri l'app dal link https");
     return;
   }
-  if (!window.L){ mapError("Controlla la connessione internet e ricarica la pagina."); return; }
-  map = L.map("map", { zoomControl: false }).setView([45.4371, 12.3326], 14);
-  const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
-  const sea = L.tileLayer("https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png",
-    { maxZoom: 18, attribution: "© OpenSeaMap" }).addTo(map);
-  L.control.layers(null, { "Segnali nautici": sea }, { position: "bottomleft" }).addTo(map);
-  zoneLayer = L.layerGroup().addTo(map);
-  depthLayer = L.layerGroup().addTo(map);
-  drawZones(); drawDepths();
-  loadShared(); setInterval(loadShared, 60000);
-
-  map.on("dragstart", () => { if (follow){ follow = false; $("#fabGps").classList.remove("on"); } });
+  if (!window.maplibregl){ mapError("Controlla la connessione internet e ricarica la pagina."); return; }
+  map = new maplibregl.Map({ container: "map", style: STYLE_VECTOR, center: [12.3326, 45.4371], zoom: 14,
+    pitch: 0, maxPitch: 70, attributionControl: { compact: true }, dragRotate: true, touchPitch: true });
+  let styled = false;
+  const fallback = setTimeout(() => { if (!styled) map.setStyle(STYLE_RASTER); }, 9000);
+  map.on("error", e => { if (!styled && e && e.error && /style|json/i.test(String(e.error.message || ""))) { clearTimeout(fallback); map.setStyle(STYLE_RASTER); } });
+  map.on("style.load", () => { styled = true; clearTimeout(fallback); addLayers(); });
+  map.on("dragstart", e => { if (e.originalEvent) setFollow(false); });
   map.on("click", e => {
-    if (addMode === "zone") zoneForm(e.latlng);
-    else if (addMode === "depth") depthForm(e.latlng);
+    if (addMode === "zone") return zoneForm(e.lngLat);
+    if (addMode === "depth") return depthForm(e.lngLat);
+    const f = map.queryRenderedFeatures(e.point, { layers: ["depths", "zones-fill"].filter(l => map.getLayer(l)) })[0];
+    if (f) popupFor(f, e.lngLat);
   });
+  loadShared(); setInterval(loadShared, 60000);
+  loadGraph();
+}
+function addLayers(){
+  map.addSource("sea", { type: "raster", tileSize: 256, maxzoom: 18, attribution: "© OpenSeaMap", tiles: ["https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png"] });
+  map.addLayer({ id: "sea", type: "raster", source: "sea" });
+  const empty = { type: "FeatureCollection", features: [] };
+  map.addSource("zones", { type: "geojson", data: empty });
+  map.addLayer({ id: "zones-fill", type: "fill", source: "zones", paint: { "fill-color": "#ffc400", "fill-opacity": 0.16 } });
+  map.addLayer({ id: "zones-line", type: "line", source: "zones", paint: { "line-color": "#e0a800", "line-width": 2, "line-dasharray": [2, 1] } });
+  map.addSource("route", { type: "geojson", data: empty });
+  map.addLayer({ id: "route-case", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#0b4fa8", "line-width": 13 } });
+  map.addLayer({ id: "route", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#2f8cff", "line-width": 8 } });
+  map.addSource("depths", { type: "geojson", data: empty });
+  map.addLayer({ id: "depths", type: "circle", source: "depths", paint: {
+    "circle-radius": 9, "circle-stroke-color": "#000", "circle-stroke-width": 2,
+    "circle-color": ["case", ["<", ["get", "d"], 1], "#ff3b30", ["<", ["get", "d"], 2], "#ff9f0a", "#30d158"] } });
+  drawZones(); drawDepths(); drawRoute();
 }
 
-function allZones(){
-  return CONFIG.ZONE_ESEMPIO.map(z => ({...z, ex: true})).concat(userZones);
-}
+function allZones(){ return CONFIG.ZONE_ESEMPIO.map(z => ({ ...z, ex: true })).concat(userZones); }
 function drawZones(){
-  zoneLayer.clearLayers();
-  allZones().forEach(z => {
-    const c = L.circle([z.lat, z.lng], { radius: z.r, color: "#ffc400", weight: 2,
-      fillColor: "#ffc400", fillOpacity: .12, dashArray: z.ex ? "6 6" : null }).addTo(zoneLayer);
-    let html = `<b>⚠︎ Zona controllata — rallenta</b><br>${esc(z.name)}<br>Limite: <b>${z.limit} km/h</b>`;
-    if (z.ex) html += `<br><span style="color:#999">Esempio, da verificare</span>`;
-    else if (mine.zones.includes(z.id)) html += `<br><a href="#" data-delz="${z.id}" style="color:#ff6b60">Elimina (è tua)</a>`;
-    else html += `<br><span style="color:#999">Segnalata da un utente</span>`;
-    c.bindPopup(html);
-  });
+  if (!map || !map.getSource("zones")) return;
+  map.getSource("zones").setData({ type: "FeatureCollection", features: allZones().map((z, i) => ({
+    type: "Feature", properties: { i }, geometry: { type: "Polygon", coordinates: [circlePoly(z.lat, z.lng, z.r)] } })) });
 }
-function depthColor(d){ return d < 1 ? "#ff3b30" : d < 2 ? "#ff9f0a" : "#30d158"; }
 function drawDepths(){
-  depthLayer.clearLayers();
-  depths.forEach(p => {
-    const m = L.circleMarker([p.lat, p.lng], { radius: 9, color: "#000", weight: 2,
-      fillColor: depthColor(p.d), fillOpacity: .95 }).addTo(depthLayer);
-    const when = p.t ? new Date(p.t).toLocaleString("it-IT",{dateStyle:"short",timeStyle:"short"}) : "—";
-    m.bindPopup(`<b>Profondità ${p.d.toLocaleString("it-IT")} m</b><br>${esc(p.note || "")}
-      <br><span style="color:#999">${p.ex ? "Esempio" : "Segnalato " + when}</span>
-      ${!p.ex && mine.depths.includes(p.id) ? `<br><a href="#" data-deld="${p.id}" style="color:#ff6b60">Elimina (è tua)</a>` : ""}`);
-  });
+  if (!map || !map.getSource("depths")) return;
+  map.getSource("depths").setData({ type: "FeatureCollection", features: depths.map((p, i) => ({
+    type: "Feature", properties: { i, d: p.d }, geometry: { type: "Point", coordinates: [p.lng, p.lat] } })) });
 }
+function popupFor(f, ll){
+  let html;
+  if (f.layer.id === "depths"){
+    const p = depths[f.properties.i]; if (!p) return;
+    const when = p.t ? new Date(p.t).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" }) : "—";
+    html = `<b>Profondità ${p.d.toLocaleString("it-IT")} m</b><br>${esc(p.note || "")}<br><span style="color:#999">${p.ex ? "Esempio" : "Segnalato " + when}</span>`
+      + (!p.ex && mine.depths.includes(p.id) ? `<br><a href="#" data-deld="${p.id}" style="color:#ff6b60">Elimina (è tua)</a>` : "")
+      + `<br><a href="#" data-goto="${p.lat},${p.lng}" style="color:#7fc1ff">Portami qui</a>`;
+  } else {
+    const z = allZones()[f.properties.i]; if (!z) return;
+    html = `<b>⚠︎ Zona controllata — rallenta</b><br>${esc(z.name)}<br>Limite: <b>${z.limit} km/h</b>`
+      + (z.ex ? `<br><span style="color:#999">Esempio, da verificare</span>`
+        : mine.zones.includes(z.id) ? `<br><a href="#" data-delz="${z.id}" style="color:#ff6b60">Elimina (è tua)</a>` : `<br><span style="color:#999">Segnalata da un utente</span>`);
+  }
+  new maplibregl.Popup({ closeButton: true, maxWidth: "260px" }).setLngLat(ll).setHTML(html).addTo(map);
+}
+function closePopups(){ document.querySelectorAll(".maplibregl-popup").forEach(p => p.remove()); }
 document.addEventListener("click", async e => {
+  const g = e.target.closest("[data-goto]");
+  if (g){ e.preventDefault(); const [la, lo] = g.dataset.goto.split(",").map(Number); closePopups(); startNav({ name: "Punto sulla mappa", lat: la, lng: lo }); return; }
   const a = e.target.closest("[data-delz],[data-deld]");
   if (!a) return;
   e.preventDefault();
-  const isZone = a.dataset.delz !== undefined, id = +(isZone ? a.dataset.delz : a.dataset.deld);
-  try{
-    await deleteOwn(isZone ? "zones" : "depths", id);
-    mine[isZone ? "zones" : "depths"] = mine[isZone ? "zones" : "depths"].filter(x => x !== id); saveMine();
-    map.closePopup(); await loadShared();
-  }catch(err){ alert("Non riesco a eliminare: controlla la connessione."); }
+  const isZone = a.dataset.delz !== undefined, id = +(isZone ? a.dataset.delz : a.dataset.deld), k = isZone ? "zones" : "depths";
+  try{ await deleteOwn(k, id); mine[k] = mine[k].filter(x => x !== id); saveMine(); closePopups(); await loadShared(); }
+  catch(err){ toast("Non riesco a eliminare: controlla la connessione."); }
 });
+function toast(msg){
+  const h = $("#modeHint"); h.textContent = msg; h.classList.remove("hidden");
+  clearTimeout(toast._t); toast._t = setTimeout(() => { if (!addMode) h.classList.add("hidden"); }, 3500);
+}
 
-/* ---------- GPS ---------- */
-$("#fabGps").onclick = () => {
+/* ---------- freccia della posizione ---------- */
+function makeArrow(){
+  const el = document.createElement("div"); el.className = "me";
+  el.innerHTML = `<svg viewBox="0 0 40 40"><path d="M20 3 L34 35 L20 27 L6 35 Z" fill="#1a73e8" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg>`;
+  return new maplibregl.Marker({ element: el, rotationAlignment: "map", pitchAlignment: "map" });
+}
+
+/* ---------- GPS e bussola ---------- */
+$("#fabGps").onclick = async () => {
+  askCompass();
   if (watchId === null) startGps();
-  follow = true; $("#fabGps").classList.add("on");
-  if (lastPos && map) map.setView([lastPos.lat, lastPos.lng], Math.max(map.getZoom(), 16));
+  setFollow(true); camera(true);
 };
+$("#fabView").onclick = () => {
+  view3d = !view3d; $("#fabView").textContent = view3d ? "3D" : "2D";
+  if (!view3d && map) map.easeTo({ pitch: 0, bearing: 0, duration: 600 });
+  setFollow(true); camera(true);
+};
+$("#fabVoice").onclick = () => { voiceOn = !voiceOn; store.set("ln_voice", voiceOn); paintVoice(); if (voiceOn) say("Voce attiva"); };
+function paintVoice(){ $("#fabVoice").textContent = voiceOn ? "🔊" : "🔈"; }
+paintVoice();
+function say(t){ if (!voiceOn || !window.speechSynthesis) return; try{ const u = new SpeechSynthesisUtterance(t); u.lang = "it-IT"; speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} }
+
+function setFollow(v){ follow = v; $("#fabGps").classList.toggle("follow", v && watchId !== null); }
+function askCompass(){
+  if (askCompass.done) return; askCompass.done = true;
+  const on = ev => {
+    let h = null;
+    if (typeof ev.webkitCompassHeading === "number") h = ev.webkitCompassHeading;
+    else if (ev.absolute && typeof ev.alpha === "number") h = 360 - ev.alpha;
+    if (h !== null && !isNaN(h)) compassHeading = (h + 360) % 360;
+  };
+  try{
+    if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === "function"){
+      DeviceOrientationEvent.requestPermission().then(s => { if (s === "granted") window.addEventListener("deviceorientation", on); }).catch(() => {});
+    } else {
+      window.addEventListener("deviceorientationabsolute", on);
+      window.addEventListener("deviceorientation", on);
+    }
+  }catch(e){}
+  setInterval(() => { if (!movingFast() && compassHeading !== null){ smoothHeading(compassHeading, 0.35); updateArrow(); camera(); } }, 400);
+}
 function startGps(){
-  if (!navigator.geolocation){ setBanner("", "GPS non disponibile", ""); return; }
-  setBanner("", "Cerco il GPS…", "");
+  if (!navigator.geolocation){ toast("GPS non disponibile su questo telefono."); return; }
+  toast("Cerco il GPS…");
   watchId = navigator.geolocation.watchPosition(onPos, err => {
-    setBanner("", "GPS non disponibile", err.code === 1 ? "Permesso posizione negato" : "Riprova all'aperto");
-    watchId = null;
+    toast(err.code === 1 ? "Permesso posizione negato: attivalo nelle impostazioni di Safari." : "GPS non disponibile, riprova all'aperto.");
+    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    watchId = null; setFollow(follow);
   }, { enableHighAccuracy: true, maximumAge: 1000, timeout: 20000 });
+  setFollow(true);
 }
-function dist(a, b){
-  const R = 6371000, toR = x => x * Math.PI / 180;
-  const dLat = toR(b.lat - a.lat), dLng = toR(b.lng - a.lng);
-  const h = Math.sin(dLat/2)**2 + Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLng/2)**2;
-  return 2 * R * Math.asin(Math.sqrt(h));
-}
+let speedMs = 0;
+function movingFast(){ return speedMs > 1.2; }
+function smoothHeading(target, k){ heading = (heading + angDiff(heading, target) * k + 360) % 360; }
 function onPos(pos){
   const p = { lat: pos.coords.latitude, lng: pos.coords.longitude, t: pos.timestamp, acc: pos.coords.accuracy };
   let ms = pos.coords.speed;
-  if ((ms === null || isNaN(ms)) && lastPos){
-    const dt = (p.t - lastPos.t) / 1000;
-    ms = dt > 0 ? dist(lastPos, p) / dt : 0;
+  if ((ms === null || isNaN(ms)) && lastPos){ const dt = (p.t - lastPos.t) / 1000; ms = dt > 0 ? dist(lastPos, p) / dt : 0; }
+  speedMs = Math.max(0, ms || 0);
+  // direzione: rotta del GPS quando ci si muove, altrimenti bussola
+  if (movingFast()){
+    let course = pos.coords.heading;
+    if ((course === null || isNaN(course)) && prevFix && dist(prevFix, p) > 4) course = bearing(prevFix.lat, prevFix.lng, p.lat, p.lng);
+    if (course !== null && !isNaN(course)) smoothHeading(course, 0.6);
   }
-  ms = Math.max(0, ms || 0);
+  if (!prevFix || dist(prevFix, p) > 4) prevFix = p;
   lastPos = p;
-  const kmh = ms * 3.6;
+  const kmh = speedMs * 3.6;
   $("#spd").textContent = kmh < 0.5 ? "0" : kmh.toFixed(kmh < 10 ? 1 : 0);
-  $("#kn").textContent = (ms * 1.94384).toFixed(1) + " nodi";
+  $("#kn").textContent = (speedMs * 1.94384).toFixed(1) + " nodi";
+  if (map){
+    if (!meMarker) { meMarker = makeArrow().setLngLat([p.lng, p.lat]).addTo(map); camera(true); }
+    else meMarker.setLngLat([p.lng, p.lat]);
+    updateArrow(); camera();
+  }
+  checkZones(p, kmh); checkShallow(p); navTick(p);
+}
+function updateArrow(){ if (meMarker) meMarker.setRotation(heading); }
+let lastCam = 0;
+function camera(force){
+  if (!map || !follow || !lastPos) return;
+  const now = Date.now(); if (!force && now - lastCam < 350) return; lastCam = now;
+  const h = map.getContainer().clientHeight;
+  map.easeTo({ center: [lastPos.lng, lastPos.lat], zoom: force ? Math.max(map.getZoom(), view3d ? 17.5 : 16) : map.getZoom(),
+    bearing: view3d ? heading : 0, pitch: view3d ? 60 : 0,
+    padding: { top: view3d ? h * 0.42 : 0, bottom: 0, left: 0, right: 0 }, duration: force ? 800 : 400, essential: true });
+}
 
-  if (!map) { checkZones(p, kmh); checkShallow(p); return; }
-  if (!meMarker){
-    meMarker = L.circleMarker([p.lat, p.lng], { radius: 9, color: "#fff", weight: 3, fillColor: "#2fa4ff", fillOpacity: 1 }).addTo(map);
-    meCircle = L.circle([p.lat, p.lng], { radius: p.acc, color: "#2fa4ff", weight: 1, fillOpacity: .08 }).addTo(map);
-    map.setView([p.lat, p.lng], 16);
-  } else {
-    meMarker.setLatLng([p.lat, p.lng]); meCircle.setLatLng([p.lat, p.lng]).setRadius(p.acc);
-    if (follow) map.panTo([p.lat, p.lng], { animate: true });
-  }
-  checkZones(p, kmh);
-  checkShallow(p);
-}
-function setBanner(cls, title, small){
-  const b = $("#banner"); b.className = cls;
-  b.innerHTML = esc(title) + (small ? `<small>${esc(small)}</small>` : "");
-}
+/* ---------- zone controllate e bassi fondali ---------- */
 function checkZones(p, kmh){
+  const b = $("#banner"), sign = $("#limitSign");
   const z = allZones().find(z => dist(p, z) <= z.r);
-  if (!z){
-    if (inZone) inZone = null;
-    overNotified = false;
-    setBanner("", "Fuori dalle zone controllate", "Naviga con prudenza");
-    return;
-  }
-  if (!inZone || inZone.name !== z.name){ inZone = z; overNotified = false; buzz([200]); }
+  if (!z){ inZone = null; overNotified = false; b.classList.add("hidden"); sign.classList.add("hidden"); return; }
+  if (!inZone || inZone.name !== z.name){ inZone = z; overNotified = false; buzz([200]); say("Zona controllata, rallenta"); }
+  $("#limitVal").textContent = z.limit; sign.classList.remove("hidden");
+  b.classList.remove("hidden");
   if (kmh > z.limit + 0.5){
-    setBanner("over", "RALLENTA — zona controllata", `${z.name} · limite ${z.limit} km/h`);
+    b.className = "over"; b.innerHTML = `RALLENTA — zona controllata<small>${esc(z.name)} · limite ${z.limit} km/h</small>`;
     if (!overNotified){ overNotified = true; buzz([300,150,300]); }
   } else {
-    overNotified = false;
-    setBanner("zone", "Zona controllata — rallenta", `${z.name} · limite ${z.limit} km/h`);
+    overNotified = false; b.className = ""; b.innerHTML = `Zona controllata — rallenta<small>${esc(z.name)} · limite ${z.limit} km/h</small>`;
   }
 }
 function checkShallow(p){
-  const near = depths.filter(d => d.d < 1.5)
-    .map(d => ({ ...d, m: dist(p, d) })).filter(d => d.m < 80).sort((a,b) => a.m - b.m)[0];
+  const near = depths.filter(d => d.d < 1.5).map(d => ({ ...d, m: dist(p, d) })).filter(d => d.m < 80).sort((a, b) => a.m - b.m)[0];
   const el = $("#shallow");
   if (near){ el.textContent = `Attenzione: fondale di ${near.d.toLocaleString("it-IT")} m segnalato a ${Math.round(near.m)} m`; el.classList.remove("hidden"); }
   else el.classList.add("hidden");
@@ -488,16 +616,13 @@ function setAddMode(m){
   const h = $("#modeHint");
   if (!addMode){ h.classList.add("hidden"); return; }
   h.classList.remove("hidden");
-  h.innerHTML = addMode === "zone"
-    ? "Tocca la mappa al centro della zona controllata"
+  h.innerHTML = addMode === "zone" ? "Tocca la mappa al centro della zona controllata"
     : 'Tocca la mappa dove hai misurato, oppure <u id="useGpsDepth">usa la mia posizione</u>';
   const u = $("#useGpsDepth");
-  if (u) u.onclick = ev => { ev.stopPropagation();
-    if (lastPos) depthForm(L.latLng(lastPos.lat, lastPos.lng)); else alert("Attiva prima il GPS (◎)."); };
+  if (u) u.onclick = ev => { ev.stopPropagation(); if (lastPos) depthForm({ lat: lastPos.lat, lng: lastPos.lng }); else toast("Attiva prima il GPS (➤)."); };
 }
 $("#fabZone").onclick = () => setAddMode("zone");
 $("#fabDepth").onclick = () => setAddMode("depth");
-
 function openSheet(html){ $("#sheetIn").innerHTML = html; $("#sheet").classList.remove("hidden"); }
 function closeSheet(){ $("#sheet").classList.add("hidden"); }
 $("#sheet").onclick = e => { if (e.target.id === "sheet") closeSheet(); };
@@ -516,10 +641,9 @@ function zoneForm(ll){
       limit_kmh: Math.min(60, +$("#zL").value || 5), radius_m: Math.min(3000, Math.max(30, Math.round(+$("#zR").value || 200))),
       lat: ll.lat, lng: ll.lng, owner_token: TOKEN };
     $("#zOk").disabled = true;
-    try{
-      const [r] = await api("zones?select=id", { method: "POST", body, ret: true });
-      mine.zones.push(r.id); saveMine(); closeSheet(); setAddMode(null); await loadShared();
-    }catch(err){ $("#zOk").disabled = false; alert("Zona non salvata: controlla la connessione (o che il punto sia in laguna)."); }
+    try{ const [r] = await api("zones?select=id", { method: "POST", body, ret: true });
+      mine.zones.push(r.id); saveMine(); closeSheet(); setAddMode(null); await loadShared(); }
+    catch(err){ $("#zOk").disabled = false; toast("Zona non salvata: controlla la connessione (o che il punto sia in laguna)."); }
   };
 }
 function depthForm(ll){
@@ -531,14 +655,281 @@ function depthForm(ll){
     <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
   $("#dOk").onclick = async () => {
     const d = parseFloat(String($("#dD").value).replace(",", "."));
-    if (isNaN(d) || d < 0 || d > 50) { alert("Inserisci la profondità in metri."); return; }
+    if (isNaN(d) || d < 0 || d > 50) { toast("Inserisci la profondità in metri."); return; }
     $("#dOk").disabled = true;
-    try{
-      const [r] = await api("depths?select=id", { method: "POST", ret: true,
+    try{ const [r] = await api("depths?select=id", { method: "POST", ret: true,
         body: { depth_m: d, note: $("#dN").value.trim().slice(0, 200), lat: ll.lat, lng: ll.lng, owner_token: TOKEN } });
-      mine.depths.push(r.id); saveMine(); closeSheet(); setAddMode(null); await loadShared();
-    }catch(err){ $("#dOk").disabled = false; alert("Segnalazione non salvata: controlla la connessione (o che il punto sia in laguna)."); }
+      mine.depths.push(r.id); saveMine(); closeSheet(); setAddMode(null); await loadShared(); }
+    catch(err){ $("#dOk").disabled = false; toast("Segnalazione non salvata: controlla la connessione (o che il punto sia in laguna)."); }
   };
+}
+
+/* =========================================================
+   RICERCA DEI POSTI (come Google Maps)
+   ========================================================= */
+const qIn = $("#q"), resBox = $("#results");
+let qTimer = null, qSeq = 0;
+qIn.addEventListener("input", () => {
+  $("#qClear").classList.toggle("hidden", !qIn.value);
+  clearTimeout(qTimer); qTimer = setTimeout(search, 350);
+});
+qIn.addEventListener("focus", () => { if (!qIn.value) showRecents(); });
+qIn.addEventListener("keydown", e => { if (e.key === "Enter"){ clearTimeout(qTimer); search(); } });
+$("#qClear").onclick = () => { qIn.value = ""; $("#qClear").classList.add("hidden"); resBox.classList.add("hidden"); };
+document.addEventListener("click", e => { if (!e.target.closest("#searchBox")) resBox.classList.add("hidden"); });
+function showRecents(){
+  const rec = store.get("ln_recent", []);
+  if (!rec.length){ resBox.innerHTML = `<div class="res info">Scrivi un posto: un rio, un campo, un pontile, un ristorante…</div>`; resBox.classList.remove("hidden"); return; }
+  renderResults(rec, "Recenti");
+}
+function renderResults(list, title){
+  resBox.innerHTML = (title ? `<div class="res info">${title}</div>` : "") + list.map((r, i) =>
+    `<div class="res" data-r="${i}"><b>${esc(r.name)}</b><span>${esc(r.sub || "")}</span></div>`).join("");
+  resBox.classList.remove("hidden");
+  resBox.querySelectorAll("[data-r]").forEach(el => el.onclick = () => {
+    const r = list[+el.dataset.r]; resBox.classList.add("hidden"); qIn.blur(); qIn.value = r.name;
+    const rec = store.get("ln_recent", []).filter(x => x.name !== r.name); rec.unshift(r); store.set("ln_recent", rec.slice(0, 8));
+    startNav(r);
+  });
+}
+async function search(){
+  const q = qIn.value.trim(); if (q.length < 2){ if (!q) showRecents(); return; }
+  const my = ++qSeq;
+  resBox.innerHTML = `<div class="res info">Cerco…</div>`; resBox.classList.remove("hidden");
+  try{
+    const u = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=8&accept-language=it&countrycodes=it&bounded=1"
+      + "&viewbox=12.10,45.62,12.65,45.18&q=" + encodeURIComponent(q);
+    const r = await fetch(u, { headers: { "Accept": "application/json" } });
+    const j = await r.json(); if (my !== qSeq) return;
+    if (!j.length){ resBox.innerHTML = `<div class="res info">Nessun risultato in laguna per “${esc(q)}”.</div>`; return; }
+    renderResults(j.map(x => {
+      const parts = (x.display_name || "").split(",").map(s => s.trim());
+      return { name: x.name || parts[0], sub: parts.slice(1, 4).join(", "), lat: +x.lat, lng: +x.lon };
+    }));
+  }catch(e){ if (my === qSeq) resBox.innerHTML = `<div class="res info">Ricerca non riuscita: controlla la connessione.</div>`; }
+}
+
+/* =========================================================
+   PERCORSI: tragitti abituali del lavoro + rete dei canali
+   ========================================================= */
+const G = { la: [], lo: [], adj: [], names: [], grid: new Map(), ready: null, canals: 0 };
+const CAN_KEY = "ln_canali_v1", CAN_BBOX = "45.36,12.20,45.53,12.48";
+function gKey(la, lo){ return Math.floor(la / 0.0015) + ":" + Math.floor(lo / 0.0021); }
+function gAdd(la, lo){
+  const i = G.la.length; G.la.push(la); G.lo.push(lo); G.adj.push([]);
+  const k = gKey(la, lo); let c = G.grid.get(k); if (!c){ c = []; G.grid.set(k, c); } c.push(i); return i;
+}
+function gEdge(a, b, f, nm, kind){ const d = hav(G.la[a], G.lo[a], G.la[b], G.lo[b]); G.adj[a].push([b, d * f, nm, kind]); G.adj[b].push([a, d * f, nm, kind]); }
+function gNear(la, lo, maxM, skip){
+  const gy = Math.floor(la / 0.0015), gx = Math.floor(lo / 0.0021), r = Math.ceil(maxM / 160) + 1;
+  let best = -1, bd = maxM;
+  for (let y = gy - r; y <= gy + r; y++) for (let x = gx - r; x <= gx + r; x++){
+    const c = G.grid.get(y + ":" + x); if (!c) continue;
+    for (const n of c){ if (skip && skip(n)) continue; const d = hav(la, lo, G.la[n], G.lo[n]); if (d < bd){ bd = d; best = n; } }
+  }
+  return best < 0 ? null : { n: best, d: bd };
+}
+async function loadCanals(){
+  try{ const c = store.get(CAN_KEY, null); if (c && c.w && Date.now() - c.t < 30 * 864e5) return c; }catch(e){}
+  const q = '[out:json][timeout:90];(way["waterway"~"^(canal|river|fairway|tidal_channel)$"](' + CAN_BBOX + ');way["seamark:type"="fairway"](' + CAN_BBOX + '););out tags geom;';
+  const urls = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
+  for (const u of urls){
+    try{
+      const r = await fetch(u, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "data=" + encodeURIComponent(q) });
+      if (!r.ok) continue;
+      const j = await r.json(), names = [], ni = {}, w = [];
+      (j.elements || []).forEach(el => {
+        if (!el.geometry || el.geometry.length < 2) return;
+        const t = el.tags || {}, nm = t.name || t["name:it"] || t["seamark:name"] || "";
+        if (!(nm in ni)){ ni[nm] = names.length; names.push(nm); }
+        const fl = []; el.geometry.forEach(p => fl.push(Math.round(p.lat * 1e6), Math.round(p.lon * 1e6)));
+        w.push([ni[nm], t.waterway === "fairway" || t["seamark:type"] === "fairway" ? 1 : 0, fl]);
+      });
+      const pack = { t: Date.now(), n: names, w };
+      if (w.length > 50){ store.set(CAN_KEY, pack); return pack; }
+    }catch(e){}
+  }
+  return null;
+}
+async function loadWork(){ try{ const r = await fetch("rotte-lavoro.json", { cache: "no-cache" }); return r.ok ? await r.json() : null; }catch(e){ return null; } }
+function loadGraph(){
+  if (G.ready) return G.ready;
+  G.ready = Promise.all([loadCanals(), loadWork()]).then(([pack, work]) => {
+    // 1) rete dei canali (OpenStreetMap)
+    if (pack){
+      G.names = pack.n.slice(); const idx = new Map();
+      pack.w.forEach(w => {
+        const nm = pack.n[w[0]] || "", fl = w[2];
+        const f = w[1] || /^(canal|canale|bacino|bocca)\b/i.test(nm) ? 1 : /^(rio|riello|ramo)\b/i.test(nm) || !nm ? 1.8 : 1.3;
+        let prev = -1;
+        for (let p = 0; p < fl.length; p += 2){
+          const k = fl[p] + "," + fl[p + 1]; let n = idx.get(k);
+          if (n === undefined){ n = gAdd(fl[p] / 1e6, fl[p + 1] / 1e6); idx.set(k, n); }
+          if (prev >= 0 && prev !== n) gEdge(prev, n, f, w[0], 0);
+          prev = n;
+        }
+      });
+      bridgeCanals();
+    }
+    G.canals = G.la.length;
+    // 2) tragitti abituali del lavoro: preferiti rispetto agli altri canali
+    if (work){
+      const base = G.la.length, wn = work.nodes.split(";");
+      wn.forEach(s => { const [a, b] = s.split(",").map(Number); gAdd(45.3 + a / 1e5, 12.2 + b / 1e5); });
+      work.edges.split(";").forEach(s => {
+        const [a, b, n] = s.split(",").map(Number);
+        gEdge(base + a, base + b, n >= 3 ? 0.45 : 0.6, -1, 2);
+      });
+      for (let i = base; i < G.la.length; i++){
+        const nb = gNear(G.la[i], G.lo[i], 45, n => n >= G.canals); if (nb) gEdge(i, nb.n, 1, -1, 0);
+      }
+      // unisce i pezzi dei tragitti vicini tra loro
+      for (let i = base; i < G.la.length; i++){
+        if (G.adj[i].length > 1) continue;
+        const nb = gNear(G.la[i], G.lo[i], 120, n => n === i || G.adj[i].some(e => e[0] === n)); if (nb) gEdge(i, nb.n, 1.4, -1, 1);
+      }
+    }
+    return G.la.length > 0;
+  });
+  return G.ready;
+}
+// unisce i pezzi di rete separati (laguna aperta, bacini) con tratti brevi, penalizzati
+function bridgeCanals(){
+  const par = G.la.map((_, i) => i), f = x => { while (par[x] !== x){ par[x] = par[par[x]]; x = par[x]; } return x; };
+  G.adj.forEach((a, i) => a.forEach(e => { const x = f(i), y = f(e[0]); if (x !== y) par[x] = y; }));
+  let added = 0;
+  for (let i = 0; i < G.la.length && added < 4000; i++){
+    if (G.adj[i].length > 1) continue;
+    const ri = f(i), nb = gNear(G.la[i], G.lo[i], 350, n => f(n) === ri);
+    if (nb){ gEdge(i, nb.n, 2.5, -1, 1); par[f(i)] = f(nb.n); added++; }
+  }
+}
+function dijkstra(src, dst){
+  const N = G.la.length, d = new Float64Array(N).fill(Infinity), prev = new Int32Array(N).fill(-1), pe = new Array(N), h = [[0, src]];
+  d[src] = 0;
+  const push = x => { h.push(x); let i = h.length - 1; while (i > 0){ const p = (i - 1) >> 1; if (h[p][0] <= h[i][0]) break; [h[p], h[i]] = [h[i], h[p]]; i = p; } };
+  const pop = () => { const top = h[0], last = h.pop(); if (h.length){ h[0] = last; let i = 0; for (;;){ const l = 2*i+1, r = l+1; let m = i;
+    if (l < h.length && h[l][0] < h[m][0]) m = l; if (r < h.length && h[r][0] < h[m][0]) m = r; if (m === i) break; [h[m], h[i]] = [h[i], h[m]]; i = m; } } return top; };
+  while (h.length){
+    const [du, u] = pop(); if (du > d[u]) continue; if (u === dst) break;
+    for (const e of G.adj[u]){ const nd = du + e[1]; if (nd < d[e[0]]){ d[e[0]] = nd; prev[e[0]] = u; pe[e[0]] = e; push([nd, e[0]]); } }
+  }
+  if (d[dst] === Infinity) return null;
+  const path = [], segs = []; let v = dst;
+  while (v !== -1){ path.push(v); segs.push(pe[v] || null); v = prev[v]; }
+  return { path: path.reverse(), segs: segs.reverse() };
+}
+function computeRoute(from, to){
+  const pts = [[from.lat, from.lng]], names = [""], kinds = [1];
+  let src = "linea";
+  const a = gNear(from.lat, from.lng, 500), b = gNear(to.lat, to.lng, 700);
+  if (a && b){
+    const res = dijkstra(a.n, b.n);
+    if (res){
+      src = "rete";
+      res.path.forEach((n, j) => { pts.push([G.la[n], G.lo[n]]); const e = res.segs[j]; names.push(e && e[2] >= 0 ? (G.names[e[2]] || "") : ""); kinds.push(e ? e[3] : 1); });
+      if (res.segs.some(e => e && e[3] === 2)) src = "lavoro";
+    }
+  }
+  pts.push([to.lat, to.lng]); names.push(""); kinds.push(1);
+  const R = { pts, names, kinds, src, to };
+  const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i-1] + hav(pts[i-1][0], pts[i-1][1], pts[i][0], pts[i][1]));
+  R.cum = cum; R.len = cum[cum.length - 1];
+  makeSteps(R); return R;
+}
+// manovre: dove la rotta gira davvero (angolo misurato su almeno 15 m prima e dopo)
+function makeSteps(R){
+  const P = R.pts, C = R.cum, st = [];
+  for (let i = 1; i < P.length - 1; i++){
+    let j = i - 1; while (j > 0 && C[i] - C[j] < 15) j--;
+    let k = i + 1; while (k < P.length - 1 && C[k] - C[i] < 15) k++;
+    if (C[i] - C[j] < 8 || C[k] - C[i] < 8) continue;
+    const d = angDiff(bearing(P[j][0], P[j][1], P[i][0], P[i][1]), bearing(P[i][0], P[i][1], P[k][0], P[k][1]));
+    if (Math.abs(d) < 40) continue;
+    const last = st[st.length - 1];
+    if (last && C[i] - last.at < 35){ if (Math.abs(d) > Math.abs(last.ang)) st.pop(); else continue; }
+    let name = ""; for (let m = i + 1; m <= Math.min(P.length - 1, i + 15); m++){ if (R.names[m]){ name = R.names[m]; break; } }
+    const turn = d > 0 ? (d > 135 ? "Inversione a destra" : d > 70 ? "Gira a destra" : "Tieni la destra")
+                       : (d < -135 ? "Inversione a sinistra" : d < -70 ? "Gira a sinistra" : "Tieni la sinistra");
+    st.push({ at: C[i], ang: d, turn, name, icon: d > 135 || d < -135 ? "↶" : d > 0 ? (d > 70 ? "↱" : "↗") : (d < -70 ? "↰" : "↖") });
+  }
+  R.steps = st;
+}
+
+/* ---------- navigazione ---------- */
+let NAV = null;
+async function startNav(dest){
+  if (!map){ toast("La mappa non è pronta."); return; }
+  if (watchId === null){ askCompass(); startGps(); }
+  NAV = { dest, R: null, idx: 0, spoken: "", lastCalc: 0, arrived: false };
+  document.body.classList.add("nav");
+  $("#searchBox").classList.add("hidden"); $("#maneuver").classList.remove("hidden"); $("#navBar").classList.remove("hidden");
+  $("#maneuver").classList.remove("off"); $("#mIcon").textContent = "…"; $("#mDist").textContent = dest.name; $("#mText").textContent = "Preparo le rotte…";
+  if (destMarker) destMarker.remove();
+  const el = document.createElement("div"); el.className = "dest";
+  destMarker = new maplibregl.Marker({ element: el }).setLngLat([dest.lng, dest.lat]).addTo(map);
+  await loadGraph();
+  if (!NAV) return;
+  const from = lastPos || (() => { const c = map.getCenter(); return { lat: c.lat, lng: c.lng }; })();
+  if (!lastPos) toast("GPS non ancora pronto: calcolo dal centro della mappa.");
+  NAV.R = computeRoute(from, dest); NAV.lastCalc = Date.now();
+  drawRoute();
+  if (!lastPos){ const b = new maplibregl.LngLatBounds(); NAV.R.pts.forEach(p => b.extend([p[1], p[0]])); map.fitBounds(b, { padding: 80, duration: 800 }); }
+  else { setFollow(true); camera(true); }
+  navTick(lastPos);
+  say(NAV.R.src === "lavoro" ? "Percorso calcolato sui tragitti abituali" : "Percorso calcolato");
+}
+function stopNav(){
+  NAV = null; document.body.classList.remove("nav");
+  $("#searchBox").classList.remove("hidden"); $("#maneuver").classList.add("hidden"); $("#navBar").classList.add("hidden");
+  if (destMarker){ destMarker.remove(); destMarker = null; }
+  drawRoute();
+}
+$("#stopNav").onclick = stopNav;
+function drawRoute(){
+  if (!map || !map.getSource("route")) return;
+  const R = NAV && NAV.R;
+  const coords = R ? R.pts.slice(Math.max(0, (NAV.idx || 0))).map(p => [p[1], p[0]]) : [];
+  if (R && lastPos && coords.length) coords.unshift([lastPos.lng, lastPos.lat]);
+  map.getSource("route").setData({ type: "FeatureCollection", features: coords.length > 1 ? [{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: coords } }] : [] });
+}
+function navTick(p){
+  if (!NAV || !NAV.R || !p) return;
+  const R = NAV.R;
+  // punto più vicino lungo il percorso (cerca vicino all'ultimo, poi ovunque)
+  let bi = NAV.idx, bd = Infinity;
+  const from = Math.max(0, NAV.idx - 5), to = Math.min(R.pts.length - 1, NAV.idx + 60);
+  for (let i = from; i <= to; i++){ const d = hav(p.lat, p.lng, R.pts[i][0], R.pts[i][1]); if (d < bd){ bd = d; bi = i; } }
+  if (bd > 60) for (let i = 0; i < R.pts.length; i++){ const d = hav(p.lat, p.lng, R.pts[i][0], R.pts[i][1]); if (d < bd){ bd = d; bi = i; } }
+  NAV.idx = bi;
+  const toDest = hav(p.lat, p.lng, NAV.dest.lat, NAV.dest.lng);
+  if (toDest < 30){
+    if (!NAV.arrived){ NAV.arrived = true; say("Sei arrivato"); buzz([200, 100, 200]); }
+    $("#mIcon").textContent = "⚑"; $("#mDist").textContent = "Sei arrivato"; $("#mText").textContent = NAV.dest.name;
+    $("#eta").textContent = "Arrivato"; $("#etaSub").textContent = NAV.dest.name; drawRoute(); return;
+  }
+  if (bd > 70){
+    $("#maneuver").classList.add("off"); $("#mIcon").textContent = "⟲"; $("#mDist").textContent = "Fuori percorso"; $("#mText").textContent = "Ricalcolo…";
+    if (Date.now() - NAV.lastCalc > 8000){ NAV.lastCalc = Date.now(); NAV.R = computeRoute(p, NAV.dest); NAV.idx = 0; say("Ricalcolo il percorso"); drawRoute(); }
+    return;
+  }
+  $("#maneuver").classList.remove("off");
+  const done = R.cum[bi], rest = Math.max(toDest, R.len - done);
+  const nx = R.steps.find(s => s.at > done + 5);
+  if (nx){
+    const dd = nx.at - done;
+    $("#mIcon").textContent = nx.icon; $("#mDist").textContent = fmtDist(Math.max(10, dd));
+    $("#mText").textContent = nx.turn + (nx.name ? " in " + nx.name : "");
+    const key = nx.at + "|" + (dd < 90 ? "near" : "far");
+    if (NAV.spoken !== key && (dd < 90 || (dd < 400 && dd > 250))){ NAV.spoken = key; say((dd < 90 ? "" : "Tra " + fmtDist(dd) + ", ") + nx.turn.toLowerCase() + (nx.name ? " in " + nx.name : "")); }
+  } else {
+    $("#mIcon").textContent = "↑"; $("#mDist").textContent = fmtDist(rest); $("#mText").textContent = "Prosegui fino a " + NAV.dest.name;
+  }
+  const v = speedMs > 0.8 ? speedMs : 12 / 3.6, min = Math.max(1, Math.round(rest / v / 60));
+  const arr = new Date(Date.now() + rest / v * 1000).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+  $("#eta").textContent = `${min} min · ${fmtDist(rest)}`;
+  $("#etaSub").textContent = `Arrivo ${arr} · ` + (R.src === "lavoro" ? "tragitti abituali" : R.src === "rete" ? "rete dei canali" : "linea d'aria");
+  drawRoute();
 }
 
 /* =========================================================
