@@ -3,7 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#0b0f17">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ClickVenice">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>ClickVenice · 1Click</title>
@@ -722,7 +727,14 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 2.8</p>
+      <p class="sub">1Click · ClickVenice · versione 2.9</p>
+      <div class="card">
+        <h4>📲 App sul telefono</h4>
+        <button class="btn" id="instBtn">📲 Installa ClickVenice</button>
+        <p class="muted" id="instTxt" style="line-height:1.45;margin:8px 0 12px">Si apre a schermo intero dall'icona, come un'app.</p>
+        <button class="btn ghost" id="vibBtn">📳 Prova la vibrazione</button>
+        <p class="muted" id="vibTxt" style="line-height:1.45;margin:8px 0 0"></p>
+      </div>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
@@ -890,6 +902,25 @@ function openApp(){
   renderProfile();
 }
 
+/* ---------- app installabile (Android: icona sulla schermata Home) ---------- */
+let instEvt = null;
+if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); instEvt = e; });
+window.addEventListener("appinstalled", () => { instEvt = null; toast("ClickVenice è sulla schermata Home ✓"); });
+document.addEventListener("click", async e => {
+  if (e.target.closest("#instBtn")){
+    if (window.matchMedia("(display-mode: standalone)").matches){ $("#instTxt").textContent = "Stai già usando l'app installata ✓"; return; }
+    if (instEvt){ instEvt.prompt(); const r = await instEvt.userChoice; instEvt = null; if (r.outcome !== "accepted") $("#instTxt").textContent = "Installazione annullata."; return; }
+    $("#instTxt").innerHTML = /iphone|ipad/i.test(navigator.userAgent) ? "Su iPhone: tocca <b>Condividi</b> (il quadrato con la freccia) e poi <b>Aggiungi alla schermata Home</b>."
+      : "Apri questa pagina con <b>Chrome</b>, tocca <b>⋮</b> in alto a destra e poi <b>Installa app</b> (o «Aggiungi a schermata Home»).";
+  }
+  if (e.target.closest("#vibBtn")){
+    let ok = false; try{ ok = navigator.vibrate ? navigator.vibrate([60, 80, 60]) : false; }catch(_){}
+    $("#vibTxt").innerHTML = ok ? "Se non hai sentito niente: controlla che la vibrazione del telefono sia attiva (Impostazioni → Suoni e vibrazione), che il telefono non sia in modalità silenzioso totale o Non disturbare, e usa Chrome."
+      : "Questo browser non lascia vibrare le pagine web. Su Android apri ClickVenice con Chrome.";
+  }
+});
+
 /* ---------- un solo tasto centrale a scorrimento per cambiare modalità ---------- */
 const VIEWS = ["map", "boat", "order", "rider", "info", "meet", "profile"];
 function showView(v){
@@ -913,7 +944,7 @@ let modeIdx = 0;
 const DW = 170, DSTEP = 56;   // larghezza di una modalità nel tasto · quanti pixel di dito per passare alla successiva
 let dPos = 0;                    // posizione mostrata (anche a metà tra due modalità mentre trascini)
 function haptic(){
-  try{ if (navigator.vibrate){ navigator.vibrate(12); return; } }catch(e){}
+  try{ if (navigator.vibrate){ navigator.vibrate(35); return; } }catch(e){}   // sotto i 20-30 ms molti motorini Android non partono
   // iPhone (Safari 18+): il tocco su un interruttore di sistema dà una piccola vibrazione
   try{ let l = document.getElementById("hapL"); if (!l){ l = document.createElement("label"); l.id = "hapL"; l.style.cssText = "position:fixed;left:-99px;top:0;width:1px;height:1px;overflow:hidden";
     l.innerHTML = '<input type="checkbox" switch>'; document.body.appendChild(l); } l.click(); }catch(e){}
