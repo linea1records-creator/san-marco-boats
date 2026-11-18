@@ -100,7 +100,23 @@
   #maneuver{background:#1a56db}
   .fab.rec{background:#d32f2f;color:#fff;animation:pulse 1.2s infinite}
   .fab.on{background:#1a56db;color:#fff}
-  nav button.on{color:#4d8dff}
+  nav#dock{flex:0 0 auto;position:relative;z-index:40;display:flex;justify-content:center;align-items:center;padding:8px 10px calc(8px + var(--safe-b));background:#0b0f17;border-top:1px solid var(--line)}
+  #dial{display:flex;align-items:center;background:#1a56db;border-radius:30px;box-shadow:0 3px 14px rgba(0,0,0,.45);touch-action:pan-y;user-select:none;-webkit-user-select:none;overflow:hidden}
+  #dial button{color:#fff;background:none;border:0}
+  #dPrev,#dNext{width:46px;height:52px;font-size:26px;font-weight:300;opacity:.75}
+  #dCur{display:flex;align-items:center;gap:10px;min-width:170px;justify-content:center;height:52px;padding:0 6px;transition:transform .18s ease,opacity .18s ease}
+  #dCur .ic{font-size:24px}
+  .dtx{display:flex;flex-direction:column;align-items:flex-start;line-height:1.1}
+  .dtx b{font-size:16px;letter-spacing:.01em}
+  .dots{display:flex;gap:4px;margin-top:4px}
+  .dots i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.4)}
+  .dots i.on{background:#fff;width:12px;border-radius:3px}
+  #dCur.sl{transform:translateX(var(--sx));opacity:0}
+  body.m-market #dial{background:#c8102e} body.m-mezzi #dial{background:#0a8f4e} body.m-meet #dial{background:#d6336c} body.m-my #dial{background:#6d28d9}
+  #dPick{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);display:flex;gap:6px;background:#fff;border-radius:22px;padding:8px;box-shadow:0 6px 22px rgba(0,0,0,.45)}
+  #dPick button{display:flex;flex-direction:column;align-items:center;gap:3px;width:62px;padding:8px 2px;border-radius:14px;color:#222;font-size:10.5px;font-weight:700;line-height:1.1}
+  #dPick button span{font-size:24px}
+  #dPick button.on{background:#e8efff;color:#1a56db}
   body.food{--accent:#c8102e}
   body.food .sbar{border:3px solid #c8102e}
   body.food #searchBox::before{content:"";display:block;height:14px;margin:0 10px -3px;border-radius:10px 10px 0 0;
@@ -110,11 +126,6 @@
   body.food .fab.big{color:#c8102e}
   body.food .speed{background:#c8102e}
   body.food .speed .u{color:#ffd9de}
-  body.food nav{background:#c8102e;border-top:0;position:relative}
-  body.food nav::before{content:"";position:absolute;left:0;right:0;top:-10px;height:10px;
-    background:repeating-conic-gradient(#c8102e 0 25%,#fff 0 50%) 0 0/10px 10px}
-  body.food nav button{color:#ffd0d6}
-  body.food nav button.on{color:#fff}
   body.food #results .res b{color:#c8102e}
   body.food .btn:not(.ghost){background:#c8102e;color:#fff}
   body.food #v-order .scroll{background:#fff7f2;color:#2b0a0a}
@@ -226,6 +237,17 @@
   #trPanel .stop:first-of-type{border-top:0}
   #trPanel .seg{background:#eef2f7;margin-bottom:8px} #trPanel .seg button{color:#345}
   body:not(.mode-trasporti) #trPanel{display:none}
+  body.mode-market #toggles, body.mode-market #inst, body.mode-market #navMode, body.mode-market #fabMenu, body.mode-market #fabView,
+  body.mode-market #searchBox, body.mode-market #routeBox, body.mode-market #banner, body.mode-market #shallow, body.mode-market #depthLegend{display:none!important}
+  #mkPanel{position:absolute;z-index:20;left:10px;right:76px;bottom:16px;background:#fff;color:#111;border-radius:16px;padding:12px 14px;box-shadow:0 3px 14px rgba(0,0,0,.4);max-height:44vh;overflow-y:auto}
+  body:not(.mode-market) #mkPanel{display:none}
+  #mkPanel .mkh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px} #mkPanel .mkh b{color:#c8102e;font-size:16px} #mkPanel .mkh span{font-size:12px;color:#777}
+  .mkcats{display:flex;gap:6px;overflow-x:auto;margin-bottom:6px;scrollbar-width:none} .mkcats::-webkit-scrollbar{display:none}
+  .mkcats button{flex:0 0 auto;padding:6px 11px;border-radius:16px;background:#f3f0ef;color:#333;font-size:13px;font-weight:700}
+  .mkcats button.on{background:#c8102e;color:#fff}
+  #mkPanel .stop{display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid #eee;font-size:14px;cursor:pointer}
+  #mkPanel .btn{margin-top:8px;background:#c8102e;color:#fff;width:100%}
+  #mkPanel .trnote{color:#666;font-size:13px;line-height:1.4;margin:6px 0}
   #dash{position:fixed;inset:0;z-index:3000;background:#000;color:#fff;padding:calc(14px + var(--safe-t)) 12px calc(14px + var(--safe-b));display:flex;flex-direction:column}
   #dash .dh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
   #dash .dgrid{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-content:stretch}
@@ -235,10 +257,19 @@
   #dash .tv{font-size:clamp(30px,11vw,64px);font-weight:900;line-height:1}
   #dash .ts{font-size:12px;color:#9ab;line-height:1.3}
   #dash .tile.alarm{background:#b3261e;border-color:#ff6b60} #dash .tile.warn .tv{color:#fbbf24} #dash .tile.ok .tv{color:#4ade80}
+  .av{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;color:#fff;font-weight:800;font-size:17px;flex:0 0 auto}
+  .av.big{width:72px;height:72px;font-size:34px}
+  .fr{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);cursor:pointer}
+  .fr .frt{flex:1;display:flex;flex-direction:column;min-width:0} .fr .frt small{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fr b{flex:1} .fr .btn.small{padding:7px 10px;font-size:13px}
+  .fr.small{font-size:14px;color:var(--muted)}
+  .frh{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#8fb3ff;margin:12px 0 2px}
+  .colrow{display:flex;gap:8px;flex-wrap:wrap} .colb{width:34px;height:34px;border-radius:50%;border:3px solid transparent} .colb.on{border-color:#fff;box-shadow:0 0 0 2px #1a56db}
   .soonbox{text-align:center;padding:26px 16px}
   .soonbox .big{font-size:44px}
 
   .lb{display:inline-block;min-width:30px;text-align:center;font-weight:800;font-size:12px;padding:3px 6px;border-radius:7px;margin-right:6px}
+  .lb.ali small{display:block;font-size:8px;font-weight:700;opacity:.85;line-height:1;letter-spacing:.3px}
   .dep{display:flex;align-items:center;gap:6px;padding:7px 0;border-top:1px solid #eee;font-size:14px}
   .dep .dd{flex:1;color:#222}
   .dep .dt{text-align:right;line-height:1.1}.dep .dt small{display:block;color:#888;font-size:11px}
@@ -395,8 +426,16 @@
 
     <!-- trasporti -->
     <div id="trPanel">
-      <div class="seg"><button data-tr="bus" class="on">🚤 Partenze</button><button data-tr="plan">🧭 Percorso</button><button data-tr="taxi">🚕 Taxi</button></div>
+      <div class="seg"><button data-tr="bus" class="on">🚤 Mezzi pubblici</button><button data-tr="taxi">🚕 Taxi</button></div>
       <div id="trBody">Tocca ➤ per trovare le fermate vicine.</div>
+    </div>
+
+    <!-- ClickMarket: attività convenzionate sulla mappa -->
+    <div id="mkPanel">
+      <div class="mkh"><b>🛍️ ClickMarket</b><span id="mkCount"></span></div>
+      <div class="mkcats" id="mkCats"><button data-c="" class="on">Tutto</button><button data-c="food">🍝 Food</button><button data-c="shop">🛍️ Shopping</button><button data-c="boats">⛵ Barche</button><button data-c="used">♻️ Usato</button></div>
+      <div id="mkList"></div>
+      <button class="btn small" id="mkOrder">🍝 Ordina cibo in barca o a casa</button>
     </div>
 
     <!-- manovra durante la navigazione -->
@@ -502,7 +541,7 @@
   <!-- LA MIA BARCA -->
   <section class="view hidden" id="v-boat">
     <div class="scroll">
-      <div class="backbar" data-back="1">‹ Profilo</div>
+      <div class="backbar" data-back="1">‹ myClick</div>
       <h2>La mia barca</h2>
       <p class="sub">Più dati inserisci, più l'ecoscandaglio e i percorsi sono precisi.</p>
       <div class="card">
@@ -524,7 +563,8 @@
   <!-- ORDINA -->
   <section class="view hidden" id="v-order">
     <div class="scroll">
-      <h2>Marketplace</h2>
+      <div class="backbar" data-back="market">‹ ClickMarket</div>
+      <h2>ClickMarket · Food</h2>
       <div class="seg" id="mktSeg">
         <button data-k="food" class="on">🍝 Food</button>
         <button data-k="shop">🛍️ Shopping</button>
@@ -552,10 +592,24 @@
   <!-- PROFILO -->
   <section class="view hidden" id="v-profile">
     <div class="scroll">
+      <h2 style="margin-bottom:4px">myClick</h2>
+      <p class="sub" style="margin-top:0">Il tuo profilo e i tuoi amici su ClickVenice.</p>
       <div class="card" style="text-align:center;padding:22px">
         <div class="avatar" id="pfAvatar">?</div>
         <h2 id="pfName" style="margin-top:10px">@</h2>
         <p class="sub" id="pfSub" style="margin:0"></p>
+        <button class="btn small ghost" id="pfCustom" style="margin-top:12px">✏️ Personalizza il profilo</button>
+      </div>
+      <div class="card">
+        <h4>👥 Amici <span class="muted" id="frCount"></span></h4>
+        <div class="row" style="gap:8px;align-items:center">
+          <div class="field" style="flex:1;margin:0"><input id="frName" placeholder="Aggiungi con il clickname" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+          <button class="btn small" id="frAdd" style="flex:0 0 auto">Aggiungi</button>
+        </div>
+        <p class="muted" id="frMsg" style="margin:8px 0 0;min-height:1em"></p>
+        <div id="frReq"></div>
+        <div id="frList"><p class="muted">Carico…</p></div>
+        <div id="frSent"></div>
       </div>
       <button class="card rowbtn" data-go="boat">⛵ La mia barca <span>›</span></button>
       <button class="card rowbtn" data-go="rider">🚶 Rider <span>›</span></button>
@@ -568,7 +622,7 @@
   <!-- RIDER -->
   <section class="view hidden" id="v-rider">
     <div class="scroll">
-      <div class="backbar" data-back="1">‹ Profilo</div>
+      <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Rider</h2>
       <p class="sub">Le tue consegne a piedi e il totale dell'anno.</p>
       <div class="card">
@@ -599,9 +653,9 @@
   <!-- INFO -->
   <section class="view hidden" id="v-info">
     <div class="scroll">
-      <div class="backbar" data-back="1">‹ Profilo</div>
+      <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 2.4</p>
+      <p class="sub">1Click · ClickVenice · versione 2.5</p>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
@@ -632,12 +686,13 @@
     </div>
   </section>
 
-  <nav>
-    <button data-v="map" data-mode="nautica" class="on"><span class="ic">⚓</span>Nautica</button>
-    <button data-v="order"><span class="ic">🛍️</span>Market</button>
-    <button data-v="map" data-mode="trasporti"><span class="ic">🚤</span>Trasporti</button>
-    <button data-v="map" data-mode="incontra"><span class="ic">💬</span>Incontra</button>
-    <button data-v="profile"><span class="ic">👤</span>Profilo</button>
+  <nav id="dock">
+    <div id="dial" role="group" aria-label="Cambia modalità">
+      <button id="dPrev" aria-label="Modalità precedente">‹</button>
+      <button id="dCur" aria-label="Scegli la modalità"><span class="ic" id="dIc">⚓</span><span class="dtx"><b id="dName">Nautica</b><span class="dots" id="dDots"></span></span></button>
+      <button id="dNext" aria-label="Modalità successiva">›</button>
+    </div>
+    <div id="dPick" class="hidden"></div>
   </nav>
 </div>
 
@@ -768,7 +823,7 @@ function openApp(){
   renderProfile();
 }
 
-/* ---------- barra in basso: Nautica · Market · Trasporti · Incontra · Profilo ---------- */
+/* ---------- un solo tasto centrale a scorrimento per cambiare modalità ---------- */
 const VIEWS = ["map", "boat", "order", "rider", "info", "meet", "profile"];
 function showView(v){
   VIEWS.forEach(x => $("#v-" + x).classList.toggle("hidden", x !== v));
@@ -780,21 +835,114 @@ function showView(v){
   if (v === "profile") renderProfile();
   if (v === "boat") setTimeout(() => { renderBoat(); paintEngChips(); }, 0);
 }
-document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
-  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x === b));
-  showView(b.dataset.v);
-  if (b.dataset.v === "map") setAppMode(b.dataset.mode || "nautica");
-});
+const MODES = [
+  { k: "nautica", ic: "⚓", n: "Nautica", v: "map", am: "nautica" },
+  { k: "mezzi", ic: "🚤", n: "Mezzi", v: "map", am: "trasporti" },
+  { k: "market", ic: "🛍️", n: "ClickMarket", v: "map", am: "market" },
+  { k: "meet", ic: "💬", n: "Click n Meet", v: "map", am: "incontra" },
+  { k: "my", ic: "👤", n: "myClick", v: "profile" }
+];
+let modeIdx = 0;
+function paintDial(dir){
+  const m = MODES[modeIdx], cur = $("#dCur");
+  const paint = () => { $("#dIc").textContent = m.ic; $("#dName").textContent = m.n;
+    $("#dDots").innerHTML = MODES.map((_, i) => `<i class="${i === modeIdx ? "on" : ""}"></i>`).join("");
+    MODES.forEach(x => document.body.classList.toggle("m-" + x.k, x === m)); };
+  if (dir){ cur.style.setProperty("--sx", (dir > 0 ? -40 : 40) + "px"); cur.classList.add("sl");
+    setTimeout(() => { paint(); cur.style.setProperty("--sx", (dir > 0 ? 40 : -40) + "px"); requestAnimationFrame(() => { cur.classList.remove("sl"); }); }, 150); }
+  else paint();
+  $("#dPick").innerHTML = MODES.map((x, i) => `<button data-pm="${x.k}" class="${i === modeIdx ? "on" : ""}"><span>${x.ic}</span>${x.n}</button>`).join("");
+}
+function setMode(k, dir){
+  const i = MODES.findIndex(x => x.k === k); if (i < 0) return;
+  const m = MODES[i]; $("#dPick").classList.add("hidden");
+  if (m.am === "incontra" && !store.get("ln_adult", false)){ showView("map"); setAppMode("incontra"); return; }   // prima chiede i 18 anni
+  modeIdx = i; paintDial(dir);
+  showView(m.v);
+  if (m.am) setAppMode(m.am);
+}
+function stepMode(d){ setMode(MODES[(modeIdx + d + MODES.length) % MODES.length].k, d); }
+$("#dPrev").onclick = () => stepMode(-1);
+$("#dNext").onclick = () => stepMode(1);
+(() => {   // scorrimento col dito sul tasto
+  const d = $("#dial"); let x0 = null, moved = false;
+  d.addEventListener("pointerdown", e => { x0 = e.clientX; moved = false; });
+  d.addEventListener("pointermove", e => { if (x0 !== null && Math.abs(e.clientX - x0) > 12) moved = true; });
+  d.addEventListener("pointerup", e => { if (x0 === null) return; const dx = e.clientX - x0; x0 = null;
+    if (Math.abs(dx) > 35){ stepMode(dx < 0 ? 1 : -1); d._swiped = Date.now(); } });
+  d.addEventListener("pointercancel", () => { x0 = null; });
+  $("#dCur").onclick = e => { if (d._swiped && Date.now() - d._swiped < 400) return; $("#dPick").classList.toggle("hidden"); };
+})();
+$("#dPick").addEventListener("click", e => { const b = e.target.closest("[data-pm]"); if (b){ const i = MODES.findIndex(x => x.k === b.dataset.pm); setMode(b.dataset.pm, i > modeIdx ? 1 : i < modeIdx ? -1 : 0); } });
+document.addEventListener("click", e => { if (!e.target.closest("#dock")) $("#dPick").classList.add("hidden"); });
+paintDial();
 // dal profilo si entra in Barca, Rider e Info; "‹ Profilo" torna indietro
 document.addEventListener("click", e => {
   const g = e.target.closest("[data-go]"); if (g){ showView(g.dataset.go); return; }
-  if (e.target.closest("[data-back]")) showView("profile");
+  const bk = e.target.closest("[data-back]"); if (bk){ if (bk.dataset.back === "market"){ setMode("market"); return; } showView("profile"); }
 });
+/* ---------- myClick: profilo personalizzato e amici ---------- */
+let MY = store.get("ln_my", null);
+const MY_COLORS = ["#1a56db", "#c8102e", "#0a8f4e", "#d6336c", "#6d28d9", "#f59e0b", "#0891b2", "#334155"];
+function avatarHtml(p, big){ const c = (p && p.colore) || "#1a56db", t = (p && p.emoji) || ((p && p.nome) || "?")[0].toUpperCase();
+  return `<span class="av${big ? " big" : ""}" style="background:${c}">${esc(t)}</span>`; }
+function paintMe(){
+  if (!PROFILE) return; const me = (MY && MY.io) || { nome: PROFILE.clickname };
+  const a = $("#pfAvatar"); a.textContent = me.emoji || PROFILE.clickname[0].toUpperCase(); a.style.background = me.colore || "";
+  $("#pfName").textContent = "@" + PROFILE.clickname;
+  $("#pfSub").textContent = me.bio || "ClickVenice";
+}
+async function loadFriends(){
+  try{ const j = await rpc("friend_list", {}); if (j && !j.errore){ MY = j; store.set("ln_my", j); } else if (j && j.errore === "non_autorizzato"){ $("#frList").innerHTML = `<p class="muted">Per gli amici serve l'account: esci e rientra con il tuo clickname.</p>`; return; } }
+  catch(e){ if (!MY){ $("#frList").innerHTML = `<p class="muted">Amici non disponibili: controlla la connessione.</p>`; return; } }
+  paintMe(); paintFriends();
+}
+function paintFriends(){
+  if (!MY) return;
+  const am = MY.amici || [], rq = MY.ricevute || [], se = MY.inviate || [];
+  $("#frCount").textContent = am.length ? "· " + am.length : "";
+  $("#frReq").innerHTML = rq.length ? `<div class="frh">Richieste ricevute</div>` + rq.map(p => `<div class="fr">${avatarHtml(p)}<b>@${esc(p.nome)}</b>
+    <button class="btn small" data-fok="${esc(p.nome)}">Accetta</button><button class="btn small ghost" data-fno="${esc(p.nome)}">✕</button></div>`).join("") : "";
+  $("#frList").innerHTML = am.length ? am.map(p => `<div class="fr" data-fv="${esc(p.nome)}">${avatarHtml(p)}<span class="frt"><b>@${esc(p.nome)}</b><small>${esc(p.bio || "")}</small></span><span class="muted">›</span></div>`).join("")
+    : `<p class="muted" style="margin:6px 0">Non hai ancora amici su myClick. Scrivi il clickname di un amico e tocca Aggiungi.</p>`;
+  $("#frSent").innerHTML = se.length ? `<div class="frh">In attesa di risposta</div>` + se.map(p => `<div class="fr small">⏳ @${esc(p.nome)}<button class="btn small ghost" data-fdel="${esc(p.nome)}">Annulla</button></div>`).join("") : "";
+}
+async function friendDo(fn, args, okMsg){
+  try{ const j = await rpc(fn, args); if (j && j.errore){ $("#frMsg").textContent = { non_trovato: "Non trovo questo clickname.", sei_tu: "Questo sei tu 🙂", troppe: "Hai mandato troppe richieste oggi.", non_autorizzato: "Esci e rientra con il tuo account." }[j.errore] || "Non riuscito, riprova."; return null; }
+    if (okMsg) $("#frMsg").textContent = typeof okMsg === "function" ? okMsg(j) : okMsg; await loadFriends(); return j; }
+  catch(e){ $("#frMsg").textContent = "Controlla la connessione e riprova."; return null; }
+}
+$("#frAdd").onclick = () => { const n = $("#frName").value.trim().replace(/^@/, ""); if (!n) return; $("#frName").value = "";
+  friendDo("friend_request", { p_nome: n }, j => j.stato === "amici" ? "Ora siete amici ✓" : "Richiesta mandata a @" + n + " ✓"); };
+$("#frName").addEventListener("keydown", e => { if (e.key === "Enter") $("#frAdd").click(); });
+$("#v-profile").addEventListener("click", e => {
+  const ok = e.target.closest("[data-fok]"), no = e.target.closest("[data-fno]"), del = e.target.closest("[data-fdel]"), fv = e.target.closest("[data-fv]");
+  if (ok) friendDo("friend_answer", { p_nome: ok.dataset.fok, p_ok: true }, "Ora siete amici ✓");
+  else if (no) friendDo("friend_answer", { p_nome: no.dataset.fno, p_ok: false }, "Richiesta rifiutata.");
+  else if (del) friendDo("friend_remove", { p_nome: del.dataset.fdel }, "Richiesta annullata.");
+  else if (fv){ const p = (MY.amici || []).find(x => x.nome === fv.dataset.fv); if (!p) return;
+    openSheet(`<div style="text-align:center">${avatarHtml(p, true)}<h3 style="margin:10px 0 4px">@${esc(p.nome)}</h3><p class="muted">${esc(p.bio || "Nessuna descrizione")}</p></div>
+      <button class="btn ghost" id="fvDel" style="margin-top:12px;color:#ff6b60">Rimuovi dagli amici</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
+    $("#fvDel").onclick = () => { closeSheet(); friendDo("friend_remove", { p_nome: p.nome }, "Amico rimosso."); }; }
+});
+$("#pfCustom").onclick = () => {
+  const me = (MY && MY.io) || {}; let col = me.colore || MY_COLORS[0];
+  openSheet(`<h3>Personalizza il profilo</h3>
+    <div class="field"><label>Emoji o iniziale dell'avatar</label><input id="cuEmoji" maxlength="4" placeholder="es. ⛵ o P" value="${esc(me.emoji || "")}"></div>
+    <div class="field"><label>Colore</label><div class="colrow">${MY_COLORS.map(c => `<button class="colb${c === col ? " on" : ""}" data-col="${c}" style="background:${c}"></button>`).join("")}</div></div>
+    <div class="field"><label>Due parole su di te (le vedono i tuoi amici)</label><input id="cuBio" maxlength="160" placeholder="es. Barca a Cannaregio, spritz al tramonto" value="${esc(me.bio || "")}"></div>
+    <button class="btn" id="cuOk">Salva</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
+  document.querySelectorAll("[data-col]").forEach(b => b.onclick = () => { col = b.dataset.col; document.querySelectorAll("[data-col]").forEach(x => x.classList.toggle("on", x === b)); });
+  $("#cuOk").onclick = async () => {
+    try{ const j = await rpc("profile_update", { p_bio: $("#cuBio").value, p_colore: col, p_emoji: $("#cuEmoji").value });
+      if (j && j.errore){ toast("Esci e rientra con il tuo account per salvare il profilo."); return; }
+      closeSheet(); await loadFriends(); }
+    catch(e){ toast("Profilo non salvato: controlla la connessione."); }
+  };
+};
 function renderProfile(){
   if (!PROFILE) return;
-  $("#pfAvatar").textContent = PROFILE.clickname[0].toUpperCase();
-  $("#pfName").textContent = "@" + PROFILE.clickname;
-  $("#pfSub").textContent = "ClickVenice";
+  paintMe(); paintFriends(); loadFriends();
 }
 $("#pfEdit").onclick = () => {
   openSheet(`<h3>Cambia password</h3>
@@ -926,7 +1074,7 @@ function initMap(){
     if (addMode === "depth") return depthForm(e.lngLat);
     if (mapMode === "depth"){
       const z = fondoAt(e.lngLat.lat, e.lngLat.lng), t = tideNow() ?? 30;
-      const ff = map.queryRenderedFeatures(e.point, { layers: ["velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
+      const ff = map.queryRenderedFeatures(e.point, { layers: ["partners", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
       if (!ff){
         const b = activeBoat(), dr = boatDraftCm(b), w = z === null ? null : z * 100 + t;
         new maplibregl.Popup({ maxWidth: "240px" }).setLngLat(e.lngLat).setHTML(z === null ? "Nessun dato di fondale qui" :
@@ -936,7 +1084,7 @@ function initMap(){
         return;
       }
     }
-    const f = map.queryRenderedFeatures(e.point, { layers: ["velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
+    const f = map.queryRenderedFeatures(e.point, { layers: ["partners", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
     if (f) popupFor(f, e.lngLat);
   });
   loadShared(); setInterval(loadShared, 60000);
@@ -1019,6 +1167,7 @@ function drawDepths(){
 }
 function popupFor(f, ll){
   let html;
+  if (f.layer.id === "partners"){ const p = PARTNERS.find(x => x.id === f.properties.id); if (p) openPartner(p); return; }
   if (f.layer.id === "velox"){
     const v = VELOX.byId[f.properties.id]; if (!v) return;
     const tr = VELOX.tratte.filter(t => t.A.includes(v.id) || t.B.includes(v.id));
@@ -2671,7 +2820,10 @@ function setAppMode(m){
   appMode = m;
   document.body.classList.toggle("mode-trasporti", m === "trasporti");
   document.body.classList.toggle("mode-incontra", m === "incontra");
+  document.body.classList.toggle("mode-market", m === "market");
   if (m === "incontra") meetStart(); else meetStop();
+  if (m !== "nautica" && PLAN) closePlan();
+  if (m === "market"){ loadPartners(); renderMk(); }
   layerVis();
   if (map) ["fermate", "fermate-lbl"].forEach(l => { if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", m === "trasporti" ? "visible" : "none"); });
   if (m === "trasporti"){ loadFermate(); renderTr(); }
@@ -2724,7 +2876,7 @@ function addFermateLayer(){
     paint: { "text-color": "#065f35", "text-halo-color": "#fff", "text-halo-width": 1.5 } });
 }
 document.querySelectorAll("#trPanel [data-tr]").forEach(b => b.onclick = () => {
-  trTab = b.dataset.tr; if (trTab !== "bus") trStop = null;
+  trTab = b.dataset.tr; trStop = null; $("#trBody").innerHTML = "";
   document.querySelectorAll("#trPanel [data-tr]").forEach(x => x.classList.toggle("on", x === b)); renderTr();
 });
 /* orari ufficiali ACTV (dal server) */
@@ -2735,7 +2887,7 @@ async function loadPontiliActv(){
   try{ const j = await ACTV("azione=fermate"); if (j.pontili){ PONTILI_ACTV = { t: Date.now(), p: j.pontili }; store.set("ln_actv_pontili", PONTILI_ACTV); } }catch(e){}
 }
 const cleanDir = d => String(d || "").replace(/\s+[A-Z]$/, "").replace(/\s*"[^"]*"\s*$/, "");
-const lineBadge = (l, c) => `<span class="lb" style="background:#${c && c !== "FFFFFF" ? c : "1a56db"};color:${c && /^(FFFFFF|DAD635|8FD2BF|F[0-9A-F]{5})$/i.test(c) ? "#111" : "#fff"}">${esc(l)}</span>`;
+const lineBadge = (l, c) => { const ali = /^Alilaguna /.test(l); return `<span class="lb${ali ? " ali" : ""}" style="background:#${c && c !== "FFFFFF" ? c : "1a56db"};color:${c && /^(FFFFFF|DAD635|8FD2BF|F[0-9A-F]{5})$/i.test(c) ? "#111" : "#fff"}">${ali ? "<small>Alilaguna</small> " + esc(l.slice(10)) : esc(l)}</span>`; };
 const orarioNote = od => od ? `<p class="trnote">L'orario ACTV in uso parte dal 20 novembre: ti mostro quello di ${new Date(od.slice(0, 4) + "-" + od.slice(4, 6) + "-" + od.slice(6)).toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "numeric" })}, stesso giorno della settimana.</p>` : "";
 function renderTr(){
   const box = $("#trBody"); if (!box) return;
@@ -2743,22 +2895,24 @@ function renderTr(){
     box.innerHTML = `<h4>🚕 Taxi acqueo</h4><p style="margin:0;color:#555;font-size:14px;line-height:1.4">Presto potrai chiamare e prenotare un taxi acqueo direttamente da qui, con prezzo e tempo di arrivo.</p>`;
     return;
   }
-  if (trTab === "plan") return renderPlan();
   const ref = refPoint();
   if (trStop) return renderDepartures();
-  if (!FERMATE.length){ box.textContent = "Carico le fermate…"; return; }
+  if (!$("#trPlanBox")){ box.innerHTML = `<div id="trPlanBox"></div><div id="trList"></div>`; renderPlan(); }
+  const lb = $("#trList"); if (!lb) return;
+  if (trPlan && trPlan.shown) return;
+  if (!FERMATE.length){ lb.textContent = "Carico le fermate…"; return; }
   const by = new Map();
   FERMATE.forEach(f => { const base = f.n.replace(/\s*"[A-Z]"\s*$/, ""), d = hav(ref.lat, ref.lng, f.lat, f.lng); const o = by.get(base); if (!o || d < o.d) by.set(base, { n: base, d, lat: f.lat, lng: f.lng }); });
   const near = [...by.values()].sort((a, b) => a.d - b.d).slice(0, 5);
-  box.innerHTML = `<h4>🚤 Fermate più vicine${lastPos ? "" : " al centro della mappa"}</h4><p class="trnote" style="margin-top:0">Tocca una fermata per le prossime partenze.</p>` + near.map((s, i) =>
+  lb.innerHTML = `<h4 style="margin-top:12px">🚏 Fermate più vicine${lastPos ? "" : " al centro della mappa"}</h4><p class="trnote" style="margin-top:0">ACTV e Alilaguna · tocca una fermata per le prossime partenze.</p>` + near.map((s, i) =>
     `<div class="stop" data-st="${i}"><span>${esc(s.n)}</span><b>${fmtDist(s.d)} ›</b></div>`).join("");
-  box.querySelectorAll("[data-st]").forEach(el => el.onclick = () => { const s = near[+el.dataset.st]; trStop = s;
+  lb.querySelectorAll("[data-st]").forEach(el => el.onclick = () => { const s = near[+el.dataset.st]; trStop = s;
     setFollow(false); if (map) map.easeTo({ center: [s.lng, s.lat], zoom: 16.5, pitch: 0, bearing: 0, duration: 700 }); renderDepartures(); });
 }
 async function renderDepartures(){
   const box = $("#trBody"), s = trStop;
   box.innerHTML = `<div class="trback" id="trBack">‹ Fermate</div><h4>🚤 ${esc(s.n)}</h4><p class="trnote">Carico gli orari…</p>`;
-  $("#trBack").onclick = () => { trStop = null; renderTr(); };
+  $("#trBack").onclick = () => { trStop = null; $("#trBody").innerHTML = ""; renderTr(); };
   try{
     const j = await ACTV("azione=partenze&n=10&pontile=" + encodeURIComponent(s.lat.toFixed(6) + "," + s.lng.toFixed(6)));
     if (trStop !== s) return;
@@ -2766,30 +2920,32 @@ async function renderDepartures(){
       <span class="dt"><b>${p.tra_min <= 0 ? "ora" : p.tra_min < 60 ? p.tra_min + " min" : p.ora}</b><small>${p.ora}</small></span></div>`).join("");
     box.innerHTML = `<div class="trback" id="trBack">‹ Fermate</div><h4>🚤 ${esc(j.pontile || s.n)}</h4>` + (list || `<p class="trnote">Nessuna partenza nelle prossime 4 ore.</p>`) +
       `<button class="btn small" id="trGoPlan" style="margin-top:8px">Calcola un percorso da qui</button>` + orarioNote(j.orario_del);
-    $("#trBack").onclick = () => { trStop = null; renderTr(); };
-    $("#trGoPlan").onclick = () => { trPlan = { da: j.pontile || s.n, a: "" }; document.querySelector('#trPanel [data-tr="plan"]').click(); };
-  }catch(e){ box.innerHTML = `<div class="trback" id="trBack">‹ Fermate</div><p class="trnote">Orari non disponibili: controlla la connessione.</p>`; $("#trBack").onclick = () => { trStop = null; renderTr(); }; }
+    $("#trBack").onclick = () => { trStop = null; $("#trBody").innerHTML = ""; renderTr(); };
+    $("#trGoPlan").onclick = () => { trPlan = { da: j.pontile || s.n, a: "" }; trStop = null; $("#trBody").innerHTML = ""; renderTr(); setTimeout(() => { const a = $("#trA"); if (a) a.focus(); }, 50); };
+  }catch(e){ box.innerHTML = `<div class="trback" id="trBack">‹ Fermate</div><p class="trnote">Orari non disponibili: controlla la connessione.</p>`; $("#trBack").onclick = () => { trStop = null; $("#trBody").innerHTML = ""; renderTr(); }; }
 }
 function renderPlan(){
-  const box = $("#trBody"); loadPontiliActv();
+  const box = $("#trPlanBox"); if (!box) return; loadPontiliActv();
   const names = PONTILI_ACTV ? PONTILI_ACTV.p.map(p => p[0]) : [];
   let dl = document.getElementById("dlPontili"); if (!dl){ dl = document.createElement("datalist"); dl.id = "dlPontili"; document.body.appendChild(dl); }
   dl.innerHTML = names.map(n => `<option value="${esc(n)}">`).join("");
   trPlan = trPlan || { da: "", a: "" };
-  box.innerHTML = `<h4>🧭 Da un pontile all'altro</h4>
+  box.innerHTML = `<h4>🧭 Dove vuoi andare?</h4>
     <div class="field" style="margin-bottom:6px"><input id="trDa" list="dlPontili" placeholder="Da: vicino a me" value="${esc(trPlan.da)}"></div>
     <div class="field" style="margin-bottom:6px"><input id="trA" list="dlPontili" placeholder="A: scrivi il pontile (es. Burano)" value="${esc(trPlan.a)}"></div>
-    <button class="btn small" id="trCalc">Trova la linea migliore</button><div id="trRes"></div>`;
+    <button class="btn small" id="trCalc">Trova la linea migliore</button>`;
   ["trDa", "trA"].forEach(id => { const el = $("#" + id); el.style.background = "#f4f6f9"; el.style.color = "#111"; el.style.borderColor = "#dde3ea"; });
   $("#trCalc").onclick = async () => {
-    trPlan = { da: $("#trDa").value.trim(), a: $("#trA").value.trim() };
+    trPlan = { da: $("#trDa").value.trim(), a: $("#trA").value.trim(), shown: true };
+    const lb = $("#trList"); lb.innerHTML = `<div class="trback" id="trBackP">‹ Fermate vicine</div><div id="trRes"></div>`;
+    $("#trBackP").onclick = () => { trPlan.shown = false; renderTr(); };
     if (!trPlan.a){ $("#trRes").innerHTML = `<p class="trnote">Scrivi dove vuoi arrivare.</p>`; return; }
     const ref = refPoint(), da = trPlan.da || (ref.lat.toFixed(6) + "," + ref.lng.toFixed(6));
     $("#trRes").innerHTML = `<p class="trnote">Calcolo…</p>`;
     try{
       const j = await ACTV("azione=viaggio&da=" + encodeURIComponent(da) + "&a=" + encodeURIComponent(trPlan.a));
       if (j.errore){ $("#trRes").innerHTML = `<p class="trnote">${j.errore === "pontile_non_trovato" ? "Non trovo il pontile: sceglilo dalla lista." : j.errore === "stesso_pontile" ? "Partenza e arrivo sono lo stesso pontile." : "Percorso non disponibile."}</p>`; return; }
-      if (!j.opzioni || !j.opzioni.length){ $("#trRes").innerHTML = `<p class="trnote">Nessun vaporetto utile nelle prossime ore da ${esc(j.da)} a ${esc(j.a)}.</p>`; return; }
+      if (!j.opzioni || !j.opzioni.length){ $("#trRes").innerHTML = `<p class="trnote">Nessun battello utile nelle prossime ore da ${esc(j.da)} a ${esc(j.a)}.</p>`; return; }
       $("#trRes").innerHTML = `<p class="trnote">Da <b>${esc(j.da)}</b> a <b>${esc(j.a)}</b></p>` + j.opzioni.map((o, k) => `<div class="opt">
         <div class="oh"><b>${k === 0 ? "Più veloce" : "Senza cambi"}</b><span>arrivo <b>${o.arrivo}</b> · ${o.durata_min} min${o.cambi ? " · " + o.cambi + (o.cambi === 1 ? " cambio" : " cambi") : ""}</span></div>` +
         o.tappe.map(t => t.tipo === "piedi" ? `<div class="leg">🚶 a piedi fino a ${esc(t.a)} · ${t.min} min</div>`
@@ -2797,7 +2953,60 @@ function renderPlan(){
     }catch(e){ $("#trRes").innerHTML = `<p class="trnote">Non riesco a calcolare: controlla la connessione.</p>`; }
   };
 }
-setInterval(() => { if (appMode === "trasporti" && trTab === "bus"){ if (trStop) renderDepartures(); else renderTr(); } }, 30000);
+setInterval(() => { if (appMode === "trasporti" && trTab === "bus" && !(document.activeElement && /^tr(Da|A)$/.test(document.activeElement.id))){ if (trStop) renderDepartures(); else if (!(trPlan && trPlan.shown)) renderTr(); } }, 30000);
+
+/* =========================================================
+   CLICKMARKET: le attività convenzionate sulla mappa
+   ========================================================= */
+const MK_CATS = { food: ["🍝", "Food", "#c8102e"], shop: ["🛍️", "Shopping", "#7c3aed"], boats: ["⛵", "Barche", "#1a56db"], used: ["♻️", "Usato", "#0a8f4e"] };
+let PARTNERS = store.get("ln_partners", []), mkCat = "", partnersAt = 0;
+async function loadPartners(){
+  if (Date.now() - partnersAt < 5 * 60000) { drawPartners(); return; }
+  try{ const r = await api("partners?select=id,name,category,descr,address,phone,lat,lng,order_rest&limit=1000"); if (Array.isArray(r)){ PARTNERS = r; store.set("ln_partners", r); partnersAt = Date.now(); } }catch(e){}
+  drawPartners(); renderMk();
+}
+function addPartnersLayer(){
+  if (!map || map.getSource("partners")) return;
+  map.addSource("partners", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+  const col = ["match", ["get", "c"], "food", MK_CATS.food[2], "shop", MK_CATS.shop[2], "boats", MK_CATS.boats[2], MK_CATS.used[2]];
+  map.addLayer({ id: "partners", type: "circle", source: "partners", layout: { visibility: appMode === "market" ? "visible" : "none" },
+    paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 11, 6, 16, 11], "circle-color": col, "circle-stroke-color": "#fff", "circle-stroke-width": 3 } });
+  if (map.getStyle().glyphs) map.addLayer({ id: "partners-lbl", type: "symbol", source: "partners", minzoom: 14, layout: { visibility: appMode === "market" ? "visible" : "none",
+    "text-field": ["get", "n"], "text-size": 13, "text-offset": [0, 1.3], "text-anchor": "top", "text-font": ["Noto Sans Regular"] },
+    paint: { "text-color": "#2b0a0a", "text-halo-color": "#fff", "text-halo-width": 1.8 } });
+}
+const mkShown = () => PARTNERS.filter(p => !mkCat || p.category === mkCat);
+function drawPartners(){
+  if (!map) return;
+  if (!map.getSource("partners")){ if (map.isStyleLoaded()) addPartnersLayer(); else return; }
+  map.getSource("partners").setData({ type: "FeatureCollection", features: mkShown().map(p => ({ type: "Feature", properties: { id: p.id, n: p.name, c: p.category }, geometry: { type: "Point", coordinates: [p.lng, p.lat] } })) });
+  layerVis();
+}
+function renderMk(){
+  const box = $("#mkList"); if (!box) return;
+  const ref = refPoint(), list = mkShown().map(p => ({ p, d: hav(ref.lat, ref.lng, p.lat, p.lng) })).sort((a, b) => a.d - b.d);
+  $("#mkCount").textContent = list.length ? list.length + (list.length === 1 ? " attività" : " attività") : "";
+  if (!list.length){
+    box.innerHTML = `<p class="trnote">${PARTNERS.length ? "Nessuna attività convenzionata in questa categoria." : "Le attività convenzionate compariranno qui sulla mappa, appena entrano in ClickMarket."}</p>`; return; }
+  box.innerHTML = list.slice(0, 6).map((x, i) => `<div class="stop" data-mk="${x.p.id}"><span>${MK_CATS[x.p.category][0]} ${esc(x.p.name)}</span><b>${fmtDist(x.d)} ›</b></div>`).join("");
+}
+function openPartner(p){
+  const c = MK_CATS[p.category] || ["", ""];
+  openSheet(`<h3>${c[0]} ${esc(p.name)}</h3><p class="muted" style="margin-top:-4px">${esc(c[1])}${p.address ? " · " + esc(p.address) : ""}</p>
+    ${p.descr ? `<p style="line-height:1.45">${esc(p.descr)}</p>` : ""}
+    ${p.order_rest && CONFIG.RISTORANTI.some(r => r.id === p.order_rest) ? `<button class="btn" id="pOrder">🛒 Ordina</button>` : ""}
+    <button class="btn ghost" id="pGo" style="margin-top:10px">⚓ Portami qui in barca</button>
+    ${p.phone ? `<a class="btn ghost" style="margin-top:10px;display:block;text-align:center;text-decoration:none" href="tel:${esc(p.phone.replace(/[^+\d]/g, ""))}">📞 Chiama</a>` : ""}
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
+  if ($("#pOrder")) $("#pOrder").onclick = () => { closeSheet(); showView("order"); openMenu(p.order_rest); };
+  $("#pGo").onclick = () => { closeSheet(); setMode("nautica"); openPlan({ name: p.name, lat: p.lat, lng: p.lng }); };
+}
+document.querySelectorAll("#mkCats [data-c]").forEach(b => b.onclick = () => {
+  mkCat = b.dataset.c; document.querySelectorAll("#mkCats [data-c]").forEach(x => x.classList.toggle("on", x === b)); drawPartners(); renderMk();
+});
+$("#mkList").addEventListener("click", e => { const r = e.target.closest("[data-mk]"); if (!r) return; const p = PARTNERS.find(x => x.id === +r.dataset.mk); if (!p) return;
+  setFollow(false); if (map) map.easeTo({ center: [p.lng, p.lat], zoom: 16.5, pitch: 0, bearing: 0, duration: 600 }); openPartner(p); });
+$("#mkOrder").onclick = () => { showView("order"); };
 
 /* =========================================================
    INCONTRA: stati sulla mappa (solo la zona), match reciproco, chat
@@ -2809,13 +3018,13 @@ const MEET_ZONES = { "Cannaregio": [45.4445, 12.3285], "Castello": [45.4350, 12.
 let STATI = [], meetFilter = "", meetMarkers = [], meetTimer = null, chatTimer = null;
 const rpc = (fn, body) => api("rpc/" + fn, { method: "POST", ret: true, body: { p_token: TOKEN, ...body } });
 function adultGate(){
-  openSheet(`<h3>🔞 Incontra è solo per maggiorenni</h3><p class="muted" style="line-height:1.45">Per entrare devi avere almeno 18 anni.</p>
+  openSheet(`<h3>🔞 Click n Meet è solo per maggiorenni</h3><p class="muted" style="line-height:1.45">Per entrare devi avere almeno 18 anni.</p>
     <button class="btn" id="agYes">Ho almeno 18 anni</button><button class="btn ghost" id="agNo" style="margin-top:10px">Non ho ancora 18 anni</button>`);
   $("#agYes").onclick = async () => {
     await syncAdult();
-    store.set("ln_adult", true); closeSheet(); setAppMode("incontra");
+    store.set("ln_adult", true); closeSheet(); setMode("meet", 1);
   };
-  $("#agNo").onclick = () => { closeSheet(); document.querySelector('nav button[data-mode="nautica"]').click(); toast("Incontra è riservato ai maggiorenni. Il resto di ClickVenice puoi usarlo."); };
+  $("#agNo").onclick = () => { closeSheet(); setMode("nautica"); toast("Click n Meet è riservato ai maggiorenni. Il resto di ClickVenice puoi usarlo."); };
 }
 // la conferma dei 18 anni deve arrivare anche al server (prima restava solo sul telefono)
 async function syncAdult(){
@@ -2891,7 +3100,7 @@ $("#meetBanner").onclick = () => {
       // se il server non sapeva ancora dei 18 anni, glielo dice e riprova una volta
       if (j.errore === "non_autorizzato" && await syncAdult()) j = await send();
       if (!j.ok){ $("#stOk").disabled = false;
-        $("#stMsg").textContent = j.errore === "non_autorizzato" ? "Il server non riconosce questo telefono: esci dall'account e rientra (Profilo → Esci)." : j.errore === "foto" ? "Foto non valida, provane un'altra." : "Non riuscito, riprova."; return; }
+        $("#stMsg").textContent = j.errore === "non_autorizzato" ? "Il server non riconosce questo telefono: esci dall'account e rientra (myClick → Esci)." : j.errore === "foto" ? "Foto non valida, provane un'altra." : "Non riuscito, riprova."; return; }
       closeSheet(); toast("Stato pubblicato ✓"); loadStati();
     }catch(e){ $("#stOk").disabled = false; $("#stMsg").textContent = "Serve la connessione internet."; }
   };
@@ -2973,7 +3182,8 @@ function layerVis(){
     "fondo": n && dep,
     "route": n, "route-case": n,
     "poi": n && foodOn, "poi-label": n && foodOn,
-    "fermate": appMode === "trasporti", "fermate-lbl": appMode === "trasporti"
+    "fermate": appMode === "trasporti", "fermate-lbl": appMode === "trasporti",
+    "partners": appMode === "market", "partners-lbl": appMode === "market"
   };
   Object.entries(want).forEach(([id, v]) => { if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", v ? "visible" : "none"); });
   if (destMarker) destMarker.getElement().style.display = n ? "" : "none";
