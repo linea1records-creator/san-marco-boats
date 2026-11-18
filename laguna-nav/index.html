@@ -236,6 +236,14 @@
   .mwc small{font-size:8.5px;color:#9ab;letter-spacing:.02em;line-height:1;white-space:nowrap}
   .mwc.warn b{color:#fbbf24} .mwc.alarm{background:#b3261e} .mwc.alarm b{color:#fff}
   body.sat .mwc{background:rgba(0,0,0,.75)}
+  /* sport */
+  .spm{cursor:pointer;display:flex;flex-direction:column;align-items:center}
+  .spm span{width:40px;height:40px;border-radius:50%;background:#fff;border:3px solid #0a8f4e;display:flex;align-items:center;justify-content:center;font-size:21px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+  .spm i{margin-top:-6px;background:#0a8f4e;color:#fff;font-style:normal;font-size:10.5px;font-weight:800;border-radius:8px;padding:1px 6px}
+  .spm.in span{border-color:#2f8cff} .spm.in i{background:#2f8cff} .spm.full span{border-color:#b91c1c} .spm.full i{background:#b91c1c}
+  .spbar{height:8px;border-radius:4px;background:var(--panel2);overflow:hidden} .spbar i{display:block;height:100%;background:#0a8f4e}
+  .spnames{display:flex;flex-wrap:wrap;gap:6px} .spnames span{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:3px 9px;font-size:13px}
+  body.mode-sport #fabSos, body.mode-sport #fabTr, body.mode-sport #miniW{display:none}
   #tideC{width:100%;height:36px;display:block;margin-top:4px;border-radius:8px;background:#06101f}
   /* ===== 1Click / ClickVenice ===== */
   #splash{background:radial-gradient(120% 80% at 50% 0%,#0d2b5a 0%,#000 70%)}
@@ -294,6 +302,16 @@
   body.mode-market #searchBox, body.mode-market #routeBox, body.mode-market #banner, body.mode-market #shallow, body.mode-market #depthLegend{display:none!important}
   #mkPanel{position:absolute;z-index:20;left:10px;right:76px;bottom:16px;background:#fff;color:#111;border-radius:16px;padding:12px 14px;box-shadow:0 3px 14px rgba(0,0,0,.4);max-height:44vh;overflow-y:auto}
   body:not(.mode-market) #mkPanel{display:none}
+  body.mode-sport #toggles, body.mode-sport #inst, body.mode-sport #navMode, body.mode-sport #fabMenu, body.mode-sport #fabView,
+  body.mode-sport #searchBox, body.mode-sport #routeBox, body.mode-sport #banner, body.mode-sport #shallow, body.mode-sport #depthLegend{display:none!important}
+  #spPanel{position:absolute;z-index:20;left:10px;right:76px;bottom:16px;background:#fff;color:#111;border-radius:16px;padding:12px 14px;box-shadow:0 3px 14px rgba(0,0,0,.4);max-height:46vh;overflow-y:auto}
+  body:not(.mode-sport) #spPanel{display:none}
+  #spPanel .mkh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px} #spPanel .mkh span{font-size:12px;color:#777} #spPanel .mkh b{color:#0a8f4e;font-size:16px}
+  #spPanel .mkcats button{flex:0 0 auto;padding:6px 11px;border-radius:16px;background:#eef6f1;color:#333;font-size:13px;font-weight:700} #spPanel .mkcats button.on{color:#fff} #spPanel .mkcats button.on{background:#0a8f4e}
+  #spPanel .stop{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-top:1px solid #eee;font-size:14px;cursor:pointer}
+  #spPanel .btn{margin-top:8px;background:#0a8f4e;color:#fff;width:100%}
+  #spPanel .trnote{color:#666;font-size:13px;line-height:1.4;margin:6px 0}
+  body.m-sport #dial{background:#0a8f4e}
   #mkPanel .mkh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px} #mkPanel .mkh b{color:#c8102e;font-size:16px} #mkPanel .mkh span{font-size:12px;color:#777}
   .mkcats{display:flex;gap:6px;overflow-x:auto;margin-bottom:6px;scrollbar-width:none} .mkcats::-webkit-scrollbar{display:none}
   .mkcats button{flex:0 0 auto;padding:6px 11px;border-radius:16px;background:#f3f0ef;color:#333;font-size:13px;font-weight:700}
@@ -507,6 +525,14 @@
       <div class="trh"><b>🚤 Trasporti</b><button id="trClose" aria-label="Chiudi">✕</button></div>
       <div class="seg"><button data-tr="bus" class="on">🚤 Mezzi pubblici</button><button data-tr="taxi">🚕 Taxi</button></div>
       <div id="trBody">Tocca ➤ per trovare le fermate vicine.</div>
+    </div>
+
+    <!-- Sport: partite ed eventi creati dagli utenti -->
+    <div id="spPanel">
+      <div class="mkh"><b>⚽ Sport</b><span id="spCount"></span></div>
+      <div class="mkcats" id="spCats"></div>
+      <div id="spList"></div>
+      <button class="btn small" id="spNew">＋ Crea una partita o un evento</button>
     </div>
 
     <!-- Shopping: attività convenzionate sulla mappa -->
@@ -756,7 +782,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.2</p>
+      <p class="sub">1Click · ClickVenice · versione 3.3</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa ClickVenice</button>
@@ -988,6 +1014,7 @@ const MODES = [
   { k: "nautica", ic: "⚓", n: "Nautica", v: "map", am: "nautica" },
   { k: "market", ic: "🛍️", n: "Shopping", v: "map", am: "market" },
   { k: "meet", ic: "💬", n: "Click n Meet", v: "map", am: "incontra" },
+  { k: "sport", ic: "⚽", n: "Sport", v: "map", am: "sport" },
   { k: "my", ic: "👤", n: "myClick", v: "profile" }
 ];
 let modeIdx = 0;
@@ -1321,6 +1348,7 @@ function initMap(){
   map.on("style.load", () => { styled = true; clearTimeout(fallback); addLayers(); });
   map.on("dragstart", e => { if (e.originalEvent) setFollow(false); });
   map.on("click", e => {
+    if (addMode === "picksport"){ addMode = null; $("#modeHint").classList.add("hidden"); SPF.pt = { lat: e.lngLat.lat, lng: e.lngLat.lng }; sportForm(); return; }
     if (addMode === "pickfrom"){ addMode = null; $("#modeHint").classList.add("hidden"); if (PLAN){ PLAN.from = { name: "Punto sulla mappa", lat: e.lngLat.lat, lng: e.lngLat.lng }; showPlan(); } return; }
     if (addMode === "zone") return zoneForm(e.lngLat);
     if (addMode === "depth") return depthForm(e.lngLat);
@@ -3109,6 +3137,8 @@ function setAppMode(m){
   document.body.classList.toggle("mode-trasporti", m === "trasporti");
   document.body.classList.toggle("mode-incontra", m === "incontra");
   document.body.classList.toggle("mode-market", m === "market");
+  document.body.classList.toggle("mode-sport", m === "sport");
+  if (m === "sport") sportStart(); else sportStop();
   if (m === "incontra") meetStart(); else meetStop();
   if (m === "incontra") loadEvents();
   try{ paintSos(); }catch(e){} try{ applyMapMode(); }catch(e){}
@@ -3830,6 +3860,87 @@ $("#miniW").addEventListener("click", e => {
   }
   openDash();
 });
+
+/* =========================================================
+   SPORT: partite ed eventi creati dagli utenti, con iscrizione e posti limitati
+   ========================================================= */
+const SPORTS = { calcetto: ["⚽", "Calcetto", 10], calcio: ["🥅", "Calcio", 22], basket: ["🏀", "Basket", 10], pallavolo: ["🏐", "Pallavolo", 12], beach: ["🏖️", "Beach volley", 4],
+  tennis: ["🎾", "Tennis", 4], padel: ["🏓", "Padel", 4], corsa: ["🏃", "Corsa", 20], voga: ["🚣", "Voga", 8], bici: ["🚴", "Bici", 15], altro: ["🏅", "Altro", 10] };
+const LEVELS = { tutti: "Tutti i livelli", principiante: "Principianti", medio: "Medio", esperto: "Esperti" };
+let SPEV = store.get("ln_sport", []), spCat = "", spMarkers = [], spTimer = null, SPF = {};
+$("#spCats").innerHTML = `<button data-sc="" class="on">Tutti</button>` + Object.entries(SPORTS).map(([k, v]) => `<button data-sc="${k}">${v[0]} ${v[1]}</button>`).join("");
+document.querySelectorAll("#spCats [data-sc]").forEach(b => b.onclick = () => { spCat = b.dataset.sc; document.querySelectorAll("#spCats [data-sc]").forEach(x => x.classList.toggle("on", x === b)); paintSport(); });
+const spWhen = t => { const d = new Date(t), now = new Date(), tm = new Date(Date.now() + 864e5), h = d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+  if (d.toDateString() === now.toDateString()) return "Oggi " + h; if (d.toDateString() === tm.toDateString()) return "Domani " + h;
+  return d.toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" }) + " " + h; };
+async function loadSport(){ try{ const r = await rpc("sport_list", {}); if (Array.isArray(r)){ SPEV = r; store.set("ln_sport", r); } }catch(e){} paintSport(); }
+function sportStart(){ paintSport(); loadSport(); clearInterval(spTimer); spTimer = setInterval(loadSport, 30000); }
+function sportStop(){ clearInterval(spTimer); spMarkers.forEach(m => m.remove()); spMarkers = []; }
+function paintSport(){
+  const list = SPEV.filter(e => !spCat || e.sport === spCat), ref = refPoint();
+  spMarkers.forEach(m => m.remove()); spMarkers = [];
+  if (map && appMode === "sport") list.forEach(e => { const el = document.createElement("div"); el.className = "spm" + (e.ci_sono ? " in" : "") + (e.iscritti >= e.max ? " full" : "");
+    el.innerHTML = `<span>${(SPORTS[e.sport] || SPORTS.altro)[0]}</span><i>${e.iscritti}/${e.max}</i>`; el.onclick = ev => { ev.stopPropagation(); openSport(e); };
+    spMarkers.push(new maplibregl.Marker({ element: el }).setLngLat([e.lng, e.lat]).addTo(map)); });
+  $("#spCount").textContent = list.length ? list.length + (list.length === 1 ? " evento" : " eventi") : "";
+  $("#spList").innerHTML = list.length ? list.slice(0, 8).map(e => { const s = SPORTS[e.sport] || SPORTS.altro, full = e.iscritti >= e.max;
+    return `<div class="stop" data-sp="${e.id}"><span>${s[0]} <b>${esc(e.titolo)}</b><br><small style="color:#666">${spWhen(e.quando)} · ${esc(e.luogo || "")}${e.ci_sono ? " · ✓ ci sei" : ""}</small></span><b style="color:${full ? "#b91c1c" : "#0a8f4e"}">${full ? "pieno" : (e.max - e.iscritti) + " posti"} ›</b></div>`; }).join("")
+    : `<p class="trnote">${SPEV.length ? "Nessun evento per questo sport." : "Ancora nessuna partita in programma: creane una tu!"}</p>`;
+}
+$("#spList").addEventListener("click", ev => { const r = ev.target.closest("[data-sp]"); if (!r) return; const e = SPEV.find(x => x.id === +r.dataset.sp); if (!e) return;
+  setFollow(false); if (map) map.easeTo({ center: [e.lng, e.lat], zoom: 15.5, pitch: 0, bearing: 0, duration: 600 }); openSport(e); });
+function openSport(e){
+  const s = SPORTS[e.sport] || SPORTS.altro, full = e.iscritti >= e.max, past = Date.parse(e.quando) < Date.now();
+  openSheet(`<h3>${s[0]} ${esc(e.titolo)}</h3>
+    <p class="muted" style="margin-top:-4px">${s[1]} · ${LEVELS[e.livello] || ""} · organizza @${esc(e.org)}</p>
+    <p style="font-size:16px;margin:8px 0"><b>🗓️ ${spWhen(e.quando)}</b><br>📍 ${esc(e.luogo || "Punto sulla mappa")}</p>
+    ${e.nota ? `<p style="line-height:1.45">${esc(e.nota)}</p>` : ""}
+    <div class="spbar"><i style="width:${Math.min(100, e.iscritti / e.max * 100)}%"></i></div>
+    <p class="muted" style="margin:6px 0 10px"><b>${e.iscritti}/${e.max}</b> iscritti${full ? " · completo" : " · " + (e.max - e.iscritti) + " posti liberi"}</p>
+    <div class="spnames">${(e.nomi || []).map(n => `<span>@${esc(n)}</span>`).join("")}</div>
+    ${e.mio ? `<button class="btn ghost" id="spCancel" style="margin-top:12px;color:#ff6b60">Annulla l'evento</button>`
+      : e.ci_sono ? `<button class="btn ghost" id="spLeave" style="margin-top:12px">Non vengo più</button>`
+      : `<button class="btn" id="spJoin" style="margin-top:12px" ${full || past ? "disabled" : ""}>${full ? "Completo" : past ? "Già iniziato" : "✋ Mi iscrivo"}</button>`}
+    <button class="btn ghost" id="spGo" style="margin-top:10px">🧭 Portami lì</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
+  const act = async (fn, msg) => { try{ const j = await rpc(fn, { p_id: e.id }); if (j && j.errore){ toast(j.errore === "pieno" ? "Peccato, i posti sono finiti." : j.errore === "non_autorizzato" ? "Esci e rientra con il tuo account." : "Non riuscito, riprova."); }
+      else { toast(msg); haptic(); } }catch(_){ toast("Controlla la connessione."); } closeSheet(); await loadSport(); const n = SPEV.find(x => x.id === e.id); if (n && fn !== "sport_cancel") openSport(n); };
+  if ($("#spJoin")) $("#spJoin").onclick = () => act("sport_join", "Iscritto ✓ ci vediamo lì!");
+  if ($("#spLeave")) $("#spLeave").onclick = () => act("sport_leave", "Ti sei tolto dall'evento.");
+  if ($("#spCancel")) $("#spCancel").onclick = () => act("sport_cancel", "Evento annullato.");
+  $("#spGo").onclick = () => { closeSheet(); setMode("nautica"); openPlan({ name: e.luogo || e.titolo, lat: e.lat, lng: e.lng }); };
+}
+function sportForm(){
+  const nx = new Date(Date.now() + 3600e3); nx.setMinutes(0, 0, 0);
+  const loc = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  SPF = Object.assign({ sport: "calcetto", when: loc(nx), max: 10, level: "tutti", title: "", place: "", note: "" }, SPF);
+  openSheet(`<h3>＋ Nuovo evento sportivo</h3>
+    <div class="field"><label>Sport</label><select id="sfS">${Object.entries(SPORTS).map(([k, v]) => `<option value="${k}" ${k === SPF.sport ? "selected" : ""}>${v[0]} ${v[1]}</option>`).join("")}</select></div>
+    <div class="field"><label>Titolo</label><input id="sfT" maxlength="80" placeholder="es. Calcetto 5 contro 5, manca gente!" value="${esc(SPF.title)}"></div>
+    <div class="row"><div class="field"><label>Quando</label><input id="sfW" type="datetime-local" value="${SPF.when}"></div>
+      <div class="field" style="max-width:110px"><label>Giocatori</label><input id="sfM" type="number" min="2" max="60" value="${SPF.max}"></div></div>
+    <div class="field"><label>Dove</label><input id="sfP" maxlength="90" placeholder="es. Campo di Sant'Elena, Palestra di Cannaregio" value="${esc(SPF.place)}"></div>
+    <p class="muted" id="sfPt" style="margin:-4px 0 8px">${SPF.pt ? "📍 Punto scelto sulla mappa ✓" : "📍 Se non scegli un punto uso il nome del posto o la tua posizione."} <a href="#" id="sfPick" style="color:#7fc1ff">Scegli sulla mappa</a></p>
+    <div class="field"><label>Livello</label><select id="sfL">${Object.entries(LEVELS).map(([k, v]) => `<option value="${k}" ${k === SPF.level ? "selected" : ""}>${v}</option>`).join("")}</select></div>
+    <div class="field"><label>Note (facoltative)</label><input id="sfN" maxlength="300" placeholder="es. porta la maglia bianca, campo prenotato, 5 € a testa" value="${esc(SPF.note)}"></div>
+    <button class="btn" id="sfOk">Pubblica l'evento</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
+  const save = () => { SPF.sport = $("#sfS").value; SPF.title = $("#sfT").value; SPF.when = $("#sfW").value; SPF.max = +$("#sfM").value || 10; SPF.place = $("#sfP").value; SPF.level = $("#sfL").value; SPF.note = $("#sfN").value; };
+  $("#sfS").onchange = () => { const d = SPORTS[$("#sfS").value]; if (d) $("#sfM").value = d[2]; };
+  $("#sfPick").onclick = ev => { ev.preventDefault(); save(); closeSheet(); addMode = "picksport"; const h = $("#modeHint"); h.textContent = "Tocca la mappa dove si gioca"; h.classList.remove("hidden"); };
+  $("#sfOk").onclick = async () => {
+    save(); if (SPF.title.trim().length < 3) return toast("Scrivi un titolo.");
+    const when = new Date(SPF.when); if (isNaN(when) || when < Date.now() - 600000) return toast("Controlla data e ora.");
+    let pt = SPF.pt; if (!pt && SPF.place.trim()){ try{ pt = await geocodeVenice(SPF.place); }catch(_){} }
+    if (!pt && lastPos) pt = { lat: lastPos.lat, lng: lastPos.lng };
+    if (!pt) return toast("Scegli il posto sulla mappa o scrivi un indirizzo.");
+    $("#sfOk").disabled = true;
+    try{ const j = await rpc("sport_create", { p_sport: SPF.sport, p_title: SPF.title, p_place: SPF.place, p_lat: pt.lat, p_lng: pt.lng, p_when: when.toISOString(), p_max: Math.max(2, Math.min(60, SPF.max)), p_level: SPF.level, p_note: SPF.note });
+      if (j && j.errore){ $("#sfOk").disabled = false; return toast(j.errore === "troppi" ? "Hai creato tanti eventi oggi: riprova domani." : j.errore === "data" ? "La data deve essere entro 45 giorni." : "Esci e rientra con il tuo account per creare eventi."); }
+      SPF = {}; closeSheet(); haptic(); toast("Evento pubblicato ✓"); await loadSport(); const n = SPEV.find(x => x.id === j.id); if (n) openSport(n);
+    }catch(_){ $("#sfOk").disabled = false; toast("Non pubblicato: controlla la connessione."); }
+  };
+}
+$("#spNew").onclick = () => { SPF = {}; sportForm(); };
 /* =========================================================
    ORDINA
    ========================================================= */
