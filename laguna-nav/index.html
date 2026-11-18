@@ -231,6 +231,16 @@
   .soonbox{text-align:center;padding:26px 16px}
   .soonbox .big{font-size:44px}
 
+  .lb{display:inline-block;min-width:30px;text-align:center;font-weight:800;font-size:12px;padding:3px 6px;border-radius:7px;margin-right:6px}
+  .dep{display:flex;align-items:center;gap:6px;padding:7px 0;border-top:1px solid #eee;font-size:14px}
+  .dep .dd{flex:1;color:#222}
+  .dep .dt{text-align:right;line-height:1.1}.dep .dt small{display:block;color:#888;font-size:11px}
+  .trnote{color:#777;font-size:12px;line-height:1.35;margin:8px 0 0}
+  .trback{color:#1a56db;font-weight:700;font-size:13px;margin-bottom:4px;cursor:pointer}
+  .opt{border:1px solid #e3e8ef;border-radius:12px;padding:8px 10px;margin-top:8px}
+  .opt .oh{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:4px}
+  .leg{font-size:13px;color:#222;padding:5px 0;border-top:1px dashed #e3e8ef;line-height:1.35}
+  #trPanel{max-height:52vh}
   /* Sheets / modal */
   #sheet{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
   #sheet .in{width:100%;background:var(--panel);border-radius:20px 20px 0 0;padding:20px;padding-bottom:calc(20px + var(--safe-b));
@@ -324,7 +334,7 @@
 
     <!-- trasporti -->
     <div id="trPanel">
-      <div class="seg"><button data-tr="bus" class="on">🚤 Vaporetti</button><button data-tr="taxi">🚕 Taxi acqueo</button></div>
+      <div class="seg"><button data-tr="bus" class="on">🚤 Partenze</button><button data-tr="plan">🧭 Percorso</button><button data-tr="taxi">🚕 Taxi</button></div>
       <div id="trBody">Tocca ➤ per trovare le fermate vicine.</div>
     </div>
 
@@ -539,7 +549,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ Profilo</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 2.0</p>
+      <p class="sub">1Click · ClickVenice · versione 2.1</p>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
@@ -565,7 +575,7 @@
       </div>
       <div class="card">
         <h4>Mappe</h4>
-        <p class="muted" style="line-height:1.45">Mappa © OpenStreetMap contributors, stile OpenFreeMap. Bricole e segnali da OpenStreetMap / OpenSeaMap (disegnate in 3D e ingrandite per vederle meglio). Foto satellitare © Esri, Maxar, Earthstar Geographics. Ricerca dei posti: Nominatim e Photon (OpenStreetMap). Marea, previsioni, fondali e pontili pubblici: Comune di Venezia (le mappe dei fondali del Comune sono indicate come non ufficiali e non valide per la navigazione). Percorsi: rete dei canali OpenStreetMap e tragitti abituali delle barche di lavoro.</p>
+        <p class="muted" style="line-height:1.45">Mappa © OpenStreetMap contributors, stile OpenFreeMap. Bricole e segnali da OpenStreetMap / OpenSeaMap (disegnate in 3D e ingrandite per vederle meglio). Foto satellitare © Esri, Maxar, Earthstar Geographics. Orari dei vaporetti: ACTV (dati aperti GTFS). Ricerca dei posti: Nominatim e Photon (OpenStreetMap). Marea, previsioni, fondali e pontili pubblici: Comune di Venezia (le mappe dei fondali del Comune sono indicate come non ufficiali e non valide per la navigazione). Percorsi: rete dei canali OpenStreetMap e tragitti abituali delle barche di lavoro.</p>
       </div>
     </div>
   </section>
@@ -2573,26 +2583,80 @@ function addFermateLayer(){
     paint: { "text-color": "#065f35", "text-halo-color": "#fff", "text-halo-width": 1.5 } });
 }
 document.querySelectorAll("#trPanel [data-tr]").forEach(b => b.onclick = () => {
-  trTab = b.dataset.tr; document.querySelectorAll("#trPanel [data-tr]").forEach(x => x.classList.toggle("on", x === b)); renderTr();
+  trTab = b.dataset.tr; if (trTab !== "bus") trStop = null;
+  document.querySelectorAll("#trPanel [data-tr]").forEach(x => x.classList.toggle("on", x === b)); renderTr();
 });
+/* orari ufficiali ACTV (dal server) */
+const ACTV = (q) => fetchT(CONFIG.SUPABASE_URL + "/functions/v1/actv?" + q, {}, 15000).then(r => r.json());
+let PONTILI_ACTV = store.get("ln_actv_pontili", null), trStop = null, trPlan = null;
+async function loadPontiliActv(){
+  if (PONTILI_ACTV && Date.now() - PONTILI_ACTV.t < 7 * 864e5) return;
+  try{ const j = await ACTV("azione=fermate"); if (j.pontili){ PONTILI_ACTV = { t: Date.now(), p: j.pontili }; store.set("ln_actv_pontili", PONTILI_ACTV); } }catch(e){}
+}
+const cleanDir = d => String(d || "").replace(/\s+[A-Z]$/, "").replace(/\s*"[^"]*"\s*$/, "");
+const lineBadge = (l, c) => `<span class="lb" style="background:#${c && c !== "FFFFFF" ? c : "1a56db"};color:${c && /^(FFFFFF|DAD635|8FD2BF|F[0-9A-F]{5})$/i.test(c) ? "#111" : "#fff"}">${esc(l)}</span>`;
+const orarioNote = od => od ? `<p class="trnote">L'orario ACTV in uso parte dal 20 novembre: ti mostro quello di ${new Date(od.slice(0, 4) + "-" + od.slice(4, 6) + "-" + od.slice(6)).toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "numeric" })}, stesso giorno della settimana.</p>` : "";
 function renderTr(){
   const box = $("#trBody"); if (!box) return;
   if (trTab === "taxi"){
     box.innerHTML = `<h4>🚕 Taxi acqueo</h4><p style="margin:0;color:#555;font-size:14px;line-height:1.4">Presto potrai chiamare e prenotare un taxi acqueo direttamente da qui, con prezzo e tempo di arrivo.</p>`;
     return;
   }
+  if (trTab === "plan") return renderPlan();
   const ref = refPoint();
+  if (trStop) return renderDepartures();
   if (!FERMATE.length){ box.textContent = "Carico le fermate…"; return; }
-  // una riga per pontile (le banchine A, B, C… insieme)
   const by = new Map();
   FERMATE.forEach(f => { const base = f.n.replace(/\s*"[A-Z]"\s*$/, ""), d = hav(ref.lat, ref.lng, f.lat, f.lng); const o = by.get(base); if (!o || d < o.d) by.set(base, { n: base, d, lat: f.lat, lng: f.lng }); });
   const near = [...by.values()].sort((a, b) => a.d - b.d).slice(0, 5);
-  box.innerHTML = `<h4>🚤 Fermate più vicine${lastPos ? "" : " al centro della mappa"}</h4>` + near.map((s, i) =>
-    `<div class="stop" data-st="${i}"><span>${esc(s.n)}</span><b>${fmtDist(s.d)}</b></div>`).join("") +
-    `<p style="margin:8px 0 0;color:#777;font-size:12px">Orari e linee in tempo reale: in arrivo.</p>`;
-  box.querySelectorAll("[data-st]").forEach(el => el.onclick = () => { const s = near[+el.dataset.st]; setFollow(false); map.easeTo({ center: [s.lng, s.lat], zoom: 16.5, pitch: 0, bearing: 0, duration: 700 }); });
+  box.innerHTML = `<h4>🚤 Fermate più vicine${lastPos ? "" : " al centro della mappa"}</h4><p class="trnote" style="margin-top:0">Tocca una fermata per le prossime partenze.</p>` + near.map((s, i) =>
+    `<div class="stop" data-st="${i}"><span>${esc(s.n)}</span><b>${fmtDist(s.d)} ›</b></div>`).join("");
+  box.querySelectorAll("[data-st]").forEach(el => el.onclick = () => { const s = near[+el.dataset.st]; trStop = s;
+    setFollow(false); if (map) map.easeTo({ center: [s.lng, s.lat], zoom: 16.5, pitch: 0, bearing: 0, duration: 700 }); renderDepartures(); });
 }
-setInterval(() => { if (appMode === "trasporti") renderTr(); }, 15000);
+async function renderDepartures(){
+  const box = $("#trBody"), s = trStop;
+  box.innerHTML = `<div class="trback" id="trBack">‹ Fermate</div><h4>🚤 ${esc(s.n)}</h4><p class="trnote">Carico gli orari…</p>`;
+  $("#trBack").onclick = () => { trStop = null; renderTr(); };
+  try{
+    const j = await ACTV("azione=partenze&n=10&pontile=" + encodeURIComponent(s.lat.toFixed(6) + "," + s.lng.toFixed(6)));
+    if (trStop !== s) return;
+    const list = (j.partenze || []).map(p => `<div class="dep">${lineBadge(p.linea, p.colore)}<span class="dd">${esc(cleanDir(p.direzione))}</span>
+      <span class="dt"><b>${p.tra_min <= 0 ? "ora" : p.tra_min < 60 ? p.tra_min + " min" : p.ora}</b><small>${p.ora}</small></span></div>`).join("");
+    box.innerHTML = `<div class="trback" id="trBack">‹ Fermate</div><h4>🚤 ${esc(j.pontile || s.n)}</h4>` + (list || `<p class="trnote">Nessuna partenza nelle prossime 4 ore.</p>`) +
+      `<button class="btn small" id="trGoPlan" style="margin-top:8px">Calcola un percorso da qui</button>` + orarioNote(j.orario_del);
+    $("#trBack").onclick = () => { trStop = null; renderTr(); };
+    $("#trGoPlan").onclick = () => { trPlan = { da: j.pontile || s.n, a: "" }; document.querySelector('#trPanel [data-tr="plan"]').click(); };
+  }catch(e){ box.innerHTML = `<div class="trback" id="trBack">‹ Fermate</div><p class="trnote">Orari non disponibili: controlla la connessione.</p>`; $("#trBack").onclick = () => { trStop = null; renderTr(); }; }
+}
+function renderPlan(){
+  const box = $("#trBody"); loadPontiliActv();
+  const names = PONTILI_ACTV ? PONTILI_ACTV.p.map(p => p[0]) : [];
+  let dl = document.getElementById("dlPontili"); if (!dl){ dl = document.createElement("datalist"); dl.id = "dlPontili"; document.body.appendChild(dl); }
+  dl.innerHTML = names.map(n => `<option value="${esc(n)}">`).join("");
+  trPlan = trPlan || { da: "", a: "" };
+  box.innerHTML = `<h4>🧭 Da un pontile all'altro</h4>
+    <div class="field" style="margin-bottom:6px"><input id="trDa" list="dlPontili" placeholder="Da: vicino a me" value="${esc(trPlan.da)}"></div>
+    <div class="field" style="margin-bottom:6px"><input id="trA" list="dlPontili" placeholder="A: scrivi il pontile (es. Burano)" value="${esc(trPlan.a)}"></div>
+    <button class="btn small" id="trCalc">Trova la linea migliore</button><div id="trRes"></div>`;
+  ["trDa", "trA"].forEach(id => { const el = $("#" + id); el.style.background = "#f4f6f9"; el.style.color = "#111"; el.style.borderColor = "#dde3ea"; });
+  $("#trCalc").onclick = async () => {
+    trPlan = { da: $("#trDa").value.trim(), a: $("#trA").value.trim() };
+    if (!trPlan.a){ $("#trRes").innerHTML = `<p class="trnote">Scrivi dove vuoi arrivare.</p>`; return; }
+    const ref = refPoint(), da = trPlan.da || (ref.lat.toFixed(6) + "," + ref.lng.toFixed(6));
+    $("#trRes").innerHTML = `<p class="trnote">Calcolo…</p>`;
+    try{
+      const j = await ACTV("azione=viaggio&da=" + encodeURIComponent(da) + "&a=" + encodeURIComponent(trPlan.a));
+      if (j.errore){ $("#trRes").innerHTML = `<p class="trnote">${j.errore === "pontile_non_trovato" ? "Non trovo il pontile: sceglilo dalla lista." : j.errore === "stesso_pontile" ? "Partenza e arrivo sono lo stesso pontile." : "Percorso non disponibile."}</p>`; return; }
+      if (!j.opzioni || !j.opzioni.length){ $("#trRes").innerHTML = `<p class="trnote">Nessun vaporetto utile nelle prossime ore da ${esc(j.da)} a ${esc(j.a)}.</p>`; return; }
+      $("#trRes").innerHTML = `<p class="trnote">Da <b>${esc(j.da)}</b> a <b>${esc(j.a)}</b></p>` + j.opzioni.map((o, k) => `<div class="opt">
+        <div class="oh"><b>${k === 0 ? "Più veloce" : "Senza cambi"}</b><span>arrivo <b>${o.arrivo}</b> · ${o.durata_min} min${o.cambi ? " · " + o.cambi + (o.cambi === 1 ? " cambio" : " cambi") : ""}</span></div>` +
+        o.tappe.map(t => t.tipo === "piedi" ? `<div class="leg">🚶 a piedi fino a ${esc(t.a)} · ${t.min} min</div>`
+          : `<div class="leg">${lineBadge(t.linea, t.colore)} <b>${t.parte}</b> da ${esc(t.da)}, direzione ${esc(cleanDir(t.direzione))}<br><span class="trnote">scendi a ${esc(t.a)} alle ${t.arriva} (${t.min} min)</span></div>`).join("") + `</div>`).join("") + orarioNote(j.orario_del);
+    }catch(e){ $("#trRes").innerHTML = `<p class="trnote">Non riesco a calcolare: controlla la connessione.</p>`; }
+  };
+}
+setInterval(() => { if (appMode === "trasporti" && trTab === "bus"){ if (trStop) renderDepartures(); else renderTr(); } }, 30000);
 /* =========================================================
    ORDINA
    ========================================================= */
