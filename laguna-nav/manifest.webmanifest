@@ -1,7 +1,7 @@
 {
- "name": "1Click · ClickVenice",
- "short_name": "ClickVenice",
- "description": "Navigatore per la laguna, mezzi pubblici, taxi, ClickMarket, Click n Meet e myClick.",
+ "name": "1Click",
+ "short_name": "1Click",
+ "description": "1Click: navigatore per la laguna, trasporti, Shopping, Meetup, Sport e myClick.",
  "id": "./",
  "start_url": "./index.html",
  "scope": "./",

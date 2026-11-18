@@ -8,10 +8,11 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="ClickVenice">
+<meta name="apple-mobile-web-app-title" content="1Click">
+<link rel="icon" type="image/png" href="favicon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>ClickVenice · 1Click</title>
+<title>1Click</title>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>if(!window.maplibregl){document.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"><\/script>');}</script>
@@ -244,6 +245,39 @@
   .spbar{height:8px;border-radius:4px;background:var(--panel2);overflow:hidden} .spbar i{display:block;height:100%;background:#0a8f4e}
   .spnames{display:flex;flex-wrap:wrap;gap:6px} .spnames span{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:3px 9px;font-size:13px}
   body.mode-sport #fabSos, body.mode-sport #fabTr, body.mode-sport #miniW{display:none}
+  /* Meetup: modalità */
+  #meetModes{display:flex;gap:4px;background:rgba(255,255,255,.95);border-radius:16px;padding:4px;margin-bottom:8px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+  #meetModes button{flex:1;padding:8px 2px;border-radius:12px;font-size:12.5px;font-weight:700;color:#444}
+  #meetModes button.on{background:#ff2d78;color:#fff}
+  .ov{position:absolute;inset:0;top:calc(58px + var(--safe-t));z-index:30;background:#0b0b10;color:#fff;display:flex;flex-direction:column}
+  .ovh{display:flex;align-items:center;gap:8px;padding:8px 14px 10px} .ovh b{flex:1;font-size:18px} .ovh span{font-size:12px;color:#bbb}
+  .ovx{font-size:20px;color:#ddd;padding:4px 8px}
+  #cmBody{flex:1;display:flex;flex-direction:column;padding:0 14px 14px;min-height:0}
+  .cmcard{flex:1;position:relative;border-radius:22px;overflow:hidden;background:#222 center/cover no-repeat;box-shadow:0 8px 28px rgba(0,0,0,.6);min-height:0;transition:transform .28s ease,opacity .28s ease}
+  .cmcard.goL{transform:translateX(-120%) rotate(-14deg);opacity:0} .cmcard.goR{transform:translateX(120%) rotate(14deg);opacity:0}
+  .cmcard .cmi{position:absolute;left:0;right:0;bottom:0;padding:60px 16px 16px;background:linear-gradient(transparent,rgba(0,0,0,.85))}
+  .cmcard .cmi b{font-size:24px} .cmcard .cmi p{margin:4px 0 0;font-size:14px;color:#ddd} .cmcard .cmi small{color:#aaa;font-size:12px}
+  .cmbtns{display:flex;gap:16px;justify-content:center;padding:14px 0 4px}
+  .cmbtns button{width:132px;height:62px;border-radius:31px;font-size:17px;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+  .cmno{background:#fff;color:#d6336c} .cmyes{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff}
+  .cmempty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#bbb;padding:20px} .cmempty .big{font-size:52px}
+  .cmcam{flex:1;position:relative;border-radius:22px;overflow:hidden;background:#000;min-height:0} .cmcam video,.cmcam img{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)} .cmcam img{transform:none}
+  .cmmatch{position:absolute;inset:0;z-index:5;background:rgba(214,51,108,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+  .cmmatch h2{font-size:36px;margin:8px 0} .cmmatch .btn{max-width:260px}
+  /* videochat */
+  #vcRemote{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
+  #vcLocal{position:absolute;right:12px;top:52px;width:28%;max-width:140px;aspect-ratio:3/4;object-fit:cover;border-radius:14px;border:2px solid rgba(255,255,255,.7);transform:scaleX(-1);background:#222;z-index:2}
+  #vcTop{position:absolute;left:0;right:0;top:0;z-index:3;display:flex;align-items:center;gap:8px;padding:10px 12px;background:linear-gradient(rgba(0,0,0,.6),transparent)}
+  #vcTop b{flex:1} #vcTop span{font-size:12px;color:#ccc}
+  #vcBar{position:absolute;left:0;right:0;bottom:14px;z-index:3;display:flex;gap:12px;justify-content:center;align-items:center}
+  #vcBar button{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:22px;backdrop-filter:blur(6px)}
+  #vcBar .vcnext{width:auto;padding:0 22px;border-radius:28px;background:#ff2d78;font-size:16px;font-weight:800}
+  #vcBar button.off{background:#b3261e}
+  .vcstart{position:absolute;inset:0;z-index:4;background:#0b0b10;display:flex;flex-direction:column;justify-content:center;padding:24px;text-align:left}
+  .vcstart .big{font-size:56px;text-align:center} .vcstart h3{text-align:center;font-size:22px;margin:6px 0} .vcstart p,.vcstart li{color:#ccc;line-height:1.45;font-size:14px} .vcstart ul{padding-left:18px}
+  body:not(.mode-incontra) #cmOv, body:not(.mode-incontra) #vcOv{display:none!important}
+  body.mm-ov #meetTop{z-index:31} body.mm-ov #meetBanner, body.mm-ov #evBanner, body.mm-ov #meetFilters, body.mm-ov #fabMatch{display:none!important}
+  body.mm-ov #v-map::before{content:"";position:absolute;left:0;right:0;top:0;height:calc(58px + var(--safe-t));background:#0b0b10;z-index:29}
   #tideC{width:100%;height:36px;display:block;margin-top:4px;border-radius:8px;background:#06101f}
   /* ===== 1Click / ClickVenice ===== */
   #splash{background:radial-gradient(120% 80% at 50% 0%,#0d2b5a 0%,#000 70%)}
@@ -252,6 +286,8 @@
   .logo1{font-size:64px;font-weight:900;letter-spacing:-2px;text-align:center}
   .logo1 span{color:#2f8cff}
   .logoCV{font-size:48px;font-weight:900;letter-spacing:-1px;text-align:center}
+  .mouseLogo{width:.8em;height:1.05em;vertical-align:-.2em;margin-right:.12em;filter:drop-shadow(0 4px 10px rgba(47,140,255,.6));animation:mouseIn .8s cubic-bezier(.3,1.5,.5,1)}
+  @keyframes mouseIn{from{transform:translate(40px,40px) scale(.6);opacity:0}to{transform:none;opacity:1}}
   /* intro: il mouse arriva e clicca sul logo, poi si apre la mappa */
   #obCursor{position:fixed;left:0;top:0;width:30px;height:38px;z-index:5001;pointer-events:none;filter:drop-shadow(0 3px 6px rgba(0,0,0,.6));
     transition:transform .85s cubic-bezier(.45,.05,.25,1),opacity .2s;opacity:0}
@@ -465,7 +501,7 @@
 <div id="splash">
   <!-- 1) scegli la città -->
   <div class="ob" id="ob-city">
-    <div class="logo1">1<span>Click</span></div>
+    <div class="logo1"><svg class="mouseLogo" viewBox="0 0 300 400" aria-hidden="true"><path d="M60 40 L60 370 L135 298 L190 420 L245 396 L190 276 L295 276 Z" transform="translate(-20 -30) scale(.92)" fill="#fff" stroke="#0b1a3a" stroke-width="14" stroke-linejoin="round"/></svg>1<span>Click</span></div>
     <p class="obsub">Scegli la tua città</p>
     <button class="citybtn" data-city="venezia"><b>Venezia</b><span>ClickVenice ›</span></button>
     <button class="citybtn soon" disabled><b>Altre città</b><span>presto</span></button>
@@ -526,11 +562,30 @@
 
     <!-- incontra -->
     <div id="meetTop">
+      <div id="meetModes"><button data-mm="map" class="on">🗺️ Stati</button><button data-mm="match">🔥 Click Match</button><button data-mm="video">🎥 Videochat</button></div>
       <button id="meetBanner"><span id="mbIcon">✨</span><span id="mbText"><b>Aggiorna il tuo stato</b><small>Fatti trovare da chi è in giro a Venezia</small></span><span>›</span></button>
       <button id="evBanner"><span class="evi">🎉</span><span class="evt"><b>Feste ed eventi della settimana</b><small id="evSub">Cosa succede a Venezia nei prossimi giorni</small></span><span>›</span></button>
       <div id="meetFilters">
         <button data-mf="" class="on">Tutti</button><button data-mf="amicizie">🤝 Amicizie</button><button data-mf="aperitivo">🍹 Aperitivo</button><button data-mf="festa">🎉 Festa</button><button data-mf="incontro">❤️ Incontro</button>
       </div>
+    </div>
+    <!-- Click Match: selfie dal vivo, clicka / unclicka -->
+    <div id="cmOv" class="ov hidden">
+      <div class="ovh"><b>🔥 Click Match</b><span id="cmMine"></span><button class="ovx" data-ovx>✕</button></div>
+      <div id="cmBody"></div>
+    </div>
+    <!-- Videochat casuale con tutti gli utenti di 1Click -->
+    <div id="vcOv" class="ov hidden">
+      <video id="vcRemote" autoplay playsinline></video>
+      <video id="vcLocal" autoplay playsinline muted></video>
+      <div id="vcTop"><b id="vcWho">🎥 Videochat</b><span id="vcState">Pronto</span><button class="ovx" data-ovx>✕</button></div>
+      <div id="vcStart" class="vcstart">
+        <div class="big">🎥</div><h3>Videochat casuale</h3>
+        <p>Parli a caso con chi sta usando 1Click in questo momento, in tutte le città. Solo maggiorenni.</p>
+        <ul><li>Se qualcuno ti mette a disagio tocca <b>⚑ Segnala</b>: lo blocchi subito e chi riceve più segnalazioni viene sospeso.</li><li>Non mostrare documenti, indirizzi o dati personali.</li><li>Il video passa direttamente tra i due telefoni e non viene registrato.</li></ul>
+        <button class="btn" id="vcGo">Inizia</button>
+      </div>
+      <div id="vcBar"><button id="vcMute" title="Microfono">🎙️</button><button id="vcRep" title="Segnala">⚑</button><button id="vcNext" class="vcnext">⏭ Prossimo</button></div>
     </div>
     <button class="fab" id="fabMatch" title="I tuoi match">💬<i id="matchBadge" class="hidden"></i></button>
 
@@ -802,10 +857,10 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.4</p>
+      <p class="sub">1Click · ClickVenice · versione 3.5</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
-        <button class="btn" id="instBtn">📲 Installa ClickVenice</button>
+        <button class="btn" id="instBtn">📲 Installa 1Click</button>
         <p class="muted" id="instTxt" style="line-height:1.45;margin:8px 0 12px">Si apre a schermo intero dall'icona, come un'app.</p>
         <button class="btn ghost" id="vibBtn">📳 Prova la vibrazione</button>
         <p class="muted" id="vibTxt" style="line-height:1.45;margin:8px 0 0"></p>
@@ -1035,7 +1090,7 @@ function openApp(){
 let instEvt = null;
 if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); instEvt = e; });
-window.addEventListener("appinstalled", () => { instEvt = null; toast("ClickVenice è sulla schermata Home ✓"); });
+window.addEventListener("appinstalled", () => { instEvt = null; toast("1Click è sulla schermata Home ✓"); });
 document.addEventListener("click", async e => {
   if (e.target.closest("#instBtn")){
     if (window.matchMedia("(display-mode: standalone)").matches){ $("#instTxt").textContent = "Stai già usando l'app installata ✓"; return; }
@@ -3879,7 +3934,7 @@ async function meetStart(){
   loadStati(); clearInterval(meetTimer); meetTimer = setInterval(loadStati, 30000);
   if (map) map.easeTo({ pitch: 0, bearing: 0, zoom: Math.min(map.getZoom(), 14), duration: 600 });
 }
-function meetStop(){ clearInterval(meetTimer); meetMarkers.forEach(m => m.remove()); meetMarkers = []; }
+function meetStop(){ meetMode("map"); clearInterval(meetTimer); meetMarkers.forEach(m => m.remove()); meetMarkers = []; }
 const ago = t => { const m = Math.round((Date.now() - Date.parse(t)) / 60000); return m < 60 ? m + " min fa" : Math.round(m / 60) + " h fa"; };
 async function loadStati(){
   try{ STATI = await rpc("status_list", {}) || []; }catch(e){ toast("Non riesco a caricare gli stati: controlla la connessione."); return; }
@@ -4154,6 +4209,157 @@ function sportForm(){
   };
 }
 $("#spNew").onclick = () => { SPF = {}; sportForm(); };
+
+/* =========================================================
+   MEETUP · modalità: stati sulla mappa, Click Match, videochat
+   ========================================================= */
+let mmNow = "map";
+function meetMode(m){
+  mmNow = m; document.querySelectorAll("#meetModes [data-mm]").forEach(b => b.classList.toggle("on", b.dataset.mm === m));
+  $("#cmOv").classList.toggle("hidden", m !== "match"); $("#vcOv").classList.toggle("hidden", m !== "video");
+  document.body.classList.toggle("mm-ov", m !== "map");
+  if (m !== "match") camStop();
+  if (m !== "video") vcEnd(true);
+  if (m === "match") cmOpen();
+  if (m === "video"){ $("#vcStart").classList.remove("hidden"); $("#vcState").textContent = ""; $("#vcWho").textContent = "🎥 Videochat"; }
+}
+document.querySelectorAll("#meetModes [data-mm]").forEach(b => b.onclick = () => meetMode(b.dataset.mm));
+document.querySelectorAll("[data-ovx]").forEach(b => b.onclick = () => meetMode("map"));
+
+/* ---------- Click Match ---------- */
+let CM = { me: null, deck: [], i: 0 }, camStream = null;
+function camStop(){ if (camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; } }
+async function cmOpen(){
+  $("#cmBody").innerHTML = `<div class="cmempty"><div class="big">🔥</div><p>Carico…</p></div>`;
+  try{ CM.me = await rpc("match_me", {}); }catch(e){ $("#cmBody").innerHTML = `<div class="cmempty"><p>Click Match non disponibile: controlla la connessione.</p></div>`; return; }
+  if (CM.me && CM.me.errore){ $("#cmBody").innerHTML = `<div class="cmempty"><p>Per Click Match serve l'account maggiorenne: esci e rientra.</p></div>`; return; }
+  if (!CM.me || !CM.me.foto){ cmSelfieIntro(); return; }
+  const h = Math.max(0, Math.round((Date.parse(CM.me.scade) - Date.now()) / 3600e3));
+  $("#cmMine").innerHTML = `il tuo selfie vale ancora ${h} h · <a href="#" id="cmRedo" style="color:#ff8ab0">rifallo</a>`;
+  $("#cmRedo").onclick = e => { e.preventDefault(); cmCamera(); };
+  try{ CM.deck = await rpc("match_deck", {}); }catch(e){ CM.deck = []; } CM.i = 0; cmCard();
+}
+function cmSelfieIntro(){
+  $("#cmMine").textContent = "";
+  $("#cmBody").innerHTML = `<div class="cmempty"><div class="big">🤳</div><h3 style="color:#fff">Fatti un selfie</h3>
+    <p style="line-height:1.45">In Click Match si entra solo con un selfie scattato adesso, niente foto dalla galleria. Il selfie vale <b>48 ore</b>: poi ne fai uno nuovo.</p>
+    <button class="btn" id="cmCam" style="max-width:260px;background:#ff2d78;color:#fff">📸 Scatta il selfie</button></div>`;
+  $("#cmCam").onclick = cmCamera;
+}
+async function cmCamera(){
+  $("#cmBody").innerHTML = `<div class="cmcam"><video id="cmVid" autoplay playsinline muted></video></div>
+    <div class="cmbtns"><button class="cmno" id="cmCancel">Annulla</button><button class="cmyes" id="cmShot">📸 Scatta</button></div>`;
+  $("#cmCancel").onclick = () => { camStop(); cmOpen(); };
+  try{ camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 960 }, height: { ideal: 1280 } }, audio: false }); $("#cmVid").srcObject = camStream; }
+  catch(e){ $("#cmBody").innerHTML = `<div class="cmempty"><div class="big">📷</div><p>Non riesco ad aprire la fotocamera. Dai il permesso alla fotocamera per questo sito nelle impostazioni di Chrome e riprova.</p><button class="btn" id="cmRetry" style="max-width:240px">Riprova</button></div>`; $("#cmRetry").onclick = cmCamera; return; }
+  $("#cmShot").onclick = () => {
+    const v = $("#cmVid"), s = Math.min(1, 900 / Math.max(v.videoWidth, v.videoHeight)), c = document.createElement("canvas");
+    c.width = Math.round(v.videoWidth * s); c.height = Math.round(v.videoHeight * s);
+    const g = c.getContext("2d"); g.translate(c.width, 0); g.scale(-1, 1); g.drawImage(v, 0, 0, c.width, c.height);   // come in uno specchio
+    const foto = c.toDataURL("image/jpeg", 0.82); camStop(); haptic();
+    $("#cmBody").innerHTML = `<div class="cmcam"><img src="${foto}" alt=""></div><div class="cmbtns"><button class="cmno" id="cmAgain">↺ Rifai</button><button class="cmyes" id="cmUse">✓ Usa questo</button></div>`;
+    $("#cmAgain").onclick = cmCamera;
+    $("#cmUse").onclick = async () => { $("#cmUse").disabled = true; $("#cmUse").textContent = "Carico…";
+      try{ const r = await (await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/selfie", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: TOKEN, foto }) }, 30000)).json();
+        if (!r.ok){ if (r.errore === "non_autorizzato" && await syncAdult()) return $("#cmUse").click(); toast("Selfie non salvato, riprova."); $("#cmUse").disabled = false; $("#cmUse").textContent = "✓ Usa questo"; return; }
+        toast("Selfie pronto: vale 48 ore ✓"); cmOpen(); }catch(e){ toast("Selfie non salvato: controlla la connessione."); $("#cmUse").disabled = false; $("#cmUse").textContent = "✓ Usa questo"; } };
+  };
+}
+function cmCard(){
+  const p = CM.deck[CM.i];
+  if (!p){ $("#cmBody").innerHTML = `<div class="cmempty"><div class="big">✨</div><h3 style="color:#fff">Per ora hai visto tutti</h3><p>Torna più tardi: ogni giorno arrivano selfie nuovi.</p><button class="btn ghost" id="cmReload" style="max-width:220px">Ricarica</button></div>`;
+    $("#cmReload").onclick = cmOpen; return; }
+  $("#cmBody").innerHTML = `<div class="cmcard" id="cmCard" style="background-image:url('${esc(p.foto)}')"><div class="cmi"><b>@${esc(p.nome)}</b>${p.bio ? `<p>${esc(p.bio)}</p>` : ""}<small>selfie di oggi · vale ancora ${p.ore} h</small></div></div>
+    <div class="cmbtns"><button class="cmno" id="cmNo">👎 Unclicka</button><button class="cmyes" id="cmYes">👍 Clicka</button></div>`;
+  $("#cmNo").onclick = () => cmVote(false); $("#cmYes").onclick = () => cmVote(true);
+}
+async function cmVote(like){
+  const p = CM.deck[CM.i]; if (!p) return; haptic();
+  $("#cmCard").classList.add(like ? "goR" : "goL"); $("#cmNo").disabled = $("#cmYes").disabled = true;
+  let r = null; try{ r = await rpc("match_vote", { p_nome: p.nome, p_like: like }); }catch(e){}
+  setTimeout(() => {
+    CM.i++;
+    if (r && r.match){
+      buzz([100, 60, 100, 60, 200]);
+      $("#cmBody").innerHTML = `<div class="cmcard" style="background-image:url('${esc(p.foto)}')"><div class="cmmatch"><div style="font-size:54px">💥</div><h2>È un Click!</h2><p>Tu e @${esc(p.nome)} vi siete cliccati a vicenda.</p>
+        <button class="btn" id="cmChat" style="background:#fff;color:#d6336c">💬 Scrivi a @${esc(p.nome)}</button><button class="btn ghost" id="cmGoOn" style="margin-top:10px">Continua</button></div></div>`;
+      $("#cmChat").onclick = () => { meetMode("map"); openChat(p.nome); }; $("#cmGoOn").onclick = cmCard;
+    } else cmCard();
+  }, 280);
+}
+
+/* ---------- videochat casuale (WebRTC, si parla direttamente tra i due telefoni) ---------- */
+let VC = { pc: null, room: null, role: null, after: 0, timer: null, local: null, muted: false, startT: 0 };
+const ICE = [{ urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] }];
+const vcState = t => { $("#vcState").textContent = t; };
+async function vcLocal(){
+  if (VC.local) return VC.local;
+  VC.local = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: { echoCancellation: true, noiseSuppression: true } });
+  $("#vcLocal").srcObject = VC.local; return VC.local;
+}
+function vcClosePeer(){ clearInterval(VC.timer); VC.timer = null; if (VC.pc){ try{ VC.pc.close(); }catch(e){} } VC.pc = null; VC.room = null; VC.after = 0; $("#vcRemote").srcObject = null; }
+function vcEnd(full){
+  if (!VC.room && !VC.timer && !VC.local) return;
+  if (VC.room) rpc("vc_send", { p_room: VC.room, p_kind: "bye", p_body: "" }).catch(() => {});
+  vcClosePeer(); rpc("vc_leave", {}).catch(() => {});
+  if (full && VC.local){ VC.local.getTracks().forEach(t => t.stop()); VC.local = null; $("#vcLocal").srcObject = null; }
+}
+const gathered = pc => new Promise(ok => { if (pc.iceGatheringState === "complete") return ok(); const t = setTimeout(ok, 2500);
+  pc.addEventListener("icegatheringstatechange", () => { if (pc.iceGatheringState === "complete"){ clearTimeout(t); ok(); } }); });
+function vcPeer(){
+  const pc = new RTCPeerConnection({ iceServers: ICE });
+  VC.local.getTracks().forEach(t => pc.addTrack(t, VC.local));
+  pc.ontrack = e => { $("#vcRemote").srcObject = e.streams[0]; };
+  pc.onconnectionstatechange = () => { const s = pc.connectionState;
+    if (s === "connected"){ vcState("in linea"); haptic(); }
+    if (s === "failed" || s === "disconnected"){ vcState("collegamento perso"); setTimeout(() => { if (VC.pc === pc && pc.connectionState !== "connected") vcNext(); }, 2500); } };
+  return pc;
+}
+async function vcSearch(){
+  vcClosePeer(); $("#vcWho").textContent = "🎥 Videochat"; vcState("cerco qualcuno…");
+  let r; try{ r = await rpc("vc_join", {}); }catch(e){ vcState("serve la connessione"); return; }
+  if (r && r.errore){ if (r.errore === "sospeso"){ vcState("sospeso"); toast("Sei sospeso dalla videochat per le segnalazioni ricevute."); } else if (r.errore === "non_autorizzato" && await syncAdult()) return vcSearch(); else vcState("non disponibile"); return; }
+  if (r.room) return vcConnect(r);
+  VC.timer = setInterval(async () => {   // in attesa che arrivi qualcuno
+    try{ const w = await rpc("vc_wait", {}); if (w && w.room){ clearInterval(VC.timer); vcConnect(w); }
+      else if (w && w.attesa) vcState(w.online > 1 ? "cerco… (" + w.online + " in attesa)" : "aspetto che arrivi qualcuno…");
+      else if (w && w.errore === "fuori"){ clearInterval(VC.timer); vcSearch(); } }catch(e){}
+  }, 1500);
+}
+async function vcConnect(r){
+  VC.room = r.room; VC.role = r.ruolo; VC.after = 0; VC.startT = Date.now();
+  $("#vcWho").textContent = "🎥 @" + (r.altro || "utente"); vcState("collego…");
+  const pc = VC.pc = vcPeer(), room = VC.room;
+  if (VC.role === "caller"){ await pc.setLocalDescription(await pc.createOffer()); await gathered(pc); if (VC.room === room) rpc("vc_send", { p_room: room, p_kind: "offer", p_body: JSON.stringify(pc.localDescription) }).catch(() => {}); }
+  VC.timer = setInterval(async () => {
+    if (VC.room !== room) return;
+    if (pc.connectionState !== "connected" && Date.now() - VC.startT > 25000){ vcNext(); return; }   // non si collega: passa al prossimo
+    let ms = []; try{ ms = await rpc("vc_recv", { p_room: room, p_after: VC.after }); }catch(e){ return; }
+    for (const m of ms || []){
+      VC.after = Math.max(VC.after, m.id);
+      if (m.tipo === "bye"){ vcState("ha chiuso"); setTimeout(() => { if (VC.room === room) vcSearch(); }, 900); return; }
+      if (m.tipo === "offer" && VC.role === "callee"){ await pc.setRemoteDescription(JSON.parse(m.dati)); await pc.setLocalDescription(await pc.createAnswer()); await gathered(pc);
+        rpc("vc_send", { p_room: room, p_kind: "answer", p_body: JSON.stringify(pc.localDescription) }).catch(() => {}); }
+      if (m.tipo === "answer" && VC.role === "caller" && !pc.currentRemoteDescription) await pc.setRemoteDescription(JSON.parse(m.dati));
+    }
+  }, 1000);
+}
+function vcNext(){ if (VC.room) rpc("vc_send", { p_room: VC.room, p_kind: "bye", p_body: "" }).catch(() => {}); vcSearch(); }
+$("#vcGo").onclick = async () => {
+  try{ await vcLocal(); }catch(e){ toast("Serve il permesso per fotocamera e microfono."); return; }
+  $("#vcStart").classList.add("hidden"); vcSearch();
+};
+$("#vcNext").onclick = () => { haptic(); vcNext(); };
+$("#vcMute").onclick = () => { if (!VC.local) return; VC.muted = !VC.muted; VC.local.getAudioTracks().forEach(t => t.enabled = !VC.muted); $("#vcMute").classList.toggle("off", VC.muted); $("#vcMute").textContent = VC.muted ? "🔇" : "🎙️"; };
+$("#vcRep").onclick = () => {
+  if (!VC.room) return toast("Nessuno da segnalare.");
+  const room = VC.room;
+  openSheet(`<h3>⚑ Segnala</h3><p class="muted">Lo blocchi subito e non lo incontrerai più. Chi riceve più segnalazioni viene sospeso.</p>
+    ${["Nudità o contenuti sessuali", "Insulti o minacce", "Sembra minorenne", "Spam o pubblicità", "Altro"].map(x => `<button class="asopt" data-vr="${x}">${x}</button>`).join("")}
+    <button class="btn ghost" onclick="closeSheet()">Annulla</button>`);
+  document.querySelectorAll("[data-vr]").forEach(b => b.onclick = async () => { closeSheet(); try{ await rpc("vc_report", { p_room: room, p_reason: b.dataset.vr }); }catch(e){} toast("Segnalato e bloccato. Grazie."); vcSearch(); });
+};
+window.addEventListener("pagehide", () => { if (VC.room || VC.timer) rpc("vc_leave", {}).catch(() => {}); });
 /* =========================================================
    ORDINA
    ========================================================= */
