@@ -279,6 +279,7 @@
   .chatin{display:flex;gap:8px;margin-top:8px}
   .chatin input{flex:1}
 
+  #toggles .dashbtn{opacity:1;background:#0b1426;color:#7fb3ff;display:flex;align-items:center;justify-content:center;margin-top:4px}
   /* Sheets / modal */
   #sheet{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
   #sheet .in{width:100%;background:var(--panel);border-radius:20px 20px 0 0;padding:20px;padding-bottom:calc(20px + var(--safe-b));
@@ -367,8 +368,6 @@
       <div id="results" class="hidden"></div>
     </div>
 
-    <!-- nautica: navigatore o cruscotto -->
-    <div id="navMode"><button data-nm="nav" class="on">🧭 Navigatore</button><button data-nm="dash">📟 Cruscotto</button></div>
 
     <!-- incontra -->
     <div id="meetTop">
@@ -402,7 +401,7 @@
       <button data-inst="depth" title="Ecoscandaglio">〰</button>
       <button data-inst="tide" title="Marea">🌊</button>
       <button data-inst="bridge" title="Ponti">🌉</button>
-      <button data-inst="head" title="Rotta">🧭</button>
+      <button id="tgDash" class="dashbtn" title="Cruscotto"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="19" height="14" rx="2.5"/><circle cx="12" cy="10.5" r="4"/><path d="M12 6.5v1.4M12 13.1v1.4M8 10.5h1.4M14.6 10.5H16"/><path d="M12 10.5l1.8-1.8"/><path d="M8 21h8M12 17.5V21"/></svg></button>
     </div>
 
     <!-- strumenti -->
@@ -440,7 +439,6 @@
     </div>
 
     <div class="fabs">
-      <button class="fab" id="fabFood" title="Mostra / nascondi ristoranti">🍝</button>
       <button class="fab" id="fabSat" title="Tipo di mappa">🗺️</button>
       <button class="fab" id="fabView" title="Prima persona / nord in alto">3D</button>
       <button class="fab" id="fabMenu" title="Altro">⋯</button>
@@ -527,7 +525,7 @@
       </div>
       <div id="mkt-other" class="hidden"></div>
       <div id="mkt-food">
-      <p class="sub">Cibo consegnato alla tua barca o a casa, a piedi. <a href="#" id="foodOnMap" style="color:#c8102e">Vedi i ristoranti sulla mappa ›</a></p>
+      <p class="sub">Cibo consegnato alla tua barca o a casa, a piedi.</p>
       <div class="seg" id="modeSeg">
         <button data-m="boat" class="on">🚤 In barca</button>
         <button data-m="foot">🚶 A piedi</button>
@@ -595,7 +593,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ Profilo</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 2.3</p>
+      <p class="sub">1Click · ClickVenice · versione 2.4</p>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
@@ -822,7 +820,6 @@ document.querySelectorAll("#mktSeg [data-k]").forEach(b => b.onclick = () => {
   if (!food){ const [ic, t, d] = MKT_SOON[k];
     $("#mkt-other").innerHTML = `<div class="card soonbox"><div class="big">${ic}</div><h3>${t}</h3><p class="muted" style="line-height:1.45">${d}</p><span class="pill">In arrivo</span></div>`; }
 });
-$("#foodOnMap").onclick = e => { e.preventDefault(); document.querySelector('nav button[data-mode="nautica"]').click(); setFood(true); };
 
 /* ---------- Incontra (solo maggiorenni) ---------- */
 function renderMeet(){
@@ -1322,11 +1319,11 @@ let foodOn = false;
 function setFood(on){
   foodOn = on;
   document.body.classList.toggle("food", on || !$("#v-order").classList.contains("hidden"));
-  $("#fabFood").classList.toggle("on", on);
-  qIn.placeholder = on ? "Cerca un ristorante, una pizzeria…" : "Dove vuoi andare?";
+  const ff = $("#fabFood"); if (ff) ff.classList.toggle("on", on);
+  qIn.placeholder = "Dove vuoi andare?";
   layerVis();
 }
-$("#fabFood").onclick = () => setFood(!foodOn);
+if ($("#fabFood")) $("#fabFood").onclick = () => setFood(!foodOn);
 function drawPOI(){
   if (!map || !map.getSource("poi")) return;
   map.getSource("poi").setData({ type: "FeatureCollection", features: POI.map((p, i) => ({
@@ -1703,18 +1700,21 @@ function navTick(p){
 /* =========================================================
    STRUMENTI: velocità, ecoscandaglio, marea, rotta
    ========================================================= */
+let dashOpen = false;
+const instOn = k => !!INST[k] || dashOpen;
 let INST = Object.assign({ speed: true, depth: false, tide: false, head: false, velox: true, bridge: false }, store.get("ln_inst", {}));
 function paintInst(){
-  document.querySelectorAll("#toggles button").forEach(b => b.classList.toggle("on", !!INST[b.dataset.inst]));
+  document.querySelectorAll("#toggles button[data-inst]").forEach(b => b.classList.toggle("on", !!INST[b.dataset.inst]));
   $("#i-speed").classList.toggle("hidden", !INST.speed);
   $("#i-depth").classList.toggle("hidden", !INST.depth);
   $("#i-tide").classList.toggle("hidden", !INST.tide);
-  $("#i-head").classList.toggle("hidden", !INST.head);
+  $("#i-head").classList.add("hidden");
   $("#i-velox").classList.toggle("hidden", !INST.velox);
   $("#i-bridge").classList.toggle("hidden", !INST.bridge);
   layerVis();
 }
-document.querySelectorAll("#toggles button").forEach(b => b.onclick = () => {
+$("#tgDash").onclick = () => openDash();
+document.querySelectorAll("#toggles button[data-inst]").forEach(b => b.onclick = () => {
   INST[b.dataset.inst] = !INST[b.dataset.inst]; store.set("ln_inst", INST); paintInst();
   if (b.dataset.inst === "depth" && INST.depth){ if (!activeBoat()) toast("Imposta la tua barca (⋯ → La mia barca) per sapere quanta acqua hai sotto il piede."); if (lastPos) updateDepth(lastPos); else toast("Tocca ➤ per attivare il GPS."); }
   if (b.dataset.inst === "tide" || b.dataset.inst === "depth" || b.dataset.inst === "bridge") loadTide();
@@ -1759,7 +1759,7 @@ $("#i-tide").onclick = () => {
   $("#tOk").onclick = () => { const v = parseInt($("#tm").value, 10); tideManual = isNaN(v) ? null : v; closeSheet(); paintTide(); if (lastPos) updateDepth(lastPos); };
   $("#tAuto").onclick = () => { tideManual = null; closeSheet(); loadTide(); };
 };
-setInterval(() => { if (INST.tide || INST.depth || INST.bridge) loadTide(); }, 5 * 60000);
+setInterval(() => { if (instOn("tide") || instOn("depth") || instOn("bridge")) loadTide(); }, 5 * 60000);
 setTimeout(() => { if (INST.tide || INST.depth) loadTide(); }, 0);
 
 /* ---------- ecoscandaglio calcolato ----------
@@ -1918,7 +1918,7 @@ function paintEngChips(){
   box.querySelectorAll("button").forEach(x => x.onclick = () => { engState = x.dataset.eng; store.set("ln_eng", engState); paintEngChips(); if (lastPos) updateDepth(lastPos); });
 }
 function updateDepth(p){
-  if (!INST.depth) return;
+  if (!instOn("depth")) return;
   const card = $("#i-depth"), b = activeBoat(), draft = boatDraftCm(b), tide = tideNow(), f = fondaleAt(p.lat, p.lng);
   card.classList.remove("ok", "warn", "alarm");
   $("#dSrc").textContent = !f ? "" : f.src === "carta" ? "· STIMA DALLA CARTA (±200 m)" : "· " + f.n + (f.n === 1 ? " misura" : " misure") + " a " + Math.round(f.near) + " m";
@@ -1960,7 +1960,7 @@ function drawSonar(){
 
 /* rotta in gradi */
 setInterval(() => {
-  if (!INST.head) return;
+  if (!instOn("head")) return;
   const h = Math.round(heading) % 360, dirs = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"];
   $("#hVal").textContent = h + "°"; $("#hSub").textContent = dirs[Math.round(h / 45) % 8] + (headingSrc === "phone" && compassAt ? " · bussola" : " · GPS");
 }, 500);
@@ -2136,7 +2136,7 @@ function veloxTick(p, kmh){
   paintVelox(p, kmh);
 }
 function paintVelox(p, kmh){
-  if (!INST.velox) return;
+  if (!instOn("velox")) return;
   const card = $("#i-velox"); card.classList.remove("ok", "warn", "alarm");
   if (VX){
     // tratta più probabile: l'estremità davanti a noi più vicina
@@ -2216,7 +2216,7 @@ function drawBridges(){
 function boatAir(b){ if (!b) return null; const v = Number(b.foldable && b.airDraftLow ? b.airDraftLow : b.airDraft); return v > 0 ? v : null; }
 let BR_NEXT = null;
 function bridgeTick(p){
-  if (!INST.bridge || !BRIDGES.list.length) return;
+  if (!instOn("bridge") || !BRIDGES.list.length) return;
   let nx = null;
   BRIDGES.list.forEach(b => { const d = hav(p.lat, p.lng, b.lat, b.lng); if (d > 300) return;
     const ahead = d < 15 || Math.abs(angDiff(heading, bearing(p.lat, p.lng, b.lat, b.lng))) < 40;
@@ -2296,7 +2296,7 @@ function tideForecastHtml(){
   return `<div class="card" style="margin-bottom:12px"><h4>Prossime maree</h4>` + TFC.pts.filter(p => p.ts > now - 3600e3).slice(0, 8).map(p =>
     `<div class="list-row"><span>${new Date(p.ts).toLocaleString("it-IT", { weekday: "short", hour: "2-digit", minute: "2-digit" })}</span><b style="color:${p.cm >= 110 ? "#ff6b60" : p.tipo === "max" ? "#7fc1ff" : "#ccc"}">${p.tipo === "max" ? "▲" : "▼"} ${p.cm > 0 ? "+" : ""}${p.cm} cm</b></div>`).join("") + `</div>`;
 }
-setInterval(() => { if (INST.tide) loadForecast(); }, 30 * 60000);
+setInterval(() => { if (instOn("tide")) loadForecast(); }, 30 * 60000);
 loadForecast();
 
 /* =========================================================
@@ -2492,7 +2492,7 @@ function applyMapMode(){
   const sat = mapMode === "sat", dep = mapMode === "depth";
   $("#depthLegend").classList.toggle("hidden", !dep);
   layerVis();
-  if (dep){ loadTide(); drawChart(); if (!INST.depth){ INST.depth = true; store.set("ln_inst", INST); paintInst(); } }
+  if (dep){ loadTide(); drawChart(); }
   BASE_LAYERS.forEach(l => { if (!map.getLayer(l.id)) return;
     const show = sat ? (l.type === "symbol" && /place/i.test(l.id)) : keepSimple(l) && !(dep && l.type === "fill-extrusion");
     map.setLayoutProperty(l.id, "visibility", show ? "visible" : "none"); });
@@ -2583,8 +2583,8 @@ let dashTimer = null;
 function openDash(){
   if (watchId === null){ askCompass(); startGps(); }
   // il cruscotto mostra tutti gli strumenti, anche quelli spenti sulla mappa
-  ["velox", "depth", "tide", "bridge"].forEach(k => { if (!INST[k]){ INST[k] = true; } }); store.set("ln_inst", INST); paintInst();
-  loadTide(); loadBridges();
+  dashOpen = true;   // gli strumenti lavorano anche se sulla mappa sono nascosti
+  loadTide(); loadForecast(); loadBridges();
   $("#dash").classList.remove("hidden");
   const copy = () => {
     const tx = id => ($("#" + id) || {}).textContent || "";
@@ -2601,7 +2601,7 @@ function openDash(){
   };
   copy(); clearInterval(dashTimer); dashTimer = setInterval(copy, 500);
 }
-$("#dashClose").onclick = () => { $("#dash").classList.add("hidden"); clearInterval(dashTimer); };
+$("#dashClose").onclick = () => { $("#dash").classList.add("hidden"); clearInterval(dashTimer); dashOpen = false; };
 
 /* ---------- trasporti: fermate dei vaporetti ---------- */
 let FERMATE = [], trTab = "bus";
