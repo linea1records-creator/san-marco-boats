@@ -13,6 +13,8 @@ self.addEventListener('activate', function (e) {
 self.addEventListener('fetch', function (e) {
   var r = e.request, u = new URL(r.url);
   if (r.method !== 'GET' || u.origin !== self.location.origin) return;
+  // Laguna Nav (cartella laguna-nav/) è un'app separata: il service worker di San Marco non la tocca
+  if (u.pathname.indexOf('/laguna-nav/') !== -1 || /\/laguna-nav$/.test(u.pathname)) return;
   var page = r.mode === 'navigate';
   e.respondWith(new Promise(function (ok) {
     var done = false;

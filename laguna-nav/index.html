@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Laguna Nav</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>if(!window.L)document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"><\/script>');</script>
+<style>
+  :root{
+    --bg:#000; --panel:#111; --panel2:#1a1a1a; --line:#2a2a2a;
+    --text:#f2f2f2; --muted:#9a9a9a; --accent:#2fa4ff;
+    --warn:#ffc400; --danger:#ff3b30; --ok:#30d158;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-t: env(safe-area-inset-top, 0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+  input,select,textarea{font:inherit;color:var(--text);background:var(--panel2);
+    border:1px solid var(--line);border-radius:10px;padding:12px;width:100%}
+  .hidden{display:none!important}
+
+  /* Splash / disclaimer */
+  #splash{position:fixed;inset:0;z-index:5000;background:#000;display:flex;flex-direction:column;
+    justify-content:center;padding:28px;padding-top:calc(28px + var(--safe-t))}
+  #splash h1{font-size:34px;margin:0 0 6px}
+  #splash p{color:var(--muted);line-height:1.45}
+  .check{display:flex;gap:12px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:16px;margin:18px 0;line-height:1.4}
+  .check input{width:24px;height:24px;flex:0 0 24px;margin-top:2px;accent-color:var(--accent)}
+  .btn{display:block;width:100%;padding:16px;border-radius:14px;background:var(--accent);color:#000;
+    font-weight:700;font-size:17px;text-align:center}
+  .btn:disabled{opacity:.35}
+  .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  .btn.small{padding:10px 14px;font-size:15px;width:auto;display:inline-block}
+
+  /* Layout */
+  #app{position:fixed;inset:0;display:flex;flex-direction:column}
+  .view{flex:1;position:relative;overflow:hidden}
+  .scroll{position:absolute;inset:0;overflow-y:auto;padding:18px;padding-top:calc(18px + var(--safe-t));padding-bottom:30px}
+  #map{position:absolute;inset:0;background:#0b1a24}
+  nav{display:flex;background:#0a0a0a;border-top:1px solid var(--line);padding-bottom:var(--safe-b)}
+  nav button{flex:1;padding:10px 0 8px;font-size:11px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px}
+  nav button .ic{font-size:22px;line-height:1}
+  nav button.on{color:var(--accent)}
+
+  /* HUD on map */
+  .hud{position:absolute;z-index:1000;left:12px;right:12px;top:calc(12px + var(--safe-t));display:flex;gap:10px;pointer-events:none}
+  .speed{pointer-events:auto;background:rgba(0,0,0,.82);border:1px solid var(--line);border-radius:16px;padding:10px 14px;min-width:118px}
+  .speed .v{font-size:40px;font-weight:800;line-height:1}
+  .speed .u{font-size:12px;color:var(--muted)}
+  .speed .kn{font-size:14px;color:var(--muted);margin-top:4px}
+  #banner{pointer-events:auto;flex:1;border-radius:16px;padding:12px 14px;font-weight:800;display:flex;flex-direction:column;justify-content:center;
+    background:rgba(0,0,0,.82);border:1px solid var(--line);font-size:14px;color:var(--muted)}
+  #banner.zone{background:var(--warn);color:#000;border-color:var(--warn)}
+  #banner.over{background:var(--danger);color:#fff;border-color:var(--danger);animation:pulse 1s infinite}
+  #banner small{font-weight:600;opacity:.85;margin-top:2px}
+  @keyframes pulse{50%{opacity:.75}}
+  #shallow{position:absolute;z-index:1000;left:12px;right:12px;top:calc(118px + var(--safe-t));
+    background:var(--danger);color:#fff;font-weight:700;border-radius:12px;padding:10px 14px;font-size:14px}
+  .fabs{position:absolute;z-index:1000;right:12px;bottom:16px;display:flex;flex-direction:column;gap:10px}
+  .fab{width:52px;height:52px;border-radius:50%;background:rgba(0,0,0,.85);border:1px solid var(--line);font-size:22px;
+    display:flex;align-items:center;justify-content:center}
+  .fab.on{background:var(--accent);color:#000;border-color:var(--accent)}
+  #modeHint{position:absolute;z-index:1000;left:12px;right:76px;bottom:16px;background:var(--accent);color:#000;
+    font-weight:700;border-radius:12px;padding:12px 14px;font-size:14px}
+  .leaflet-control-attribution{font-size:9px!important;background:rgba(0,0,0,.6)!important;color:#aaa!important}
+  .leaflet-control-attribution a{color:#ccc!important}
+  .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#111;color:#eee}
+  .leaflet-popup-content{margin:12px 14px;font-size:14px;line-height:1.4}
+  .leaflet-control-layers{background:#111!important;color:#eee!important;border:1px solid #333!important}
+
+  /* Sheets / modal */
+  #sheet{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
+  #sheet .in{width:100%;background:var(--panel);border-radius:20px 20px 0 0;padding:20px;padding-bottom:calc(20px + var(--safe-b));
+    max-height:88vh;overflow-y:auto;border-top:1px solid var(--line)}
+  #sheet h3{margin:0 0 12px}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .row{display:flex;gap:10px}
+  .row>*{flex:1}
+
+  /* Cards */
+  h2{margin:0 0 4px;font-size:28px}
+  .sub{color:var(--muted);margin:0 0 18px;font-size:14px;line-height:1.4}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+  .card h4{margin:0 0 4px;font-size:17px}
+  .muted{color:var(--muted);font-size:13px}
+  .seg{display:flex;background:var(--panel2);border-radius:12px;padding:4px;margin-bottom:16px}
+  .seg button{flex:1;padding:10px;border-radius:9px;font-weight:600;color:var(--muted)}
+  .seg button.on{background:var(--accent);color:#000}
+  .item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid var(--line)}
+  .item:first-of-type{border-top:0}
+  .qty{display:flex;align-items:center;gap:10px}
+  .qty button{width:34px;height:34px;border-radius:50%;background:var(--panel2);border:1px solid var(--line);font-size:18px}
+  .pill{display:inline-block;font-size:11px;padding:3px 8px;border-radius:20px;background:var(--panel2);color:var(--muted);margin-right:4px}
+  .pill.boat{background:#0c3550;color:#8fd0ff}
+  .pill.foot{background:#173d1f;color:#8ff0a4}
+  .cartbar{position:sticky;bottom:0;margin-top:8px}
+  .bar{height:12px;border-radius:8px;background:var(--panel2);overflow:hidden;margin:10px 0 6px}
+  .bar>div{height:100%;background:var(--ok)}
+  .bar.warn>div{background:var(--warn)}
+  .bar.over>div{background:var(--danger)}
+  .big{font-size:32px;font-weight:800}
+  .list-row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+  .list-row:first-child{border-top:0}
+  .x{color:var(--danger);font-size:13px}
+</style>
+</head>
+<body>
+
+<!-- ============ SPLASH: avviso obbligatorio ============ -->
+<div id="splash">
+  <h1>Laguna Nav</h1>
+  <p>Navigatore per la laguna di Venezia: zone controllate, bassi fondali segnalati e consegne di cibo, in barca o a piedi.</p>
+  <label class="check">
+    <input type="checkbox" id="agree">
+    <span>So che <b>quest'app non sostituisce la carta nautica</b> né gli avvisi ufficiali. Le profondità e le zone sono indicative e possono essere sbagliate o non aggiornate. Resto io responsabile della navigazione.</span>
+  </label>
+  <button class="btn" id="enter" disabled>Entra</button>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" class="hidden">
+
+  <!-- MAPPA -->
+  <section class="view" id="v-map">
+    <div id="map"></div>
+    <div class="hud">
+      <div class="speed">
+        <div class="v" id="spd">–</div>
+        <div class="u">km/h</div>
+        <div class="kn" id="kn">– nodi</div>
+      </div>
+      <div id="banner">GPS non attivo<small>Tocca ◎ per iniziare</small></div>
+    </div>
+    <div id="shallow" class="hidden"></div>
+    <div id="modeHint" class="hidden"></div>
+    <div class="fabs">
+      <button class="fab" id="fabDepth" title="Segnala profondità">≈</button>
+      <button class="fab" id="fabZone" title="Aggiungi zona controllata">⚠︎</button>
+      <button class="fab" id="fabGps" title="GPS / segui">◎</button>
+    </div>
+  </section>
+
+  <!-- ORDINA -->
+  <section class="view hidden" id="v-order">
+    <div class="scroll">
+      <h2>Ordina</h2>
+      <p class="sub">Cibo consegnato alla tua barca o a casa, a piedi.</p>
+      <div class="seg" id="modeSeg">
+        <button data-m="boat" class="on">🚤 In barca</button>
+        <button data-m="foot">🚶 A piedi</button>
+      </div>
+      <div id="restList"></div>
+      <div id="menuBox" class="hidden"></div>
+    </div>
+  </section>
+
+  <!-- RIDER -->
+  <section class="view hidden" id="v-rider">
+    <div class="scroll">
+      <h2>Rider</h2>
+      <p class="sub">Le tue consegne a piedi e il totale dell'anno.</p>
+      <div class="card">
+        <div class="field"><label>Il tuo nome</label><input id="riderName" placeholder="Nome e cognome"></div>
+        <div class="muted">Totale compensi <span id="yearLbl"></span></div>
+        <div class="big" id="yearTot">0,00 €</div>
+        <div class="bar" id="yearBar"><div style="width:0%"></div></div>
+        <div class="muted" id="yearNote"></div>
+      </div>
+      <div class="card">
+        <h4>Nuova consegna</h4>
+        <div class="field"><label>Ristorante</label><select id="rRest"></select></div>
+        <div class="row">
+          <div class="field"><label>Data</label><input type="date" id="rDate"></div>
+          <div class="field"><label>Compenso (€)</label><input type="number" inputmode="decimal" step="0.5" id="rPay" placeholder="es. 5"></div>
+        </div>
+        <div class="field"><label>Nota (facoltativa)</label><input id="rNote" placeholder="es. Campo Santa Margherita"></div>
+        <button class="btn" id="rAdd">Aggiungi consegna</button>
+      </div>
+      <div class="card">
+        <h4>Storico</h4>
+        <div id="rList" class="muted">Nessuna consegna registrata.</div>
+      </div>
+      <p class="muted" style="line-height:1.45">I 5.000 € l'anno sono la soglia per i contributi INPS della prestazione occasionale, non un tetto al compenso: oltre si pagano i contributi sulla parte che supera. La collaborazione deve comunque restare saltuaria e non continuativa.</p>
+    </div>
+  </section>
+
+  <!-- INFO -->
+  <section class="view hidden" id="v-info">
+    <div class="scroll">
+      <h2>Info</h2>
+      <p class="sub">Laguna Nav · versione 0.1</p>
+      <div class="card">
+        <h4>Avviso</h4>
+        <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
+      </div>
+      <div class="card">
+        <h4>Le tue segnalazioni</h4>
+        <p class="muted" id="statsTxt"></p>
+        <button class="btn ghost" id="exportBtn" style="margin-bottom:10px">Esporta segnalazioni (JSON)</button>
+        <button class="btn ghost" id="resetBtn">Cancella le mie segnalazioni</button>
+      </div>
+      <div class="card">
+        <h4>Mappe</h4>
+        <p class="muted" style="line-height:1.45">Mappa © OpenStreetMap contributors. Segnali nautici © OpenSeaMap.</p>
+      </div>
+    </div>
+  </section>
+
+  <nav>
+    <button data-v="map" class="on"><span class="ic">🧭</span>Mappa</button>
+    <button data-v="order"><span class="ic">🍽️</span>Ordina</button>
+    <button data-v="rider"><span class="ic">🚶</span>Rider</button>
+    <button data-v="info"><span class="ic">ⓘ</span>Info</button>
+  </nav>
+</div>
+
+<div id="sheet" class="hidden"><div class="in" id="sheetIn"></div></div>
+
+<script>
+/* =========================================================
+   CONFIGURAZIONE — modifica qui
+   ========================================================= */
+const CONFIG = {
+  // Numero WhatsApp che riceve gli ordini (formato internazionale senza +, es. "393401234567")
+  ORDER_WHATSAPP: "",
+  RIDER_SOGLIA: 5000,
+  // Database Supabase "LAGUNA NAV" (separato da San Marco Barche)
+  SUPABASE_URL: "https://lzqedhmiwywrgeypivbt.supabase.co",
+  SUPABASE_KEY: "sb_publishable_7Uw0Kr2j-eutseOfbuIjCw_fUdPwzwv",
+  // Zone controllate di ESEMPIO: posizioni e limiti da verificare con la cartina SiSa / ordinanze del Comune
+  ZONE_ESEMPIO: [
+    { name: "Canal Grande – Rialto", limit: 5,  lat: 45.4381, lng: 12.3359, r: 350 },
+    { name: "Bacino di San Marco",   limit: 7,  lat: 45.4318, lng: 12.3425, r: 450 },
+    { name: "Canale della Giudecca", limit: 11, lat: 45.4268, lng: 12.3255, r: 550 },
+    { name: "Fondamente Nove – canale per Murano", limit: 11, lat: 45.4448, lng: 12.3445, r: 450 }
+  ],
+  // Ristoranti: "boat" = consegna in barca, "foot" = consegna a piedi con rider
+  RISTORANTI: [
+    { id: "sanmarco", name: "San Marco Ristorazione", modes: ["boat","foot"],
+      desc: "Pranzi e vassoi, consegna in barca o a piedi",
+      menu: [
+        { n: "Panino del giorno", p: 6.5 },
+        { n: "Primo del giorno", p: 9 },
+        { n: "Vassoio pranzo completo", p: 14 },
+        { n: "Acqua 0,5 l", p: 1.5 }
+      ]},
+    { id: "partner1", name: "Ristorante partner (esempio)", modes: ["foot"],
+      desc: "Spazio per un altro ristorante con i rider",
+      menu: [
+        { n: "Cicchetti misti (6 pz)", p: 12 },
+        { n: "Spritz da asporto", p: 5 }
+      ]}
+  ]
+};
+
+/* ---------- storage sicuro ---------- */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+const $ = s => document.querySelector(s);
+const eur = n => n.toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2}) + " €";
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------- database (Supabase REST) ---------- */
+function newToken(){
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx".replace(/x/g, () => (Math.random()*16|0).toString(16));
+}
+const TOKEN = store.get("ln_token", null) || (() => { const t = newToken(); store.set("ln_token", t); return t; })();
+let mine = store.get("ln_mine", { zones: [], depths: [] });
+const saveMine = () => store.set("ln_mine", mine);
+async function api(path, { method = "GET", body, ret = false } = {}){
+  const headers = { apikey: CONFIG.SUPABASE_KEY, Authorization: "Bearer " + CONFIG.SUPABASE_KEY };
+  if (body !== undefined){ headers["Content-Type"] = "application/json"; headers.Prefer = ret ? "return=representation" : "return=minimal"; }
+  const r = await fetch(CONFIG.SUPABASE_URL + "/rest/v1/" + path, { method, headers, body: body !== undefined ? JSON.stringify(body) : undefined });
+  if (!r.ok) throw new Error(await r.text());
+  const txt = await r.text(); return txt ? JSON.parse(txt) : null;
+}
+const deleteOwn = (table, id) => api("rpc/delete_own", { method: "POST", body: { p_table: table, p_id: id, p_token: TOKEN }, ret: true });
+
+/* ---------- splash ---------- */
+const agree = $("#agree"), enter = $("#enter");
+agree.onchange = () => enter.disabled = !agree.checked;
+enter.onclick = () => { store.set("ln_agree", Date.now()); openApp(); };
+
+function openApp(){
+  $("#splash").classList.add("hidden");
+  $("#app").classList.remove("hidden");
+  if (!window._mapReady) initMap();
+}
+
+/* ---------- tab ---------- */
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x === b));
+  ["map","order","rider","info"].forEach(v => $("#v-"+v).classList.toggle("hidden", v !== b.dataset.v));
+  if (b.dataset.v === "map" && map) setTimeout(() => map.invalidateSize(), 50);
+  if (b.dataset.v === "rider") renderRider();
+  if (b.dataset.v === "info") renderInfo();
+});
+
+/* =========================================================
+   MAPPA
+   ========================================================= */
+let map, zoneLayer, depthLayer, meMarker, meCircle, follow = true, watchId = null;
+let lastPos = null, addMode = null, inZone = null, overNotified = false;
+const DEPTH_ESEMPIO = [
+  { lat: 45.4405, lng: 12.3560, d: 0.8, note: "Esempio: bassofondale fuori canale", t: 0, ex: true },
+  { lat: 45.4505, lng: 12.3520, d: 1.4, note: "Esempio: secca con bassa marea", t: 0, ex: true }
+];
+// copia locale dell'ultimo caricamento, così la mappa funziona anche senza rete
+let userZones = store.get("ln_cache_zones", []);
+let depths = DEPTH_ESEMPIO.concat(store.get("ln_cache_depths", []));
+
+async function loadShared(){
+  try{
+    const [z, d] = await Promise.all([
+      api("zones?select=id,name,limit_kmh,lat,lng,radius_m,created_at&order=id"),
+      api("depths?select=id,depth_m,note,lat,lng,created_at&order=id")
+    ]);
+    userZones = z.map(r => ({ id: r.id, name: r.name, limit: +r.limit_kmh, lat: r.lat, lng: r.lng, r: r.radius_m }));
+    const dd = d.map(r => ({ id: r.id, lat: r.lat, lng: r.lng, d: +r.depth_m, note: r.note || "", t: Date.parse(r.created_at) }));
+    store.set("ln_cache_zones", userZones); store.set("ln_cache_depths", dd);
+    depths = DEPTH_ESEMPIO.concat(dd);
+    if (map){ drawZones(); drawDepths(); }
+  }catch(e){ console.log("Caricamento segnalazioni non riuscito", e); }
+}
+
+function mapError(msg){
+  $("#map").innerHTML = `<div style="padding:110px 24px;color:#ddd;line-height:1.5;text-align:center">
+    <div style="font-size:40px">🗺️</div><b>La mappa non si è caricata</b><br><span style="color:#999">${msg}</span></div>`;
+}
+function initMap(){
+  window._mapReady = true;
+  if (location.protocol !== "https:" && location.hostname !== "localhost"){
+    mapError("L'app va aperta dal suo indirizzo internet (https://…github.io/…). Aperta come file sul telefono, mappa e GPS sono bloccati.");
+    setBanner("", "GPS bloccato", "Apri l'app dal link https");
+    return;
+  }
+  if (!window.L){ mapError("Controlla la connessione internet e ricarica la pagina."); return; }
+  map = L.map("map", { zoomControl: false }).setView([45.4371, 12.3326], 14);
+  const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
+  const sea = L.tileLayer("https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png",
+    { maxZoom: 18, attribution: "© OpenSeaMap" }).addTo(map);
+  L.control.layers(null, { "Segnali nautici": sea }, { position: "bottomleft" }).addTo(map);
+  zoneLayer = L.layerGroup().addTo(map);
+  depthLayer = L.layerGroup().addTo(map);
+  drawZones(); drawDepths();
+  loadShared(); setInterval(loadShared, 60000);
+
+  map.on("dragstart", () => { if (follow){ follow = false; $("#fabGps").classList.remove("on"); } });
+  map.on("click", e => {
+    if (addMode === "zone") zoneForm(e.latlng);
+    else if (addMode === "depth") depthForm(e.latlng);
+  });
+}
+
+function allZones(){
+  return CONFIG.ZONE_ESEMPIO.map(z => ({...z, ex: true})).concat(userZones);
+}
+function drawZones(){
+  zoneLayer.clearLayers();
+  allZones().forEach(z => {
+    const c = L.circle([z.lat, z.lng], { radius: z.r, color: "#ffc400", weight: 2,
+      fillColor: "#ffc400", fillOpacity: .12, dashArray: z.ex ? "6 6" : null }).addTo(zoneLayer);
+    let html = `<b>⚠︎ Zona controllata — rallenta</b><br>${esc(z.name)}<br>Limite: <b>${z.limit} km/h</b>`;
+    if (z.ex) html += `<br><span style="color:#999">Esempio, da verificare</span>`;
+    else if (mine.zones.includes(z.id)) html += `<br><a href="#" data-delz="${z.id}" style="color:#ff6b60">Elimina (è tua)</a>`;
+    else html += `<br><span style="color:#999">Segnalata da un utente</span>`;
+    c.bindPopup(html);
+  });
+}
+function depthColor(d){ return d < 1 ? "#ff3b30" : d < 2 ? "#ff9f0a" : "#30d158"; }
+function drawDepths(){
+  depthLayer.clearLayers();
+  depths.forEach(p => {
+    const m = L.circleMarker([p.lat, p.lng], { radius: 9, color: "#000", weight: 2,
+      fillColor: depthColor(p.d), fillOpacity: .95 }).addTo(depthLayer);
+    const when = p.t ? new Date(p.t).toLocaleString("it-IT",{dateStyle:"short",timeStyle:"short"}) : "—";
+    m.bindPopup(`<b>Profondità ${p.d.toLocaleString("it-IT")} m</b><br>${esc(p.note || "")}
+      <br><span style="color:#999">${p.ex ? "Esempio" : "Segnalato " + when}</span>
+      ${!p.ex && mine.depths.includes(p.id) ? `<br><a href="#" data-deld="${p.id}" style="color:#ff6b60">Elimina (è tua)</a>` : ""}`);
+  });
+}
+document.addEventListener("click", async e => {
+  const a = e.target.closest("[data-delz],[data-deld]");
+  if (!a) return;
+  e.preventDefault();
+  const isZone = a.dataset.delz !== undefined, id = +(isZone ? a.dataset.delz : a.dataset.deld);
+  try{
+    await deleteOwn(isZone ? "zones" : "depths", id);
+    mine[isZone ? "zones" : "depths"] = mine[isZone ? "zones" : "depths"].filter(x => x !== id); saveMine();
+    map.closePopup(); await loadShared();
+  }catch(err){ alert("Non riesco a eliminare: controlla la connessione."); }
+});
+
+/* ---------- GPS ---------- */
+$("#fabGps").onclick = () => {
+  if (watchId === null) startGps();
+  follow = true; $("#fabGps").classList.add("on");
+  if (lastPos && map) map.setView([lastPos.lat, lastPos.lng], Math.max(map.getZoom(), 16));
+};
+function startGps(){
+  if (!navigator.geolocation){ setBanner("", "GPS non disponibile", ""); return; }
+  setBanner("", "Cerco il GPS…", "");
+  watchId = navigator.geolocation.watchPosition(onPos, err => {
+    setBanner("", "GPS non disponibile", err.code === 1 ? "Permesso posizione negato" : "Riprova all'aperto");
+    watchId = null;
+  }, { enableHighAccuracy: true, maximumAge: 1000, timeout: 20000 });
+}
+function dist(a, b){
+  const R = 6371000, toR = x => x * Math.PI / 180;
+  const dLat = toR(b.lat - a.lat), dLng = toR(b.lng - a.lng);
+  const h = Math.sin(dLat/2)**2 + Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+function onPos(pos){
+  const p = { lat: pos.coords.latitude, lng: pos.coords.longitude, t: pos.timestamp, acc: pos.coords.accuracy };
+  let ms = pos.coords.speed;
+  if ((ms === null || isNaN(ms)) && lastPos){
+    const dt = (p.t - lastPos.t) / 1000;
+    ms = dt > 0 ? dist(lastPos, p) / dt : 0;
+  }
+  ms = Math.max(0, ms || 0);
+  lastPos = p;
+  const kmh = ms * 3.6;
+  $("#spd").textContent = kmh < 0.5 ? "0" : kmh.toFixed(kmh < 10 ? 1 : 0);
+  $("#kn").textContent = (ms * 1.94384).toFixed(1) + " nodi";
+
+  if (!map) { checkZones(p, kmh); checkShallow(p); return; }
+  if (!meMarker){
+    meMarker = L.circleMarker([p.lat, p.lng], { radius: 9, color: "#fff", weight: 3, fillColor: "#2fa4ff", fillOpacity: 1 }).addTo(map);
+    meCircle = L.circle([p.lat, p.lng], { radius: p.acc, color: "#2fa4ff", weight: 1, fillOpacity: .08 }).addTo(map);
+    map.setView([p.lat, p.lng], 16);
+  } else {
+    meMarker.setLatLng([p.lat, p.lng]); meCircle.setLatLng([p.lat, p.lng]).setRadius(p.acc);
+    if (follow) map.panTo([p.lat, p.lng], { animate: true });
+  }
+  checkZones(p, kmh);
+  checkShallow(p);
+}
+function setBanner(cls, title, small){
+  const b = $("#banner"); b.className = cls;
+  b.innerHTML = esc(title) + (small ? `<small>${esc(small)}</small>` : "");
+}
+function checkZones(p, kmh){
+  const z = allZones().find(z => dist(p, z) <= z.r);
+  if (!z){
+    if (inZone) inZone = null;
+    overNotified = false;
+    setBanner("", "Fuori dalle zone controllate", "Naviga con prudenza");
+    return;
+  }
+  if (!inZone || inZone.name !== z.name){ inZone = z; overNotified = false; buzz([200]); }
+  if (kmh > z.limit + 0.5){
+    setBanner("over", "RALLENTA — zona controllata", `${z.name} · limite ${z.limit} km/h`);
+    if (!overNotified){ overNotified = true; buzz([300,150,300]); }
+  } else {
+    overNotified = false;
+    setBanner("zone", "Zona controllata — rallenta", `${z.name} · limite ${z.limit} km/h`);
+  }
+}
+function checkShallow(p){
+  const near = depths.filter(d => d.d < 1.5)
+    .map(d => ({ ...d, m: dist(p, d) })).filter(d => d.m < 80).sort((a,b) => a.m - b.m)[0];
+  const el = $("#shallow");
+  if (near){ el.textContent = `Attenzione: fondale di ${near.d.toLocaleString("it-IT")} m segnalato a ${Math.round(near.m)} m`; el.classList.remove("hidden"); }
+  else el.classList.add("hidden");
+}
+function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
+
+/* ---------- aggiunta zone / profondità ---------- */
+function setAddMode(m){
+  addMode = addMode === m ? null : m;
+  $("#fabZone").classList.toggle("on", addMode === "zone");
+  $("#fabDepth").classList.toggle("on", addMode === "depth");
+  const h = $("#modeHint");
+  if (!addMode){ h.classList.add("hidden"); return; }
+  h.classList.remove("hidden");
+  h.innerHTML = addMode === "zone"
+    ? "Tocca la mappa al centro della zona controllata"
+    : 'Tocca la mappa dove hai misurato, oppure <u id="useGpsDepth">usa la mia posizione</u>';
+  const u = $("#useGpsDepth");
+  if (u) u.onclick = ev => { ev.stopPropagation();
+    if (lastPos) depthForm(L.latLng(lastPos.lat, lastPos.lng)); else alert("Attiva prima il GPS (◎)."); };
+}
+$("#fabZone").onclick = () => setAddMode("zone");
+$("#fabDepth").onclick = () => setAddMode("depth");
+
+function openSheet(html){ $("#sheetIn").innerHTML = html; $("#sheet").classList.remove("hidden"); }
+function closeSheet(){ $("#sheet").classList.add("hidden"); }
+$("#sheet").onclick = e => { if (e.target.id === "sheet") closeSheet(); };
+
+function zoneForm(ll){
+  openSheet(`<h3>Nuova zona controllata</h3>
+    <div class="field"><label>Nome</label><input id="zN" placeholder="es. Rio di Cannaregio"></div>
+    <div class="row">
+      <div class="field"><label>Limite (km/h)</label><input id="zL" type="number" inputmode="decimal" value="7"></div>
+      <div class="field"><label>Raggio (m)</label><input id="zR" type="number" inputmode="numeric" value="200"></div>
+    </div>
+    <button class="btn" id="zOk">Salva zona</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
+  $("#zOk").onclick = async () => {
+    const body = { name: ($("#zN").value.trim() || "Zona controllata").slice(0, 80),
+      limit_kmh: Math.min(60, +$("#zL").value || 5), radius_m: Math.min(3000, Math.max(30, Math.round(+$("#zR").value || 200))),
+      lat: ll.lat, lng: ll.lng, owner_token: TOKEN };
+    $("#zOk").disabled = true;
+    try{
+      const [r] = await api("zones?select=id", { method: "POST", body, ret: true });
+      mine.zones.push(r.id); saveMine(); closeSheet(); setAddMode(null); await loadShared();
+    }catch(err){ $("#zOk").disabled = false; alert("Zona non salvata: controlla la connessione (o che il punto sia in laguna)."); }
+  };
+}
+function depthForm(ll){
+  openSheet(`<h3>Segnala profondità</h3>
+    <p class="muted">Leggila dall'ecoscandaglio o misurala. Indica se c'era bassa o alta marea.</p>
+    <div class="field"><label>Profondità (metri)</label><input id="dD" type="number" inputmode="decimal" step="0.1" placeholder="es. 1,2"></div>
+    <div class="field"><label>Nota</label><input id="dN" placeholder="es. bassa marea, fuori dalle bricole"></div>
+    <button class="btn" id="dOk">Salva segnalazione</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
+  $("#dOk").onclick = async () => {
+    const d = parseFloat(String($("#dD").value).replace(",", "."));
+    if (isNaN(d) || d < 0 || d > 50) { alert("Inserisci la profondità in metri."); return; }
+    $("#dOk").disabled = true;
+    try{
+      const [r] = await api("depths?select=id", { method: "POST", ret: true,
+        body: { depth_m: d, note: $("#dN").value.trim().slice(0, 200), lat: ll.lat, lng: ll.lng, owner_token: TOKEN } });
+      mine.depths.push(r.id); saveMine(); closeSheet(); setAddMode(null); await loadShared();
+    }catch(err){ $("#dOk").disabled = false; alert("Segnalazione non salvata: controlla la connessione (o che il punto sia in laguna)."); }
+  };
+}
+
+/* =========================================================
+   ORDINA
+   ========================================================= */
+let orderMode = "boat", cart = {}, curRest = null;
+document.querySelectorAll("#modeSeg button").forEach(b => b.onclick = () => {
+  orderMode = b.dataset.m;
+  document.querySelectorAll("#modeSeg button").forEach(x => x.classList.toggle("on", x === b));
+  curRest = null; cart = {}; renderRests();
+});
+function renderRests(){
+  $("#menuBox").classList.add("hidden");
+  const list = CONFIG.RISTORANTI.filter(r => r.modes.includes(orderMode));
+  $("#restList").classList.remove("hidden");
+  $("#restList").innerHTML = list.map(r => `
+    <div class="card" data-rest="${r.id}" style="cursor:pointer">
+      <h4>${esc(r.name)}</h4>
+      <div class="muted" style="margin-bottom:8px">${esc(r.desc)}</div>
+      ${r.modes.includes("boat") ? '<span class="pill boat">🚤 in barca</span>' : ""}
+      ${r.modes.includes("foot") ? '<span class="pill foot">🚶 a piedi</span>' : ""}
+    </div>`).join("") || '<p class="muted">Nessun ristorante per questa modalità.</p>';
+  document.querySelectorAll("[data-rest]").forEach(c => c.onclick = () => openMenu(c.dataset.rest));
+}
+function openMenu(id){
+  curRest = CONFIG.RISTORANTI.find(r => r.id === id); cart = {};
+  $("#restList").classList.add("hidden"); $("#menuBox").classList.remove("hidden"); renderMenu();
+}
+function cartTotal(){ return curRest.menu.reduce((s, m, i) => s + (cart[i] || 0) * m.p, 0); }
+function renderMenu(){
+  const tot = cartTotal();
+  $("#menuBox").innerHTML = `
+    <button class="btn ghost small" id="backR" style="margin-bottom:12px">‹ Ristoranti</button>
+    <div class="card"><h4>${esc(curRest.name)}</h4>
+      ${curRest.menu.map((m, i) => `
+        <div class="item"><div>${esc(m.n)}<div class="muted">${eur(m.p)}</div></div>
+          <div class="qty"><button data-q="${i}" data-d="-1">−</button><b>${cart[i] || 0}</b><button data-q="${i}" data-d="1">+</button></div>
+        </div>`).join("")}
+    </div>
+    <div class="card">
+      ${orderMode === "boat"
+        ? `<div class="field"><label>Dove ti consegniamo</label>
+            <button class="btn ghost" id="useGps">📍 Usa la posizione della barca (GPS)</button>
+            <div class="muted" id="gpsTxt" style="margin-top:6px">${lastPos ? "Posizione GPS pronta" : "GPS non ancora attivo"}</div></div>
+           <div class="field"><label>Nome della barca</label><input id="oBoat" placeholder="es. Topa azzurra"></div>`
+        : `<div class="field"><label>Indirizzo (sestiere e civico)</label><input id="oAddr" placeholder="es. Cannaregio 1234"></div>`}
+      <div class="row">
+        <div class="field"><label>Nome</label><input id="oName"></div>
+        <div class="field"><label>Telefono</label><input id="oTel" type="tel"></div>
+      </div>
+      <div class="field"><label>Note</label><input id="oNote" placeholder="allergie, orario…"></div>
+    </div>
+    <div class="cartbar"><button class="btn" id="sendO" ${tot ? "" : "disabled"}>Invia ordine · ${eur(tot)}</button></div>`;
+  $("#backR").onclick = renderRests;
+  document.querySelectorAll("[data-q]").forEach(b => b.onclick = () => {
+    const i = +b.dataset.q; cart[i] = Math.max(0, (cart[i] || 0) + +b.dataset.d); renderMenuKeep();
+  });
+  const g = $("#useGps"); if (g) g.onclick = () => {
+    if (watchId === null) startGps();
+    $("#gpsTxt").textContent = lastPos ? "Posizione GPS pronta" : "Attivo il GPS… riprova tra qualche secondo";
+  };
+  $("#sendO").onclick = sendOrder;
+}
+function renderMenuKeep(){
+  const keep = {}; ["oBoat","oAddr","oName","oTel","oNote"].forEach(k => { const e = $("#"+k); if (e) keep[k] = e.value; });
+  renderMenu();
+  Object.entries(keep).forEach(([k, v]) => { const e = $("#"+k); if (e) e.value = v; });
+}
+async function sendOrder(){
+  const v = k => ($("#"+k) ? $("#"+k).value.trim() : "");
+  if (!v("oName") || !v("oTel")){ alert("Inserisci nome e telefono."); return; }
+  let where;
+  if (orderMode === "boat"){
+    if (!lastPos){ alert("Attiva il GPS per mandare la posizione della barca."); return; }
+    where = `In barca "${v("oBoat") || "—"}" – posizione: https://maps.google.com/?q=${lastPos.lat.toFixed(6)},${lastPos.lng.toFixed(6)}`;
+  } else {
+    if (!v("oAddr")){ alert("Inserisci l'indirizzo."); return; }
+    where = `A piedi – ${v("oAddr")}`;
+  }
+  const lines = curRest.menu.map((m, i) => cart[i] ? `${cart[i]}× ${m.n} (${eur(m.p * cart[i])})` : null).filter(Boolean);
+  const text = `ORDINE Laguna Nav\n${curRest.name}\n\n${lines.join("\n")}\nTotale: ${eur(cartTotal())}\n\n${where}\n${v("oName")} · ${v("oTel")}` + (v("oNote") ? `\nNote: ${v("oNote")}` : "");
+  const orders = store.get("ln_orders", []);
+  orders.unshift({ t: Date.now(), rest: curRest.name, mode: orderMode, tot: cartTotal() }); store.set("ln_orders", orders);
+  let saved = true;
+  try{
+    await api("orders", { method: "POST", body: {
+      restaurant: curRest.name, mode: orderMode,
+      items: curRest.menu.map((m, i) => cart[i] ? { nome: m.n, qta: cart[i], prezzo: m.p } : null).filter(Boolean),
+      total_eur: cartTotal(), customer_name: v("oName").slice(0, 80), customer_phone: v("oTel").slice(0, 30),
+      boat_name: orderMode === "boat" ? v("oBoat").slice(0, 80) : null,
+      address: orderMode === "foot" ? v("oAddr").slice(0, 200) : null,
+      lat: orderMode === "boat" ? lastPos.lat : null, lng: orderMode === "boat" ? lastPos.lng : null,
+      note: v("oNote").slice(0, 300) || null } });
+  }catch(err){ saved = false; }
+  if (!CONFIG.ORDER_WHATSAPP){
+    alert((saved ? "Ordine registrato ✓" : "Ordine NON registrato: controlla la connessione.") + "\n\n" + text);
+    if (saved){ cart = {}; renderMenu(); }
+    return;
+  }
+  window.location.href = `https://wa.me/${CONFIG.ORDER_WHATSAPP}?text=${encodeURIComponent(text)}`;
+}
+renderRests();
+
+/* =========================================================
+   RIDER
+   ========================================================= */
+let rides = store.get("ln_rides", []);
+$("#riderName").value = store.get("ln_rider", "");
+$("#riderName").oninput = e => store.set("ln_rider", e.target.value);
+$("#rRest").innerHTML = CONFIG.RISTORANTI.filter(r => r.modes.includes("foot"))
+  .map(r => `<option>${esc(r.name)}</option>`).join("");
+$("#rDate").value = new Date().toISOString().slice(0, 10);
+$("#rAdd").onclick = async () => {
+  const pay = parseFloat(String($("#rPay").value).replace(",", "."));
+  if (isNaN(pay) || pay <= 0 || pay >= 1000){ alert("Inserisci il compenso."); return; }
+  const ride = { date: $("#rDate").value, rest: $("#rRest").value, pay, note: $("#rNote").value.trim().slice(0, 200) };
+  $("#rAdd").disabled = true;
+  try{
+    const [r] = await api("rides?select=id", { method: "POST", ret: true, body: {
+      rider_name: ($("#riderName").value.trim() || null), restaurant: ride.rest, ride_date: ride.date,
+      pay_eur: pay, note: ride.note || null, owner_token: TOKEN } });
+    ride.id = r.id;
+  }catch(err){ alert("Consegna salvata solo sul telefono: non c'è connessione."); }
+  $("#rAdd").disabled = false;
+  rides.unshift(ride); store.set("ln_rides", rides); $("#rPay").value = ""; $("#rNote").value = ""; renderRider();
+};
+function renderRider(){
+  const y = String(new Date().getFullYear());
+  const tot = rides.filter(r => r.date.startsWith(y)).reduce((s, r) => s + r.pay, 0);
+  const pct = Math.min(100, tot / CONFIG.RIDER_SOGLIA * 100);
+  $("#yearLbl").textContent = y;
+  $("#yearTot").textContent = eur(tot);
+  const bar = $("#yearBar"); bar.firstElementChild.style.width = pct + "%";
+  bar.className = "bar" + (tot >= CONFIG.RIDER_SOGLIA ? " over" : tot >= CONFIG.RIDER_SOGLIA * .8 ? " warn" : "");
+  $("#yearNote").textContent = tot >= CONFIG.RIDER_SOGLIA
+    ? `Superata la soglia di ${eur(CONFIG.RIDER_SOGLIA)}: servono iscrizione e contributi INPS sulla parte oltre la soglia.`
+    : `Mancano ${eur(CONFIG.RIDER_SOGLIA - tot)} alla soglia INPS di ${eur(CONFIG.RIDER_SOGLIA)}.`;
+  $("#rList").innerHTML = rides.length ? rides.map((r, i) => `
+    <div class="list-row"><div><b>${new Date(r.date).toLocaleDateString("it-IT")}</b> · ${esc(r.rest)}
+      ${r.note ? `<div class="muted">${esc(r.note)}</div>` : ""}</div>
+      <div style="text-align:right">${eur(r.pay)}<br><a href="#" class="x" data-delr="${i}">elimina</a></div></div>`).join("")
+    : "Nessuna consegna registrata.";
+  document.querySelectorAll("[data-delr]").forEach(a => a.onclick = async e => {
+    e.preventDefault();
+    const r = rides[+a.dataset.delr];
+    if (r.id){ try{ await deleteOwn("rides", r.id); }catch(err){ alert("Non riesco a eliminarla: controlla la connessione."); return; } }
+    rides.splice(+a.dataset.delr, 1); store.set("ln_rides", rides); renderRider();
+  });
+}
+renderRider();
+
+/* =========================================================
+   INFO
+   ========================================================= */
+function renderInfo(){
+  $("#statsTxt").textContent = `Tue: ${mine.depths.length} profondità · ${mine.zones.length} zone. In totale sulla mappa: ${depths.filter(d => !d.ex).length} profondità e ${userZones.length} zone degli utenti.`;
+}
+$("#exportBtn").onclick = () => {
+  const blob = new Blob([JSON.stringify({ zone: userZones, profondita: depths.filter(d => !d.ex) }, null, 2)], { type: "application/json" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "segnalazioni-laguna.json"; a.click();
+};
+$("#resetBtn").onclick = async () => {
+  if (!confirm("Cancellare tutte le tue zone e profondità?")) return;
+  try{
+    for (const id of mine.zones) await deleteOwn("zones", id);
+    for (const id of mine.depths) await deleteOwn("depths", id);
+    mine = { zones: [], depths: [] }; saveMine(); await loadShared(); renderInfo();
+  }catch(err){ alert("Non riesco a cancellare: controlla la connessione."); }
+};
+
+// avvio: se l'avviso è già stato accettato su questo telefono, apre subito l'app
+if (store.get("ln_agree", null)) openApp();
+</script>
+</body>
+</html>
