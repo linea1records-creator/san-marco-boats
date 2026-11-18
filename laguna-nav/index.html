@@ -809,7 +809,7 @@ $("#pfEdit").onclick = () => {
 };
 $("#pfLogout").onclick = () => {
   if (!confirm("Uscire dall'account?")) return;
-  ["ln_profile", "ln_adult"].forEach(k => { try{ localStorage.removeItem(k); }catch(e){} });
+  ["ln_profile", "ln_adult", "ln_adult_sync"].forEach(k => { try{ localStorage.removeItem(k); }catch(e){} });
   // nuova chiave per il telefono, così il prossimo account non eredita le cose del precedente
   store.set("ln_token", newToken()); store.set("ln_mine", { zones: [], depths: [] }); location.reload();
 };
@@ -2721,12 +2721,17 @@ function adultGate(){
   openSheet(`<h3>🔞 Incontra è solo per maggiorenni</h3><p class="muted" style="line-height:1.45">Per entrare devi avere almeno 18 anni.</p>
     <button class="btn" id="agYes">Ho almeno 18 anni</button><button class="btn ghost" id="agNo" style="margin-top:10px">Non ho ancora 18 anni</button>`);
   $("#agYes").onclick = async () => {
-    try{ await rpc("meet_adult", {}); }catch(e){}
+    await syncAdult();
     store.set("ln_adult", true); closeSheet(); setAppMode("incontra");
   };
   $("#agNo").onclick = () => { closeSheet(); document.querySelector('nav button[data-mode="nautica"]').click(); toast("Incontra è riservato ai maggiorenni. Il resto di ClickVenice puoi usarlo."); };
 }
-function meetStart(){
+// la conferma dei 18 anni deve arrivare anche al server (prima restava solo sul telefono)
+async function syncAdult(){
+  try{ const ok = await rpc("meet_adult", {}); if (ok) store.set("ln_adult_sync", true); return !!ok; }catch(e){ return false; }
+}
+async function meetStart(){
+  if (!store.get("ln_adult_sync", false)) await syncAdult();
   loadStati(); clearInterval(meetTimer); meetTimer = setInterval(loadStati, 30000);
   if (map) map.easeTo({ pitch: 0, bearing: 0, zoom: Math.min(map.getZoom(), 14), duration: 600 });
 }
@@ -2789,10 +2794,13 @@ $("#meetBanner").onclick = () => {
     if (!foto && !(mine && mine.foto)){ $("#stMsg").textContent = "Aggiungi una foto."; return; }
     $("#stOk").disabled = true; $("#stMsg").textContent = "Pubblico…";
     try{
-      const r = await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/stato", { method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ token: TOKEN, tipo, testo: $("#stTxt").value, zona: $("#stZona").value, foto }) }, 30000);
-      const j = await r.json();
-      if (!j.ok){ $("#stOk").disabled = false; $("#stMsg").textContent = j.errore === "non_autorizzato" ? "Accedi con il tuo account per pubblicare." : "Non riuscito, riprova."; return; }
+      const send = async () => (await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/stato", { method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token: TOKEN, tipo, testo: $("#stTxt").value, zona: $("#stZona").value, foto }) }, 30000)).json();
+      let j = await send();
+      // se il server non sapeva ancora dei 18 anni, glielo dice e riprova una volta
+      if (j.errore === "non_autorizzato" && await syncAdult()) j = await send();
+      if (!j.ok){ $("#stOk").disabled = false;
+        $("#stMsg").textContent = j.errore === "non_autorizzato" ? "Il server non riconosce questo telefono: esci dall'account e rientra (Profilo → Esci)." : j.errore === "foto" ? "Foto non valida, provane un'altra." : "Non riuscito, riprova."; return; }
       closeSheet(); toast("Stato pubblicato ✓"); loadStati();
     }catch(e){ $("#stOk").disabled = false; $("#stMsg").textContent = "Serve la connessione internet."; }
   };
@@ -2811,7 +2819,8 @@ function openStato(s){
     ${s.mio ? "" : `<div class="row" style="margin-top:10px"><button class="btn ghost small" id="stRep">⚑ Segnala</button><button class="btn ghost small" id="stBlk">⛔ Blocca</button></div>`}
   </div>`);
   const L = $("#stLike"); if (L) L.onclick = async () => { L.disabled = true;
-    try{ const r = await rpc("status_like", { p_status: s.id }); if (r.match){ closeSheet(); toast("È un match! 🎉 Ora potete scrivervi"); await loadStati(); openChat(s.nome); } else { s.piace = true; openStato(s); } }
+    try{ let r = await rpc("status_like", { p_status: s.id });
+      if (r.errore === "non_autorizzato" && await syncAdult()) r = await rpc("status_like", { p_status: s.id }); if (r.match){ closeSheet(); toast("È un match! 🎉 Ora potete scrivervi"); await loadStati(); openChat(s.nome); } else { s.piace = true; openStato(s); } }
     catch(e){ L.disabled = false; toast("Non riuscito, controlla la connessione."); } };
   const C = $("#stChat"); if (C) C.onclick = () => openChat(s.nome);
   const R = $("#stRep"); if (R) R.onclick = () => {
