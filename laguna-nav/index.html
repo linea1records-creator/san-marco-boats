@@ -241,10 +241,18 @@
   <section class="view hidden" id="v-info">
     <div class="scroll">
       <h2>Info</h2>
-      <p class="sub">Laguna Nav · versione 0.4</p>
+      <p class="sub">Laguna Nav · versione 0.5</p>
       <div class="card">
         <h4>Avviso</h4>
         <p class="muted" style="line-height:1.45">L'app non sostituisce la carta nautica né le ordinanze ufficiali. Le zone controllate e le profondità sono indicative: quelle precaricate sono <b>esempi da verificare</b>, le altre sono segnalazioni degli utenti.</p>
+      </div>
+      <div class="card">
+        <h4>Direzione della mappa</h4>
+        <div class="field"><select id="hsrc">
+          <option value="phone">Dove punta il telefono (bussola)</option>
+          <option value="course">Direzione di marcia (GPS)</option>
+        </select></div>
+        <p class="muted" style="line-height:1.45">Con la bussola la mappa gira quando giri il telefono. Tienilo lontano da motore e parti in ferro, che disturbano la bussola.</p>
       </div>
       <div class="card">
         <h4>Le tue segnalazioni</h4>
@@ -430,11 +438,11 @@ function initMap(){
   map.on("click", e => {
     if (addMode === "zone") return zoneForm(e.lngLat);
     if (addMode === "depth") return depthForm(e.lngLat);
-    const f = map.queryRenderedFeatures(e.point, { layers: ["depths", "zones-fill"].filter(l => map.getLayer(l)) })[0];
+    const f = map.queryRenderedFeatures(e.point, { layers: ["poi", "depths", "zones-fill"].filter(l => map.getLayer(l)) })[0];
     if (f) popupFor(f, e.lngLat);
   });
   loadShared(); setInterval(loadShared, 60000);
-  loadGraph();
+  loadGraph(); loadPOI();
 }
 function addLayers(){
   map.addSource("sea", { type: "raster", tileSize: 256, maxzoom: 18, attribution: "© OpenSeaMap", tiles: ["https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png"] });
@@ -450,7 +458,17 @@ function addLayers(){
   map.addLayer({ id: "depths", type: "circle", source: "depths", paint: {
     "circle-radius": 9, "circle-stroke-color": "#000", "circle-stroke-width": 2,
     "circle-color": ["case", ["<", ["get", "d"], 1], "#ff3b30", ["<", ["get", "d"], 2], "#ff9f0a", "#30d158"] } });
-  drawZones(); drawDepths(); drawRoute();
+  // ristoranti, bar, fast food (OpenStreetMap)
+  map.addSource("poi", { type: "geojson", data: empty });
+  map.addLayer({ id: "poi", type: "circle", source: "poi", minzoom: 13.5, paint: {
+    "circle-radius": ["interpolate", ["linear"], ["zoom"], 14, 4, 18, 8], "circle-stroke-color": "#fff", "circle-stroke-width": 2,
+    "circle-color": ["match", ["get", "k"], "fast_food", "#e8710a", "cafe", "#795548", "bar", "#8e24aa", "pub", "#8e24aa", "ice_cream", "#ec407a", "#d93025"] } });
+  if (map.getStyle().glyphs){
+    map.addLayer({ id: "poi-label", type: "symbol", source: "poi", minzoom: 15.5, layout: {
+      "text-field": ["get", "n"], "text-size": 12, "text-offset": [0, 1.1], "text-anchor": "top", "text-optional": true,
+      "text-font": ["Noto Sans Regular"] }, paint: { "text-color": "#333", "text-halo-color": "#fff", "text-halo-width": 1.5 } });
+  }
+  drawZones(); drawDepths(); drawRoute(); drawPOI();
 }
 
 function allZones(){ return CONFIG.ZONE_ESEMPIO.map(z => ({ ...z, ex: true })).concat(userZones); }
@@ -466,7 +484,10 @@ function drawDepths(){
 }
 function popupFor(f, ll){
   let html;
-  if (f.layer.id === "depths"){
+  if (f.layer.id === "poi"){
+    const p = POI[f.properties.i]; if (!p) return;
+    html = `<b>${esc(p.n)}</b><br><span style="color:#aaa">${esc(poiLabel(p))}</span><br><a href="#" data-goto="${p.lat},${p.lng}" data-name="${esc(p.n)}" style="color:#7fc1ff">Portami qui</a>`;
+  } else if (f.layer.id === "depths"){
     const p = depths[f.properties.i]; if (!p) return;
     const when = p.t ? new Date(p.t).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" }) : "—";
     html = `<b>Profondità ${p.d.toLocaleString("it-IT")} m</b><br>${esc(p.note || "")}<br><span style="color:#999">${p.ex ? "Esempio" : "Segnalato " + when}</span>`
@@ -483,7 +504,7 @@ function popupFor(f, ll){
 function closePopups(){ document.querySelectorAll(".maplibregl-popup").forEach(p => p.remove()); }
 document.addEventListener("click", async e => {
   const g = e.target.closest("[data-goto]");
-  if (g){ e.preventDefault(); const [la, lo] = g.dataset.goto.split(",").map(Number); closePopups(); startNav({ name: "Punto sulla mappa", lat: la, lng: lo }); return; }
+  if (g){ e.preventDefault(); const [la, lo] = g.dataset.goto.split(",").map(Number); closePopups(); startNav({ name: g.dataset.name || "Punto sulla mappa", lat: la, lng: lo }); return; }
   const a = e.target.closest("[data-delz],[data-deld]");
   if (!a) return;
   e.preventDefault();
@@ -504,14 +525,16 @@ function makeArrow(){
 }
 
 /* ---------- GPS e bussola ---------- */
-$("#fabGps").onclick = async () => {
-  askCompass();
+// headingSrc: "phone" = la mappa gira dove punta il telefono (bussola); "course" = direzione di marcia del GPS
+let headingSrc = store.get("ln_hsrc", "phone"), courseHeading = null, compassAt = 0, userBusy = false, camC = null;
+$("#fabGps").onclick = () => {
+  askCompass();                       // su iPhone il permesso della bussola si chiede solo dentro il tocco
   if (watchId === null) startGps();
   setFollow(true); camera(true);
 };
 $("#fabView").onclick = () => {
   view3d = !view3d; $("#fabView").textContent = view3d ? "3D" : "2D";
-  if (!view3d && map) map.easeTo({ pitch: 0, bearing: 0, duration: 600 });
+  if (map) map.easeTo({ pitch: view3d ? 60 : 0, bearing: view3d ? heading : 0, duration: 600 });
   setFollow(true); camera(true);
 };
 $("#fabVoice").onclick = () => { voiceOn = !voiceOn; store.set("ln_voice", voiceOn); paintVoice(); if (voiceOn) say("Voce attiva"); };
@@ -519,24 +542,34 @@ function paintVoice(){ $("#fabVoice").textContent = voiceOn ? "🔊" : "🔈"; }
 paintVoice();
 function say(t){ if (!voiceOn || !window.speechSynthesis) return; try{ const u = new SpeechSynthesisUtterance(t); u.lang = "it-IT"; speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} }
 
-function setFollow(v){ follow = v; $("#fabGps").classList.toggle("follow", v && watchId !== null); }
+function setFollow(v){ follow = v; $("#fabGps").classList.toggle("follow", v && watchId !== null); if (!v) camC = null; }
+function screenAngle(){ try{ return (screen.orientation && typeof screen.orientation.angle === "number") ? screen.orientation.angle : (window.orientation || 0); }catch(e){ return 0; } }
+function onOrient(ev){
+  let h = null;
+  if (typeof ev.webkitCompassHeading === "number" && !isNaN(ev.webkitCompassHeading)) h = ev.webkitCompassHeading;   // iPhone
+  else if ((ev.absolute || ev.type === "deviceorientationabsolute") && typeof ev.alpha === "number") h = 360 - ev.alpha; // Android
+  if (h === null) return;
+  compassHeading = (h + screenAngle() + 360) % 360; compassAt = Date.now();
+}
+let compassAsked = false, compassOk = false;
 function askCompass(){
-  if (askCompass.done) return; askCompass.done = true;
-  const on = ev => {
-    let h = null;
-    if (typeof ev.webkitCompassHeading === "number") h = ev.webkitCompassHeading;
-    else if (ev.absolute && typeof ev.alpha === "number") h = 360 - ev.alpha;
-    if (h !== null && !isNaN(h)) compassHeading = (h + 360) % 360;
-  };
+  if (compassOk) return;
   try{
     if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === "function"){
-      DeviceOrientationEvent.requestPermission().then(s => { if (s === "granted") window.addEventListener("deviceorientation", on); }).catch(() => {});
-    } else {
-      window.addEventListener("deviceorientationabsolute", on);
-      window.addEventListener("deviceorientation", on);
+      DeviceOrientationEvent.requestPermission().then(s => {
+        if (s === "granted"){ compassOk = true; window.addEventListener("deviceorientation", onOrient, true); }
+        else toast("Bussola negata: la mappa girerà solo quando ti muovi. Per attivarla chiudi e riapri Safari e tocca di nuovo ➤.");
+      }).catch(() => {});
+    } else if (!compassAsked){
+      window.addEventListener("deviceorientationabsolute", onOrient, true);
+      window.addEventListener("deviceorientation", onOrient, true);
+      compassOk = true;
     }
   }catch(e){}
-  setInterval(() => { if (!movingFast() && compassHeading !== null){ smoothHeading(compassHeading, 0.35); updateArrow(); camera(); } }, 400);
+  if (!compassAsked){
+    compassAsked = true;
+    setTimeout(() => { if (!compassAt) toast("Bussola non attiva: la mappa girerà con la direzione di marcia."); }, 4000);
+  }
 }
 function startGps(){
   if (!navigator.geolocation){ toast("GPS non disponibile su questo telefono."); return; }
@@ -550,39 +583,62 @@ function startGps(){
 }
 let speedMs = 0;
 function movingFast(){ return speedMs > 1.2; }
-function smoothHeading(target, k){ heading = (heading + angDiff(heading, target) * k + 360) % 360; }
 function onPos(pos){
   const p = { lat: pos.coords.latitude, lng: pos.coords.longitude, t: pos.timestamp, acc: pos.coords.accuracy };
   let ms = pos.coords.speed;
   if ((ms === null || isNaN(ms)) && lastPos){ const dt = (p.t - lastPos.t) / 1000; ms = dt > 0 ? dist(lastPos, p) / dt : 0; }
   speedMs = Math.max(0, ms || 0);
-  // direzione: rotta del GPS quando ci si muove, altrimenti bussola
   if (movingFast()){
-    let course = pos.coords.heading;
-    if ((course === null || isNaN(course)) && prevFix && dist(prevFix, p) > 4) course = bearing(prevFix.lat, prevFix.lng, p.lat, p.lng);
-    if (course !== null && !isNaN(course)) smoothHeading(course, 0.6);
-  }
+    let c = pos.coords.heading;
+    if ((c === null || isNaN(c)) && prevFix && dist(prevFix, p) > 4) c = bearing(prevFix.lat, prevFix.lng, p.lat, p.lng);
+    if (c !== null && !isNaN(c)) courseHeading = c;
+  } else courseHeading = null;
   if (!prevFix || dist(prevFix, p) > 4) prevFix = p;
   lastPos = p;
   const kmh = speedMs * 3.6;
   $("#spd").textContent = kmh < 0.5 ? "0" : kmh.toFixed(kmh < 10 ? 1 : 0);
   $("#kn").textContent = (speedMs * 1.94384).toFixed(1) + " nodi";
   if (map){
-    if (!meMarker) { meMarker = makeArrow().setLngLat([p.lng, p.lat]).addTo(map); camera(true); }
+    if (!meMarker){ meMarker = makeArrow().setLngLat([p.lng, p.lat]).addTo(map); camera(true); }
     else meMarker.setLngLat([p.lng, p.lat]);
-    updateArrow(); camera();
   }
   checkZones(p, kmh); checkShallow(p); navTick(p);
 }
-function updateArrow(){ if (meMarker) meMarker.setRotation(heading); }
-let lastCam = 0;
+// direzione da seguire in questo momento
+function targetHeading(){
+  const compassFresh = compassHeading !== null && Date.now() - compassAt < 2000;
+  if (headingSrc === "phone" && compassFresh) return compassHeading;
+  if (courseHeading !== null) return courseHeading;
+  return compassFresh ? compassHeading : null;
+}
+// un solo motore per freccia e mappa: aggiornato a ogni fotogramma, così la rotazione è fluida
+function frame(){
+  requestAnimationFrame(frame);
+  if (!map) return;
+  const t = targetHeading();
+  if (t !== null) heading = (heading + angDiff(heading, t) * 0.22 + 360) % 360;
+  if (meMarker) meMarker.setRotation(heading);
+  if (userBusy || map.isEasing && map.isEasing()) return;
+  const o = {};
+  if (view3d && Math.abs(angDiff(map.getBearing(), heading)) > 0.4) o.bearing = heading;
+  if (follow && lastPos){
+    if (!camC) camC = { lat: lastPos.lat, lng: lastPos.lng };
+    camC.lat += (lastPos.lat - camC.lat) * 0.12; camC.lng += (lastPos.lng - camC.lng) * 0.12;
+    const c = map.getCenter();
+    if (hav(c.lat, c.lng, camC.lat, camC.lng) > 0.3) o.center = [camC.lng, camC.lat];
+  }
+  if (o.bearing !== undefined || o.center) map.jumpTo(o);
+}
+requestAnimationFrame(frame);
+["touchstart", "mousedown"].forEach(ev => document.addEventListener(ev, e => { if (e.target.closest && e.target.closest("#map")) userBusy = true; }, { passive: true }));
+["touchend", "touchcancel", "mouseup"].forEach(ev => document.addEventListener(ev, () => { userBusy = false; }, { passive: true }));
 function camera(force){
-  if (!map || !follow || !lastPos) return;
-  const now = Date.now(); if (!force && now - lastCam < 350) return; lastCam = now;
+  if (!map || !lastPos) return;
   const h = map.getContainer().clientHeight;
+  camC = { lat: lastPos.lat, lng: lastPos.lng };
   map.easeTo({ center: [lastPos.lng, lastPos.lat], zoom: force ? Math.max(map.getZoom(), view3d ? 17.5 : 16) : map.getZoom(),
     bearing: view3d ? heading : 0, pitch: view3d ? 60 : 0,
-    padding: { top: view3d ? h * 0.42 : 0, bottom: 0, left: 0, right: 0 }, duration: force ? 800 : 400, essential: true });
+    padding: { top: view3d ? h * 0.42 : 0, bottom: 0, left: 0, right: 0 }, duration: 700, essential: true });
 }
 
 /* ---------- zone controllate e bassi fondali ---------- */
@@ -692,21 +748,78 @@ function renderResults(list, title){
     startNav(r);
   });
 }
+/* ---------- ristoranti e locali (OpenStreetMap, salvati sul telefono 7 giorni) ---------- */
+let POI = [];
+const POI_KEY = "ln_poi_v1", POI_BBOX = "45.38,12.20,45.53,12.45";
+const POI_TYPES = { restaurant: "Ristorante", fast_food: "Fast food", cafe: "Bar / caffè", bar: "Bar", pub: "Pub", ice_cream: "Gelateria", food_court: "Food court" };
+const norm = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+function poiLabel(p){ return [POI_TYPES[p.k] || "Locale", p.c ? p.c.replace(/_/g, " ").replace(/;/g, ", ") : ""].filter(Boolean).join(" · "); }
+async function loadPOI(){
+  let c = store.get(POI_KEY, null);
+  if (!(c && c.p && Date.now() - c.t < 7 * 864e5)){
+    const q = '[out:json][timeout:60];nwr["amenity"~"^(restaurant|fast_food|cafe|bar|pub|ice_cream|food_court)$"]["name"](' + POI_BBOX + ');out center tags;';
+    for (const u of ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"]){
+      try{
+        const r = await fetch(u, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "data=" + encodeURIComponent(q) });
+        if (!r.ok) continue;
+        const j = await r.json(), p = [];
+        (j.elements || []).forEach(el => {
+          const t = el.tags || {}, la = el.lat || (el.center && el.center.lat), lo = el.lon || (el.center && el.center.lon);
+          if (!la || !t.name) return;
+          p.push([t.name, t.amenity, +la.toFixed(6), +lo.toFixed(6), t.brand || "", t.cuisine || ""]);
+        });
+        if (p.length > 20){ c = { t: Date.now(), p }; store.set(POI_KEY, c); break; }
+      }catch(e){}
+    }
+  }
+  if (c && c.p){ POI = c.p.map(a => ({ n: a[0], k: a[1], lat: a[2], lng: a[3], b: a[4], c: a[5], s: norm(a[0] + " " + a[4] + " " + a[5]) })); drawPOI(); }
+}
+function drawPOI(){
+  if (!map || !map.getSource("poi")) return;
+  map.getSource("poi").setData({ type: "FeatureCollection", features: POI.map((p, i) => ({
+    type: "Feature", properties: { i, n: p.n, k: p.k }, geometry: { type: "Point", coordinates: [p.lng, p.lat] } })) });
+}
+function refPoint(){ if (lastPos) return lastPos; if (map){ const c = map.getCenter(); return { lat: c.lat, lng: c.lng }; } return { lat: 45.4371, lng: 12.3326 }; }
+function localSearch(q){
+  const words = norm(q).split(" ").filter(Boolean); if (!words.length) return [];
+  const words2 = words.map(w => w.replace(/s$/, ""));        // "mcdonald's" → "mcdonald"
+  const ref = refPoint();
+  return POI.filter(p => words2.every(w => p.s.includes(w)))
+    .map(p => ({ name: p.n, sub: poiLabel(p), lat: p.lat, lng: p.lng, m: hav(ref.lat, ref.lng, p.lat, p.lng) }))
+    .sort((a, b) => a.m - b.m).slice(0, 8)
+    .map(r => ({ ...r, sub: r.sub + " · " + fmtDist(r.m) }));
+}
+async function photon(q){
+  const ref = refPoint();
+  const u = `https://photon.komoot.io/api/?limit=8&lat=${ref.lat}&lon=${ref.lng}&bbox=12.10,45.18,12.65,45.62&q=` + encodeURIComponent(q);
+  const r = await fetch(u); if (!r.ok) return [];
+  const j = await r.json();
+  return (j.features || []).map(f => {
+    const pr = f.properties || {}, [lo, la] = f.geometry.coordinates;
+    const sub = [pr.street && (pr.street + (pr.housenumber ? " " + pr.housenumber : "")), pr.district || pr.locality, pr.city].filter(Boolean).join(", ");
+    return { name: pr.name || pr.street || q, sub: sub + " · " + fmtDist(hav(ref.lat, ref.lng, la, lo)), lat: la, lng: lo };
+  });
+}
+async function nominatim(q){
+  const u = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&accept-language=it&countrycodes=it&bounded=1"
+    + "&viewbox=12.10,45.62,12.65,45.18&q=" + encodeURIComponent(q);
+  const r = await fetch(u, { headers: { "Accept": "application/json" } }); if (!r.ok) return [];
+  const j = await r.json();
+  return j.map(x => { const parts = (x.display_name || "").split(",").map(s => s.trim());
+    return { name: x.name || parts[0], sub: parts.slice(1, 4).join(", "), lat: +x.lat, lng: +x.lon }; });
+}
 async function search(){
   const q = qIn.value.trim(); if (q.length < 2){ if (!q) showRecents(); return; }
   const my = ++qSeq;
-  resBox.innerHTML = `<div class="res info">Cerco…</div>`; resBox.classList.remove("hidden");
-  try{
-    const u = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=8&accept-language=it&countrycodes=it&bounded=1"
-      + "&viewbox=12.10,45.62,12.65,45.18&q=" + encodeURIComponent(q);
-    const r = await fetch(u, { headers: { "Accept": "application/json" } });
-    const j = await r.json(); if (my !== qSeq) return;
-    if (!j.length){ resBox.innerHTML = `<div class="res info">Nessun risultato in laguna per “${esc(q)}”.</div>`; return; }
-    renderResults(j.map(x => {
-      const parts = (x.display_name || "").split(",").map(s => s.trim());
-      return { name: x.name || parts[0], sub: parts.slice(1, 4).join(", "), lat: +x.lat, lng: +x.lon };
-    }));
-  }catch(e){ if (my === qSeq) resBox.innerHTML = `<div class="res info">Ricerca non riuscita: controlla la connessione.</div>`; }
+  const local = localSearch(q);
+  if (local.length) renderResults(local);
+  else { resBox.innerHTML = `<div class="res info">Cerco…</div>`; resBox.classList.remove("hidden"); }
+  const [a, b] = await Promise.all([photon(q).catch(() => []), nominatim(q).catch(() => [])]);
+  if (my !== qSeq) return;
+  const all = local.slice(), seen = all.map(r => [r.lat, r.lng]);
+  a.concat(b).forEach(r => { if (!seen.some(s => hav(s[0], s[1], r.lat, r.lng) < 40)){ all.push(r); seen.push([r.lat, r.lng]); } });
+  if (!all.length){ resBox.innerHTML = `<div class="res info">Nessun risultato in laguna per “${esc(q)}”.</div>`; return; }
+  renderResults(all.slice(0, 12));
 }
 
 /* =========================================================
@@ -1099,6 +1212,9 @@ $("#resetBtn").onclick = async () => {
     mine = { zones: [], depths: [] }; saveMine(); await loadShared(); renderInfo();
   }catch(err){ alert("Non riesco a cancellare: controlla la connessione."); }
 };
+
+$("#hsrc").value = headingSrc;
+$("#hsrc").onchange = e => { headingSrc = e.target.value; store.set("ln_hsrc", headingSrc); };
 
 // avvio: se l'avviso è già stato accettato su questo telefono, apre subito l'app
 if (store.get("ln_agree", null)) openApp();
