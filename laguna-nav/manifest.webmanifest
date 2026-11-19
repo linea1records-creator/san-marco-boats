@@ -1,14 +1,14 @@
 {
- "name": "1Click",
- "short_name": "1Click",
- "description": "1Click: navigatore per la laguna, trasporti, Shopping, Meetup, Sport e myClick.",
+ "name": "unClick",
+ "short_name": "unClick",
+ "description": "unClick: navigatore per la laguna, Ordina, Socializza, Gioca e myClick.",
  "id": "./",
  "start_url": "./index.html",
  "scope": "./",
  "display": "standalone",
  "orientation": "portrait",
- "background_color": "#000000",
- "theme_color": "#0b0f17",
+ "background_color": "#f7f7f2",
+ "theme_color": "#0c3851",
  "lang": "it",
  "icons": [
   {

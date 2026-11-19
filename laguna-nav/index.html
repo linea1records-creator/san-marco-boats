@@ -3,23 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b0f17">
+<meta name="theme-color" content="#0c3851">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="1Click">
+<meta name="apple-mobile-web-app-title" content="unClick">
 <link rel="icon" type="image/png" href="favicon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>1Click</title>
+<title>unClick</title>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>if(!window.maplibregl){document.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"><\/script>');}</script>
 <style>
   :root{
-    --bg:#000; --panel:#111; --panel2:#1a1a1a; --line:#2a2a2a;
-    --text:#f2f2f2; --muted:#9a9a9a; --accent:#2fa4ff;
+    --bg:#082a3e; --panel:#0c3851; --panel2:#124766; --line:#1f587a;
+    --text:#f7f7f2; --muted:#a3b8c6; --accent:#ff6446;
+    --navy:#0c3851; --coral:#ff6446; --cream:#f7f7f2;
     --warn:#ffc400; --danger:#ff3b30; --ok:#30d158;
     --safe-b: env(safe-area-inset-bottom, 0px);
     --safe-t: env(safe-area-inset-top, 0px);
@@ -40,7 +41,7 @@
   .check{display:flex;gap:12px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);
     border-radius:14px;padding:16px;margin:18px 0;line-height:1.4}
   .check input{width:24px;height:24px;flex:0 0 24px;margin-top:2px;accent-color:var(--accent)}
-  .btn{display:block;width:100%;padding:16px;border-radius:14px;background:var(--accent);color:#000;
+  .btn{display:block;width:100%;padding:16px;border-radius:14px;background:var(--accent);color:#fff;
     font-weight:700;font-size:17px;text-align:center}
   .btn:disabled{opacity:.35}
   .btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
@@ -90,11 +91,11 @@
     font-weight:900;font-size:22px;box-shadow:0 2px 10px rgba(0,0,0,.35)}
   .fabs{position:absolute;z-index:18;right:10px;bottom:16px;display:flex;flex-direction:column;gap:9px}
   body.nav .fabs{bottom:92px}
-  .fab{width:50px;height:50px;border-radius:50%;background:#fff;color:#111;font-size:19px;font-weight:800;box-shadow:0 2px 10px rgba(0,0,0,.35);
+  .fab{width:50px;height:50px;border-radius:50%;background:var(--cream);color:var(--navy);font-size:19px;font-weight:800;box-shadow:0 2px 10px rgba(0,0,0,.35);
     display:flex;align-items:center;justify-content:center}
-  .fab.big{width:58px;height:58px;font-size:24px;color:#0b1f4b}
+  .fab.big{width:58px;height:58px;font-size:24px;color:#0c3851}
   .fab.on{background:var(--accent);color:#000}
-  .fab.follow{background:#0b1f4b;color:#fff}
+  .fab.follow{background:#0c3851;color:#fff}
   #navBar{position:absolute;z-index:20;left:0;right:0;bottom:0;background:#111;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
     padding:12px 16px}
   .eta{font-size:22px;font-weight:800;color:var(--ok)}
@@ -107,11 +108,11 @@
   .meTag{position:absolute;left:50%;bottom:0;transform:translateX(-50%);white-space:nowrap;background:#111;color:#fff;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.35)}
   .dest{width:22px;height:22px;border-radius:50%;background:#d32f2f;border:4px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5)}
   /* ===== Tema: blu per la navigazione, rosso e bianco (trattoria) per i ristoranti ===== */
-  #maneuver{background:#1a56db}
+  #maneuver{background:#0c3851}
   .fab.rec{background:#d32f2f;color:#fff;animation:pulse 1.2s infinite}
-  .fab.on{background:#1a56db;color:#fff}
+  .fab.on{background:#0c3851;color:#fff}
   nav#dock{flex:0 0 auto;position:relative;z-index:40;display:flex;justify-content:center;align-items:center;padding:8px 10px calc(8px + var(--safe-b));background:#0b0f17;border-top:1px solid var(--line)}
-  #dial{display:flex;align-items:center;background:#1a56db;transition:background .25s;border-radius:30px;box-shadow:0 3px 14px rgba(0,0,0,.45);touch-action:pan-y;user-select:none;-webkit-user-select:none;overflow:hidden}
+  #dial{display:flex;align-items:center;background:#0c3851;transition:background .25s;border-radius:30px;box-shadow:0 3px 14px rgba(0,0,0,.45);touch-action:pan-y;user-select:none;-webkit-user-select:none;overflow:hidden}
   #dial button{color:#fff;background:none;border:0}
   #dPrev,#dNext{width:46px;height:52px;font-size:26px;font-weight:300;opacity:.75}
   #dCur{position:relative;width:170px;height:56px;overflow:hidden;cursor:grab;touch-action:none;
@@ -127,7 +128,7 @@
   #dPick{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);display:flex;gap:6px;background:#fff;border-radius:22px;padding:8px;box-shadow:0 6px 22px rgba(0,0,0,.45)}
   #dPick button{display:flex;flex-direction:column;align-items:center;gap:3px;width:62px;padding:8px 2px;border-radius:14px;color:#222;font-size:10.5px;font-weight:700;line-height:1.1}
   #dPick button span{font-size:24px}
-  #dPick button.on{background:#e8efff;color:#1a56db}
+  #dPick button.on{background:#e8efff;color:#0c3851}
   body.food{--accent:#c8102e}
   body.food .sbar{border:3px solid #c8102e}
   body.food #searchBox::before{content:"";display:block;height:14px;margin:0 10px -3px;border-radius:10px 10px 0 0;
@@ -159,7 +160,7 @@
   body.nav #toggles{top:calc(104px + var(--safe-t))}
   #toggles button{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.92);color:#111;font-size:16px;
     box-shadow:0 1px 6px rgba(0,0,0,.3);opacity:.55}
-  #toggles button.on{opacity:1;background:#1a56db;color:#fff}
+  #toggles button.on{opacity:1;background:#0c3851;color:#fff}
   body.food #toggles{display:none}
   #banner{left:54px} #shallow{left:54px}
   #inst{position:absolute;z-index:18;left:10px;bottom:16px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;max-width:calc(100% - 84px)}
@@ -178,7 +179,7 @@
   .ic-card.alarm{background:#b3261e;animation:pulse 1s infinite} .ic-card.alarm .ic-big{color:#fff}
   .chips{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
   .chips button{font-size:11px;padding:4px 8px;border-radius:20px;background:#1b2a44;color:#cfe0ff}
-  .chips button.on{background:#1a56db;color:#fff}
+  .chips button.on{background:#0c3851;color:#fff}
   #menu{position:absolute;z-index:23;right:70px;bottom:16px;background:#fff;color:#111;border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,.4);overflow:hidden;min-width:220px}
   body.nav #menu{bottom:92px}
   #menu .mi{display:block;width:100%;text-align:left;padding:13px 16px;font-size:15px;border-top:1px solid #eee;color:#111}
@@ -188,7 +189,7 @@
   #v-boat .card h4{color:#8fb3ff;margin-bottom:10px}
   .hint{font-size:12px;color:var(--muted);margin-top:4px}
   #modes{position:absolute;z-index:23;right:70px;bottom:130px;background:#fff;color:#111;border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,.4);overflow:hidden;min-width:200px}
-  #modes .mi.on{background:#e8f0fe;color:#1a56db;font-weight:700}
+  #modes .mi.on{background:#e8f0fe;color:#0c3851;font-weight:700}
   body.nav #modes{bottom:206px}
   #depthLegend{position:absolute;z-index:17;right:70px;top:calc(76px + var(--safe-t));background:rgba(255,255,255,.94);color:#111;border-radius:12px;padding:8px 10px;
     box-shadow:0 2px 10px rgba(0,0,0,.3);font-size:11px;max-width:170px}
@@ -235,7 +236,7 @@
     box-shadow:0 3px 12px rgba(0,0,0,.4);width:170px;cursor:pointer}
   body.nav #miniW{bottom:92px}
   body.mode-trasporti #miniW, body.mode-incontra #miniW, body.mode-market #miniW{display:none}
-  .mwc{background:rgba(11,15,23,.9);color:#fff;padding:5px 7px;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:4px;align-items:center}
+  .mwc{background:rgba(12,56,81,.93);color:#fff;padding:5px 7px;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:4px;align-items:center}
   .mwc i{font-style:normal;font-size:12px;grid-row:span 2}
   .mwc b{font-size:13.5px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .mwc small{font-size:8.5px;color:#9ab;letter-spacing:.02em;line-height:1;white-space:nowrap}
@@ -245,7 +246,7 @@
   .spm{cursor:pointer;display:flex;flex-direction:column;align-items:center}
   .spm span{width:40px;height:40px;border-radius:50%;background:#fff;border:3px solid #0a8f4e;display:flex;align-items:center;justify-content:center;font-size:21px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
   .spm i{margin-top:-6px;background:#0a8f4e;color:#fff;font-style:normal;font-size:10.5px;font-weight:800;border-radius:8px;padding:1px 6px}
-  .spm.in span{border-color:#2f8cff} .spm.in i{background:#2f8cff} .spm.full span{border-color:#b91c1c} .spm.full i{background:#b91c1c}
+  .spm.in span{border-color:#ff6446} .spm.in i{background:#ff6446} .spm.full span{border-color:#b91c1c} .spm.full i{background:#b91c1c}
   .spbar{height:8px;border-radius:4px;background:var(--panel2);overflow:hidden} .spbar i{display:block;height:100%;background:#0a8f4e}
   .spnames{display:flex;flex-wrap:wrap;gap:6px} .spnames span{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:3px 9px;font-size:13px}
   body.mode-sport #fabSos, body.mode-sport #fabTr, body.mode-sport #miniW{display:none}
@@ -286,39 +287,39 @@
   #wz{position:fixed;inset:0;z-index:6000;background:#0b0f17;color:#fff;display:flex;flex-direction:column;animation:obIn .25s ease}
   .wzbar{display:flex;align-items:center;gap:10px;padding:calc(10px + var(--safe-t)) 12px 8px}
   .wzbar button{font-size:24px;color:#cfd8e3;width:36px} .wzbar span{font-size:12px;color:#8fa0b5;min-width:34px;text-align:right}
-  .wzprog{flex:1;height:6px;border-radius:3px;background:#1d2738;overflow:hidden} .wzprog i{display:block;height:100%;background:linear-gradient(90deg,#2f8cff,#8b5cf6);transition:width .25s}
+  .wzprog{flex:1;height:6px;border-radius:3px;background:#1d2738;overflow:hidden} .wzprog i{display:block;height:100%;background:linear-gradient(90deg,#0c3851,#ff6446);transition:width .25s}
   .wzmain{flex:1;overflow-y:auto;padding:14px 18px calc(24px + var(--safe-b))}
   .wzt{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#7fa6e8;font-weight:800;margin-bottom:6px}
   .wzq{font-size:25px;line-height:1.2;margin:0 0 8px} .wzh{color:#9fb0c5;font-size:14px;line-height:1.45;margin:0 0 14px}
   .wzopts{display:flex;flex-direction:column;gap:9px;margin-top:10px} .wzopts.grid{display:grid;grid-template-columns:1fr 1fr} .wzopts.grid.tm{grid-template-columns:1fr 1fr 1fr} .wzopts.two{display:grid;grid-template-columns:1fr 1fr}
   .wzo{display:block;text-align:left;background:#151d2b;border:1.5px solid #243149;color:#fff;border-radius:16px;padding:15px 16px;font-size:16.5px;font-weight:600;cursor:pointer;text-transform:none}
   .wzopts.grid .wzo,.wzopts.two .wzo{text-align:center;padding:14px 8px;font-size:15px}
-  .wzo.on{border-color:#2f8cff;background:#14284d} .wzo:active{transform:scale(.98)}
+  .wzo.on{border-color:#ff6446;background:#14284d} .wzo:active{transform:scale(.98)}
   .wzin{display:flex;align-items:center;gap:8px;margin-top:12px} .wzin input,.wzin textarea{flex:1;background:#151d2b;border:1.5px solid #243149;color:#fff;border-radius:14px;padding:15px 14px;font-size:18px;font-family:inherit}
   .wzin span{color:#9fb0c5;font-size:16px}
-  .wzchips{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px} .wzchips button{background:#1d2738;color:#dbe6f5;border-radius:18px;padding:9px 13px;font-size:14px} .wzchips button.on{background:#2f8cff;color:#fff}
+  .wzchips{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px} .wzchips button{background:#1d2738;color:#dbe6f5;border-radius:18px;padding:9px 13px;font-size:14px} .wzchips button.on{background:#ff6446;color:#fff}
   .wzgo{margin-top:16px} .wzskip{display:block;margin:16px auto 0;color:#8fa0b5;font-size:15px;text-decoration:underline}
-  .wzcols{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px} .wzcol{aspect-ratio:1;border-radius:50%;border:3px solid #243149} .wzcol.on{border-color:#fff;box-shadow:0 0 0 3px #2f8cff}
+  .wzcols{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px} .wzcol{aspect-ratio:1;border-radius:50%;border:3px solid #243149} .wzcol.on{border-color:#fff;box-shadow:0 0 0 3px #ff6446}
   .wzph{height:260px;border-radius:18px;background:#151d2b center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:56px;margin-top:8px}
   .wzsum{margin-top:6px} .wzsum .row1{display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer;font-size:14.5px} .wzsum .row1 span{color:var(--muted)} .wzsum .row1 b{text-align:right;max-width:58%}
   .wzo.wzwrite{background:transparent;border-style:dashed;color:#9fc3ff;text-align:center}
   .wzopts.grid .wzo.wzwrite{grid-column:1/-1}
   .wzck{display:inline-block;width:18px;height:18px;border-radius:6px;border:2px solid #5b6b80;margin-right:8px;vertical-align:-3px}
-  .wzo.on .wzck{background:#2f8cff;border-color:#2f8cff;box-shadow:inset 0 0 0 3px #14284d}
+  .wzo.on .wzck{background:#ff6446;border-color:#ff6446;box-shadow:inset 0 0 0 3px #14284d}
   .boatpick{display:flex;gap:8px;flex-wrap:wrap} .boatpick button{background:var(--panel2);border:1.5px solid var(--line);color:var(--text);border-radius:14px;padding:10px 14px;font-weight:700}
-  .boatpick button.on{border-color:#2f8cff;background:#14284d}
+  .boatpick button.on{border-color:#ff6446;background:#14284d}
   .me.fr .meTag{pointer-events:auto;cursor:pointer}
   .kiss{font-size:22px;line-height:1;pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
   .kiss span{display:block;will-change:transform}
   .kiss.pop span{animation:kpop .45s ease-out forwards}
   @keyframes kpop{to{transform:scale(2.2);opacity:0}}
   #tideC{width:100%;height:36px;display:block;margin-top:4px;border-radius:8px;background:#06101f}
-  /* ===== 1Click / ClickVenice ===== */
+  /* ===== unClick / unClick ===== */
   #splash{background:radial-gradient(120% 80% at 50% 0%,#0d2b5a 0%,#000 70%)}
   .ob{display:flex;flex-direction:column;justify-content:center;min-height:100%;animation:obIn .35s ease}
   @keyframes obIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
   .logo1{font-size:64px;font-weight:900;letter-spacing:-2px;text-align:center}
-  .logo1 span{color:#2f8cff}
+  .logo1 span{color:#ff6446}
   .logoCV{font-size:48px;font-weight:900;letter-spacing:-1px;text-align:center}
   .mouseLogo{width:.8em;height:1.05em;vertical-align:-.2em;margin-right:.12em;filter:drop-shadow(0 4px 10px rgba(47,140,255,.6));animation:mouseIn .8s cubic-bezier(.3,1.5,.5,1)}
   @keyframes mouseIn{from{transform:translate(40px,40px) scale(.6);opacity:0}to{transform:none;opacity:1}}
@@ -332,25 +333,25 @@
   @keyframes obRip{from{transform:scale(.4);opacity:.95}to{transform:scale(7);opacity:0}}
   #splash.leave{animation:splashOut .5s ease-in forwards}
   @keyframes splashOut{to{opacity:0;transform:scale(1.35)}}
-  .logoCV span{color:#2f8cff}
+  .logoCV span{color:#ff6446}
   .logoCV.small{font-size:30px}
   .obsub{text-align:center;color:#9fb3d6;margin:8px 0 26px}
   .citybtn{display:flex;justify-content:space-between;align-items:center;width:100%;padding:18px 18px;margin-bottom:10px;border-radius:16px;
     background:#10203d;border:1px solid #23406f;font-size:18px}
-  .citybtn span{color:#7fb3ff;font-size:14px}
+  .citybtn span{color:#ff6446;font-size:14px}
   .citybtn.soon{opacity:.45}
   .cn{display:flex;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding-left:12px}
-  .cn span{color:#7fb3ff;font-weight:700}
+  .cn span{color:#ff6446;font-weight:700}
   .cn input{border:0;background:none}
   .hint.ok{color:#4ade80} .hint.ko{color:#ff6b60}
-  .avatar{width:84px;height:84px;border-radius:50%;margin:0 auto;background:linear-gradient(135deg,#1a56db,#2f8cff);display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:800}
+  .avatar{width:84px;height:84px;border-radius:50%;margin:0 auto;background:linear-gradient(135deg,#0c3851,#ff6446);display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:800}
   .rowbtn{display:flex;justify-content:space-between;width:100%;text-align:left;font-size:16px;font-weight:600}
   .rowbtn span{color:var(--muted)}
-  .backbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;color:#7fb3ff;font-weight:600}
+  .backbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;color:#ff6446;font-weight:600}
   #navMode{position:absolute;z-index:19;left:50%;transform:translateX(-50%);top:calc(70px + var(--safe-t));display:flex;background:rgba(255,255,255,.95);border-radius:20px;
     box-shadow:0 2px 10px rgba(0,0,0,.3);overflow:hidden}
   #navMode button{padding:7px 14px;font-size:13px;font-weight:700;color:#333}
-  #navMode button.on{background:#1a56db;color:#fff}
+  #navMode button.on{background:#0c3851;color:#fff}
   body.nav #navMode{display:none}
   body.mode-trasporti #toggles, body.mode-trasporti #inst, body.mode-trasporti #navMode, body.mode-trasporti #fabFood,
   body.mode-trasporti #fabMenu, body.mode-trasporti #fabView{display:none!important}
@@ -497,8 +498,8 @@
   .fr b{flex:1} .fr .btn.small{padding:7px 10px;font-size:13px}
   .fr.small{font-size:14px;color:var(--muted)}
   .frh{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#8fb3ff;margin:12px 0 2px}
-  .colrow{display:flex;gap:8px;flex-wrap:wrap} .colb{width:34px;height:34px;border-radius:50%;border:3px solid transparent} .colb.on{border-color:#fff;box-shadow:0 0 0 2px #1a56db}
-  .mchead{display:flex;align-items:center;gap:8px;margin-bottom:10px} .mchead h2{flex:1;margin:0;font-size:26px;background:linear-gradient(90deg,#8b5cf6,#3b82f6);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .colrow{display:flex;gap:8px;flex-wrap:wrap} .colb{width:34px;height:34px;border-radius:50%;border:3px solid transparent} .colb.on{border-color:#fff;box-shadow:0 0 0 2px #0c3851}
+  .mchead{display:flex;align-items:center;gap:8px;margin-bottom:10px} .mchead h2{flex:1;margin:0;font-size:26px;background:linear-gradient(90deg,#0c3851,#ff6446);-webkit-background-clip:text;background-clip:text;color:transparent}
   .mcic{position:relative;width:42px;height:42px;border-radius:50%;background:var(--panel2);border:1px solid var(--line);font-size:19px;display:flex;align-items:center;justify-content:center;color:var(--text)}
   .mcic .av{width:34px;height:34px;font-size:15px}
   .mcic i{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:#d32f2f;color:#fff;font-size:11px;font-style:normal;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px}
@@ -537,7 +538,7 @@
   .dep .dd{flex:1;color:#222}
   .dep .dt{text-align:right;line-height:1.1}.dep .dt small{display:block;color:#888;font-size:11px}
   .trnote{color:#777;font-size:12px;line-height:1.35;margin:8px 0 0}
-  .trback{color:#1a56db;font-weight:700;font-size:13px;margin-bottom:4px;cursor:pointer}
+  .trback{color:#0c3851;font-weight:700;font-size:13px;margin-bottom:4px;cursor:pointer}
   .opt{border:1px solid #e3e8ef;border-radius:12px;padding:8px 10px;margin-top:8px}
   .opt .oh{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:4px}
   .leg{font-size:13px;color:#222;padding:5px 0;border-top:1px dashed #e3e8ef;line-height:1.35}
@@ -568,7 +569,7 @@
   .stm .ph{width:46px;height:46px;border-radius:50%;border:3px solid #fff;background:#ff2d78 center/cover no-repeat;box-shadow:0 2px 8px rgba(0,0,0,.45);
     display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px}
   .stm span{position:absolute;right:-6px;bottom:-4px;font-size:18px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
-  .stm.mine .ph{border-color:#2f8cff} .stm.match .ph{border-color:#ffd60a}
+  .stm.mine .ph{border-color:#ff6446} .stm.match .ph{border-color:#ffd60a}
   .kinds{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
   .kinds button{background:var(--panel2);border:2px solid var(--line);border-radius:14px;padding:12px 8px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:4px}
   .kinds button span{font-size:26px}
@@ -586,7 +587,7 @@
   .chatin{display:flex;gap:8px;margin-top:8px}
   .chatin input{flex:1}
 
-  #toggles .dashbtn{opacity:1;background:#0b1426;color:#7fb3ff;display:flex;align-items:center;justify-content:center;margin-top:4px}
+  #toggles .dashbtn{opacity:1;background:#0b1426;color:#ff6446;display:flex;align-items:center;justify-content:center;margin-top:4px}
   /* Sheets / modal */
   #sheet{position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
   #sheet .in{width:100%;background:var(--panel);border-radius:20px 20px 0 0;padding:20px;padding-bottom:calc(20px + var(--safe-b));
@@ -628,7 +629,7 @@
   #tabs svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
   body nav#dock{background:#fff;border-top:1px solid #e3e5e8}
   #tabs button{color:#8a8f98}
-  #tabs button.on{color:#0b1f4b}
+  #tabs button.on{color:#0c3851}
   #tabs button.on .s{fill:currentColor}
   #tabs button.on .c{stroke:#fff}
   #tabs button:active svg{transform:scale(.9)}
@@ -638,7 +639,7 @@
   #tabs button.mid svg{width:58px;height:58px;stroke:none}
   #tabs button.mid .arw{fill:#4a5f86;stroke:#fff;stroke-width:3.5;stroke-linejoin:round}
   #tabs button.mid .arl{fill:none;stroke:#9fb0cc;stroke-width:1.6;stroke-linecap:round}
-  #tabs button.mid.on .arw{fill:#0b1f4b}
+  #tabs button.mid.on .arw{fill:#0c3851}
   #tabs button.mid span{font-size:12px;font-weight:800;color:#000}
   #tabs button.mid:active .ring{transform:scale(.93)}
   #tabs button.mid:active svg{transform:none}
@@ -662,10 +663,33 @@
   .tboard button:disabled{cursor:default}
   .tstate{text-align:center;font-size:16px;font-weight:700;margin:4px 0}
   .tsub{text-align:center;color:var(--muted);font-size:13px}
+  /* ===== unClick: navy + corallo su crema ===== */
+  #splash{background:var(--cream)!important;color:var(--navy);--panel:#fff;--panel2:#eef0ee;--line:#d6dcdf;--text:var(--navy);--muted:#5c7282}
+  #splash input{color:var(--navy)}
+  #splash .seg{background:#e8ebe8} #splash .seg button{color:#5c7282} #splash .seg button.on{background:var(--navy);color:#fff}
+  #splash .check{background:#fff;border-color:#d6dcdf;color:var(--navy)}
+  #splash .cn span{color:var(--coral)}
+  .obLogo{display:block;width:min(70vw,300px);margin:0 auto;animation:obIn .4s ease}
+  .obLogo.small{width:min(46vw,190px)}
+  .seg button.on{background:var(--navy);color:#fff}
+  .chips button.on{background:var(--navy);color:#fff}
+  .fab.on{background:var(--navy);color:var(--cream)}
+  .fab.follow{background:var(--navy);color:var(--cream)}
+  #maneuver{background:var(--navy)}
+  body nav#dock{background:var(--cream)!important;border-top:1px solid #dfe3e0}
+  #tabs button{color:#7d8f9b} #tabs button.on{color:var(--navy)} #tabs button.on .c{stroke:var(--cream)}
+  #tabs button{position:relative}
+  #tabs button.on:not(.mid)::before{content:"";position:absolute;top:-6px;left:50%;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--coral)}
+  #tabs button.mid .arw{fill:#5b7486!important;stroke:var(--cream)!important}
+  #tabs button.mid.on .arw{fill:var(--navy)!important}
+  #tabs button.mid .arl{stroke:#c9d3d9!important}
+  #tabs button.mid .dot{fill:var(--coral);opacity:0;transition:opacity .2s}
+  #tabs button.mid.on .dot{opacity:1}
+  #tabs button.mid span{color:var(--navy)!important}
   #verMark{position:absolute;right:8px;top:2px;font-size:9px;line-height:1;color:#000;opacity:.4;pointer-events:none;letter-spacing:.03em}
   /* impostazioni della mappa (Nautica): finestrella con gli interruttori */
-  #fabSet svg{width:24px;height:24px;fill:none;stroke:#111;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-  #fabSet.on{background:#111}
+  #fabSet svg{width:24px;height:24px;fill:none;stroke:var(--navy);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  #fabSet.on{background:var(--navy)}
   #fabSet.on svg{stroke:#fff}
   #setPanel{position:absolute;z-index:24;right:70px;bottom:16px;width:236px;background:#fff;color:#111;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.45);padding:6px 0;overflow:hidden}
   body.nav #setPanel{bottom:92px}
@@ -676,7 +700,7 @@
   #setPanel .srow span{flex:1}
   #setPanel .sw{position:relative;flex:0 0 38px;width:38px;height:22px;border-radius:11px;background:linear-gradient(#d3d6da,#b6bac0);transition:background .15s}
   #setPanel .sw::after{content:"";position:absolute;left:2px;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35);transition:transform .15s}
-  #setPanel .srow.on .sw{background:#111}
+  #setPanel .srow.on .sw{background:var(--navy)}
   #setPanel .srow.on .sw::after{transform:translateX(16px)}
   body.mode-trasporti #fabSet, body.mode-incontra #fabSet, body.mode-market #fabSet, body.mode-sport #fabSet,
   body.mode-trasporti #setPanel, body.mode-incontra #setPanel, body.mode-market #setPanel, body.mode-sport #setPanel{display:none!important}
@@ -696,21 +720,11 @@
 
 <!-- ============ SPLASH: avviso obbligatorio ============ -->
 <div id="splash">
-  <!-- 1) scegli la città -->
-  <div class="ob" id="ob-city">
-    <div class="logo1"><svg class="mouseLogo" viewBox="0 0 300 400" aria-hidden="true"><path d="M60 40 L60 370 L135 298 L190 420 L245 396 L190 276 L295 276 Z" transform="translate(-20 -30) scale(.92)" fill="#fff" stroke="#0b1a3a" stroke-width="14" stroke-linejoin="round"/></svg>1<span>Click</span></div>
-    <p class="obsub">Scegli la tua città</p>
-    <button class="citybtn" data-city="venezia"><b>Venezia</b><span>ClickVenice ›</span></button>
-    <button class="citybtn soon" disabled><b>Altre città</b><span>presto</span></button>
-  </div>
-  <!-- 2) si apre ClickVenice -->
-  <div class="ob hidden" id="ob-brand">
-    <div class="logoCV">Click<span>Venice</span></div>
-    <p class="obsub">Navigare, mangiare, muoversi, incontrarsi.</p>
-  </div>
+  <!-- logo -->
+  <div class="ob hidden" id="ob-brand"><img class="obLogo" src="logo.png" alt="unClick"></div>
   <!-- 3) accesso o registrazione -->
   <div class="ob hidden" id="ob-reg">
-    <div class="logoCV small">Click<span>Venice</span></div>
+    <img class="obLogo small" src="logo.png" alt="unClick">
     <div class="seg" id="authSeg" style="margin-top:20px"><button data-a="login" class="on">Accedi</button><button data-a="reg">Registrati</button></div>
     <div class="field"><label>Clickname</label>
       <div class="cn"><span>@</span><input id="regName" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20" placeholder="il_tuo_nome"></div>
@@ -778,14 +792,14 @@
       <div class="ovh"><b>🔥 Click Match</b><span id="cmMine"></span><button class="ovx" data-ovx>✕</button></div>
       <div id="cmBody"></div>
     </div>
-    <!-- Videochat casuale con tutti gli utenti di 1Click -->
+    <!-- Videochat casuale con tutti gli utenti di unClick -->
     <div id="vcOv" class="ov hidden">
       <video id="vcRemote" autoplay playsinline></video>
       <video id="vcLocal" autoplay playsinline muted></video>
       <div id="vcTop"><b id="vcWho">🎥 Videochat</b><span id="vcState">Pronto</span><button class="ovx" data-ovx>✕</button></div>
       <div id="vcStart" class="vcstart">
         <div class="big">🎥</div><h3>Videochat casuale</h3>
-        <p>Parli a caso con chi sta usando 1Click in questo momento, in tutte le città. Solo maggiorenni.</p>
+        <p>Parli a caso con chi sta usando unClick in questo momento, in tutte le città. Solo maggiorenni.</p>
         <ul><li>Se qualcuno ti mette a disagio tocca <b>⚑ Segnala</b>: lo blocchi subito e chi riceve più segnalazioni viene sospeso.</li><li>Non mostrare documenti, indirizzi o dati personali.</li><li>Il video passa direttamente tra i due telefoni e non viene registrato.</li></ul>
         <button class="btn" id="vcGo">Inizia</button>
       </div>
@@ -1079,10 +1093,10 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.29</p>
+      <p class="sub">unClick · unClick · versione 3.30</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
-        <button class="btn" id="instBtn">📲 Installa 1Click</button>
+        <button class="btn" id="instBtn">📲 Installa unClick</button>
         <p class="muted" id="instTxt" style="line-height:1.45;margin:8px 0 12px">Si apre a schermo intero dall'icona, come un'app.</p>
         <button class="btn ghost" id="vibBtn">📳 Prova la vibrazione</button>
         <p class="muted" id="vibTxt" style="line-height:1.45;margin:8px 0 0"></p>
@@ -1126,7 +1140,7 @@
 /* =========================================================
    CONFIGURAZIONE — modifica qui
    ========================================================= */
-const NAVY = "#0b1f4b";   // blu navy di 1Click: freccia Naviga, tasto ➤, acqua, icone selezionate
+const NAVY = "#0c3851", CORAL = "#ff6446";   // blu navy di unClick: freccia Naviga, tasto ➤, acqua, icone selezionate
 const CONFIG = {
   // Numero WhatsApp che riceve gli ordini (formato internazionale senza +, es. "393401234567")
   ORDER_WHATSAPP: "",
@@ -1181,14 +1195,11 @@ async function api(path, { method = "GET", body, ret = false } = {}){
 }
 const deleteOwn = (table, id) => api("rpc/delete_own", { method: "POST", body: { p_table: table, p_id: id, p_token: TOKEN }, ret: true });
 
-/* ---------- apertura: città → ClickVenice → registrazione ---------- */
+/* ---------- apertura: città → unClick → registrazione ---------- */
 let PROFILE = store.get("ln_profile", null);
 const agree = $("#agree"), enter = $("#enter");
-function showOb(id){ ["ob-city", "ob-brand", "ob-reg"].forEach(x => $("#" + x).classList.toggle("hidden", x !== id)); }
-document.querySelectorAll(".citybtn[data-city]").forEach(b => b.onclick = () => {
-  store.set("ln_city", b.dataset.city); showOb("ob-brand");
-  setTimeout(() => { if (PROFILE) introThenOpen(); else { showOb("ob-reg"); if (PROFILE === null) $("#regName").focus(); } }, 1400);
-});
+function showOb(id){ ["ob-brand", "ob-reg"].forEach(x => $("#" + x).classList.toggle("hidden", x !== id)); }
+store.set("ln_city", store.get("ln_city", "venezia"));   // per ora una sola città: Venezia
 const NAME_RX = /^[A-Za-z0-9_.]{3,20}$/;
 let authMode = "login", nameOk = false, nameTimer = null;
 document.querySelectorAll("#authSeg [data-a]").forEach(b => b.onclick = () => {
@@ -1279,12 +1290,12 @@ enter.onclick = async () => {
   PROFILE = { clickname: r.clickname, city: store.get("ln_city", "venezia") }; store.set("ln_profile", PROFILE); store.set("ln_agree", Date.now());
   // l'account ha la sua chiave: se è diversa da quella del telefono, si riparte con quella (così vedi e gestisci le tue cose da qualsiasi telefono)
   if (r.token && r.token !== TOKEN){ store.set("ln_token", r.token); store.set("ln_mine", { zones: [], depths: [] }); location.reload(); return; }
-  showOb("ob-brand"); setTimeout(introThenOpen, 400);
+  openApp();
 };
-// transizione: il puntatore entra da sotto, va sul logo ClickVenice, clicca, e la mappa si apre "zoomando"
+// transizione: il puntatore entra da sotto, va sul logo unClick, clicca, e la mappa si apre "zoomando"
 let introDone = false;
 function introThenOpen(){
-  if (introDone){ openApp(); return; } introDone = true;
+  introDone = true; openApp(); return;
   const logo = document.querySelector("#ob-brand .logoCV"), reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (!logo || reduce){ openApp(); return; }
   const c = document.createElement("div"); c.id = "obCursor";
@@ -1318,7 +1329,7 @@ if ("serviceWorker" in navigator) window.addEventListener("load", () => {
   navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(r => { r.update(); document.addEventListener("visibilitychange", () => { if (!document.hidden) r.update(); }); }).catch(() => {});
 });
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); instEvt = e; });
-window.addEventListener("appinstalled", () => { instEvt = null; toast("1Click è sulla schermata Home ✓"); });
+window.addEventListener("appinstalled", () => { instEvt = null; toast("unClick è sulla schermata Home ✓"); });
 document.addEventListener("click", async e => {
   if (e.target.closest("#instBtn")){
     if (window.matchMedia("(display-mode: standalone)").matches){ $("#instTxt").textContent = "Stai già usando l'app installata ✓"; return; }
@@ -1329,7 +1340,7 @@ document.addEventListener("click", async e => {
   if (e.target.closest("#vibBtn")){
     let ok = false; try{ ok = navigator.vibrate ? navigator.vibrate([200, 100, 200]) : false; }catch(_){}
     $("#vibTxt").innerHTML = (ok ? "<b>Chrome dice: vibrazione mandata ✓</b><br>" : "<b>Chrome dice: vibrazione bloccata ✗</b><br>") + (ok ? "Se non hai sentito niente: controlla che la vibrazione del telefono sia attiva (Impostazioni → Suoni e vibrazione), che il telefono non sia in modalità silenzioso totale o Non disturbare, e usa Chrome."
-      : "Questo browser non lascia vibrare le pagine web. Su Android apri ClickVenice con Chrome e tocca prima un punto qualsiasi della pagina.");
+      : "Questo browser non lascia vibrare le pagine web. Su Android apri unClick con Chrome e tocca prima un punto qualsiasi della pagina.");
   }
 });
 
@@ -1370,7 +1381,7 @@ const TAB_IC = {   // linea sottile · .s si riempie quando la scheda è selezio
 };
 function buildDial(){
   $("#tabs").innerHTML = MODES.map(x => x.k === "nautica"
-    ? `<button role="tab" data-pm="${x.k}" class="mid"><i class="ring"><svg viewBox="0 0 60 60" aria-hidden="true"><path class="arw" d="M30 3 L54 55 L30 43 L6 55 Z"/><path class="arl" d="M30 12 L30 41"/></svg></i><span>${x.n}</span></button>`
+    ? `<button role="tab" data-pm="${x.k}" class="mid"><i class="ring"><svg viewBox="0 0 60 60" aria-hidden="true"><path class="arw" d="M30 3 L54 55 L30 43 L6 55 Z"/><path class="arl" d="M30 12 L30 41"/><circle class="dot" cx="30" cy="5" r="4.5"/></svg></i><span>${x.n}</span></button>`
     : `<button role="tab" data-pm="${x.k}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_IC[x.k] || ""}</svg><span>${x.n}</span></button>`).join("");
 }
 const APP_VER = ([...document.querySelectorAll(".sub")].map(e => e.textContent).join(" ").match(/versione (\d+(?:\.\d+)+)/) || [])[1] || "";
@@ -1397,15 +1408,15 @@ document.addEventListener("click", e => {
 });
 /* ---------- myClick: profilo personalizzato e amici ---------- */
 let MY = store.get("ln_my", null);
-const MY_COLORS = ["#1a56db", "#c8102e", "#0a8f4e", "#d6336c", "#6d28d9", "#f59e0b", "#0891b2", "#334155"];
-function avatarHtml(p, big){ const c = (p && p.colore) || "#1a56db", t = (p && p.emoji) || ((p && p.nome) || "?")[0].toUpperCase();
+const MY_COLORS = ["#0c3851", "#c8102e", "#0a8f4e", "#d6336c", "#6d28d9", "#f59e0b", "#0891b2", "#334155"];
+function avatarHtml(p, big){ const c = (p && p.colore) || "#0c3851", t = (p && p.emoji) || ((p && p.nome) || "?")[0].toUpperCase();
   return `<span class="av${big ? " big" : ""}" style="background:${c}">${esc(t)}</span>`; }
 function paintMe(){
   if (!PROFILE) return; const me = (MY && MY.io) || { nome: PROFILE.clickname };
   const a = $("#pfAvatar"); a.textContent = me.emoji || PROFILE.clickname[0].toUpperCase(); a.style.background = me.colore || "";
   $("#pfName").textContent = "@" + PROFILE.clickname;
-  $("#pfSub").textContent = me.bio || "ClickVenice";
-  ["#pfMini", "#cmAv"].forEach(s => { const el = $(s); el.textContent = me.emoji || PROFILE.clickname[0].toUpperCase(); el.style.background = me.colore || "#1a56db"; });
+  $("#pfSub").textContent = me.bio || "unClick";
+  ["#pfMini", "#cmAv"].forEach(s => { const el = $(s); el.textContent = me.emoji || PROFILE.clickname[0].toUpperCase(); el.style.background = me.colore || "#0c3851"; });
   $("#cmText").placeholder = "A cosa stai pensando, @" + PROFILE.clickname + "?";
 }
 async function loadFriends(){
@@ -1585,7 +1596,7 @@ function paintWork(){
   if (wkTab === "jobs"){
     const of = WK.offerte || [];
     box.innerHTML = (azienda ? `<button class="btn small" id="wkNewJob" style="width:100%;margin-bottom:10px">＋ Pubblica un'offerta di lavoro</button>` : "") +
-      (of.length ? of.map(jobCard).join("") : `<div class="card soonbox"><div class="big">📋</div><h3>Nessuna offerta${$("#wkQ").value ? " per questa ricerca" : " per ora"}</h3><p class="muted">Le aziende di ClickVenice pubblicano qui le richieste di personale.</p></div>`);
+      (of.length ? of.map(jobCard).join("") : `<div class="card soonbox"><div class="big">📋</div><h3>Nessuna offerta${$("#wkQ").value ? " per questa ricerca" : " per ora"}</h3><p class="muted">Le aziende di unClick pubblicano qui le richieste di personale.</p></div>`);
   } else if (wkTab === "people"){
     const lv = WK.lavoratori || [];
     box.innerHTML = lv.length ? lv.map(c => `<div class="card">${cvHtml(c)}</div>`).join("") : `<div class="card soonbox"><div class="big">🧑‍🔧</div><h3>Nessun lavoratore${$("#wkQ").value ? " per questa ricerca" : " ancora"}</h3><p class="muted">Chi cerca lavoro mette qui competenze ed esperienze dal suo spazio.</p></div>`;
@@ -1721,9 +1732,9 @@ function renderProfile(){
   setPfTab(pfTab);
 }
 /* omino sulla mappa e posizione condivisa con gli amici */
-const AV_COLS = ["#1a73e8", "#c8102e", "#0a8f4e", "#f59e0b", "#7c3aed", "#d6336c", "#111111", "#ffffff", "#0891b2", "#8b4513"];
+const AV_COLS = ["#0c3851", "#c8102e", "#0a8f4e", "#f59e0b", "#7c3aed", "#d6336c", "#111111", "#ffffff", "#0891b2", "#8b4513"];
 function paintAvRow(){
-  const a = store.get("ln_avatar", null) || { sex: "m", shirt: "#1a73e8" }, sh = store.get("ln_share", false);
+  const a = store.get("ln_avatar", null) || { sex: "m", shirt: "#0c3851" }, sh = store.get("ln_share", false);
   $("#pfAvSub").innerHTML = `${a.sex === "f" ? "Femmina" : "Maschio"} <i style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${esc(a.shirt)};border:1px solid #888;vertical-align:-1px"></i> ›`;
   $("#pfShareSub").textContent = (sh ? "Sì" : "No") + " ›";
 }
@@ -1734,11 +1745,11 @@ async function syncAvatar(){
     store.set("ln_share", !!r.share); paintAvRow(); try{ manKey = ""; drawMan(true); }catch(e){} }catch(e){}
 }
 $("#pfAv3d").onclick = () => {
-  const a = store.get("ln_avatar", null) || { sex: "m", shirt: "#1a73e8" };
+  const a = store.get("ln_avatar", null) || { sex: "m", shirt: "#0c3851" };
   wizard({ title: "Il tuo omino sulla mappa", values: { sex: a.sex, shirt: a.shirt }, steps: [
     { k: "sex", q: "Maschio o femmina?", type: "choice", options: [["m", "🙋‍♂️ Maschio"], ["f", "🙋‍♀️ Femmina"]] },
     { k: "shirt", q: "Di che colore è la maglietta?", type: "color", options: AV_COLS }
-  ], onDone: v => { const n = { sex: v.sex === "f" ? "f" : "m", shirt: v.shirt || "#1a73e8" }; store.set("ln_avatar", n); paintAvRow();
+  ], onDone: v => { const n = { sex: v.sex === "f" ? "f" : "m", shirt: v.shirt || "#0c3851" }; store.set("ln_avatar", n); paintAvRow();
     try{ manKey = ""; drawMan(true); }catch(e){} rpc("avatar_set", { p_sex: n.sex, p_shirt: n.shirt }).catch(() => {}); toast("Omino aggiornato ✓"); } });
 };
 $("#pfShare").onclick = () => {
@@ -1791,7 +1802,7 @@ function renderMeet(){
       <button class="btn" id="adultYes" style="margin-top:8px">Ho almeno 18 anni</button>
       <button class="btn ghost" id="adultNo" style="margin-top:8px">Non ho ancora 18 anni</button></div>`;
     $("#adultYes").onclick = () => { store.set("ln_adult", true); renderMeet(); };
-    $("#adultNo").onclick = () => { box.innerHTML = `<div class="card soonbox"><div class="big">🔒</div><h3>Incontra non è disponibile</h3><p class="muted">Questa sezione è riservata a chi ha almeno 18 anni. Tutto il resto di ClickVenice puoi usarlo.</p></div>`; };
+    $("#adultNo").onclick = () => { box.innerHTML = `<div class="card soonbox"><div class="big">🔒</div><h3>Incontra non è disponibile</h3><p class="muted">Questa sezione è riservata a chi ha almeno 18 anni. Tutto il resto di unClick puoi usarlo.</p></div>`; };
     return;
   }
   box.innerHTML = `<h2>Incontra</h2><p class="sub">Conosci persone a Venezia attraverso il loro status.</p>
@@ -1907,7 +1918,7 @@ function addManLayer(){
   if (!map.getSource("meman") || map.getLayer("meman")) return;
   map.addLayer({ id: "frdot", type: "circle", source: "frdot", maxzoom: MAN_MINZ, paint: { "circle-radius": 7, "circle-color": ["get", "c"], "circle-stroke-color": "#ffffff", "circle-stroke-width": 2.5, "circle-pitch-alignment": "map" } });
   map.addLayer({ id: "frman", type: "fill-extrusion", source: "frman", minzoom: MAN_MINZ, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true } });
-  map.addLayer({ id: "medot", type: "circle", source: "medot", maxzoom: MAN_MINZ, paint: { "circle-radius": 8, "circle-color": "#1a73e8", "circle-stroke-color": "#ffffff", "circle-stroke-width": 3, "circle-pitch-alignment": "map" } });
+  map.addLayer({ id: "medot", type: "circle", source: "medot", maxzoom: MAN_MINZ, paint: { "circle-radius": 8, "circle-color": "#0c3851", "circle-stroke-color": "#ffffff", "circle-stroke-width": 3, "circle-pitch-alignment": "map" } });
   map.addLayer({ id: "meman", type: "fill-extrusion", source: "meman", minzoom: MAN_MINZ, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true } });
   manKey = ""; drawMan(true); drawFriends(); apply3d(false);
 }
@@ -1996,8 +2007,8 @@ function addLayers(){
   map.addSource("meman", { type: "geojson", data: empty });
   map.addSource("medot", { type: "geojson", data: empty });
   map.addSource("frman", { type: "geojson", data: empty }); map.addSource("frdot", { type: "geojson", data: empty });
-  map.addLayer({ id: "route-case", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#0b4fa8", "line-width": 13 } });
-  map.addLayer({ id: "route", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#2f8cff", "line-width": 8 } });
+  map.addLayer({ id: "route-case", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#0c3851", "line-width": 13 } });
+  map.addLayer({ id: "route", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#ff6446", "line-width": 8 } });
   map.addSource("depths", { type: "geojson", data: empty });
   map.addLayer({ id: "depths", type: "circle", source: "depths", layout: { visibility: "none" }, paint: {
     "circle-radius": 5, "circle-stroke-color": "#fff", "circle-stroke-width": 1.5,
@@ -2041,10 +2052,10 @@ function addLayers(){
   // canali lagunari ufficiali (vie d'acqua segnate con le bricole): linea tratteggiata con il nome
   map.addSource("canali", { type: "geojson", data: empty });
   map.addLayer({ id: "canali", type: "line", source: "canali", minzoom: 10, layout: { visibility: LY.canali ? "visible" : "none", "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": "#0b1f4b", "line-opacity": 0.75, "line-width": ["interpolate", ["linear"], ["zoom"], 10, 1, 14, 2.4, 17, 4], "line-dasharray": [3, 2] } });
+    paint: { "line-color": "#0c3851", "line-opacity": 0.75, "line-width": ["interpolate", ["linear"], ["zoom"], 10, 1, 14, 2.4, 17, 4], "line-dasharray": [3, 2] } });
   if (map.getStyle().glyphs) map.addLayer({ id: "canali-lbl", type: "symbol", source: "canali", minzoom: 12.5, layout: { visibility: LY.canali ? "visible" : "none",
     "symbol-placement": "line", "text-field": ["get", "n"], "text-size": 11, "text-font": ["Noto Sans Regular"], "symbol-spacing": 350, "text-max-angle": 30 },
-    paint: { "text-color": "#0b1f4b", "text-halo-color": "#ffffff", "text-halo-width": 1.6 } });
+    paint: { "text-color": "#0c3851", "text-halo-color": "#ffffff", "text-halo-width": 1.6 } });
   loadCanals().then(drawCanali);
   // bricole: puntini da lontano, 3D da vicino
   map.addSource("bricole", { type: "geojson", data: empty });
@@ -2134,8 +2145,8 @@ function makeArrow(){
   return new maplibregl.Marker({ element: el, anchor: "bottom", rotationAlignment: "viewport", pitchAlignment: "viewport" });
 }
 /* omino 3D: blocchetti in rilievo sulla mappa, gira verso dove guardi e si vede da ogni lato */
-const MAN_C = { skin: "#f6c9a0", hair: "#6b3f1f", shirt: "#1a73e8", legs: "#2b3a55", shoe: "#222222", eye: "#2b1a10", mouth: "#c0392b" };
-function myAvatar(){ return store.get("ln_avatar", null) || { sex: "m", shirt: "#1a73e8" }; }
+const MAN_C = { skin: "#f6c9a0", hair: "#6b3f1f", shirt: "#0c3851", legs: "#2b3a55", shoe: "#222222", eye: "#2b1a10", mouth: "#c0392b" };
+function myAvatar(){ return store.get("ln_avatar", null) || { sex: "m", shirt: "#0c3851" }; }
 let manKey = "";
 function manFeatures(lat, lng, hdg, av, out){
   av = av || myAvatar(); out = out || [];
@@ -2895,7 +2906,7 @@ function drawRoute(){
   map.getSource("route").setData({ type: "FeatureCollection", features: coords.length > 1 ? [{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: coords } }] : [] });
   const st = R && R.walk ? (mapMode === "sat" ? "ws" : "w") : "b";
   if (st !== routeSt && map.getLayer("route")){ routeSt = st;
-    map.setPaintProperty("route", "line-color", st === "b" ? "#2f8cff" : st === "ws" ? "#ffffff" : "#111111");
+    map.setPaintProperty("route", "line-color", st === "b" ? "#ff6446" : st === "ws" ? "#ffffff" : "#111111");
     map.setPaintProperty("route", "line-dasharray", st === "b" ? null : [0.1, 1.8]);
     map.setPaintProperty("route", "line-width", st === "b" ? 8 : 7);
     if (map.getLayer("route-case")) map.setPaintProperty("route-case", "line-opacity", st === "b" ? 1 : 0); }
@@ -3528,7 +3539,7 @@ function renderBoat(){
   const miss = tot - done;
   $("#boatForm").innerHTML = `<div class="card" style="text-align:center">
       <div style="font-size:15px;color:var(--muted)">Scheda compilata al <b style="color:#fff">${Math.round(done / tot * 100)}%</b></div>
-      <div class="spbar" style="margin:8px 0 12px"><i style="width:${Math.round(done / tot * 100)}%;background:#2f8cff"></i></div>
+      <div class="spbar" style="margin:8px 0 12px"><i style="width:${Math.round(done / tot * 100)}%;background:#ff6446"></i></div>
       ${miss ? `<button class="btn" id="bqMiss">✨ Rispondi alle domande (${miss})</button>` : `<p style="margin:4px 0 10px">Scheda completa ✓</p>`}
       <button class="btn ghost" id="bqAll" style="margin-top:8px">Rifai tutte le domande</button>
       <p class="muted" style="font-size:12px;margin-top:8px">Tocca una riga qui sotto per cambiare solo quella risposta.</p></div>` + secs;
@@ -3926,7 +3937,7 @@ function applyEngine(b, force){
 }
 function paintArrow(){
   const b = activeBoat(), path = document.querySelector(".me svg path.hull"); if (!path) return;   // ora c'è l'avatar: niente da colorare
-  path.setAttribute("fill", b && b.colorHull && b.colorHull.toLowerCase() !== "#ffffff" ? b.colorHull : "#1a73e8");
+  path.setAttribute("fill", b && b.colorHull && b.colorHull.toLowerCase() !== "#ffffff" ? b.colorHull : "#0c3851");
   path.setAttribute("stroke", b && b.colorStripe ? b.colorStripe : "#fff");
 }
 
@@ -4561,7 +4572,7 @@ function renderDriverBox(){
   if (txBoard.errore){
     box.innerHTML = `<p class="trnote" style="margin-top:10px">${txBoard.richiesta ? "🕐 La tua richiesta di convenzione è in attesa di approvazione." : `Sei un tassista? <a href="#" id="txJoin" style="color:#b45309;font-weight:700">Chiedi la convenzione</a>`}</p>`;
     if ($("#txJoin")) $("#txJoin").onclick = e => { e.preventDefault(); openSheet(`<h3>🚕 Diventa tassista convenzionato</h3>
-      <p class="muted" style="line-height:1.45">Riceverai le richieste dei clienti di ClickVenice. Il primo tassista che accetta prende la corsa.</p>
+      <p class="muted" style="line-height:1.45">Riceverai le richieste dei clienti di unClick. Il primo tassista che accetta prende la corsa.</p>
       <div class="field"><label>Telefono per i clienti</label><input id="tjP" type="tel" maxlength="30"></div>
       <div class="field"><label>Nome o numero della barca</label><input id="tjB" maxlength="60"></div>
       <div class="field"><label>Numero di licenza</label><input id="tjL" maxlength="40"></div>
@@ -4591,7 +4602,7 @@ setInterval(() => { if (appMode === "trasporti" && trTab === "bus" && !(document
 /* =========================================================
    SHOPPING: le attività convenzionate sulla mappa
    ========================================================= */
-const MK_CATS = { food: ["🍝", "Food", "#c8102e"], shop: ["🛍️", "Shopping", "#7c3aed"], boats: ["⛵", "Barche", "#1a56db"], used: ["♻️", "Usato", "#0a8f4e"] };
+const MK_CATS = { food: ["🍝", "Food", "#c8102e"], shop: ["🛍️", "Shopping", "#7c3aed"], boats: ["⛵", "Barche", "#0c3851"], used: ["♻️", "Usato", "#0a8f4e"] };
 let PARTNERS = store.get("ln_partners", []), mkCat = "", partnersAt = 0;
 async function loadPartners(){
   if (Date.now() - partnersAt < 5 * 60000) { drawPartners(); return; }
@@ -4699,7 +4710,7 @@ function sosForm(kind){
       { k: "note", q: "Vuoi aggiungere qualcosa?", type: "text", max: 160, optional: true, skipLabel: "No, manda subito",
         chips: ["Siamo in 2", "Siamo in 4", "Abbiamo i remi", "C'è un bambino", "Fermi vicino alla bricola", "Ci serve un traino"], multi: true },
       { k: "_ok", q: "Mando l'SOS?", type: "custom",
-        render: () => `<p class="wzh">Le barche vicine che usano 1Click in Nautica vedono un piccolo avviso con <b>la tua posizione esatta</b> per 2 ore. <b>Non sostituisce il 1530.</b></p>
+        render: () => `<p class="wzh">Le barche vicine che usano unClick in Nautica vedono un piccolo avviso con <b>la tua posizione esatta</b> per 2 ore. <b>Non sostituisce il 1530.</b></p>
           <p class="wzh" id="wzSosPos">${lastPos ? "📍 Posizione GPS pronta" : "📍 Aspetto il GPS…"}</p>
           <div class="wzopts"><button class="wzo" id="wzSosGo" style="background:#d32f2f;border-color:#d32f2f;text-align:center;font-size:18px">🆘 Manda SOS adesso</button>
           <a class="wzo" href="tel:1530" style="text-align:center;text-decoration:none">📞 Chiama il 1530 Guardia Costiera</a><a class="wzo" href="tel:112" style="text-align:center;text-decoration:none">📞 Chiama il 112</a></div>`,
@@ -4827,7 +4838,7 @@ function adultGate(){
     await syncAdult();
     store.set("ln_adult", true); closeSheet(); setMode("meet", 1);
   };
-  $("#agNo").onclick = () => { closeSheet(); setMode("nautica"); toast("Socializza è riservato ai maggiorenni. Il resto di ClickVenice puoi usarlo."); };
+  $("#agNo").onclick = () => { closeSheet(); setMode("nautica"); toast("Socializza è riservato ai maggiorenni. Il resto di unClick puoi usarlo."); };
 }
 // la conferma dei 18 anni deve arrivare anche al server (prima restava solo sul telefono)
 async function syncAdult(){
@@ -5186,7 +5197,7 @@ function paintTris(){
 async function trisChallenge(){
   if (!MY || !MY.amici){ try{ const j = await rpc("friend_list", {}); if (j && !j.errore){ MY = j; store.set("ln_my", j); } }catch(e){} }
   const A = (MY && MY.amici) || [];
-  if (!A.length){ openSheet(`<h3>✕◯ Sfida un amico</h3><p class="muted">Non hai ancora amici su 1Click. Aggiungili da myClick e poi sfidali a tris.</p><button class="btn" onclick="closeSheet()">Ok</button>`); return; }
+  if (!A.length){ openSheet(`<h3>✕◯ Sfida un amico</h3><p class="muted">Non hai ancora amici su unClick. Aggiungili da myClick e poi sfidali a tris.</p><button class="btn" onclick="closeSheet()">Ok</button>`); return; }
   openSheet(`<h3>✕◯ Chi sfidi?</h3><div class="wzopts">${A.map(a => `<button class="wzo" data-tri="${esc(a.nome)}">${esc(a.emoji || "🙂")} @${esc(a.nome)}</button>`).join("")}</div>
     <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
   document.querySelectorAll("[data-tri]").forEach(b => b.onclick = async () => {
@@ -5478,7 +5489,7 @@ function wzPaint(){
   let body = "";
   if (s.type === "choice") body = `<div class="wzopts${(opts || []).length > 6 ? " grid" : ""}">${(opts || []).map(([v, l], i) => `<button class="wzo${String(v) === String(cur) ? " on" : ""}" data-wi="${i}">${l}</button>`).join("")}</div>`;
   else if (s.type === "yesno") body = `<div class="wzopts two"><button class="wzo${cur === true ? " on" : ""}" data-yn="1">👍 Sì</button><button class="wzo${cur === false ? " on" : ""}" data-yn="0">👎 No</button></div>`;
-  else if (s.type === "color") body = `<div class="wzcols">${(opts || ["#ffffff", "#111111", "#1a56db", "#0b2a5b", "#c8102e", "#0a8f4e", "#f59e0b", "#c9b48a", "#6b7280", "#7c3aed", "#0891b2", "#8b4513"]).map(c => `<button class="wzcol${c === cur ? " on" : ""}" data-col="${c}" style="background:${c}"></button>`).join("")}</div>`;
+  else if (s.type === "color") body = `<div class="wzcols">${(opts || ["#ffffff", "#111111", "#0c3851", "#0b2a5b", "#c8102e", "#0a8f4e", "#f59e0b", "#c9b48a", "#6b7280", "#7c3aed", "#0891b2", "#8b4513"]).map(c => `<button class="wzcol${c === cur ? " on" : ""}" data-col="${c}" style="background:${c}"></button>`).join("")}</div>`;
   else if (s.type === "text" || s.type === "number" || s.type === "long"){
     const inp = s.type === "long" ? `<textarea id="wzIn" rows="4" maxlength="${s.max || 600}" placeholder="${esc(s.ph || "")}">${esc(cur ?? "")}</textarea>`
       : `<input id="wzIn" ${s.type === "number" ? `type="number" inputmode="decimal" step="any"` : `type="${s.inputType || "text"}" maxlength="${s.max || 120}"`} placeholder="${esc(s.ph || "")}" value="${esc(cur ?? "")}" autocomplete="off">`;
@@ -5658,7 +5669,7 @@ async function sendOrder(){
     where = `A piedi – ${v("oAddr")}`;
   }
   const lines = curRest.menu.map((m, i) => cart[i] ? `${cart[i]}× ${m.n} (${eur(m.p * cart[i])})` : null).filter(Boolean);
-  const text = `ORDINE ClickVenice\n${curRest.name}\n\n${lines.join("\n")}\nTotale: ${eur(cartTotal())}\n\n${where}\n${v("oName")} · ${v("oTel")}` + (v("oNote") ? `\nNote: ${v("oNote")}` : "");
+  const text = `ORDINE unClick\n${curRest.name}\n\n${lines.join("\n")}\nTotale: ${eur(cartTotal())}\n\n${where}\n${v("oName")} · ${v("oTel")}` + (v("oNote") ? `\nNote: ${v("oNote")}` : "");
   const orders = store.get("ln_orders", []);
   orders.unshift({ t: Date.now(), rest: curRest.name, mode: orderMode, tot: cartTotal() }); store.set("ln_orders", orders);
   let saved = true;
@@ -5751,14 +5762,14 @@ $("#learn").onchange = e => { learnOn = e.target.checked; store.set("ln_learn", 
 const paintHs = () => document.querySelectorAll("#hsrc [data-hs]").forEach(b => b.classList.toggle("on", b.dataset.hs === headingSrc));
 document.querySelectorAll("#hsrc [data-hs]").forEach(b => b.onclick = () => { headingSrc = b.dataset.hs; store.set("ln_hsrc", headingSrc); paintHs(); haptic(); }); paintHs();
 
-// avvio: chi ha già un profilo entra direttamente in ClickVenice
+// avvio: chi ha già un profilo entra direttamente in unClick
 if (PROFILE && PROFILE.age !== undefined){
   // profilo della prima versione (con l'età, senza password): si sceglie la password tenendo lo stesso clickname
   const old = PROFILE.clickname; PROFILE = null; try{ localStorage.removeItem("ln_profile"); }catch(e){}
   showOb("ob-reg"); document.querySelector('#authSeg [data-a="reg"]').click();
   $("#regName").value = old; nameOk = true; agree.checked = true; regCheck();
   $("#regNameHint").textContent = "Il tuo clickname: scegli una password per proteggerlo"; $("#regNameHint").className = "hint ok";
-} else if (PROFILE){ showOb("ob-brand"); setTimeout(introThenOpen, 500); }
+} else if (PROFILE){ openApp(); } else { showOb("ob-reg"); }
 </script>
 </body>
 </html>
