@@ -529,6 +529,7 @@
   #tabs button.on .s{fill:currentColor}
   #tabs button.on .c{stroke:#0b0f17}
   #tabs button:active svg{transform:scale(.9)}
+  #verMark{position:absolute;right:8px;top:2px;font-size:9px;line-height:1;color:#fff;opacity:.35;pointer-events:none;letter-spacing:.03em}
 </style>
 </head>
 <body>
@@ -886,7 +887,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.9</p>
+      <p class="sub">1Click · ClickVenice · versione 3.10</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -923,6 +924,7 @@
 
   <nav id="dock">
     <div id="tabs" role="tablist" aria-label="Modalità"></div>
+    <div id="verMark" class="hidden"></div>
   </nav>
 </div>
 
@@ -1117,7 +1119,11 @@ function openApp(){
 
 /* ---------- app installabile (Android: icona sulla schermata Home) ---------- */
 let instEvt = null;
-if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+if ("serviceWorker" in navigator) window.addEventListener("load", () => {
+  const had = !!navigator.serviceWorker.controller; let done = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => { if (had && !done){ done = true; location.reload(); } });
+  navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(r => { r.update(); document.addEventListener("visibilitychange", () => { if (!document.hidden) r.update(); }); }).catch(() => {});
+});
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); instEvt = e; });
 window.addEventListener("appinstalled", () => { instEvt = null; toast("1Click è sulla schermata Home ✓"); });
 document.addEventListener("click", async e => {
@@ -1172,7 +1178,9 @@ const TAB_IC = {   // linea sottile · .s si riempie quando la scheda è selezio
 function buildDial(){
   $("#tabs").innerHTML = MODES.map(x => `<button role="tab" data-pm="${x.k}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_IC[x.k] || ""}</svg><span>${x.n}</span></button>`).join("");
 }
+const APP_VER = ([...document.querySelectorAll(".sub")].map(e => e.textContent).join(" ").match(/versione (\d+(?:\.\d+)+)/) || [])[1] || "";
 function paintDial(){
+  const vm = $("#verMark"); if (vm){ const me = PROFILE && /^tropss$/i.test(PROFILE.clickname || ""); vm.classList.toggle("hidden", !me); vm.textContent = "v" + APP_VER; }
   document.querySelectorAll("#tabs [data-pm]").forEach((b, i) => { const on = i === modeIdx; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
   MODES.forEach((x, i) => document.body.classList.toggle("m-" + x.k, i === modeIdx));
 }
