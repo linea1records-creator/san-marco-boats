@@ -1,4 +1,4 @@
-// Aggiunta alla funzione "actv" (da inserire in Deno.serve, subito dopo `const now = romeNow();`)
+// Aggiunta alla funzione "actv" (applicata sul server il 20/11/2026, versione 4), dentro Deno.serve subito dopo `const now = romeNow();`
 // ?azione=posizioni → battelli in servizio adesso secondo l'orario: per ogni corsa le fermate
 // dall'ultima lasciata alla prima che raggiungerà tra 5 minuti, come [lat, lng, arrivo, partenza] in minuti.
     if (az === 'posizioni') {

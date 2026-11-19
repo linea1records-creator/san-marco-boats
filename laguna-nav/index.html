@@ -1105,7 +1105,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">unClick · unClick · versione 3.34</p>
+      <p class="sub">unClick · unClick · versione 3.35</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa unClick</button>
@@ -4504,6 +4504,7 @@ async function actvFetch(){
 }
 function actvPaint(){
   if (!map || !map.getSource("battelli") || !actvRaw) return;
+  actvBudget = 8;
   const t0 = romeMinNow(), feats = []; BOATS_ACTV = [];
   actvRaw.forEach(b => { const st = b[4]; if (!st || !st.length) return;
     let t = t0; if (t < st[0][2] - 600) t += 1440; else if (t > st[0][2] + 600) t -= 1440;   // a cavallo della mezzanotte
@@ -4513,7 +4514,10 @@ function actvPaint(){
       if (t >= ar && t <= dp + 0.999){ pos = [lo, la]; break; }             // fermo all'imbarcadero
       const nx = st[k + 1]; if (!nx) break;
       if (t > dp && t < nx[2] + 0.999){ const f = Math.max(0, Math.min(1, (t - dp - 0.5) / Math.max(0.5, nx[2] - dp)));
-        pos = [lo + (nx[1] - lo) * f, la + (nx[0] - la) * f]; ang = Math.atan2(nx[1] - lo, nx[0] - la) * 180 / Math.PI; break; }
+        const P = actvPath(la, lo, nx[0], nx[1]);
+        if (P){ const q = pathAt(P, f); pos = [q[1], q[0]]; ang = q[2]; }
+        else { pos = [lo + (nx[1] - lo) * f, la + (nx[0] - la) * f]; ang = Math.atan2(nx[1] - lo, nx[0] - la) * 180 / Math.PI; }
+        break; }
     }
     if (!pos) return;
     const i = BOATS_ACTV.length; BOATS_ACTV.push({ l: b[0].replace(/^Alilaguna\s+/, ""), h: b[2], az: b[3], next: b[5] });
@@ -4521,7 +4525,35 @@ function actvPaint(){
   });
   map.getSource("battelli").setData({ type: "FeatureCollection", features: feats });
 }
+// tragitto tra due imbarcaderi lungo la rete dei canali (calcolato una volta e tenuto in memoria; pochi per volta per non bloccare)
+const ACTV_PATH = new Map(); let actvBudget = 0;
+function actvPath(la0, lo0, la1, lo1){
+  const k = la0.toFixed(5) + "," + lo0.toFixed(5) + ">" + la1.toFixed(5) + "," + lo1.toFixed(5);
+  if (ACTV_PATH.has(k)) return ACTV_PATH.get(k);
+  if (!G.done || actvBudget <= 0) return null;
+  actvBudget--;
+  let P = null;
+  try{ // percorso sulla rete dei canali senza le regole del diporto (i vaporetti hanno i loro permessi) e senza avvisi
+    const a = gNear(la0, lo0, 400), b = gNear(la1, lo1, 400), straight = hav(la0, lo0, la1, lo1);
+    const res = a && b ? dijkstra(a.n, b.n, null, true) : null;
+    const mid = res ? res.path.map(n => [G.la[n], G.lo[n]]) : null;
+    let len = 0; if (mid) for (let i = 1; i < mid.length; i++) len += hav(mid[i - 1][0], mid[i - 1][1], mid[i][0], mid[i][1]);
+    // se la rete non collega i due imbarcaderi o fa un giro assurdo, resta la linea dritta
+    if (mid && mid.length > 1 && len < straight * 3.5 + 300){
+      const pts = [[la0, lo0]].concat(mid, [[la1, lo1]]), cum = [0];
+      for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + hav(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]));
+      P = { pts, cum, len: cum[cum.length - 1] };
+    } }catch(e){}
+  ACTV_PATH.set(k, P); return P;
+}
+function pathAt(P, f){
+  const d = P.len * f; let lo = 0, hi = P.cum.length - 1;
+  while (hi - lo > 1){ const m = (lo + hi) >> 1; if (P.cum[m] <= d) lo = m; else hi = m; }
+  const seg = P.cum[hi] - P.cum[lo] || 1, u = (d - P.cum[lo]) / seg, a = P.pts[lo], b = P.pts[hi];
+  return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI];
+}
 function actvStart(){
+  if (typeof loadGraph === "function") loadGraph();
   if (!map) return; addBoatsLayer(); if (!actvFetchT){ actvFetch(); actvFetchT = setInterval(() => { if (!document.hidden) actvFetch(); }, 60000); }
   if (!actvAnimT) actvAnimT = setInterval(() => { if (!document.hidden) actvPaint(); }, 2000);
 }
