@@ -911,6 +911,7 @@
       <div class="sh">MOSTRA SULLA MAPPA</div>
       <button class="srow" data-set="bricole"><svg viewBox="0 0 24 24"><path d="M7 5v15M12 3.5V20M17 5v15M4.5 20h15M7 8h0M12 7h0M17 8h0"/></svg><span>Bricole</span><i class="sw"></i></button>
       <button class="srow" data-set="velox"><svg viewBox="0 0 24 24"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8.5 7.5L10 5h4l1.5 2.5"/></svg><span>Velox</span><i class="sw"></i></button>
+      <button class="srow" data-set="actv"><svg viewBox="0 0 24 24"><path d="M3 16h18l-2.2 4H5.2z"/><rect x="6" y="9" width="12" height="7" rx="1.5"/><path d="M9.5 9V6.5h5V9M9 12.5h1.5M13.5 12.5H15"/></svg><span>ACTV</span><i class="sw"></i></button>
       <button class="srow" data-set="canali"><svg viewBox="0 0 24 24"><path d="M3 17c3-1 5-6 9-6s6 5 9 6"/><path d="M3 21c3-1 5-6 9-6s6 5 9 6" stroke-dasharray="2 2.5"/><path d="M7 4v6M17 4v6"/></svg><span>Canali lagunari</span><i class="sw"></i></button>
       <button class="srow" data-set="cantieri"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5l-5.6 5.6a1.6 1.6 0 0 0 2.3 2.3l5.6-5.6a4 4 0 0 0 5-5.4l-2.4 2.4-2.1-.4-.4-2.1z"/></svg><span>Cantieri nautici</span><i class="sw"></i></button>
       <button class="srow" data-set="water"><svg viewBox="0 0 24 24"><path d="M12 3.5c3.5 4.3 6 7.6 6 10.5a6 6 0 0 1-12 0c0-2.9 2.5-6.2 6-10.5z"/><path d="M9 15a3 3 0 0 0 3 3"/></svg><span>Acqua</span><i class="sw"></i></button>
@@ -1104,7 +1105,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">unClick · unClick · versione 3.33</p>
+      <p class="sub">unClick · unClick · versione 3.34</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa unClick</button>
@@ -1907,7 +1908,7 @@ function initMap(){
       if (fr && fr.properties.n) return kissAsk(fr.properties.n); }
     if (INST.water && appMode === "nautica"){
       const z = fondoAt(e.lngLat.lat, e.lngLat.lng), t = tideNow() ?? 30;
-      const ff = map.queryRenderedFeatures(e.point, { layers: ["partners", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
+      const ff = map.queryRenderedFeatures(e.point, { layers: ["partners", "battelli", "fermate", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
       if (!ff){
         const b = activeBoat(), dr = boatDraftCm(b), w = z === null ? null : z * 100 + t;
         new maplibregl.Popup({ maxWidth: "240px" }).setLngLat(e.lngLat).setHTML(z === null ? "Nessun dato di fondale qui" :
@@ -1917,7 +1918,7 @@ function initMap(){
         return;
       }
     }
-    const f = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["partners", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
+    const f = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["partners", "battelli", "fermate", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
     if (f) popupFor(f, e.lngLat);
   });
   loadShared(); setInterval(loadShared, 60000);
@@ -2106,6 +2107,13 @@ function popupFor(f, ll){
   let html;
   if (f.layer.id === "partners"){ const p = PARTNERS.find(x => x.id === f.properties.id); if (p) openPartner(p); return; }
   if (f.layer.id === "cantieri"){ const c = CANT[f.properties.i]; if (c) openCantiere(c); return; }
+  if (f.layer.id === "battelli"){ const b = BOATS_ACTV[f.properties.i]; if (!b) return;
+    html = `<b>${esc(b.az === "Alilaguna" ? "" : "Linea ")}${esc(b.l)}</b> → ${esc(b.h)}<br><span style="color:#aaa">Prossima fermata: ${esc(b.next)}</span><br><span style="color:#888;font-size:12px">Posizione stimata dall'orario</span>`;
+    new maplibregl.Popup({ closeButton: true, maxWidth: "240px" }).setLngLat(ll).setHTML(html).addTo(map); return; }
+  if (f.layer.id === "fermate" && appMode === "nautica"){ const nm = f.properties.n, c = f.geometry.coordinates;
+    html = `<b>${esc(nm)}</b><br><a href="#" id="fmDep" style="color:#ff6446">Prossime partenze</a> · <a href="#" data-goto="${c[1]},${c[0]}" data-name="${esc(nm)}" style="color:#7fc1ff">Portami qui</a>`;
+    new maplibregl.Popup({ closeButton: true, maxWidth: "240px" }).setLngLat(ll).setHTML(html).addTo(map);
+    setTimeout(() => { const a = document.getElementById("fmDep"); if (a) a.onclick = ev => { ev.preventDefault(); closePopups(); setAppMode("trasporti"); trTab = "bus"; trStop = { n: nm, lat: c[1], lng: c[0] }; renderDepartures(); }; }, 0); return; }
   if (f.layer.id === "velox"){
     const v = VELOX.byId[f.properties.id]; if (!v) return;
     const tr = VELOX.tratte.filter(t => t.A.includes(v.id) || t.B.includes(v.id));
@@ -3160,7 +3168,7 @@ let INST = Object.assign({ speed: true, depth: false, tide: false, head: false, 
 // velocità, velox, marea ed ecoscandaglio ora lavorano sempre e si vedono tutti insieme nel mini widget
 Object.assign(INST, { speed: true, velox: true, tide: true, depth: true }); INST.bridge = false; INST.head = false;
 // cosa si vede sulla mappa in Nautica (finestrella delle impostazioni)
-let LY = Object.assign({ bricole: true, velox: true, boat: true, d3: true, cantieri: true, canali: true }, store.get("ln_layers", {}));
+let LY = Object.assign({ bricole: true, velox: true, boat: true, d3: true, cantieri: true, canali: true, actv: true }, store.get("ln_layers", {}));
 function paintInst(){
   document.querySelectorAll("#toggles button[data-inst]").forEach(b => b.classList.toggle("on", !!INST[b.dataset.inst]));
   $("#i-speed").classList.toggle("hidden", !INST.speed);
@@ -4066,7 +4074,8 @@ document.querySelectorAll("#setPanel [data-set]").forEach(b => b.onclick = () =>
   const k = b.dataset.set;
   if (k === "water"){ INST.water = !INST.water; store.set("ln_inst", INST); paintInst(); applyMapMode(); if (INST.water){ loadTide(); loadChart(); drawFondo(); } }
   else if (k === "sat"){ mapMode = mapMode === "sat" ? "simple" : "sat"; store.set("ln_mapmode", mapMode); applyMapMode(); }
-  else { LY[k] = !setGet(k); store.set("ln_layers", LY); if (k === "d3") apply3d(true); else layerVis(); }
+  else { LY[k] = !setGet(k); store.set("ln_layers", LY); if (k === "d3") apply3d(true); else layerVis();
+    if (k === "actv"){ if (LY.actv && appMode === "nautica"){ loadFermate(); actvStart(); } else actvStop(); } }
   paintSet(); try{ haptic(); }catch(e){}
 });
 paintSet();
@@ -4224,7 +4233,7 @@ function setAppMode(m){
   if (m !== "nautica" && PLAN) closePlan();
   if (m === "market"){ loadPartners(); renderMk(); }
   layerVis();
-  if (map) ["fermate", "fermate-lbl"].forEach(l => { if (map.getLayer(l)) map.setLayoutProperty(l, "visibility", m === "trasporti" ? "visible" : "none"); });
+  if (m === "nautica" && LY.actv){ loadFermate(); actvStart(); } else actvStop();
   if (m === "trasporti"){ loadFermate(); renderTr(); }
   const ft = $("#fabTr"); if (ft) ft.classList.toggle("on", m === "trasporti");
 }
@@ -4389,10 +4398,11 @@ function addFermateLayer(){
   if (map.getSource("fermate")) return;
   map.addSource("fermate", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
   map.addLayer({ id: "fermate", type: "circle", source: "fermate", layout: { visibility: appMode === "trasporti" ? "visible" : "none" },
-    paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 11, 3, 16, 7], "circle-color": "#ff6446", "circle-stroke-color": "#fff", "circle-stroke-width": 2 } });
+    paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 11, 3, 16, 7], "circle-color": "#0c3851", "circle-stroke-color": "#fff", "circle-stroke-width": 2 } });
   if (map.getStyle().glyphs) map.addLayer({ id: "fermate-lbl", type: "symbol", source: "fermate", minzoom: 14, layout: { visibility: appMode === "trasporti" ? "visible" : "none",
     "text-field": ["get", "n"], "text-size": 12, "text-offset": [0, 1.2], "text-anchor": "top", "text-font": ["Noto Sans Regular"] },
-    paint: { "text-color": "#065f35", "text-halo-color": "#fff", "text-halo-width": 1.5 } });
+    paint: { "text-color": "#0c3851", "text-halo-color": "#fff", "text-halo-width": 1.5 } });
+  addBoatsLayer();
 }
 document.querySelectorAll("#trPanel [data-tr]").forEach(b => b.onclick = () => {
   trTab = b.dataset.tr; trStop = null; $("#trBody").innerHTML = "";
@@ -4475,6 +4485,48 @@ async function doPlan(){
   }catch(e){ $("#trRes").innerHTML = `<p class="trnote">Non riesco a calcolare: controlla la connessione.</p>`; }
   renderPlan();
 }
+/* ---------- battelli ACTV e Alilaguna sulla mappa: posizione stimata dall'orario (senza ritardi) ---------- */
+let BOATS_ACTV = [], actvRaw = null, actvFetchT = null, actvAnimT = null, actvAt = 0;
+function addBoatsLayer(){
+  if (!map || map.getSource("battelli")) return;
+  map.addSource("battelli", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+  map.addLayer({ id: "battelli", type: "circle", source: "battelli", minzoom: 10.5, layout: { visibility: appMode === "nautica" && LY.actv ? "visible" : "none" },
+    paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 11, 5, 14, 10, 17, 13], "circle-color": "#0c3851", "circle-stroke-color": "#ffffff", "circle-stroke-width": 2, "circle-pitch-alignment": "map" } });
+  if (map.getStyle().glyphs) map.addLayer({ id: "battelli-lbl", type: "symbol", source: "battelli", minzoom: 12.5, layout: { visibility: appMode === "nautica" && LY.actv ? "visible" : "none",
+    "text-field": ["get", "l"], "text-size": ["interpolate", ["linear"], ["zoom"], 12.5, 8, 16, 11], "text-font": ["Noto Sans Bold", "Noto Sans Regular"], "text-allow-overlap": true, "text-ignore-placement": true },
+    paint: { "text-color": "#ffffff" } });
+}
+// minuti dalla mezzanotte, ora di Roma, con i secondi
+function romeMinNow(){ const p = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).formatToParts(new Date()).map(x => [x.type, x.value]));
+  return (+p.hour % 24) * 60 + +p.minute + +p.second / 60; }
+async function actvFetch(){
+  try{ const j = await ACTV("azione=posizioni"); if (j && Array.isArray(j.battelli)){ actvRaw = j.battelli; actvAt = Date.now(); actvPaint(); } }catch(e){}
+}
+function actvPaint(){
+  if (!map || !map.getSource("battelli") || !actvRaw) return;
+  const t0 = romeMinNow(), feats = []; BOATS_ACTV = [];
+  actvRaw.forEach(b => { const st = b[4]; if (!st || !st.length) return;
+    let t = t0; if (t < st[0][2] - 600) t += 1440; else if (t > st[0][2] + 600) t -= 1440;   // a cavallo della mezzanotte
+    let pos = null, ang = 0;
+    for (let k = 0; k < st.length; k++){
+      const [la, lo, ar, dp] = st[k];
+      if (t >= ar && t <= dp + 0.999){ pos = [lo, la]; break; }             // fermo all'imbarcadero
+      const nx = st[k + 1]; if (!nx) break;
+      if (t > dp && t < nx[2] + 0.999){ const f = Math.max(0, Math.min(1, (t - dp - 0.5) / Math.max(0.5, nx[2] - dp)));
+        pos = [lo + (nx[1] - lo) * f, la + (nx[0] - la) * f]; ang = Math.atan2(nx[1] - lo, nx[0] - la) * 180 / Math.PI; break; }
+    }
+    if (!pos) return;
+    const i = BOATS_ACTV.length; BOATS_ACTV.push({ l: b[0].replace(/^Alilaguna\s+/, ""), h: b[2], az: b[3], next: b[5] });
+    feats.push({ type: "Feature", properties: { i, l: b[3] === "Alilaguna" ? "AL" : b[0], a: ang }, geometry: { type: "Point", coordinates: pos } });
+  });
+  map.getSource("battelli").setData({ type: "FeatureCollection", features: feats });
+}
+function actvStart(){
+  if (!map) return; addBoatsLayer(); if (!actvFetchT){ actvFetch(); actvFetchT = setInterval(() => { if (!document.hidden) actvFetch(); }, 60000); }
+  if (!actvAnimT) actvAnimT = setInterval(() => { if (!document.hidden) actvPaint(); }, 2000);
+}
+function actvStop(){ clearInterval(actvFetchT); clearInterval(actvAnimT); actvFetchT = actvAnimT = null; }
+setTimeout(() => { if (appMode === "nautica" && LY.actv){ loadFermate(); actvStart(); } }, 3000);
 /* ---------- taxi acqueo: richiesta a tutti i tassisti convenzionati, il primo che accetta prende la corsa ---------- */
 let TX = { da: null, a: null, pax: 2, est: null }, txRide = store.get("ln_taxi_ride", null), txTimer = null, txBoard = null, txOn = store.get("ln_taxi_on", true), txSeen = [];
 const TX_AIRPORT = [45.5008, 12.3373], TX_LIDO = [45.4177, 12.3683], TX_MURANO = [45.4560, 12.3530];
@@ -5013,7 +5065,8 @@ function layerVis(){
     "fondo": n && dep,
     "route": n, "route-case": n,
     "poi": n && foodOn, "poi-label": n && foodOn,
-    "sensi": n, "fermate": appMode === "trasporti", "fermate-lbl": appMode === "trasporti",
+    "sensi": n, "fermate": appMode === "trasporti" || (n && LY.actv), "fermate-lbl": appMode === "trasporti" || (n && LY.actv),
+    "battelli": n && LY.actv, "battelli-lbl": n && LY.actv,
     "partners": appMode === "market", "partners-lbl": appMode === "market"
   };
   Object.entries(want).forEach(([id, v]) => /^route/.test(id) ? (map.getLayer(id) && map.setLayoutProperty(id, "visibility", v ? "visible" : "none")) : fadeVis(id, v));
