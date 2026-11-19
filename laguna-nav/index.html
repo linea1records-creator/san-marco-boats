@@ -878,7 +878,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.7</p>
+      <p class="sub">1Click · ClickVenice · versione 3.8</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -1691,6 +1691,7 @@ function initMap(){
   map.on("moveend", () => { if (map.getZoom() >= 15.3) drawBric3d(); });
 }
 function addLayers(){
+  setTimeout(drawOneWay, 300);
   BASE_LAYERS = map.getStyle().layers.map(l => ({ id: l.id, type: l.type, vis: (l.layout && l.layout.visibility) || "visible" }));
   // foto satellitare (sotto a tutti i nostri strati)
   map.addSource("sat", { type: "raster", tileSize: 256, maxzoom: 19, attribution: "Foto © Esri, Maxar, Earthstar Geographics",
@@ -2238,7 +2239,7 @@ function loadGraph(){
     }
     // 3) tragitti imparati da chi usa l'app
     (tracks || []).forEach(t => addTrack(t.pts));
-    G.done = true;
+    G.done = true; RULES = null; setTimeout(drawOneWay, 50);
     return G.la.length > 0;
   });
   return G.ready;
@@ -2266,6 +2267,86 @@ function bridgeCanals(){
     if (nb){ gEdge(i, nb.n, 2.5, -1, 1); par[f(i)] = f(nb.n); added++; }
   }
 }
+/* =========================================================
+   REGOLE DEI CANALI (Testo Unico traffico acqueo, ord. 274/2015 del Comune di Venezia)
+   sensi unici (art. 7) · rii vietati ai motori (art. 8) · diporto nella zona a traffico limitato (art. 18)
+   larghezza 2,40 m (art. 19) · Canal Grande 8-12 feriali (art. 20) · scafi in metallo (art. 30)
+   ========================================================= */
+const ONE_WAY = [   // rii: nomi come in OpenStreetMap · verso: il canale (o il punto) dove si deve uscire
+  { n: "Rio dei SS. Apostoli", rii: /^Rio dei Santi Apostoli$/, to: /^(Rio de Sant'Andrea|Rio del Gozzi)$/ },
+  { n: "Rio S. Giovanni Grisostomo", rii: /^Rio San Giovanni Grisostomo$/, to: /^Canal Grande$/ },
+  { n: "Rio di San Lio - Santa Marina - S. Giovanni Laterano", rii: /^(Rio de San Lio|Rio de Santa Marina|Rio de San Giovanni Laterano)$/, to: /^Rio di San Lorenzo$/ },
+  { n: "Rio di San Luca - Barcaroli - San Moisè", rii: /^(Rio San Luca|Rio dei Barcaroli|Rio di San Moisè)$/, toPt: [45.4318, 12.3362] },
+  { n: "Rio di Palazzo - della Guerra - della Fava", rii: /^(Rio del Palazzo|Rio de la Guerra|Rio de la Fava)$/, to: /^Rio del Fontego dei Tedeschi$/ },
+  { n: "Rio dei Fuseri - Scoacamini - Bareteri", rii: /^(Rio dei Fuseri|Rio dei Scoacamini|Rio dei Bareteri)$/, to: /^Rio de la Guerra$/ },
+  { n: "Rio di Sant'Antonin - Pietà", rii: /^(Rio di San Antonin|Rio de la Pietà)$/, to: /^Bacino San Marco$/ },
+  { n: "Rio dei Greci - San Lorenzo", rii: /^(Rio dei Greci|Rio di San Lorenzo)$/, to: /^Rio de Santa Giustina$/ },
+  { n: "Rio de la Tetta", rii: /^Rio de la Tetta$/, to: /^Rio de San Severo$/ },
+  { n: "Rio della Tana", rii: /^Rio della Tana$/, to: /^(Rio de le Vergini|Rio de San Gerolamo)$/ },
+  { n: "Rio Novo - Ca' Foscari (0-12)", rii: /^(Rio Novo|Rio de Ca' Foscari)$/, to: /^Canal Grande$/, ore: [0, 12] },
+  { n: "Rio Marin - San Giacomo dall'Orio", rii: /^(Rio Marin|Rio de S\. Giacomo dell'Orio)$/, to: /^Rio San Agostin$/ },
+  { n: "Rio di Noale", rii: /^Rio di Noale$/, to: /^Canal Grande$/ },
+  { n: "Rio di San Marcuola", rii: /^Rio de San Marcuola$/, to: /^Rio dei Servi$/ },
+  { n: "Rio San Zan Degolà", rii: /^Rio de San Zan Degolà$/, to: /^Canal Grande$/ },
+  { n: "Rio San Trovaso", rii: /^Rio de San Trovaso$/, to: /^Rio de la Toletta$/, fromPt: [45.4306, 12.3264] },
+  { n: "Rio di San Vio", rii: /^Rio de San Vio$/, to: /^Canale della Giudecca$/ },
+  { n: "Rio dei Vetrai (Murano, feriali 8-14)", rii: /^Rio dei Vetrai$/, to: /^Canal Grande$/, ore: [8, 14], feriali: true }
+];
+const NO_MOTOR = /^(Rio dell'Arsenale|Rio de San Felice|Rio dei Miracoli|Rio del Vin|Rio de la Pietà|Rio di San Antonin|Rio de San Salvador|Bacino Orseolo|Rio Orseolo)$/;
+const WIDE_OK = /^(Canal Grande|Canale di San Pietro|Rio della Giudecca|Canale della Giudecca|Bacino San Marco|Canale Dietro la Giudecca)$/;   // dove si passa anche oltre 2,40 m
+const METAL_OK = /^(Canal Grande|Canale di Cannaregio|Rio del Ponte Longo|Rio di Quintavalle|Canale di San Pietro|Rio dei Giardini|Canale di Sant'Elena|Canale della Giudecca|Bacino San Marco|Canale Dietro la Giudecca)$/;
+const ZTL_AREAS = [[45.4245, 45.4480, 12.3000, 12.3700], [45.4480, 45.4620, 12.3420, 12.3640], [45.4820, 45.4900, 12.4100, 12.4230], [45.3950, 45.4230, 12.3550, 12.3900]];   // centro storico + Giudecca, Murano, Burano, Lido
+const CG_TIMED = [[45.4398, 12.3232, 240], [45.4376, 12.3362, 120]];   // Canal Grande: Rio Novo – Rio Marin · Fondaco dei Tedeschi – San Salvador
+const inZtl = n => ZTL_AREAS.some(a => G.la[n] > a[0] && G.la[n] < a[1] && G.lo[n] > a[2] && G.lo[n] < a[3]);
+let RULES = null;
+function buildRules(){
+  if (!G.names.length) return null;
+  const nmIdx = re => { const s = new Set(); G.names.forEach((n, i) => { if (re.test(n)) s.add(i); }); return s; };
+  const nodesOf = set => { const out = new Set(); G.adj.forEach((es, u) => es.forEach(e => { if (set.has(e[2])) { out.add(u); out.add(e[0]); } })); return out; };
+  const ow = [], owByName = new Map();
+  ONE_WAY.forEach(r => {
+    const names = nmIdx(r.rii); if (!names.size) return;
+    const nodes = [...nodesOf(names)]; if (nodes.length < 2) return;
+    let t = -1, best = 1e9;
+    if (r.toPt) nodes.forEach(n => { const d = hav(G.la[n], G.lo[n], r.toPt[0], r.toPt[1]); if (d < best){ best = d; t = n; } });
+    else { const toNodes = [...nodesOf(nmIdx(r.to))]; if (!toNodes.length) return;
+      nodes.forEach(n => toNodes.forEach(m => { const d = hav(G.la[n], G.lo[n], G.la[m], G.lo[m]); if (d < best){ best = d; t = n; } })); }
+    if (t < 0) return;
+    // distanza lungo il rio dal punto di uscita: si può andare solo verso distanze più piccole
+    const dT = new Map([[t, 0]]), q = [t];
+    while (q.length){ const u = q.shift(); for (const e of G.adj[u]) if (names.has(e[2])){ const nd = dT.get(u) + hav(G.la[u], G.lo[u], G.la[e[0]], G.lo[e[0]]);
+      if (!dT.has(e[0]) || nd < dT.get(e[0]) - 0.5){ dT.set(e[0], nd); q.push(e[0]); } } }
+    let lim = Infinity; if (r.fromPt){ let fb = 1e9; dT.forEach((d, n) => { const x = hav(G.la[n], G.lo[n], r.fromPt[0], r.fromPt[1]); if (x < fb){ fb = x; lim = d; } }); }
+    const rule = { r, names, dT, lim }; ow.push(rule); names.forEach(i => owByName.set(i, rule));
+  });
+  return { ow, owByName, noMotor: nmIdx(NO_MOTOR), wideOk: nmIdx(WIDE_OK), metalOk: nmIdx(METAL_OK), cg: nmIdx(/^Canal Grande$/), rio: nmIdx(/^(Rio|Riello|Ramo|Bacino Orseolo)\b/i) };
+}
+function nodesNear(n, m){ const out = [], gy = Math.floor(G.la[n] / 0.0015), gx = Math.floor(G.lo[n] / 0.0021);
+  for (let y = gy - 1; y <= gy + 1; y++) for (let x = gx - 1; x <= gx + 1; x++){ const c = G.grid.get(y + ":" + x); if (c) c.forEach(k => { if (hav(G.la[k], G.lo[k], G.la[n], G.lo[n]) < m) out.push(k); }); }
+  return out; }
+function ruleActive(r){ if (!r.ore) return true; const d = new Date(), h = d.getHours() + d.getMinutes() / 60, wd = d.getDay();
+  if (r.feriali && (wd === 0)) return false; return h >= r.ore[0] && h < r.ore[1]; }
+function ruleCtx(){
+  if (!RULES && G.done) RULES = buildRules();
+  if (!RULES) return null;
+  const b = activeBoat() || {}, d = new Date(), wd = d.getDay(), h = d.getHours();
+  return { R: RULES, noZtl: /^No\b/.test(b.ztl || ""), wide: Number(b.beam) > 2.4, metal: /Alluminio|Acciaio/.test(b.hull || ""), cgBan: wd >= 1 && wd <= 5 && h >= 8 && h < 12 };
+}
+// true = questo tratto non si può fare (bo = nodi di partenza/arrivo: lì si entra sempre, per arrivare a casa o ripartire)
+function edgeBanned(u, e, cx, ends){
+  const nm = e[2]; if (nm === undefined || nm < 0 || e[3] !== 0) return false;
+  const v = e[0], R = cx.R, nearEnd = ends.has(u) || ends.has(v);
+  const ow = R.owByName.get(nm);
+  if (ow && ruleActive(ow.r)){ const du = ow.dT.get(u), dv = ow.dT.get(v); if (du !== undefined && dv !== undefined && du <= ow.lim && dv > du + 0.5) return "senso"; }
+  if (nearEnd) return false;
+  if (R.noMotor.has(nm)) return "vietato";
+  if (cx.cgBan && R.cg.has(nm) && CG_TIMED.some(c => hav(G.la[v], G.lo[v], c[0], c[1]) < c[2])) return "cg";
+  if (cx.metal && !R.metalOk.has(nm) && inZtl(v)) return "metallo";
+  if (cx.wide && R.rio.has(nm) && !R.wideOk.has(nm)) return "largo";
+  if (cx.noZtl && (R.rio.has(nm) || R.cg.has(nm) || G.names[nm] === "") && inZtl(v)) return "ztl";
+  return false;
+}
+
 /* ponti dove la barca non passa con la marea di adesso: i nodi vicini sono esclusi dal calcolo */
 function blockedNodes(){
   const air = boatAir(activeBoat()); if (air === null || !BRIDGES.list.length || !G.done) return null;
@@ -2275,8 +2356,9 @@ function blockedNodes(){
     for (let i = 0; i < G.la.length; i++){ if (Math.abs(G.la[i] - b.lat) < dla && Math.abs(G.lo[i] - b.lng) < dlo && hav(G.la[i], G.lo[i], b.lat, b.lng) < 18){ bl[i] = 1; n++; } } });
   return n ? bl : null;
 }
-function dijkstra(src, dst, bl){
+function dijkstra(src, dst, bl, noRules){
   const N = G.la.length, d = new Float64Array(N).fill(Infinity), prev = new Int32Array(N).fill(-1), pe = new Array(N);
+  const cx = noRules ? null : ruleCtx(), ends = cx ? new Set(nodesNear(src, 90).concat(nodesNear(dst, 90))) : null;
   const tla = G.la[dst], tlo = G.lo[dst], hh = n => 0.45 * hav(G.la[n], G.lo[n], tla, tlo), h = [[hh(src), src]];
   d[src] = 0;
   const push = x => { h.push(x); let i = h.length - 1; while (i > 0){ const p = (i - 1) >> 1; if (h[p][0] <= h[i][0]) break; [h[p], h[i]] = [h[i], h[p]]; i = p; } };
@@ -2284,7 +2366,7 @@ function dijkstra(src, dst, bl){
     if (l < h.length && h[l][0] < h[m][0]) m = l; if (r < h.length && h[r][0] < h[m][0]) m = r; if (m === i) break; [h[m], h[i]] = [h[i], h[m]]; i = m; } } return top; };
   while (h.length){
     const [fu, u] = pop(); const du = d[u]; if (fu - hh(u) > du + 1e-6) continue; if (u === dst) break;
-    for (const e of G.adj[u]){ if (bl && bl[e[0]] && e[0] !== dst) continue; const nd = du + e[1]; if (nd < d[e[0]]){ d[e[0]] = nd; prev[e[0]] = u; pe[e[0]] = e; push([nd + hh(e[0]), e[0]]); } }
+    for (const e of G.adj[u]){ if (bl && bl[e[0]] && e[0] !== dst) continue; if (cx && edgeBanned(u, e, cx, ends)) continue; const nd = du + e[1]; if (nd < d[e[0]]){ d[e[0]] = nd; prev[e[0]] = u; pe[e[0]] = e; push([nd + hh(e[0]), e[0]]); } }
   }
   if (d[dst] === Infinity) return null;
   const path = [], segs = []; let v = dst;
@@ -2298,7 +2380,14 @@ function computeRoute(from, to){
   if (a && b){
     const bl = blockedNodes();
     let res = dijkstra(a.n, b.n, bl);
-    if (bl && !res){ res = dijkstra(a.n, b.n); if (res) toast("Attenzione: con questa marea non c'è un percorso senza ponti bassi."); }
+    if (!res){   // con tutte le regole non si arriva: si calcola lo stesso e si avvisa
+      const cx = ruleCtx();
+      res = dijkstra(a.n, b.n, bl, true);
+      if (res && cx){ toast(cx.noZtl && inZtl(b.n) ? "⚠︎ La destinazione è nei rii di Venezia: con la barca da diporto possono entrare solo residenti e chi ha un posto barca del Comune."
+          : cx.cgBan ? "⚠︎ Adesso (feriali 8-12) parte del Canal Grande è vietata al diporto e non c'è un'altra strada: controlla prima di partire."
+          : "⚠︎ Non c'è un percorso che rispetti tutte le regole dei canali: controlla sensi unici e divieti."); }
+      if (!res && bl){ res = dijkstra(a.n, b.n, null, true); if (res) toast("Attenzione: con questa marea non c'è un percorso senza ponti bassi."); }
+    }
     if (res){
       src = "rete";
       res.path.forEach((n, j) => { pts.push([G.la[n], G.lo[n]]); const e = res.segs[j]; names.push(e && e[2] >= 0 ? (G.names[e[2]] || "") : ""); kinds.push(e ? e[3] : 1); });
@@ -2485,6 +2574,7 @@ function pickPlace(r){
 function endFromSearch(){ searchTarget = "to"; qIn.placeholder = "Dove vuoi andare?"; $("#qClear").classList.toggle("hidden", !qIn.value); }
 function openPlan(to){
   if (NAV) stopNav();
+  const bb = activeBoat(); if (bb && !bb.ztl && !store.get("ln_ztl_asked")){ store.set("ln_ztl_asked", 1); setTimeout(() => boatAsk("one", "ztl"), 400); }
   if (appMode !== "nautica" && typeof setAppMode === "function") setAppMode("nautica");
   PLAN = { from: PLAN && PLAN.from && !PLAN.from.me ? PLAN.from : null, to, R: null };
   if (watchId === null){ askCompass(); startGps(); }
@@ -2824,6 +2914,7 @@ setInterval(() => {
 const BOAT_FORM = [
   ["La barca", [
     ["name", "Nome della barca", "text", "es. Toppetta"],
+    ["ztl", "Puoi entrare nei rii di Venezia", "select", ["", "Sì, sono residente a Venezia o nelle isole", "Sì, ho un posto barca in concessione del Comune", "No, non sono né residente né concessionario"]],
     ["type", "Tipo", "select", ["", "Topa", "Mototopo", "Cofano", "Sanpierota", "Sandolo", "Barchino", "Motoscafo", "Lancia", "Gozzo", "Gommone", "Barca a vela", "Altro"]],
     ["brand", "Cantiere / marca", "text", "es. Cantiere Crea, Nuova Jolly…"],
     ["model", "Modello", "text"],
@@ -2899,6 +2990,7 @@ function boatSteps(b, onlyMissing, onlyKey){
     else { st.type = "text"; if (extra && extra.startsWith("es.")) st.ph = extra; else if (extra) st.hint = extra; }
     if (k === "name"){ st.q = "Come si chiama la tua barca?"; st.optional = false; }
     if (k === "type") st.q = "Che tipo di barca è?";
+    if (k === "ztl"){ st.q = "Sei residente a Venezia o hai un posto barca del Comune?"; st.hint = "Nei rii e nel Canal Grande le barche da diporto possono entrare solo se sei residente nel centro storico o nelle isole, oppure se hai un posto barca in concessione (Testo Unico traffico acqueo, art. 18). Così il navigatore ti porta solo dove puoi andare."; st.optional = false; }
     if (k === "brand"){ st.q = "Che cantiere o marca?"; st.chips = [...new Set(BOAT_CAT.map(c => c[0]))]; st.hint = "Se è nella lista, inserisco io le misure del modello."; }
     if (k === "model"){ st.q = "Che modello?"; st.chips = v => BOAT_CAT.filter(c => c[0] === v.brand).map(c => c[1]); }
     if (k === "engBrand"){ st.q = "Che marca di motore?"; st.chips = [...new Set(ENG_CAT.map(c => c[0]))]; }
@@ -4168,7 +4260,7 @@ function layerVis(){
     "fondo": n && dep,
     "route": n, "route-case": n,
     "poi": n && foodOn, "poi-label": n && foodOn,
-    "fermate": appMode === "trasporti", "fermate-lbl": appMode === "trasporti",
+    "sensi": n, "fermate": appMode === "trasporti", "fermate-lbl": appMode === "trasporti",
     "partners": appMode === "market", "partners-lbl": appMode === "market"
   };
   Object.entries(want).forEach(([id, v]) => { if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", v ? "visible" : "none"); });
@@ -4549,6 +4641,25 @@ function wzPaint(){
   if (s.type === "photo"){ const pick = async f => { if (!f) return; try{ const p = await shrinkPhoto(f); wzSet(p, false); wzPaint(); }catch(e){ toast("Questa foto non si apre, provane un'altra."); } };
     $("#wzCam").onchange = e => pick(e.target.files[0]); $("#wzGal").onchange = e => pick(e.target.files[0]); }
   if (s.type === "custom" && s.bind) s.bind(WZ.v);
+}
+
+/* frecce dei sensi unici sulla mappa (si vedono da vicino, in Nautica) */
+function drawOneWay(){
+  if (!map || !map.isStyleLoaded() || !G.done) return;
+  const cx = ruleCtx(); if (!cx) return;
+  const feats = [];
+  cx.R.ow.forEach(rule => { const seen = new Set();
+    rule.dT.forEach((du, u) => { if (du > rule.lim) return; for (const e of G.adj[u]) { if (!rule.names.has(e[2])) continue; const dv = rule.dT.get(e[0]); if (dv === undefined || dv >= du) continue;
+      const k = u + ">" + e[0]; if (seen.has(k)) continue; seen.add(k);
+      feats.push({ type: "Feature", properties: { n: rule.r.n }, geometry: { type: "LineString", coordinates: [[G.lo[u], G.la[u]], [G.lo[e[0]], G.la[e[0]]]] } }); } }); });
+  const data = { type: "FeatureCollection", features: feats };
+  if (map.getSource("sensi")){ map.getSource("sensi").setData(data); return; }
+  if (!map.hasImage("owArrow")){ const c = document.createElement("canvas"); c.width = 24; c.height = 24; const g = c.getContext("2d");
+    g.fillStyle = "#ffffff"; g.strokeStyle = "#c2410c"; g.lineWidth = 2.5; g.beginPath(); g.moveTo(4, 5); g.lineTo(20, 12); g.lineTo(4, 19); g.lineTo(8, 12); g.closePath(); g.fill(); g.stroke();
+    map.addImage("owArrow", g.getImageData(0, 0, 24, 24), { pixelRatio: 2 }); }
+  map.addSource("sensi", { type: "geojson", data });
+  map.addLayer({ id: "sensi", type: "symbol", source: "sensi", minzoom: 14.5,
+    layout: { visibility: appMode === "nautica" ? "visible" : "none", "symbol-placement": "line", "symbol-spacing": 45, "icon-image": "owArrow", "icon-size": 1, "icon-allow-overlap": true, "icon-rotation-alignment": "map" } });
 }
 /* =========================================================
    ORDINA
