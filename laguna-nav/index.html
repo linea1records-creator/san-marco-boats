@@ -92,14 +92,15 @@
   body.nav .fabs{bottom:92px}
   .fab{width:50px;height:50px;border-radius:50%;background:#fff;color:#111;font-size:19px;font-weight:800;box-shadow:0 2px 10px rgba(0,0,0,.35);
     display:flex;align-items:center;justify-content:center}
-  .fab.big{width:58px;height:58px;font-size:24px;color:#1a73e8}
+  .fab.big{width:58px;height:58px;font-size:24px;color:#0b1f4b}
   .fab.on{background:var(--accent);color:#000}
-  .fab.follow{background:#1a73e8;color:#fff}
+  .fab.follow{background:#0b1f4b;color:#fff}
   #navBar{position:absolute;z-index:20;left:0;right:0;bottom:0;background:#111;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
     padding:12px 16px}
   .eta{font-size:22px;font-weight:800;color:var(--ok)}
   .btn.danger{background:var(--danger);color:#fff}
   .me{width:1px;height:1px;pointer-events:none}
+  .me,.dest,.startpin{transition:opacity .5s}
   body.fp .me:not(.fr) .meTag{display:none}
   .me.fr .meTag{background:#0a8f4e}
   .meTag small{font-weight:500;opacity:.8}
@@ -535,7 +536,7 @@
   #tabs svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
   body nav#dock{background:#fff;border-top:1px solid #e3e5e8}
   #tabs button{color:#8a8f98}
-  #tabs button.on{color:#000}
+  #tabs button.on{color:#0b1f4b}
   #tabs button.on .s{fill:currentColor}
   #tabs button.on .c{stroke:#fff}
   #tabs button:active svg{transform:scale(.9)}
@@ -979,7 +980,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.23</p>
+      <p class="sub">1Click · ClickVenice · versione 3.24</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -1026,6 +1027,7 @@
 /* =========================================================
    CONFIGURAZIONE — modifica qui
    ========================================================= */
+const NAVY = "#0b1f4b";   // blu navy di 1Click: freccia Naviga, tasto ➤, acqua, icone selezionate
 const CONFIG = {
   // Numero WhatsApp che riceve gli ordini (formato internazionale senza +, es. "393401234567")
   ORDER_WHATSAPP: "",
@@ -1883,6 +1885,13 @@ async function kissPoll(){
 function addLayers(){
   setTimeout(drawOneWay, 300); setTimeout(addManLayer, 400);
   BASE_LAYERS = map.getStyle().layers.map(l => ({ id: l.id, type: l.type, vis: (l.layout && l.layout.visibility) || "visible" }));
+  // acqua blu navy, nomi dei canali in chiaro
+  BASE_LAYERS.forEach(l => { if (!/water|river|canal|ocean|sea|lake/i.test(l.id)) return;
+    try{
+      if (l.type === "fill") map.setPaintProperty(l.id, "fill-color", NAVY);
+      else if (l.type === "line") map.setPaintProperty(l.id, "line-color", NAVY);
+      else if (l.type === "symbol"){ map.setPaintProperty(l.id, "text-color", "#dfe7f5"); map.setPaintProperty(l.id, "text-halo-color", NAVY); }
+    }catch(e){} });
   // foto satellitare (sotto a tutti i nostri strati)
   map.addSource("sat", { type: "raster", tileSize: 256, maxzoom: 19, attribution: "Foto © Esri, Maxar, Earthstar Geographics",
     tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"] });
@@ -3901,14 +3910,14 @@ function keepSimple(l){
 }
 function applyMapMode(){
   if (!map || !map.getLayer("sat")) return;
-  const sat = mapMode === "sat", dep = !!INST.water && appMode === "nautica";
+  const sat = mapMode === "sat" && appMode === "nautica", dep = !!INST.water && appMode === "nautica", flat = LY.d3 === false && appMode === "nautica";
   $("#depthLegend").classList.toggle("hidden", !dep);
   layerVis();
   if (dep){ loadTide(); drawChart(); }
   BASE_LAYERS.forEach(l => { if (!map.getLayer(l.id)) return;
-    const show = sat ? (l.type === "symbol" && /place/i.test(l.id)) : keepSimple(l) && !((dep || LY.d3 === false) && l.type === "fill-extrusion");
+    const show = sat ? (l.type === "symbol" && /place/i.test(l.id)) : keepSimple(l) && !((dep || flat) && l.type === "fill-extrusion");
     map.setLayoutProperty(l.id, "visibility", show ? "visible" : "none"); });
-  map.setLayoutProperty("sat", "visibility", sat ? "visible" : "none");
+  fadeVis("sat", sat);
   $("#fabSat").textContent = sat ? "🛰" : "🗺️";
   document.querySelectorAll("#modes [data-mode]").forEach(b => b.classList.toggle("on", b.dataset.mode === mapMode));
   document.body.classList.toggle("sat", sat);
@@ -3919,7 +3928,7 @@ function setGet(k){ return k === "water" ? !!INST.water : k === "sat" ? mapMode 
 function paintSet(){ document.querySelectorAll("#setPanel [data-set]").forEach(b => b.classList.toggle("on", setGet(b.dataset.set))); }
 // 2D: mappa piatta, niente rilievi (edifici, bricole 3D, omino) · 3D: mappa inclinabile con i rilievi
 function apply3d(anim){
-  if (!map) return; const d3 = LY.d3 !== false;
+  if (!map) return; const d3 = LY.d3 !== false || appMode !== "nautica";
   try{ map.setMaxPitch(d3 ? 80 : 0); }catch(e){}
   if (!d3 && map.getPitch() > 0) map.easeTo({ pitch: 0, duration: anim ? 500 : 0 });
   else if (d3 && anim && map.getPitch() < 5) map.easeTo({ pitch: view3d ? 72 : 50, duration: 500 });
@@ -4076,7 +4085,7 @@ function setAppMode(m){
   if (m === "sport") sportStart(); else sportStop();
   if (m === "incontra") meetStart(); else meetStop();
   if (m === "incontra") loadEvents();
-  try{ paintSos(); }catch(e){} try{ applyMapMode(); }catch(e){}
+  try{ paintSos(); }catch(e){} try{ apply3d(false); }catch(e){}
   if (m !== "nautica" && PLAN) closePlan();
   if (m === "market"){ loadPartners(); renderMk(); }
   layerVis();
@@ -4738,7 +4747,7 @@ async function openChat(nome){
    Nautica: bricole, velox, ponti, fondali e percorso. Trasporti: solo le fermate. Incontra: solo gli stati. */
 function layerVis(){
   if (!map || !map.isStyleLoaded()) return;
-  const n = appMode === "nautica", dep = !!INST.water, d3 = LY.d3 !== false, me = LY.boat !== false || !n;
+  const n = appMode === "nautica", dep = !!INST.water, d3 = LY.d3 !== false || !n, me = LY.boat !== false || !n;
   const want = {
     "bricole": n && LY.bricole, "bric3d": n && LY.bricole && d3,
     "velox": n && LY.velox, "velox-tratte": n && LY.velox,
@@ -4752,9 +4761,35 @@ function layerVis(){
     "sensi": n, "fermate": appMode === "trasporti", "fermate-lbl": appMode === "trasporti",
     "partners": appMode === "market", "partners-lbl": appMode === "market"
   };
-  Object.entries(want).forEach(([id, v]) => { if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", v ? "visible" : "none"); });
-  if (destMarker) destMarker.getElement().style.display = n ? "" : "none";
-  if (meMarker) meMarker.getElement().style.display = me ? "" : "none";
+  Object.entries(want).forEach(([id, v]) => /^route/.test(id) ? (map.getLayer(id) && map.setLayoutProperty(id, "visibility", v ? "visible" : "none")) : fadeVis(id, v));
+  if (destMarker) fadeEl(destMarker.getElement(), n);
+  if (startMarker) fadeEl(startMarker.getElement(), n);
+  if (meMarker) fadeEl(meMarker.getElement(), me);
+}
+/* dissolvenza di mezzo secondo quando uno strato appare o sparisce (cambio modalità, impostazioni) */
+const FADE_P = { circle: ["circle-opacity", "circle-stroke-opacity"], symbol: ["icon-opacity", "text-opacity"], line: ["line-opacity"], fill: ["fill-opacity"],
+  "fill-extrusion": ["fill-extrusion-opacity"], raster: ["raster-opacity"] };
+const FADE_O = {}, FADE_T = {};
+function fadeVis(id, show){
+  const L = map && map.getLayer(id); if (!L) return;
+  const vis = map.getLayoutProperty(id, "visibility") !== "none", props = FADE_P[L.type] || [];
+  if (!FADE_O[id]){ FADE_O[id] = {}; props.forEach(pr => { const v = map.getPaintProperty(id, pr); FADE_O[id][pr] = v === undefined ? 1 : v; }); }
+  const want = show ? "in" : "out"; if (FADE_T[id] && FADE_T[id].w === want) return;
+  if (FADE_T[id]) clearTimeout(FADE_T[id].t);
+  props.forEach(pr => { try{ map.setPaintProperty(id, pr + "-transition", { duration: 500, delay: 0 }); }catch(e){} });
+  if (show){
+    if (!vis){ props.forEach(pr => { try{ map.setPaintProperty(id, pr, 0); }catch(e){} }); map.setLayoutProperty(id, "visibility", "visible"); }
+    FADE_T[id] = { w: "in", t: setTimeout(() => { props.forEach(pr => { try{ map.setPaintProperty(id, pr, FADE_O[id][pr]); }catch(e){} }); FADE_T[id] = { w: "in", t: 0 }; }, 30) };
+  } else {
+    if (!vis){ FADE_T[id] = { w: "out", t: 0 }; return; }
+    props.forEach(pr => { try{ map.setPaintProperty(id, pr, 0); }catch(e){} });
+    FADE_T[id] = { w: "out", t: setTimeout(() => { if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", "none"); }, 520) };
+  }
+}
+function fadeEl(el, show){
+  if (!el) return; clearTimeout(el._ft);
+  if (show){ el.style.display = ""; requestAnimationFrame(() => { el.style.opacity = ""; }); }
+  else if (el.style.display !== "none"){ el.style.opacity = "0"; el._ft = setTimeout(() => { el.style.display = "none"; }, 520); }
 }
 
 /* Trasporti: orari dei vaporetti e area taxi dal menu ⋯ (le indicazioni si scelgono quando cerchi un posto) */
