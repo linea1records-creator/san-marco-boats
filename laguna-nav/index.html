@@ -889,7 +889,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.13</p>
+      <p class="sub">1Click · ClickVenice · versione 3.14</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -1651,7 +1651,7 @@ function initMap(){
   map.on("error", e => { if (!styled && e && e.error && /style|json/i.test(String(e.error.message || ""))) { clearTimeout(fallback); map.setStyle(STYLE_RASTER); } });
   map.on("style.load", () => { styled = true; clearTimeout(fallback); addLayers(); });
   map.on("dragstart", e => { if (e.originalEvent) setFollow(false); });
-  map.on("pitch", rotMe); map.on("zoom", () => drawMan());
+  map.on("pitch", rotMe);
   map.on("zoomend", e => { if (view3d && e.originalEvent && map.getZoom() < 16) setFirstPerson(false); });
   map.on("click", e => {
     if (addMode === "wzpick"){ addMode = null; $("#modeHint").classList.add("hidden"); if (window._wzPick){ const f = window._wzPick; window._wzPick = null; f(e.lngLat); } return; }
@@ -1815,7 +1815,7 @@ function makeArrow(){
 const MAN_C = { skin: "#f6c9a0", hair: "#6b3f1f", shirt: "#1a73e8", legs: "#2b3a55", shoe: "#222222", eye: "#2b1a10", mouth: "#c0392b" };
 let manKey = "";
 function manFeatures(lat, lng, hdg, zoom){
-  const mpp = 156543.03 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom), u = mpp * 5.5;   // un blocchetto ≈ 5,5 pixel a qualsiasi zoom
+  const u = manUnit(lat, zoom);
   const r = hdg * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r), kLat = 1 / 111320, kLng = 1 / (111320 * Math.cos(lat * Math.PI / 180));
   const pt = (x, y) => { const E = (x * cs + y * sn) * u, N = (-x * sn + y * cs) * u; return [lng + E * kLng, lat + N * kLat]; };
   const out = [], box = (x0, x1, y0, y1, b, t, c) => out.push({ type: "Feature", properties: { c: MAN_C[c], b: b * u, h: t * u },
@@ -1832,15 +1832,22 @@ function manFeatures(lat, lng, hdg, zoom){
   box(-0.8, 0.8, 1.6, 1.85, 8.7, 9.0, "mouth"); box(-1.05, -0.75, 1.6, 1.85, 8.9, 9.25, "mouth"); box(0.75, 1.05, 1.6, 1.85, 8.9, 9.25, "mouth");
   return { type: "FeatureCollection", features: out };
 }
+// grandezza di un blocchetto in metri: da vicino è un oggetto vero (cresce con lo zoom),
+// da lontano non scende sotto ~2,5 pixel (l'omino resta piccolo ma visibile)
+const MAN_U = 1.5;
+function manUnit(lat, zoom){ const mpp = 156543.03 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom); return Math.max(MAN_U, mpp * 2.5); }
+function manPx(){ if (!map || !lastPos) return 2.5; const mpp = 156543.03 * Math.cos(lastPos.lat * Math.PI / 180) / Math.pow(2, map.getZoom()); return manUnit(lastPos.lat, map.getZoom()) / mpp; }
 function drawMan(force){
   if (!map || !lastPos || !map.getSource("meman")) return;
-  const z = map.getZoom(), key = [lastPos.lat.toFixed(6), lastPos.lng.toFixed(6), Math.round(heading / 2), z.toFixed(2)].join();
+  const u = manUnit(lastPos.lat, map.getZoom()), key = [lastPos.lat.toFixed(6), lastPos.lng.toFixed(6), Math.round(heading / 4), Math.round(Math.log(u) * 25)].join();
   if (!force && key === manKey) return; manKey = key;
   map.getSource("meman").setData(manFeatures(lastPos.lat, lastPos.lng, heading, z));
 }
 // la scritta "Sei qui" sta sopra la testa dell'omino (più la mappa è inclinata, più l'omino è alto sullo schermo)
-function rotMe(){ if (!meMarker || !map) return; const p = map.getPitch() * Math.PI / 180;
-  meMarker.setOffset([0, -Math.round(Math.max(18, 11.9 * 5.5 * Math.sin(p) + 6 * Math.cos(p))) - 4]); }
+let meOff = null;
+function rotMe(){ if (!meMarker || !map) return; const p = map.getPitch() * Math.PI / 180, px = manPx();
+  const o = -Math.round(Math.max(12, 11.9 * px * Math.sin(p) + 2 * px * Math.cos(p))) - 4;
+  if (o !== meOff){ meOff = o; meMarker.setOffset([0, o]); } }
 
 /* ---------- GPS e bussola ---------- */
 // headingSrc: "phone" = la mappa gira dove punta il telefono (bussola); "course" = direzione di marcia del GPS
@@ -1939,7 +1946,7 @@ function frame(){
   if (!map) return;
   const t = targetHeading();
   if (t !== null) heading = (heading + angDiff(heading, t) * 0.22 + 360) % 360;
-  rotMe(); if (!frame.n || ++frame.n % 6 === 0) { frame.n = frame.n || 1; drawMan(); }
+  rotMe(); if (!frame.n || ++frame.n % 10 === 0) { frame.n = frame.n || 1; if (!userBusy) drawMan(); }
   if (userBusy || map.isEasing && map.isEasing()) return;
   const o = {};
   if (view3d && Math.abs(angDiff(map.getBearing(), heading)) > 0.4) o.bearing = heading;
