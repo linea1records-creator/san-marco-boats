@@ -99,8 +99,10 @@
     padding:12px 16px}
   .eta{font-size:22px;font-weight:800;color:var(--ok)}
   .btn.danger{background:var(--danger);color:#fff}
-  .me{width:46px;height:46px}
-  .me svg{width:100%;height:100%;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+  .me{width:48px;height:56px;pointer-events:none}
+  .meAv{width:48px;height:56px;transform-origin:24px 32px;transition:transform .25s linear}
+  .meAv svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,.45))}
+  .meTag{position:absolute;left:50%;bottom:calc(100% - 2px);transform:translateX(-50%);white-space:nowrap;background:#111;color:#fff;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.35)}
   .dest{width:22px;height:22px;border-radius:50%;background:#d32f2f;border:4px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5)}
   /* ===== Tema: blu per la navigazione, rosso e bianco (trattoria) per i ristoranti ===== */
   #maneuver{background:#1a56db}
@@ -889,7 +891,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.11</p>
+      <p class="sub">1Click · ClickVenice · versione 3.12</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -1651,6 +1653,7 @@ function initMap(){
   map.on("error", e => { if (!styled && e && e.error && /style|json/i.test(String(e.error.message || ""))) { clearTimeout(fallback); map.setStyle(STYLE_RASTER); } });
   map.on("style.load", () => { styled = true; clearTimeout(fallback); addLayers(); });
   map.on("dragstart", e => { if (e.originalEvent) setFollow(false); });
+  map.on("rotate", rotMe);
   map.on("click", e => {
     if (addMode === "wzpick"){ addMode = null; $("#modeHint").classList.add("hidden"); if (window._wzPick){ const f = window._wzPick; window._wzPick = null; f(e.lngLat); } return; }
     if (addMode === "picksport"){ addMode = null; $("#modeHint").classList.add("hidden"); SPF.pt = { lat: e.lngLat.lat, lng: e.lngLat.lng }; sportForm(); return; }
@@ -1800,10 +1803,21 @@ function toast(msg){
 /* ---------- freccia della posizione ---------- */
 function makeArrow(){
   const el = document.createElement("div"); el.className = "me";
-  el.innerHTML = `<svg viewBox="0 0 40 40"><path d="M20 3 L34 35 L20 27 L6 35 Z" fill="#1a73e8" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg>`;
-  setTimeout(paintArrow, 0);
-  return new maplibregl.Marker({ element: el, rotationAlignment: "map", pitchAlignment: "map" });
+  el.innerHTML = `<div class="meTag">Sei qui</div><div class="meAv"><svg viewBox="0 0 48 56" aria-label="Sei qui">
+    <path d="M24 1.5 L30 9 H18 Z" fill="#1a73e8" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
+    <circle cx="24" cy="32" r="21" fill="#fff"/>
+    <circle cx="24" cy="32" r="18.5" fill="#cfe6ff"/>
+    <circle cx="24" cy="34" r="12" fill="#f6c9a0"/>
+    <circle cx="11.8" cy="34.5" r="2.6" fill="#f0b98c"/><circle cx="36.2" cy="34.5" r="2.6" fill="#f0b98c"/>
+    <path d="M12.2 31.5c0-8 5.3-12.3 11.8-12.3 6.6 0 11.8 4.3 11.8 12.3-2.8-2.4-5.5-3.9-8.4-4.6l-1.6 2.4-1.3-2.7c-4.6.1-8.6 1.9-12.3 4.9z" fill="#6b3f1f"/>
+    <circle cx="19.5" cy="34" r="1.6" fill="#2b1a10"/><circle cx="28.5" cy="34" r="1.6" fill="#2b1a10"/>
+    <circle cx="16.8" cy="38" r="1.8" fill="#ff9e9e" opacity=".6"/><circle cx="31.2" cy="38" r="1.8" fill="#ff9e9e" opacity=".6"/>
+    <path d="M19.2 38.8c1.4 2.6 3 3.6 4.8 3.6s3.4-1 4.8-3.6" fill="none" stroke="#2b1a10" stroke-width="1.6" stroke-linecap="round"/>
+  </svg></div>`;
+  return new maplibregl.Marker({ element: el, anchor: "center", offset: [0, -4], rotationAlignment: "viewport", pitchAlignment: "viewport" });
 }
+// l'avatar gira verso dove guarda la bussola (rispetto a come è girata la mappa); la scritta resta dritta
+function rotMe(){ if (!meMarker || !map) return; const a = meMarker.getElement().querySelector(".meAv"); if (a) a.style.transform = `rotate(${((heading - map.getBearing()) % 360 + 360) % 360}deg)`; }
 
 /* ---------- GPS e bussola ---------- */
 // headingSrc: "phone" = la mappa gira dove punta il telefono (bussola); "course" = direzione di marcia del GPS
@@ -1898,7 +1912,7 @@ function frame(){
   if (!map) return;
   const t = targetHeading();
   if (t !== null) heading = (heading + angDiff(heading, t) * 0.22 + 360) % 360;
-  if (meMarker) meMarker.setRotation(heading);
+  rotMe();
   if (userBusy || map.isEasing && map.isEasing()) return;
   const o = {};
   if (view3d && Math.abs(angDiff(map.getBearing(), heading)) > 0.4) o.bearing = heading;
@@ -3403,7 +3417,7 @@ function applyEngine(b, force){
   if (ch){ saveBoats(); renderBoat(); }
 }
 function paintArrow(){
-  const b = activeBoat(), path = document.querySelector(".me svg path"); if (!path) return;
+  const b = activeBoat(), path = document.querySelector(".me svg path.hull"); if (!path) return;   // ora c'è l'avatar: niente da colorare
   path.setAttribute("fill", b && b.colorHull && b.colorHull.toLowerCase() !== "#ffffff" ? b.colorHull : "#1a73e8");
   path.setAttribute("stroke", b && b.colorStripe ? b.colorStripe : "#fff");
 }
