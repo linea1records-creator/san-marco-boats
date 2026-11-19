@@ -100,7 +100,9 @@
   .eta{font-size:22px;font-weight:800;color:var(--ok)}
   .btn.danger{background:var(--danger);color:#fff}
   .me{width:1px;height:1px;pointer-events:none}
-  body.fp .meTag{display:none}
+  body.fp .me:not(.fr) .meTag{display:none}
+  .me.fr .meTag{background:#0a8f4e}
+  .meTag small{font-weight:500;opacity:.8}
   .meTag{position:absolute;left:50%;bottom:0;transform:translateX(-50%);white-space:nowrap;background:#111;color:#fff;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.35)}
   .dest{width:22px;height:22px;border-radius:50%;background:#d32f2f;border:4px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5)}
   /* ===== Tema: blu per la navigazione, rosso e bianco (trattoria) per i ristoranti ===== */
@@ -851,6 +853,8 @@
           <p class="sub" id="pfSub" style="margin:0"></p>
           <button class="btn small ghost" id="pfCustom" style="margin-top:12px">✏️ Personalizza il profilo</button>
         </div>
+        <button class="card rowbtn" id="pfAv3d">🧍 Il mio omino sulla mappa <span id="pfAvSub">›</span></button>
+        <button class="card rowbtn" id="pfShare">📍 Posizione agli amici <span id="pfShareSub">No ›</span></button>
         <button class="card rowbtn" data-go="boat">⛵ La mia barca <span>›</span></button>
         <button class="card rowbtn" data-go="rider">🚶 Rider <span>›</span></button>
         <button class="card rowbtn" data-go="info">ⓘ Impostazioni e info <span>›</span></button>
@@ -890,7 +894,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.16</p>
+      <p class="sub">1Click · ClickVenice · versione 3.17</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -1524,10 +1528,39 @@ function cvForm(){
 }
 function renderProfile(){
   if (!PROFILE) return;
-  paintMe(); paintFriends(); loadFriends();
+  paintMe(); paintFriends(); loadFriends(); paintAvRow(); syncAvatar();
   if (!FEED.length){ FEED = store.get("ln_feed", []); if (FEED.length) paintFeed(); }
   setPfTab(pfTab);
 }
+/* omino sulla mappa e posizione condivisa con gli amici */
+const AV_COLS = ["#1a73e8", "#c8102e", "#0a8f4e", "#f59e0b", "#7c3aed", "#d6336c", "#111111", "#ffffff", "#0891b2", "#8b4513"];
+function paintAvRow(){
+  const a = store.get("ln_avatar", null) || { sex: "m", shirt: "#1a73e8" }, sh = store.get("ln_share", false);
+  $("#pfAvSub").innerHTML = `${a.sex === "f" ? "Femmina" : "Maschio"} <i style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${esc(a.shirt)};border:1px solid #888;vertical-align:-1px"></i> ›`;
+  $("#pfShareSub").textContent = (sh ? "Sì" : "No") + " ›";
+}
+async function syncAvatar(){
+  try{ const r = await rpc("loc_state", {}); if (!r || r.errore) return;
+    if (r.avatar && r.avatar.sex) store.set("ln_avatar", r.avatar);
+    else if (store.get("ln_avatar", null)){ const a = store.get("ln_avatar"); rpc("avatar_set", { p_sex: a.sex, p_shirt: a.shirt }).catch(() => {}); }
+    store.set("ln_share", !!r.share); paintAvRow(); try{ manKey = ""; drawMan(true); }catch(e){} }catch(e){}
+}
+$("#pfAv3d").onclick = () => {
+  const a = store.get("ln_avatar", null) || { sex: "m", shirt: "#1a73e8" };
+  wizard({ title: "Il tuo omino sulla mappa", values: { sex: a.sex, shirt: a.shirt }, steps: [
+    { k: "sex", q: "Maschio o femmina?", type: "choice", options: [["m", "🙋‍♂️ Maschio"], ["f", "🙋‍♀️ Femmina"]] },
+    { k: "shirt", q: "Di che colore è la maglietta?", type: "color", options: AV_COLS }
+  ], onDone: v => { const n = { sex: v.sex === "f" ? "f" : "m", shirt: v.shirt || "#1a73e8" }; store.set("ln_avatar", n); paintAvRow();
+    try{ manKey = ""; drawMan(true); }catch(e){} rpc("avatar_set", { p_sex: n.sex, p_shirt: n.shirt }).catch(() => {}); toast("Omino aggiornato ✓"); } });
+};
+$("#pfShare").onclick = () => {
+  const sh = store.get("ln_share", false);
+  openSheet(`<h3>📍 Posizione agli amici</h3><p class="muted" style="line-height:1.45">Se la condividi, i tuoi amici di myClick vedono il tuo omino sulla mappa Nautica, con il tuo clickname, mentre usi l'app. Solo gli amici che hai accettato. Puoi spegnerla quando vuoi.</p>
+    <button class="btn" id="shOn">${sh ? "✓ " : ""}Condividi con gli amici</button><button class="btn ghost" id="shOff" style="margin-top:10px">${!sh ? "✓ " : ""}Non condividere</button>`);
+  const set = async on => { closeSheet(); try{ const r = await rpc("loc_share", { p_on: on }); if (r && r.errore){ toast("Serve l'account: esci e rientra."); return; } }catch(e){ toast("Non riesco a salvare: controlla la connessione."); return; }
+    store.set("ln_share", on); paintAvRow(); try{ frPush = 0; if (on && lastPos) pushMyLoc(lastPos); }catch(e){} toast(on ? "Ora i tuoi amici ti vedono sulla mappa" : "Posizione non più condivisa"); };
+  $("#shOn").onclick = () => set(true); $("#shOff").onclick = () => set(false);
+};
 $("#pfEdit").onclick = () => {
   openSheet(`<h3>Cambia password</h3>
     <div class="field"><label>Password attuale</label><input id="pwOld" type="password" autocomplete="current-password"></div>
@@ -1681,10 +1714,34 @@ function initMap(){
 }
 function addManLayer(){
   if (!map.getSource("meman") || map.getLayer("meman")) return;
+  map.addLayer({ id: "frdot", type: "circle", source: "frdot", maxzoom: MAN_MINZ, paint: { "circle-radius": 7, "circle-color": ["get", "c"], "circle-stroke-color": "#ffffff", "circle-stroke-width": 2.5, "circle-pitch-alignment": "map" } });
+  map.addLayer({ id: "frman", type: "fill-extrusion", source: "frman", minzoom: MAN_MINZ, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true } });
   map.addLayer({ id: "medot", type: "circle", source: "medot", maxzoom: MAN_MINZ, paint: { "circle-radius": 8, "circle-color": "#1a73e8", "circle-stroke-color": "#ffffff", "circle-stroke-width": 3, "circle-pitch-alignment": "map" } });
   map.addLayer({ id: "meman", type: "fill-extrusion", source: "meman", minzoom: MAN_MINZ, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true } });
-  manKey = ""; drawMan(true);
+  manKey = ""; drawMan(true); drawFriends();
 }
+/* amici che condividono la posizione: omino 3D (o puntino da lontano) e il loro clickname */
+let FR_LOC = [], FR_MK = [], frPush = 0;
+function drawFriends(){
+  if (!map || !map.getSource("frman")) return;
+  const list = appMode === "nautica" ? FR_LOC : [], feats = [];
+  list.forEach(f => manFeatures(f.lat, f.lng, f.hdg || 0, f.avatar || {}, feats));
+  map.getSource("frman").setData({ type: "FeatureCollection", features: feats });
+  map.getSource("frdot").setData({ type: "FeatureCollection", features: list.map(f => ({ type: "Feature", properties: { c: (f.avatar && f.avatar.shirt) || "#0a8f4e" }, geometry: { type: "Point", coordinates: [f.lng, f.lat] } })) });
+  FR_MK.forEach(m => m.remove()); FR_MK = list.map(f => { const el = document.createElement("div"); el.className = "me fr";
+    el.innerHTML = `<div class="meTag">${esc(f.nome)}${f.minuti >= 2 ? ` <small>${f.minuti}′ fa</small>` : ""}</div>`;
+    return new maplibregl.Marker({ element: el, anchor: "bottom", offset: [0, meOff || -12] }).setLngLat([f.lng, f.lat]).addTo(map); });
+}
+async function loadFriendsLoc(){
+  if (typeof PROFILE === "undefined" || !PROFILE || document.hidden) return;
+  try{ const r = await rpc("loc_friends", {}); FR_LOC = Array.isArray(r) ? r : []; }catch(e){ return; }
+  drawFriends();
+}
+function pushMyLoc(p){
+  if (!store.get("ln_share", false) || typeof PROFILE === "undefined" || !PROFILE || Date.now() - frPush < 25000) return;
+  frPush = Date.now(); rpc("loc_push", { p_lat: p.lat, p_lng: p.lng, p_hdg: Math.round(heading) }).catch(() => {});
+}
+setTimeout(() => { loadFriendsLoc(); setInterval(loadFriendsLoc, 20000); }, 4000);
 function addLayers(){
   setTimeout(drawOneWay, 300); setTimeout(addManLayer, 400);
   BASE_LAYERS = map.getStyle().layers.map(l => ({ id: l.id, type: l.type, vis: (l.layout && l.layout.visibility) || "visible" }));
@@ -1698,6 +1755,7 @@ function addLayers(){
   map.addSource("route", { type: "geojson", data: empty });
   map.addSource("meman", { type: "geojson", data: empty });
   map.addSource("medot", { type: "geojson", data: empty });
+  map.addSource("frman", { type: "geojson", data: empty }); map.addSource("frdot", { type: "geojson", data: empty });
   map.addLayer({ id: "route-case", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#0b4fa8", "line-width": 13 } });
   map.addLayer({ id: "route", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#2f8cff", "line-width": 8 } });
   map.addSource("depths", { type: "geojson", data: empty });
@@ -1811,26 +1869,30 @@ function toast(msg){
 /* ---------- freccia della posizione ---------- */
 function makeArrow(){
   const el = document.createElement("div"); el.className = "me";
-  el.innerHTML = `<div class="meTag">Sei qui</div>`;
+  el.innerHTML = `<div class="meTag">${esc((typeof PROFILE !== "undefined" && PROFILE && PROFILE.clickname) || "Sei qui")}</div>`;
   return new maplibregl.Marker({ element: el, anchor: "bottom", rotationAlignment: "viewport", pitchAlignment: "viewport" });
 }
 /* omino 3D: blocchetti in rilievo sulla mappa, gira verso dove guardi e si vede da ogni lato */
 const MAN_C = { skin: "#f6c9a0", hair: "#6b3f1f", shirt: "#1a73e8", legs: "#2b3a55", shoe: "#222222", eye: "#2b1a10", mouth: "#c0392b" };
+function myAvatar(){ return store.get("ln_avatar", null) || { sex: "m", shirt: "#1a73e8" }; }
 let manKey = "";
-function manFeatures(lat, lng, hdg, zoom){
-  const u = MAN_U;
+function manFeatures(lat, lng, hdg, av, out){
+  av = av || myAvatar(); out = out || [];
+  const u = MAN_U, C = Object.assign({}, MAN_C, { shirt: /^#[0-9a-f]{6}$/i.test(av.shirt || "") ? av.shirt : MAN_C.shirt }), girl = av.sex === "f";
   const r = hdg * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r), kLat = 1 / 111320, kLng = 1 / (111320 * Math.cos(lat * Math.PI / 180));
   const pt = (x, y) => { const E = (x * cs + y * sn) * u, N = (-x * sn + y * cs) * u; return [lng + E * kLng, lat + N * kLat]; };
-  const out = [], box = (x0, x1, y0, y1, b, t, c) => out.push({ type: "Feature", properties: { c: MAN_C[c], b: b * u, h: t * u },
+  const box = (x0, x1, y0, y1, b, t, c) => out.push({ type: "Feature", properties: { c: C[c] || c, b: b * u, h: t * u },
     geometry: { type: "Polygon", coordinates: [[pt(x0, y0), pt(x1, y0), pt(x1, y1), pt(x0, y1), pt(x0, y0)]] } });
   // x = destra, y = avanti (verso dove guarda), altezze in blocchetti
   box(-1.4, -0.2, -0.6, 0.8, 0, 0.6, "shoe"); box(0.2, 1.4, -0.6, 0.8, 0, 0.6, "shoe");
-  box(-1.3, -0.2, -0.5, 0.5, 0.6, 4, "legs"); box(0.2, 1.3, -0.5, 0.5, 0.6, 4, "legs");
+  if (girl){ box(-1.2, -0.3, -0.45, 0.45, 0.6, 3, "skin"); box(0.3, 1.2, -0.45, 0.45, 0.6, 3, "skin"); box(-1.9, 1.9, -1.1, 1.1, 3, 4.6, "shirt"); }
+  else { box(-1.3, -0.2, -0.5, 0.5, 0.6, 4, "legs"); box(0.2, 1.3, -0.5, 0.5, 0.6, 4, "legs"); }
   box(-1.6, 1.6, -0.8, 0.8, 4, 8, "shirt");
   box(-2.5, -1.6, -0.5, 0.5, 4.6, 8, "shirt"); box(1.6, 2.5, -0.5, 0.5, 4.6, 8, "shirt");
   box(-2.5, -1.6, -0.5, 0.5, 4, 4.6, "skin"); box(1.6, 2.5, -0.5, 0.5, 4, 4.6, "skin");
   box(-1.6, 1.6, -1.6, 1.6, 8, 11.2, "skin");
-  box(-1.75, 1.75, -1.75, 1.2, 10.4, 11.9, "hair"); box(-1.75, 1.75, -1.75, -1.2, 8.6, 11.9, "hair");
+  box(-1.75, 1.75, -1.75, 1.2, 10.4, 11.9, "hair"); box(-1.75, 1.75, -1.75, -1.2, girl ? 5.6 : 8.6, 11.9, "hair");
+  if (girl){ box(-1.85, -1.6, -1.75, 0.6, 6.4, 11.9, "hair"); box(1.6, 1.85, -1.75, 0.6, 6.4, 11.9, "hair"); }
   box(-0.95, -0.45, 1.6, 1.9, 9.6, 10.2, "eye"); box(0.45, 0.95, 1.6, 1.9, 9.6, 10.2, "eye");
   box(-0.8, 0.8, 1.6, 1.85, 8.7, 9.0, "mouth"); box(-1.05, -0.75, 1.6, 1.85, 8.9, 9.25, "mouth"); box(0.75, 1.05, 1.6, 1.85, 8.9, 9.25, "mouth");
   return { type: "FeatureCollection", features: out };
@@ -1844,13 +1906,18 @@ function drawMan(force){
   const key = [lastPos.lat.toFixed(6), lastPos.lng.toFixed(6), Math.round(heading / 4)].join();
   if (!force && key === manKey) return; manKey = key;
   if (map.getSource("medot")) map.getSource("medot").setData({ type: "Point", coordinates: [lastPos.lng, lastPos.lat] });
-  map.getSource("meman").setData(manFeatures(lastPos.lat, lastPos.lng, heading));
+  map.getSource("meman").setData(manFeatures(lastPos.lat, lastPos.lng, heading, myAvatar()));
 }
 // la scritta "Sei qui" sta sopra la testa dell'omino (più la mappa è inclinata, più l'omino è alto sullo schermo)
 let meOff = null;
-function rotMe(){ if (!meMarker || !map) return; const p = map.getPitch() * Math.PI / 180, px = manPx();
-  const o = map.getZoom() < MAN_MINZ ? -12 : -Math.round(Math.max(12, 11.9 * px * Math.sin(p) + 2 * px * Math.cos(p))) - 4;
-  if (o !== meOff){ meOff = o; meMarker.setOffset([0, o]); } }
+function rotMe(){ if (!meMarker || !map || !lastPos) return;
+  let o = -12;
+  if (map.getZoom() >= MAN_MINZ){   // altezza vera della testa sullo schermo: un palo di 40 m inclinato con la mappa
+    const p = Math.min(map.getPitch(), 78) * Math.PI / 180, d = 11.9 * MAN_U * 1.06 * Math.tan(p), b = map.getBearing() * Math.PI / 180;
+    const a = map.project([lastPos.lng, lastPos.lat]), t = map.project([lastPos.lng + d * Math.sin(b) / (111320 * Math.cos(lastPos.lat * Math.PI / 180)), lastPos.lat + d * Math.cos(b) / 111320]);
+    o = -Math.round(Math.max(14, a.y - t.y + (p < 0.3 ? 2.5 * manPx() : 0))) - 6;
+  }
+  if (o !== meOff){ meOff = o; meMarker.setOffset([0, o]); FR_MK.forEach(m => m.setOffset([0, o])); } }
 
 /* ---------- GPS e bussola ---------- */
 // headingSrc: "phone" = la mappa gira dove punta il telefono (bussola); "course" = direzione di marcia del GPS
@@ -1933,7 +2000,7 @@ function onPos(pos){
   if (map){
     if (!meMarker){ meMarker = makeArrow().setLngLat([p.lng, p.lat]).addTo(map); camera(true); }
     else meMarker.setLngLat([p.lng, p.lat]);
-    drawMan();
+    drawMan(); pushMyLoc(p);
   }
   checkZones(p, kmh); checkShallow(p); navTick(p); recPoint(p); updateDepth(p); veloxTick(p, kmh); bridgeTick(p);
 }
@@ -3622,7 +3689,7 @@ function drawBric3d(){
 let appMode = "nautica";
 function setAppMode(m){
   if (m === "incontra" && !store.get("ln_adult", false)){ adultGate(); return; }
-  appMode = m;
+  appMode = m; try{ drawFriends(); }catch(e){}
   document.body.classList.toggle("mode-trasporti", m === "trasporti");
   document.body.classList.toggle("mode-incontra", m === "incontra");
   document.body.classList.toggle("mode-market", m === "market");
