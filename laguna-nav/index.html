@@ -541,17 +541,17 @@
   #tabs button:active svg{transform:scale(.9)}
   /* tasto centrale Naviga: più grande, cerchio nero che esce dalla barra */
   #tabs button.mid{flex:1.15;gap:2px;padding-top:0}
-  #tabs button.mid .ring{width:56px;height:56px;margin-top:-22px;border-radius:50%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;
-    box-shadow:0 3px 12px rgba(0,0,0,.35);border:3px solid #fff;outline:1px solid #c9ccd1;transition:transform .15s}
-  #tabs button.mid svg{width:30px;height:30px}
+  #tabs button.mid .ring{width:58px;height:58px;margin-top:-26px;display:flex;align-items:center;justify-content:center;transition:transform .15s;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35))}
+  #tabs button.mid svg{width:58px;height:58px;stroke:none}
+  #tabs button.mid .arw{fill:#5f646b;stroke:#fff;stroke-width:3.5;stroke-linejoin:round}
+  #tabs button.mid .arl{fill:none;stroke:#c9ccd1;stroke-width:1.6;stroke-linecap:round}
+  #tabs button.mid.on .arw{fill:#000}
   #tabs button.mid span{font-size:12px;font-weight:800;color:#000}
-  #tabs button.mid.on .ring{background:linear-gradient(#2a2d31,#000)}
-  #tabs button.mid.on .s{fill:#fff}
-  #tabs button.mid:not(.on) .ring{background:#5f646b}
   #tabs button.mid:active .ring{transform:scale(.93)}
   #tabs button.mid:active svg{transform:none}
   /* Gioca: giochi dal vivo / tris */
   #spPanel .gseg{display:flex;gap:6px;margin:0 0 10px}
+  #spPanel .mkcats.dg{display:flex;gap:6px;margin-bottom:8px} #spPanel .mkcats.dg button[disabled]{opacity:.5;background:#f1f2f4;color:#777}
   #spPanel .gseg button{flex:1;position:relative;padding:8px 6px;border-radius:12px;background:#f1f2f4;color:#333;font-size:13px;font-weight:700;border:1px solid #e1e3e6}
   #spPanel .gseg button.on{background:#111;color:#fff;border-color:#111}
   #trisBadge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:#d32f2f;color:#fff;font-size:11px;font-style:normal;line-height:18px;padding:0 4px}
@@ -710,7 +710,7 @@
     <!-- Sport: partite ed eventi creati dagli utenti -->
     <div id="spPanel">
       <div class="mkh"><b>🎲 Gioca</b><span id="spCount"></span></div>
-      <div class="gseg"><button data-gt="sport" class="on">⚽ Giochi dal vivo</button><button data-gt="tris">✕◯ Tris con gli amici<i id="trisBadge" class="hidden"></i></button></div>
+      <div class="gseg"><button data-gt="sport" class="on">🏃 Dal vivo</button><button data-gt="tris">🎮 Digitali<i id="trisBadge" class="hidden"></i></button></div>
       <div id="spSport">
         <div class="mkcats" id="spCats"></div>
         <div id="spList"></div>
@@ -979,7 +979,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.20</p>
+      <p class="sub">1Click · ClickVenice · versione 3.21</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -1269,7 +1269,7 @@ const TAB_IC = {   // linea sottile · .s si riempie quando la scheda è selezio
 };
 function buildDial(){
   $("#tabs").innerHTML = MODES.map(x => x.k === "nautica"
-    ? `<button role="tab" data-pm="${x.k}" class="mid"><i class="ring"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_IC[x.k] || ""}</svg></i><span>${x.n}</span></button>`
+    ? `<button role="tab" data-pm="${x.k}" class="mid"><i class="ring"><svg viewBox="0 0 60 60" aria-hidden="true"><path class="arw" d="M30 3 L54 55 L30 43 L6 55 Z"/><path class="arl" d="M30 12 L30 41"/></svg></i><span>${x.n}</span></button>`
     : `<button role="tab" data-pm="${x.k}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_IC[x.k] || ""}</svg><span>${x.n}</span></button>`).join("");
 }
 const APP_VER = ([...document.querySelectorAll(".sub")].map(e => e.textContent).join(" ").match(/versione (\d+(?:\.\d+)+)/) || [])[1] || "";
@@ -4835,7 +4835,8 @@ function paintTris(){
   const P = TRIS.partite || [];
   const st = g => g.invitato ? `<small class="go">Rispondi</small>` : g.mia_mossa ? `<small class="go">Tocca a te</small>` : g.status === "invito" ? `<small>In attesa</small>`
     : g.status === "gioco" ? `<small>Tocca a lui</small>` : `<small>${g.winner === "=" ? "Pareggio" : !g.winner ? "Scaduta" : g.winner === g.io ? "Hai vinto 🏆" : "Hai perso"}</small>`;
-  box.innerHTML = `<p class="trnote" style="margin-top:0">Vinte ${TRIS.vinte || 0} · perse ${TRIS.perse || 0} · pari ${TRIS.pari || 0}</p>`
+  box.innerHTML = `<div class="mkcats dg"><button class="on">✕◯ Tris</button><button disabled>Altri giochi in arrivo</button></div>`
+    + `<p class="trnote" style="margin-top:0">Tris con gli amici · vinte ${TRIS.vinte || 0} · perse ${TRIS.perse || 0} · pari ${TRIS.pari || 0}</p>`
     + (P.length ? P.map(g => `<div class="tg" data-tg="${g.id}">${trisMini(g.board)}<b>@${esc(g.avversario || "?")}</b>${st(g)}</div>`).join("") : `<p class="trnote">Nessuna partita: sfida un amico!</p>`)
     + `<button class="btn small" id="trisNew">✕◯ Sfida un amico</button>`;
   $("#trisNew").onclick = trisChallenge;
