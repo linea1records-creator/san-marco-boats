@@ -1019,7 +1019,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.26</p>
+      <p class="sub">1Click · ClickVenice · versione 3.27</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -4957,7 +4957,8 @@ async function openStation(st, verso){
   if (!j.corse.length){ box.innerHTML = `<p class="muted">Nessun ${tren ? "treno" : "bus"} nelle prossime ore.</p>`; return; }
   box.innerHTML = `<p class="muted" style="margin:0 0 6px">Aggiornato alle ${esc(j.adesso || "")} · si aggiorna da solo</p>` + (tren
     ? j.corse.map(c => `<div class="stzr${c.soppresso ? " sop" : ""}"><b class="t">${esc(c.ora || "")}</b><div class="d"><b>${esc(c.luogo || "")}</b><small>${esc(c.treno || "")}${c.soppresso ? " · SOPPRESSO" : c.ritardo > 0 ? ` · <span class="late">+${c.ritardo} min</span>` : c.ritardo < 0 ? " · in anticipo" : " · in orario"}</small></div><span class="bin${c.cambio_binario ? " chg" : ""}">${c.binario ? "Bin. " + esc(c.binario) : ""}</span></div>`).join("")
-    : j.corse.map(c => `<div class="stzr"><b class="t">${esc(c.ora)}</b><div class="d">${lineBadge(c.linea, c.colore)}<b>${esc(c.luogo || "")}</b></div><span class="bin">${c.tra_min <= 0 ? "ora" : c.tra_min + " min"}</span></div>`).join("")
+    : j.corse.map(c => { const lg = verso === "arrivi" ? "da " + ((c.luogo || "").split(/\s+-\s+/).filter(x => !/venezia|roma/i.test(x)).join(" - ") || c.luogo || "") : (c.luogo || "");
+      return `<div class="stzr"><b class="t">${esc(c.ora)}</b><div class="d">${lineBadge(c.linea, c.colore)}<b>${esc(lg)}</b></div><span class="bin">${c.tra_min <= 0 ? "ora" : c.tra_min + " min"}</span></div>`; }).join("")
       + `<p class="muted" style="font-size:12px">Orari ufficiali ACTV (programmati, senza ritardi in tempo reale).</p>`);
 }
 /* dissolvenza di mezzo secondo quando uno strato appare o sparisce (cambio modalità, impostazioni) */
