@@ -663,6 +663,12 @@
   .tboard button:disabled{cursor:default}
   .tstate{text-align:center;font-size:16px;font-weight:700;margin:4px 0}
   .tsub{text-align:center;color:var(--muted);font-size:13px}
+  /* ===== intro animata ===== */
+  #intro{position:fixed;inset:0;z-index:6000;background:#f7f7f2;display:flex;align-items:center;justify-content:center;pointer-events:none}
+  #intro svg{width:min(86vw,440px);height:auto;overflow:visible}
+  #intro text{font-family:"Avenir Next","Montserrat","Segoe UI",Roboto,Arial,sans-serif;fill:#0c3851;font-size:64px}
+  #intro .lt{font-weight:300} #intro .bd{font-weight:800;letter-spacing:-1px}
+  #intro .an{transform-box:fill-box;transform-origin:50% 100%;opacity:0}
   /* ===== unClick: navy + corallo su crema ===== */
   #splash{background:var(--cream)!important;color:var(--navy);--panel:#fff;--panel2:#eef0ee;--line:#d6dcdf;--text:var(--navy);--muted:#5c7282}
   #splash input{color:var(--navy)}
@@ -717,6 +723,9 @@
 </style>
 </head>
 <body>
+
+<!-- ============ INTRO animata del logo (2,2 s) ============ -->
+<div id="intro" aria-hidden="true"><svg id="introSvg" viewBox="0 0 400 140"></svg></div>
 
 <!-- ============ SPLASH: avviso obbligatorio ============ -->
 <div id="splash">
@@ -1093,7 +1102,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">unClick · unClick · versione 3.30</p>
+      <p class="sub">unClick · unClick · versione 3.31</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa unClick</button>
@@ -5761,6 +5770,64 @@ $("#learn").checked = learnOn;
 $("#learn").onchange = e => { learnOn = e.target.checked; store.set("ln_learn", learnOn); };
 const paintHs = () => document.querySelectorAll("#hsrc [data-hs]").forEach(b => b.classList.toggle("on", b.dataset.hs === headingSrc));
 document.querySelectorAll("#hsrc [data-hs]").forEach(b => b.onclick = () => { headingSrc = b.dataset.hs; store.set("ln_hsrc", headingSrc); paintHs(); haptic(); }); paintHs();
+
+/* ---------- intro: animazione del logo unClick, 2,2 secondi ----------
+   0,0–0,7 la "u" galleggia dentro con la scia corallo, le altre lettere arrivano in fila
+   0,7–1,4 la C si disegna, onda corallo dal centro e la freccia GPS ci atterra con un rimbalzo
+   1,4–2,2 la freccia si assesta sul Nord, mezzo secondo fermo, poi lo splash si apre */
+function playIntro(){
+  const box = $("#intro"), svg = $("#introSvg"); if (!box || !svg) return;
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce || !svg.animate){ box.remove(); return; }
+  const NS = "http://www.w3.org/2000/svg", BASE = 92, NAV = "#0c3851", COR = "#ff6446";
+  const el = (tag, at) => { const e = document.createElementNS(NS, tag); Object.entries(at).forEach(([k, v]) => e.setAttribute(k, v)); svg.appendChild(e); return e; };
+  const txt = (ch, cls, x) => { const t = el("text", { x, y: BASE, class: cls + " an" }); t.textContent = ch; return t; };
+  // impaginazione: misuro ogni lettera con il carattere del telefono
+  let x = 10; const L = {};
+  L.u = txt("u", "lt", x); x += L.u.getComputedTextLength() + 2;
+  L.n = txt("n", "lt", x); x += L.n.getComputedTextLength() + 8;
+  const R = 25, cx = x + R + 6, cy = BASE - 23; x = cx + R + 12;
+  L.l = txt("l", "bd", x); x += L.l.getComputedTextLength() + 1;
+  L.i = txt("ı", "bd", x); const iw = L.i.getComputedTextLength(); x += iw + 1;
+  L.c = txt("c", "bd", x); x += L.c.getComputedTextLength() + 1;
+  L.k = txt("k", "bd", x); x += L.k.getComputedTextLength() + 10;
+  svg.setAttribute("viewBox", `0 0 ${Math.ceil(x)} 140`);
+  const dot = el("circle", { cx: +L.i.getAttribute("x") + iw / 2, cy: BASE - 58, r: 6.5, fill: COR, class: "an" });
+  // la C: arco aperto a destra, disegnato con un tratto continuo
+  const a0 = 42 * Math.PI / 180, a1 = 318 * Math.PI / 180;
+  const C = el("path", { d: `M ${cx + R * Math.cos(a0)} ${cy - R * Math.sin(a0)} A ${R} ${R} 0 1 0 ${cx + R * Math.cos(a1)} ${cy - R * Math.sin(a1)}`,
+    fill: "none", stroke: NAV, "stroke-width": 12, "stroke-linecap": "round" });
+  const len = C.getTotalLength(); C.style.strokeDasharray = len; C.style.strokeDashoffset = len;
+  // scia corallo sotto la u, onda e freccia GPS
+  const ux = +L.u.getAttribute("x"), wake = el("path", { d: `M ${ux - 40} ${BASE + 9} Q ${ux - 10} ${BASE + 3} ${ux + 30} ${BASE + 8}`, fill: "none", stroke: COR, "stroke-width": 3, "stroke-linecap": "round", opacity: 0 });
+  const wl = wake.getTotalLength(); wake.style.strokeDasharray = wl; wake.style.strokeDashoffset = wl;
+  const rip = el("circle", { cx, cy, r: 4, fill: "none", stroke: COR, "stroke-width": 3, opacity: 0 });
+  const arr = el("path", { d: `M ${cx} ${cy - 15} L ${cx + 10} ${cy + 12} L ${cx} ${cy + 6} L ${cx - 10} ${cy + 12} Z`, fill: COR, opacity: 0 });
+  arr.style.transformBox = "fill-box"; arr.style.transformOrigin = "50% 60%";
+  const A = (e, k, o) => e.animate(k, Object.assign({ fill: "both" }, o));
+  // 0,0–0,7: ingresso
+  A(L.u, [{ opacity: 0, transform: "translate(-38px,34px) rotate(-10deg)" }, { opacity: 1, transform: "translate(3px,-5px) rotate(5deg)", offset: .55 },
+    { transform: "translate(-1px,2px) rotate(-2deg)", offset: .8 }, { opacity: 1, transform: "none" }], { duration: 700, easing: "cubic-bezier(.25,.8,.3,1)" });
+  A(wake, [{ opacity: .9, strokeDashoffset: wl }, { opacity: .9, strokeDashoffset: 0, offset: .55 }, { opacity: 0, strokeDashoffset: -wl * .4 }], { duration: 700, easing: "ease-out" });
+  ["n", "l", "i", "c", "k"].forEach((k, j) => {
+    const kf = [{ opacity: 0, transform: "translateX(-14px)" }, { opacity: 1, transform: "none" }];
+    A(L[k], kf, { duration: 260, delay: 160 + j * 85, easing: "cubic-bezier(.2,.9,.3,1)" });
+    if (k === "i") A(dot, [{ opacity: 0, transform: "translateY(-8px)" }, { opacity: 1, transform: "none" }], { duration: 260, delay: 160 + j * 85 + 60, easing: "cubic-bezier(.2,.9,.3,1)" });
+  });
+  // 0,7–1,4: la C si disegna, onda e atterraggio della freccia
+  C.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: 420, delay: 700, easing: "cubic-bezier(.6,0,.3,1)", fill: "both" });
+  rip.animate([{ opacity: .85, r: 4, strokeWidth: 3 }, { opacity: 0, r: 64, strokeWidth: .5 }], { duration: 480, delay: 920, easing: "cubic-bezier(.1,.6,.3,1)", fill: "forwards" });
+  A(arr, [{ opacity: 0, transform: "scale(2.4) rotate(-28deg)" }, { opacity: 1, transform: "scale(.82) rotate(-22deg)", offset: .55 }, { transform: "scale(1.08) rotate(-20deg)", offset: .8 }, { opacity: 1, transform: "scale(1) rotate(-18deg)" }],
+    { duration: 380, delay: 920, easing: "cubic-bezier(.34,1.56,.64,1)", fill: "forwards" });
+  // 1,4–1,5: assestamento sul Nord (come l'ago di una bussola)
+  setTimeout(() => A(arr, [{ transform: "rotate(-18deg)" }, { transform: "rotate(7deg)", offset: .5 }, { transform: "rotate(-2deg)", offset: .8 }, { transform: "rotate(0deg)" }],
+    { duration: 220, easing: "cubic-bezier(.3,1.4,.5,1)" }), 1400);
+  // 2,0–2,2: uscita morbida (dopo mezzo secondo fermo sul logo)
+  box.animate([{ opacity: 1, transform: "scale(1)" }, { opacity: 0, transform: "scale(1.12)" }], { duration: 220, delay: 2000, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" })
+    .onfinish = () => box.remove();
+  setTimeout(() => { if (box.isConnected) box.remove(); }, 3000);
+}
+try{ playIntro(); }catch(e){ const b = $("#intro"); if (b) b.remove(); }
 
 // avvio: chi ha già un profilo entra direttamente in unClick
 if (PROFILE && PROFILE.age !== undefined){
