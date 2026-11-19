@@ -539,6 +539,36 @@
   #tabs button.on .s{fill:currentColor}
   #tabs button.on .c{stroke:#fff}
   #tabs button:active svg{transform:scale(.9)}
+  /* tasto centrale Naviga: più grande, cerchio nero che esce dalla barra */
+  #tabs button.mid{flex:1.15;gap:2px;padding-top:0}
+  #tabs button.mid .ring{width:56px;height:56px;margin-top:-22px;border-radius:50%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 3px 12px rgba(0,0,0,.35);border:3px solid #fff;outline:1px solid #c9ccd1;transition:transform .15s}
+  #tabs button.mid svg{width:30px;height:30px}
+  #tabs button.mid span{font-size:12px;font-weight:800;color:#000}
+  #tabs button.mid.on .ring{background:linear-gradient(#2a2d31,#000)}
+  #tabs button.mid.on .s{fill:#fff}
+  #tabs button.mid:not(.on) .ring{background:#5f646b}
+  #tabs button.mid:active .ring{transform:scale(.93)}
+  #tabs button.mid:active svg{transform:none}
+  /* Gioca: giochi dal vivo / tris */
+  #spPanel .gseg{display:flex;gap:6px;margin:0 0 10px}
+  #spPanel .gseg button{flex:1;position:relative;padding:8px 6px;border-radius:12px;background:#f1f2f4;color:#333;font-size:13px;font-weight:700;border:1px solid #e1e3e6}
+  #spPanel .gseg button.on{background:#111;color:#fff;border-color:#111}
+  #trisBadge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:#d32f2f;color:#fff;font-size:11px;font-style:normal;line-height:18px;padding:0 4px}
+  .tg{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid #eee;font-size:14px;cursor:pointer}
+  .tg:first-child{border-top:0}
+  .tg .mini{display:grid;grid-template-columns:repeat(3,10px);gap:1px;background:#bbb;flex:0 0 auto}
+  .tg .mini i{width:10px;height:10px;background:#fff;font-size:8px;line-height:10px;text-align:center;font-style:normal;font-weight:900}
+  .tg b{flex:1}
+  .tg small{color:#777;font-size:12px}
+  .tg small.go{color:#fff;background:#111;padding:3px 8px;border-radius:10px}
+  .tboard{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#111;padding:6px;border-radius:16px;width:min(84vw,330px);margin:12px auto}
+  .tboard button{aspect-ratio:1;background:#fff;border-radius:11px;font-size:52px;font-weight:300;color:#111;display:flex;align-items:center;justify-content:center}
+  .tboard button.o{color:#6b7078}
+  .tboard button.w{background:#ffe9a8}
+  .tboard button:disabled{cursor:default}
+  .tstate{text-align:center;font-size:16px;font-weight:700;margin:4px 0}
+  .tsub{text-align:center;color:var(--muted);font-size:13px}
   #verMark{position:absolute;right:8px;top:2px;font-size:9px;line-height:1;color:#000;opacity:.4;pointer-events:none;letter-spacing:.03em}
   /* impostazioni della mappa (Nautica): finestrella con gli interruttori */
   #fabSet svg{width:24px;height:24px;fill:none;stroke:#111;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
@@ -679,15 +709,19 @@
 
     <!-- Sport: partite ed eventi creati dagli utenti -->
     <div id="spPanel">
-      <div class="mkh"><b>⚽ Sport</b><span id="spCount"></span></div>
-      <div class="mkcats" id="spCats"></div>
-      <div id="spList"></div>
-      <button class="btn small" id="spNew">＋ Crea una partita o un evento</button>
+      <div class="mkh"><b>🎲 Gioca</b><span id="spCount"></span></div>
+      <div class="gseg"><button data-gt="sport" class="on">⚽ Giochi dal vivo</button><button data-gt="tris">✕◯ Tris con gli amici<i id="trisBadge" class="hidden"></i></button></div>
+      <div id="spSport">
+        <div class="mkcats" id="spCats"></div>
+        <div id="spList"></div>
+        <button class="btn small" id="spNew">＋ Crea una partita o un evento</button>
+      </div>
+      <div id="spTris" class="hidden"></div>
     </div>
 
     <!-- Shopping: attività convenzionate sulla mappa -->
     <div id="mkPanel">
-      <div class="mkh"><b>🛍️ Shopping</b><span id="mkCount"></span></div>
+      <div class="mkh"><b>🛒 Ordina</b><span id="mkCount"></span></div>
       <div class="mkcats" id="mkCats"><button data-c="" class="on">Tutto</button><button data-c="food">🍝 Food</button><button data-c="shop">🛍️ Shopping</button><button data-c="boats">⛵ Barche</button><button data-c="used">♻️ Usato</button></div>
       <div id="mkList"></div>
       <button class="btn small" id="mkOrder">🍝 Ordina cibo in barca o a casa</button>
@@ -759,6 +793,7 @@
       <div class="sh">MOSTRA SULLA MAPPA</div>
       <button class="srow" data-set="bricole"><svg viewBox="0 0 24 24"><path d="M7 5v15M12 3.5V20M17 5v15M4.5 20h15M7 8h0M12 7h0M17 8h0"/></svg><span>Bricole</span><i class="sw"></i></button>
       <button class="srow" data-set="velox"><svg viewBox="0 0 24 24"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8.5 7.5L10 5h4l1.5 2.5"/></svg><span>Velox</span><i class="sw"></i></button>
+      <button class="srow" data-set="cantieri"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5l-5.6 5.6a1.6 1.6 0 0 0 2.3 2.3l5.6-5.6a4 4 0 0 0 5-5.4l-2.4 2.4-2.1-.4-.4-2.1z"/></svg><span>Cantieri nautici</span><i class="sw"></i></button>
       <button class="srow" data-set="water"><svg viewBox="0 0 24 24"><path d="M12 3.5c3.5 4.3 6 7.6 6 10.5a6 6 0 0 1-12 0c0-2.9 2.5-6.2 6-10.5z"/><path d="M9 15a3 3 0 0 0 3 3"/></svg><span>Acqua</span><i class="sw"></i></button>
       <button class="srow" data-set="d3"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>Vista 3D</span><i class="sw"></i></button>
       <button class="srow" data-set="sat"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.8 5.4 3.8 8.5s-1.3 5.9-3.8 8.5c-2.5-2.6-3.8-5.4-3.8-8.5S9.5 6.1 12 3.5z"/></svg><span>Satellitare</span><i class="sw"></i></button>
@@ -834,8 +869,8 @@
   <!-- ORDINA -->
   <section class="view hidden" id="v-order">
     <div class="scroll">
-      <div class="backbar" data-back="market">‹ Shopping</div>
-      <h2>Shopping · Food</h2>
+      <div class="backbar" data-back="market">‹ Ordina</div>
+      <h2>Ordina · Food</h2>
       <div class="seg" id="mktSeg">
         <button data-k="food" class="on">🍝 Food</button>
         <button data-k="shop">🛍️ Shopping</button>
@@ -944,7 +979,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.19</p>
+      <p class="sub">1Click · ClickVenice · versione 3.20</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -1210,13 +1245,13 @@ function showView(v){
   if (v === "boat") setTimeout(() => { renderBoat(); paintEngChips(); }, 0);
 }
 const MODES = [
-  { k: "nautica", ic: "⚓", n: "Nautica", v: "map", am: "nautica" },
-  { k: "market", ic: "🛍️", n: "Shopping", v: "map", am: "market" },
-  { k: "meet", ic: "💬", n: "Meetup", v: "map", am: "incontra" },
-  { k: "sport", ic: "⚽", n: "Sport", v: "map", am: "sport" },
+  { k: "market", ic: "🛒", n: "Ordina", v: "map", am: "market" },
+  { k: "meet", ic: "💬", n: "Socializza", v: "map", am: "incontra" },
+  { k: "nautica", ic: "⚓", n: "Naviga", v: "map", am: "nautica" },
+  { k: "sport", ic: "🎲", n: "Gioca", v: "map", am: "sport" },
   { k: "my", ic: "👤", n: "myClick", v: "profile" }
 ];
-let modeIdx = 0;
+let modeIdx = MODES.findIndex(x => x.k === "nautica");
 const DW = 170, DSTEP = 56;   // larghezza di una modalità nel tasto · quanti pixel di dito per passare alla successiva
 let dPos = 0;                    // posizione mostrata (anche a metà tra due modalità mentre trascini)
 function haptic(){
@@ -1229,11 +1264,13 @@ const TAB_IC = {   // linea sottile · .s si riempie quando la scheda è selezio
   nautica: '<path class="s" d="M3 14.5h18l-2.6 5H5.6z"/><path d="M12 3.5v11"/><path class="s" d="M12 4.5l6 8h-6z"/>',
   market: '<path class="s" d="M5.5 8h13l-1 12.5h-11z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>',
   meet: '<path class="s" d="M4 5h16v11H9.5L4 20z"/>',
-  sport: '<circle class="s" cx="12" cy="12" r="8.7"/><path class="c" d="M3.3 12h17.4M12 3.3v17.4M6 5.8a8.7 8.7 0 0 1 0 12.4M18 5.8a8.7 8.7 0 0 0 0 12.4"/>',
+  sport: '<rect class="s" x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle class="c" cx="8.3" cy="8.3" r="1.2"/><circle class="c" cx="15.7" cy="15.7" r="1.2"/><circle class="c" cx="12" cy="12" r="1.2"/>',
   my: '<circle class="s" cx="12" cy="8" r="3.9"/><path class="s" d="M4.3 20.5a7.7 7.7 0 0 1 15.4 0z"/>'
 };
 function buildDial(){
-  $("#tabs").innerHTML = MODES.map(x => `<button role="tab" data-pm="${x.k}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_IC[x.k] || ""}</svg><span>${x.n}</span></button>`).join("");
+  $("#tabs").innerHTML = MODES.map(x => x.k === "nautica"
+    ? `<button role="tab" data-pm="${x.k}" class="mid"><i class="ring"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_IC[x.k] || ""}</svg></i><span>${x.n}</span></button>`
+    : `<button role="tab" data-pm="${x.k}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_IC[x.k] || ""}</svg><span>${x.n}</span></button>`).join("");
 }
 const APP_VER = ([...document.querySelectorAll(".sub")].map(e => e.textContent).join(" ").match(/versione (\d+(?:\.\d+)+)/) || [])[1] || "";
 function paintDial(){
@@ -1747,7 +1784,7 @@ function initMap(){
       if (fr && fr.properties.n) return kissAsk(fr.properties.n); }
     if (INST.water && appMode === "nautica"){
       const z = fondoAt(e.lngLat.lat, e.lngLat.lng), t = tideNow() ?? 30;
-      const ff = map.queryRenderedFeatures(e.point, { layers: ["partners", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
+      const ff = map.queryRenderedFeatures(e.point, { layers: ["partners", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
       if (!ff){
         const b = activeBoat(), dr = boatDraftCm(b), w = z === null ? null : z * 100 + t;
         new maplibregl.Popup({ maxWidth: "240px" }).setLngLat(e.lngLat).setHTML(z === null ? "Nessun dato di fondale qui" :
@@ -1757,11 +1794,11 @@ function initMap(){
         return;
       }
     }
-    const f = map.queryRenderedFeatures(e.point, { layers: ["partners", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
+    const f = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["partners", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
     if (f) popupFor(f, e.lngLat);
   });
   loadShared(); setInterval(loadShared, 60000);
-  loadGraph(); loadPOI(); loadVelox(); loadChart(); loadPontili(); loadBricole(); loadBridges();
+  loadGraph(); loadPOI(); loadVelox(); loadChart(); loadPontili(); loadBricole(); loadBridges(); loadCantieri();
   map.on("moveend", () => { if (map.getZoom() >= 15.3) drawBric3d(); });
 }
 function addManLayer(){
@@ -1907,6 +1944,15 @@ function addLayers(){
   map.addSource("bric3d", { type: "geojson", data: empty });
   map.addLayer({ id: "bric3d", type: "fill-extrusion", source: "bric3d", minzoom: 15.5, paint: {
     "fill-extrusion-color": ["get", "c"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-opacity": 1 } });
+  // cantieri nautici e squeri
+  map.addSource("cantieri", { type: "geojson", data: empty });
+  if (!map.hasImage("cant")) map.addImage("cant", cantIcon(), { pixelRatio: 2 });
+  map.addLayer({ id: "cantieri", type: "symbol", source: "cantieri", minzoom: 11.5, layout: { visibility: LY.cantieri ? "visible" : "none",
+    "icon-image": "cant", "icon-size": ["interpolate", ["linear"], ["zoom"], 12, 0.55, 16, 0.9], "icon-allow-overlap": true, "icon-pitch-alignment": "viewport" } });
+  if (map.getStyle().glyphs) map.addLayer({ id: "cantieri-lbl", type: "symbol", source: "cantieri", minzoom: 14.8, layout: { visibility: LY.cantieri ? "visible" : "none",
+    "text-field": ["get", "n"], "text-size": 11.5, "text-offset": [0, 1.5], "text-anchor": "top", "text-optional": true, "text-font": ["Noto Sans Regular"] },
+    paint: { "text-color": "#111", "text-halo-color": "#fff", "text-halo-width": 1.5 } });
+  drawCantieri();
   drawZones(); drawDepths(); drawRoute(); drawPOI(); drawVelox(); drawBridges(); drawChart(); drawBricole(); applyMapMode();
   addFermateLayer(); if (FERMATE.length) drawFermate();
   layerVis();
@@ -1926,6 +1972,7 @@ function drawDepths(){
 function popupFor(f, ll){
   let html;
   if (f.layer.id === "partners"){ const p = PARTNERS.find(x => x.id === f.properties.id); if (p) openPartner(p); return; }
+  if (f.layer.id === "cantieri"){ const c = CANT[f.properties.i]; if (c) openCantiere(c); return; }
   if (f.layer.id === "velox"){
     const v = VELOX.byId[f.properties.id]; if (!v) return;
     const tr = VELOX.tratte.filter(t => t.A.includes(v.id) || t.B.includes(v.id));
@@ -2980,7 +3027,7 @@ let INST = Object.assign({ speed: true, depth: false, tide: false, head: false, 
 // velocità, velox, marea ed ecoscandaglio ora lavorano sempre e si vedono tutti insieme nel mini widget
 Object.assign(INST, { speed: true, velox: true, tide: true, depth: true }); INST.bridge = false; INST.head = false;
 // cosa si vede sulla mappa in Nautica (finestrella delle impostazioni)
-let LY = Object.assign({ bricole: true, velox: true, boat: true, d3: true }, store.get("ln_layers", {}));
+let LY = Object.assign({ bricole: true, velox: true, boat: true, d3: true, cantieri: true }, store.get("ln_layers", {}));
 function paintInst(){
   document.querySelectorAll("#toggles button[data-inst]").forEach(b => b.classList.toggle("on", !!INST[b.dataset.inst]));
   $("#i-speed").classList.toggle("hidden", !INST.speed);
@@ -3922,6 +3969,69 @@ async function loadBricole(){
   if (c && c.p){ BRIC = c.p.map(a => ({ lat: a[0], lng: a[1], col: a[2] || "" })); drawBricole(); drawBric3d(); }
 }
 const WOOD = "#7a5230", WOOD_TOP = "#4e3420";
+/* =========================================================
+   CANTIERI NAUTICI: elenco curato (marchi e lavori) + quelli segnati su OpenStreetMap
+   ========================================================= */
+let CANT = [];
+const CANT_L = { legno: "🪵 Legno", vetroresina: "🧪 Vetroresina", gondole: "🛶 Gondole", motori: "⚙️ Motori", meccanica: "🔧 Meccanica", rimessaggio: "🏗️ Rimessaggio",
+  costruzione: "🔨 Costruzione", restauro: "🪚 Restauro", tappezzeria: "🧵 Tappezzeria", elettrico: "🔋 Elettrico", superyacht: "🛥️ Grandi yacht", motoscafi: "🚤 Motoscafi e taxi",
+  soccorso: "🆘 Soccorso", noleggio: "🔑 Noleggio", vendita: "🏷️ Vendita" };
+function cantIcon(){
+  const S = 64, c = document.createElement("canvas"); c.width = c.height = S; const g = c.getContext("2d");
+  g.beginPath(); g.arc(32, 32, 28, 0, Math.PI * 2); g.fillStyle = "#111"; g.fill(); g.lineWidth = 5; g.strokeStyle = "#c9ccd1"; g.stroke();
+  g.save(); g.translate(32, 32); g.rotate(-Math.PI / 4); g.fillStyle = "#fff";
+  g.fillRect(-3.5, -4, 7, 22);                                     // manico della chiave
+  g.beginPath(); g.arc(0, -10, 9.5, 0, Math.PI * 2); g.fill();      // testa
+  g.fillStyle = "#111"; g.fillRect(-3.5, -22, 7, 12);              // bocca
+  g.restore();
+  return g.getImageData(0, 0, S, S);
+}
+async function loadCantieri(){
+  let list = [];
+  try{ const j = await fetch("cantieri.json", { cache: "no-cache" }).then(r => r.json()); list = j.cantieri.map(c => Object.assign({ src: "lista" }, c)); }catch(e){}
+  CANT = list; drawCantieri();
+  // gli altri cantieri segnati su OpenStreetMap (si aggiornano una volta alla settimana)
+  let o = store.get("ln_cant_osm", null);
+  if (!(o && Date.now() - o.t < 7 * 864e5)){
+    const q = '[out:json][timeout:40];(nwr["craft"="boatbuilder"](45.20,12.15,45.60,12.62);nwr["shop"="boat"](45.20,12.15,45.60,12.62);nwr["waterway"="boatyard"](45.20,12.15,45.60,12.62);nwr["industrial"="shipyard"](45.20,12.15,45.60,12.62););out center tags;';
+    for (const u of ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"]){
+      try{
+        const r = await fetchT(u, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "data=" + encodeURIComponent(q) }, 45000);
+        if (!r.ok) continue; const j = await r.json(), p = [];
+        (j.elements || []).forEach(el => { const t = el.tags || {}, lat = el.lat || (el.center && el.center.lat), lng = el.lon || (el.center && el.center.lon); if (!lat || !t.name) return;
+          const lav = []; if (t.craft === "boatbuilder") lav.push("costruzione"); if (t.shop === "boat") lav.push("vendita"); if (t.waterway === "boatyard" || t.industrial === "shipyard") lav.push("rimessaggio");
+          if (/legno|wood/i.test(t.description || t.name)) lav.push("legno"); if (/squero/i.test(t.name)) lav.push("gondole", "legno");
+          p.push({ n: t.name, lat: +lat.toFixed(6), lng: +lng.toFixed(6), dove: [t["addr:street"], t["addr:housenumber"]].filter(Boolean).join(" "), tel: t.phone || t["contact:phone"] || "",
+            web: t.website || t["contact:website"] || "", lavori: [...new Set(lav)], marchi: (t.brand || "").split(/[;,]/).map(x => x.trim()).filter(Boolean), src: "osm" }); });
+        o = { t: Date.now(), p }; store.set("ln_cant_osm", o); break;
+      }catch(e){}
+    }
+  }
+  if (o && o.p) o.p.forEach(c => { if (!CANT.some(x => hav(x.lat, x.lng, c.lat, c.lng) < 90 || x.n.toLowerCase() === c.n.toLowerCase())) CANT.push(c); });
+  drawCantieri();
+}
+function drawCantieri(){
+  if (!map || !map.getSource("cantieri")) return;
+  map.getSource("cantieri").setData({ type: "FeatureCollection", features: CANT.map((c, i) => ({ type: "Feature", properties: { i, n: c.n }, geometry: { type: "Point", coordinates: [c.lng, c.lat] } })) });
+}
+function openCantiere(c){
+  const chips = (c.lavori || []).map(k => `<span class="pill" style="background:#eceef1;color:#111">${CANT_L[k] || esc(k)}</span>`).join(" ");
+  const brands = (c.marchi || []).length ? `<p style="margin:10px 0 4px"><b>Motori e marchi:</b> ${c.marchi.map(esc).join(", ")}</p>` : "";
+  const ph = c.tel ? c.tel.replace(/[^+\d]/g, "") : "";
+  openSheet(`<h3>🔧 ${esc(c.n)}</h3>
+    ${c.dove ? `<p class="muted" style="margin:-6px 0 10px">${esc(c.dove)}${c.approx ? " · posizione indicativa" : ""}</p>` : ""}
+    <div>${chips || '<span class="muted">Lavori non ancora indicati</span>'}</div>
+    ${brands}
+    ${c.info ? `<p style="line-height:1.45;margin:10px 0">${esc(c.info)}</p>` : ""}
+    ${c.src === "osm" ? `<p class="muted" style="font-size:12px">Dati da OpenStreetMap: marchi e lavori da completare.</p>` : ""}
+    <div class="row" style="margin-top:12px">
+      ${ph ? `<a class="btn" style="text-align:center;text-decoration:none" href="tel:${esc(ph)}">📞 Chiama</a>` : ""}
+      <button class="btn ghost" id="cantGo">🧭 Portami qui</button>
+    </div>
+    ${c.web ? `<a class="btn ghost" style="display:block;margin-top:10px;text-align:center;text-decoration:none" href="${esc(c.web)}" target="_blank" rel="noopener">🌐 Sito</a>` : ""}
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
+  $("#cantGo").onclick = () => { closeSheet(); PLAN = null; openPlan({ name: c.n, lat: c.lat, lng: c.lng }); };
+}
 function bricTop(col){ return /red|ross/i.test(col) ? "#d32f2f" : /green|verd/i.test(col) ? "#2e7d32" : /yellow|giall/i.test(col) ? "#f9a825" : WOOD_TOP; }
 function drawBricole(){
   if (!map || !map.getSource("bricole")) return;
@@ -4269,7 +4379,7 @@ function renderMk(){
   const ref = refPoint(), list = mkShown().map(p => ({ p, d: hav(ref.lat, ref.lng, p.lat, p.lng) })).sort((a, b) => a.d - b.d);
   $("#mkCount").textContent = list.length ? list.length + (list.length === 1 ? " attività" : " attività") : "";
   if (!list.length){
-    box.innerHTML = `<p class="trnote">${PARTNERS.length ? "Nessuna attività convenzionata in questa categoria." : "Le attività convenzionate compariranno qui sulla mappa, appena entrano in Shopping."}</p>`; return; }
+    box.innerHTML = `<p class="trnote">${PARTNERS.length ? "Nessuna attività convenzionata in questa categoria." : "Le attività convenzionate compariranno qui sulla mappa, appena entrano in Ordina."}</p>`; return; }
   box.innerHTML = list.slice(0, 6).map((x, i) => `<div class="stop" data-mk="${x.p.id}"><span>${MK_CATS[x.p.category][0]} ${esc(x.p.name)}</span><b>${fmtDist(x.d)} ›</b></div>`).join("");
 }
 function openPartner(p){
@@ -4470,13 +4580,13 @@ const MEET_ZONES = { "Cannaregio": [45.4445, 12.3285], "Castello": [45.4350, 12.
 let STATI = [], meetFilter = "", meetMarkers = [], meetTimer = null, chatTimer = null;
 const rpc = (fn, body) => api("rpc/" + fn, { method: "POST", ret: true, body: { p_token: TOKEN, ...body } });
 function adultGate(){
-  openSheet(`<h3>🔞 Meetup è solo per maggiorenni</h3><p class="muted" style="line-height:1.45">Per entrare devi avere almeno 18 anni.</p>
+  openSheet(`<h3>🔞 Socializza è solo per maggiorenni</h3><p class="muted" style="line-height:1.45">Per entrare devi avere almeno 18 anni.</p>
     <button class="btn" id="agYes">Ho almeno 18 anni</button><button class="btn ghost" id="agNo" style="margin-top:10px">Non ho ancora 18 anni</button>`);
   $("#agYes").onclick = async () => {
     await syncAdult();
     store.set("ln_adult", true); closeSheet(); setMode("meet", 1);
   };
-  $("#agNo").onclick = () => { closeSheet(); setMode("nautica"); toast("Meetup è riservato ai maggiorenni. Il resto di ClickVenice puoi usarlo."); };
+  $("#agNo").onclick = () => { closeSheet(); setMode("nautica"); toast("Socializza è riservato ai maggiorenni. Il resto di ClickVenice puoi usarlo."); };
 }
 // la conferma dei 18 anni deve arrivare anche al server (prima restava solo sul telefono)
 async function syncAdult(){
@@ -4633,6 +4743,7 @@ function layerVis(){
     "bricole": n && LY.bricole, "bric3d": n && LY.bricole && d3,
     "velox": n && LY.velox, "velox-tratte": n && LY.velox,
     "meman": me && d3, "medot": me, "frman": d3,
+    "cantieri": n && LY.cantieri, "cantieri-lbl": n && LY.cantieri,
     "ponti": false,
     "carta": n && dep, "carta-num": n && dep, "depths": n && dep,
     "fondo": n && dep,
@@ -4691,7 +4802,94 @@ const spWhen = t => { const d = new Date(t), now = new Date(), tm = new Date(Dat
   if (d.toDateString() === now.toDateString()) return "Oggi " + h; if (d.toDateString() === tm.toDateString()) return "Domani " + h;
   return d.toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" }) + " " + h; };
 async function loadSport(){ try{ const r = await rpc("sport_list", {}); if (Array.isArray(r)){ SPEV = r; store.set("ln_sport", r); } }catch(e){} paintSport(); }
-function sportStart(){ paintSport(); loadSport(); clearInterval(spTimer); spTimer = setInterval(loadSport, 30000); }
+function sportStart(){ paintSport(); loadSport(); clearInterval(spTimer); spTimer = setInterval(() => { loadSport(); if (gTab === "tris") trisLoad(); }, 30000); if (gTab === "tris") trisLoad(); }
+/* ---------- Gioca: tris con gli amici (si gioca a turni, anche a distanza) ---------- */
+let gTab = "sport", TRIS = store.get("ln_tris", null), trisOpen = null, trisTimer = null, trisSeen = store.get("ln_tris_seen", {});
+document.querySelectorAll("#spPanel [data-gt]").forEach(b => b.onclick = () => {
+  gTab = b.dataset.gt; document.querySelectorAll("#spPanel [data-gt]").forEach(x => x.classList.toggle("on", x === b));
+  $("#spSport").classList.toggle("hidden", gTab !== "sport"); $("#spTris").classList.toggle("hidden", gTab !== "tris");
+  if (gTab === "tris"){ paintTris(); trisLoad(); }
+});
+const trisMini = b => `<span class="mini">${[...b].map(c => `<i>${c === "X" ? "✕" : c === "O" ? "◯" : ""}</i>`).join("")}</span>`;
+async function trisLoad(){
+  try{ const r = await rpc("tris_list", {});
+    if (r && r.partite){ TRIS = r; store.set("ln_tris", r); }
+    else if (r && r.errore === "non_autorizzato"){ TRIS = { errore: "account" }; }
+    else if (r && (r.code || r.message)){ TRIS = { errore: "presto" }; }
+  }catch(e){ if (/PGRST202|Could not find the function/i.test(String(e && e.message))) TRIS = { errore: "presto" }; else if (!TRIS) TRIS = { errore: "rete" }; }
+  paintTris(); trisBadge();
+}
+function trisBadge(){
+  const n = TRIS && TRIS.partite ? TRIS.partite.filter(g => g.mia_mossa || g.invitato).length : 0, b = $("#trisBadge");
+  if (b){ b.textContent = n; b.classList.toggle("hidden", !n); }
+  if (TRIS && TRIS.partite) TRIS.partite.forEach(g => { const k = g.id + ":" + g.status + ":" + g.board;
+    if ((g.mia_mossa || g.invitato) && !trisSeen[k] && !(trisOpen && trisOpen === g.id)){ trisSeen[k] = 1; store.set("ln_tris_seen", trisSeen);
+      if (g.invitato) toast(`✕◯ @${g.avversario} ti sfida a tris!`); else if (g.board !== ".........") toast(`✕◯ Tocca a te contro @${g.avversario}`); } });
+}
+function paintTris(){
+  const box = $("#spTris"); if (!box || gTab !== "tris") return;
+  if (!TRIS){ box.innerHTML = `<p class="trnote">Carico le partite…</p>`; return; }
+  if (TRIS.errore === "account"){ box.innerHTML = `<p class="trnote">Per giocare con gli amici serve l'account: esci e rientra con il tuo clickname.</p>`; return; }
+  if (TRIS.errore === "presto"){ box.innerHTML = `<p class="trnote">Il tris con gli amici si sta attivando sul server: riprova tra poco.</p>`; return; }
+  if (TRIS.errore){ box.innerHTML = `<p class="trnote">Partite non disponibili: controlla la connessione.</p>`; return; }
+  const P = TRIS.partite || [];
+  const st = g => g.invitato ? `<small class="go">Rispondi</small>` : g.mia_mossa ? `<small class="go">Tocca a te</small>` : g.status === "invito" ? `<small>In attesa</small>`
+    : g.status === "gioco" ? `<small>Tocca a lui</small>` : `<small>${g.winner === "=" ? "Pareggio" : !g.winner ? "Scaduta" : g.winner === g.io ? "Hai vinto 🏆" : "Hai perso"}</small>`;
+  box.innerHTML = `<p class="trnote" style="margin-top:0">Vinte ${TRIS.vinte || 0} · perse ${TRIS.perse || 0} · pari ${TRIS.pari || 0}</p>`
+    + (P.length ? P.map(g => `<div class="tg" data-tg="${g.id}">${trisMini(g.board)}<b>@${esc(g.avversario || "?")}</b>${st(g)}</div>`).join("") : `<p class="trnote">Nessuna partita: sfida un amico!</p>`)
+    + `<button class="btn small" id="trisNew">✕◯ Sfida un amico</button>`;
+  $("#trisNew").onclick = trisChallenge;
+  box.querySelectorAll("[data-tg]").forEach(el => el.onclick = () => { const g = P.find(x => x.id === +el.dataset.tg); if (g) trisShow(g); });
+}
+async function trisChallenge(){
+  if (!MY || !MY.amici){ try{ const j = await rpc("friend_list", {}); if (j && !j.errore){ MY = j; store.set("ln_my", j); } }catch(e){} }
+  const A = (MY && MY.amici) || [];
+  if (!A.length){ openSheet(`<h3>✕◯ Sfida un amico</h3><p class="muted">Non hai ancora amici su 1Click. Aggiungili da myClick e poi sfidali a tris.</p><button class="btn" onclick="closeSheet()">Ok</button>`); return; }
+  openSheet(`<h3>✕◯ Chi sfidi?</h3><div class="wzopts">${A.map(a => `<button class="wzo" data-tri="${esc(a.nome)}">${esc(a.emoji || "🙂")} @${esc(a.nome)}</button>`).join("")}</div>
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
+  document.querySelectorAll("[data-tri]").forEach(b => b.onclick = async () => {
+    b.disabled = true;
+    try{ const r = await rpc("tris_invite", { p_nome: b.dataset.tri });
+      if (r && r.partita){ haptic(); trisShow(r.partita); trisLoad(); if (r.partita.status === "invito") toast("Sfida mandata: inizi tu con ✕ appena accetta."); }
+      else toast(r && r.errore === "non_amici" ? "Potete giocare solo tra amici." : r && r.errore === "troppe" ? "Troppe sfide nell'ultima ora." : r && (r.code || r.message) ? "Il tris si sta attivando sul server: riprova tra poco." : "Sfida non mandata.");
+    }catch(e){ toast(/PGRST202|Could not find the function/i.test(String(e && e.message)) ? "Il tris si sta attivando sul server: riprova tra poco." : "Sfida non mandata: controlla la connessione."); }
+    b.disabled = false;
+  });
+}
+function trisLine(b){ for (const l of [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]) if (b[l[0]] !== "." && b[l[0]] === b[l[1]] && b[l[1]] === b[l[2]]) return l; return []; }
+function trisShow(g){
+  trisOpen = g.id; const win = trisLine(g.board), me = g.io === "X" ? "✕" : "◯";
+  const state = g.invitato ? `@${esc(g.avversario)} ti sfida a tris` : g.status === "invito" ? `Aspetto che @${esc(g.avversario)} accetti`
+    : g.status === "gioco" ? (g.mia_mossa ? `Tocca a te (${me})` : `Tocca a @${esc(g.avversario)}`)
+    : g.winner === "=" ? "Pareggio!" : !g.winner ? "Sfida scaduta" : g.winner === g.io ? "Hai vinto! 🏆" : `Ha vinto @${esc(g.avversario)}`;
+  openSheet(`<h3>✕◯ Tris con @${esc(g.avversario)}</h3>
+    <div class="tstate">${state}</div><div class="tsub">Tu giochi con ${me}</div>
+    <div class="tboard">${[...g.board].map((c, i) => `<button data-tc="${i}" class="${c === "O" ? "o" : ""}${win.includes(i) ? " w" : ""}" ${g.mia_mossa && c === "." ? "" : "disabled"}>${c === "X" ? "✕" : c === "O" ? "◯" : ""}</button>`).join("")}</div>
+    ${g.invitato ? `<div class="row"><button class="btn" id="trYes">Accetta</button><button class="btn ghost" id="trNo">No grazie</button></div>` : ""}
+    ${g.status === "fine" ? `<button class="btn" id="trAgain">↻ Rivincita</button>` : ""}
+    ${g.status === "gioco" ? `<button class="btn ghost" id="trQuit" style="margin-top:8px">Abbandona</button>` : ""}
+    ${g.status === "invito" && !g.invitato ? `<button class="btn ghost" id="trQuit" style="margin-top:8px">Annulla la sfida</button>` : ""}
+    <button class="btn ghost" style="margin-top:8px" id="trClose">Chiudi</button>`);
+  const after = r => { if (r && r.partita){ trisShow(r.partita); trisLoad(); } else toast("Non riesco: controlla la connessione."); };
+  document.querySelectorAll("[data-tc]").forEach(b => b.onclick = async () => {
+    b.textContent = me; document.querySelectorAll("[data-tc]").forEach(x => x.disabled = true); haptic();
+    try{ const r = await rpc("tris_move", { p_id: g.id, p_cell: +b.dataset.tc }); after(r); if (r && r.partita && r.partita.status === "fine" && r.partita.winner === g.io) buzz([80, 60, 80]); }catch(e){ after(null); }
+  });
+  const ans = async ok => { try{ after(await rpc("tris_answer", { p_id: g.id, p_ok: ok })); }catch(e){ after(null); } };
+  if ($("#trYes")) $("#trYes").onclick = () => ans(true);
+  if ($("#trNo")) $("#trNo").onclick = () => ans(false);
+  if ($("#trQuit")) $("#trQuit").onclick = () => ans(false);
+  if ($("#trAgain")) $("#trAgain").onclick = async () => { try{ const r = await rpc("tris_invite", { p_nome: g.avversario }); after(r); }catch(e){ after(null); } };
+  $("#trClose").onclick = () => { trisOpen = null; clearInterval(trisTimer); closeSheet(); paintTris(); };
+  // mentre la partita è aperta guardo ogni 3 secondi se l'altro ha mosso
+  clearInterval(trisTimer);
+  if (g.status === "gioco" && !g.mia_mossa || g.status === "invito") trisTimer = setInterval(async () => {
+    if (trisOpen !== g.id || $("#sheet").classList.contains("hidden")){ clearInterval(trisTimer); trisOpen = null; return; }
+    try{ const r = await rpc("tris_get", { p_id: g.id }); if (r && r.partita && (r.partita.board !== g.board || r.partita.status !== g.status)){ clearInterval(trisTimer); haptic(); trisShow(r.partita); trisLoad(); } }catch(e){}
+  }, 3000);
+}
+// ogni minuto: nuove sfide e mosse degli amici, anche fuori da Gioca
+setTimeout(() => { trisLoad(); setInterval(() => { if (!document.hidden) trisLoad(); }, 60000); }, 8000);
 function sportStop(){ clearInterval(spTimer); spMarkers.forEach(m => m.remove()); spMarkers = []; }
 function paintSport(){
   const list = SPEV.filter(e => !spCat || e.sport === spCat), ref = refPoint();
