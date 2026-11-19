@@ -390,11 +390,39 @@
   #mkPanel .btn{margin-top:8px;background:#c8102e;color:#fff;width:100%}
   #mkPanel .trnote{color:#666;font-size:13px;line-height:1.4;margin:6px 0}
   #dash{position:fixed;inset:0;z-index:3000;background:#000;color:#fff;padding:calc(14px + var(--safe-t)) 12px calc(14px + var(--safe-b));display:flex;flex-direction:column}
-  #dash .dh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-  #dash .dgrid{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-content:stretch}
-  #dash .tile{background:#0b1426;border:1px solid #1d2e52;border-radius:18px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;min-height:0}
+  #dash .dh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+  #dash .dseg{display:flex;background:#1a1b1d;border:1px solid #2c2e31;border-radius:12px;padding:3px}
+  #dash .dseg button{padding:7px 12px;border-radius:9px;font-size:13px;font-weight:700;color:#9a9ea4}
+  #dash .dseg button.on{background:linear-gradient(#e6e8ea,#b9bdc2);color:#000}
+  #dash .dbar{display:flex;justify-content:flex-end;margin-bottom:8px}
+  #dash .dbar .btn{background:#1a1b1d;color:#ddd;border:1px solid #2c2e31;width:auto;padding:7px 12px}
+  #dash .dgrid{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:auto;gap:10px;align-content:start;overflow-y:auto;padding-bottom:6px}
+  #dash .tile{position:relative;background:#0c0d0f;border:1px solid #2a2c30;border-radius:18px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;min-height:max-content;touch-action:auto}
+  #dash .tv.sm{font-size:clamp(20px,6vw,30px)}
+  #dash .tv{font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  #dash.analog .tile{background:radial-gradient(circle at 50% 30%,#222428,#0b0c0d 75%);border-color:#3a3d42}
+  #dash .tile.an{padding:8px 10px 10px;min-height:205px}
+  #dash .dgrid .tile:not(.add):not(.an){min-height:132px}
+  #dash .gwrap{flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:4px 0}
+  #dash .gauge{width:min(150px,40vw);height:min(150px,40vw);display:block}
+  #dash .gauge .bez{fill:#1b1c1f;stroke:#9a9ea4;stroke-width:2.2}
+  #dash #dEco{width:100%;height:auto;border-radius:10px;background:#08090a}
+  #dash .ted{display:none;position:absolute;top:6px;right:6px;gap:5px}
+  #dash.editing .ted{display:flex}
+  #dash .ted button{width:30px;height:30px;border-radius:50%;background:#e6e8ea;color:#000;font-weight:900;font-size:15px}
+  #dash .ted button[data-dhide]{background:#ff3b30;color:#fff}
+  #dash.editing .tile:not(.add){outline:1.5px dashed #6b7078;outline-offset:-4px;animation:wob .5s ease-in-out infinite alternate;touch-action:none}
+  #dash .tile.drag{z-index:5;opacity:.85;animation:none;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+  @keyframes wob{from{transform:rotate(-.4deg)}to{transform:rotate(.4deg)}}
+  #dash .tile.add{align-items:center;justify-content:center;color:#c9ccd1;font-weight:700;font-size:15px;border:1.5px dashed #555;background:none;min-height:70px}
+  #dash .dmore{display:flex;gap:6px;overflow-x:auto;padding-top:8px;border-top:1px solid #222}
+  #dash .dmore .dm{flex:0 0 auto;padding:8px 11px;border-radius:12px;background:#1a1b1d;border:1px solid #2c2e31;color:#ddd;font-size:12.5px;white-space:nowrap}
+  #dash .dmore .dm.rec{color:#ff6b60;border-color:#ff6b60}
+  #toggles{display:none!important}
   #dash .tile.big{grid-column:span 2}
-  #dash .tl{font-size:11px;letter-spacing:.1em;color:#7fa6e8;font-weight:700}
+  #dash .tl{font-size:11px;letter-spacing:.1em;color:#9a9ea4;font-weight:700}
+  #dash #dashClose{width:40px;background:#1a1b1d;color:#ddd;border:1px solid #2c2e31}
+  #dash .tile.an .ts{font-size:11px;text-align:center}
   #dash .tv{font-size:clamp(30px,11vw,64px);font-weight:900;line-height:1}
   #dash .ts{font-size:12px;color:#9ab;line-height:1.3}
   #dash .tile.alarm{background:#b3261e;border-color:#ff6b60} #dash .tile.warn .tv{color:#fbbf24} #dash .tile.ok .tv{color:#4ade80}
@@ -785,7 +813,7 @@
       <button class="fab" id="fabSat" title="Tipo di mappa" style="display:none">🗺️</button>
       <button class="fab" id="fabView" title="Prima persona / nord in alto" style="display:none">3D</button>
       <button class="fab" id="fabSet" title="Impostazioni della mappa"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
-      <button class="fab" id="fabMenu" title="Altro">⋯</button>
+      <button class="fab" id="fabMenu" title="Cruscotto"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 17a9 9 0 1 1 17 0"/><path d="M12 17l4.2-5.2"/><circle cx="12" cy="17" r="1.6"/><path d="M6.2 12.4l1 .6M12 7.5V8.7M17.8 12.4l-1 .6"/></svg></button>
       <button class="fab big" id="fabGps" title="Dove sono">➤</button>
     </div>
 
@@ -817,14 +845,7 @@
     </div>
 
     <!-- menu "altro" -->
-    <div id="menu" class="hidden">
-      <button class="mi" id="fabVoice">🔈 Voce</button>
-      <button class="mi" id="fabRec">● Insegna un tragitto</button>
-      <button class="mi" id="fabDepth">≈ Segnala fondale misurato</button>
-      <button class="mi" id="goPontili">⚓ Pontili pubblici</button>
-      <button class="mi" id="goTr">🚏 Orari vaporetti e taxi</button>
-      <button class="mi" id="goBoat">⛵ La mia barca</button>
-    </div>
+    <div id="menu" class="hidden"></div>
 
     <!-- barra in basso durante la navigazione -->
     <div id="navBar" class="hidden">
@@ -835,14 +856,18 @@
 
   <!-- cruscotto a schermo intero -->
   <div id="dash" class="hidden">
-    <div class="dh"><b style="font-size:18px">📟 Cruscotto</b><button class="btn small" id="dashClose">🧭 Mappa</button></div>
-    <div class="dgrid">
-      <div class="tile big" id="dt-man"><div class="tl">PROSSIMA MANOVRA</div><div class="tv" id="dtManV">–</div><div class="ts" id="dtManS">Nessuna navigazione attiva</div></div>
-      <div class="tile" id="dt-spd"><div class="tl">VELOCITÀ</div><div class="tv" id="dtSpd">–</div><div class="ts" id="dtSpdS">km/h</div></div>
-      <div class="tile" id="dt-vx"><div class="tl">VELOX · MEDIA</div><div class="tv" id="dtVx">–</div><div class="ts" id="dtVxS"></div></div>
-      <div class="tile" id="dt-dep"><div class="tl">SOTTO IL PIEDE</div><div class="tv" id="dtDep">–</div><div class="ts" id="dtDepS"></div></div>
-      <div class="tile" id="dt-tide"><div class="tl">MAREA</div><div class="tv" id="dtTide">–</div><div class="ts" id="dtTideS"></div></div>
-      <div class="tile" id="dt-head"><div class="tl">ROTTA</div><div class="tv" id="dtHead">–</div><div class="ts" id="dtHeadS"></div></div>
+    <div class="dh"><b style="font-size:18px">Cruscotto</b>
+      <div class="dseg"><button data-ds="digitale">Digitale</button><button data-ds="analogico">Analogico</button></div>
+      <button class="btn small" id="dashClose">✕</button></div>
+    <div class="dbar"><button class="btn small ghost" id="dashEdit">✎ Personalizza</button></div>
+    <div class="dgrid" id="dgrid"></div>
+    <div class="dmore" id="dashMore">
+      <button class="dm" id="fabVoice">🔈 Voce</button>
+      <button class="dm" id="fabRec">● Insegna un tragitto</button>
+      <button class="dm" id="fabDepth">≈ Segnala fondale misurato</button>
+      <button class="dm" id="goPontili">⚓ Pontili pubblici</button>
+      <button class="dm" id="goTr">🚏 Orari vaporetti e taxi</button>
+      <button class="dm" id="goBoat">⛵ La mia barca</button>
     </div>
   </div>
 
@@ -980,7 +1005,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.24</p>
+      <p class="sub">1Click · ClickVenice · versione 3.25</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -1800,6 +1825,7 @@ function initMap(){
     if (f) popupFor(f, e.lngLat);
   });
   loadShared(); setInterval(loadShared, 60000);
+  map.on("idle", () => { try{ layerVis(); }catch(e){} });   // se un cambio è arrivato mentre la mappa caricava, lo rimette a posto
   loadGraph(); loadPOI(); loadVelox(); loadChart(); loadPontili(); loadBricole(); loadBridges(); loadCantieri();
   map.on("moveend", () => { if (map.getZoom() >= 15.3) drawBric3d(); });
 }
@@ -1885,13 +1911,6 @@ async function kissPoll(){
 function addLayers(){
   setTimeout(drawOneWay, 300); setTimeout(addManLayer, 400);
   BASE_LAYERS = map.getStyle().layers.map(l => ({ id: l.id, type: l.type, vis: (l.layout && l.layout.visibility) || "visible" }));
-  // acqua blu navy, nomi dei canali in chiaro
-  BASE_LAYERS.forEach(l => { if (!/water|river|canal|ocean|sea|lake/i.test(l.id)) return;
-    try{
-      if (l.type === "fill") map.setPaintProperty(l.id, "fill-color", NAVY);
-      else if (l.type === "line") map.setPaintProperty(l.id, "line-color", NAVY);
-      else if (l.type === "symbol"){ map.setPaintProperty(l.id, "text-color", "#dfe7f5"); map.setPaintProperty(l.id, "text-halo-color", NAVY); }
-    }catch(e){} });
   // foto satellitare (sotto a tutti i nostri strati)
   map.addSource("sat", { type: "raster", tileSize: 256, maxzoom: 19, attribution: "Foto © Esri, Maxar, Earthstar Geographics",
     tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"] });
@@ -2952,7 +2971,7 @@ function paintTravel(fit){
     else if (m === "barca"){
       info.textContent = `${Math.max(1, Math.round(R.len / (12 / 3.6) / 60))} min · ${fmtDist(R.len)} · ` + (R.src === "lavoro" ? "tragitti abituali" : R.src === "rete" ? "rete dei canali" : "linea d'aria");
       go.textContent = "▶ Avvia in barca";
-      if (!activeBoat()){ more.innerHTML = `<p class="trnote" style="margin-top:0">Imposta la tua barca (⋯ → La mia barca) per avere fondali e acqua sotto il piede.</p>`; more.classList.remove("hidden"); }
+      if (!activeBoat()){ more.innerHTML = `<p class="trnote" style="margin-top:0">Imposta la tua barca (cruscotto → La mia barca) per avere fondali e acqua sotto il piede.</p>`; more.classList.remove("hidden"); }
     } else {
       const t = PLAN.tx; info.textContent = `${t.lo}–${t.hi} € · circa ${t.min} min`; go.textContent = "🚕 Chiama un taxi";
       more.innerHTML = `<p class="trnote" style="margin-top:0">Prezzo indicativo per 2 persone. La richiesta arriva a tutti i tassisti convenzionati: il primo che accetta prende la corsa.</p>`; more.classList.remove("hidden");
@@ -3049,7 +3068,7 @@ function paintInst(){
 $("#tgDash").onclick = () => openDash();
 document.querySelectorAll("#toggles button[data-inst]").forEach(b => b.onclick = () => {
   INST[b.dataset.inst] = !INST[b.dataset.inst]; store.set("ln_inst", INST); paintInst();
-  if (b.dataset.inst === "depth" && INST.depth){ if (!activeBoat()) toast("Imposta la tua barca (⋯ → La mia barca) per sapere quanta acqua hai sotto il piede."); if (lastPos) updateDepth(lastPos); else toast("Tocca ➤ per attivare il GPS."); }
+  if (b.dataset.inst === "depth" && INST.depth){ if (!activeBoat()) toast("Imposta la tua barca (cruscotto → La mia barca) per sapere quanta acqua hai sotto il piede."); if (lastPos) updateDepth(lastPos); else toast("Tocca ➤ per attivare il GPS."); }
   if (b.dataset.inst === "tide" || b.dataset.inst === "depth") loadTide();
   if (b.dataset.inst === "water"){ applyMapMode(); if (INST.water){ toast("💧 Acqua adesso: quanta acqua c'è con la marea di ora"); loadTide(); loadChart(); drawFondo(); } }
 });
@@ -3241,7 +3260,7 @@ function boatDraftCm(b){
 }
 function paintEngChips(){
   const b = activeBoat(); ["#engChipsS", "#engChips"].forEach(sel => { const box = $(sel); if (!box) return;
-  if (!b || !b.dDown){ box.innerHTML = sel === "#engChipsS" ? `<p class="muted">Imposta la tua barca (⋯ → La mia barca) per calcolare quanta acqua hai sotto il piede.</p>` : ""; return; }
+  if (!b || !b.dDown){ box.innerHTML = sel === "#engChipsS" ? `<p class="muted">Imposta la tua barca (cruscotto → La mia barca) per calcolare quanta acqua hai sotto il piede.</p>` : ""; return; }
   const opts = [["down", "Motore giù"]];
   if (b.hasTrim) opts.push(["trim", "Trim su"]);
   if (b.hasLift) opts.push(["lift", "Lift su"]);
@@ -3258,7 +3277,7 @@ function updateDepth(p){
   $("#dSrc").textContent = !f ? "" : f.src === "carta" ? "· STIMA DALLA CARTA (±200 m)" : "· " + f.n + (f.n === 1 ? " misura" : " misure") + " a " + Math.round(f.near) + " m";
   if (!f){
     $("#dUnder").textContent = "–";
-    $("#dInfo").textContent = "Nessun dato di fondale qui. Puoi segnalarlo tu (⋯ → Segnala fondale misurato).";
+    $("#dInfo").textContent = "Nessun dato di fondale qui. Puoi segnalarlo tu (cruscotto → Segnala fondale misurato).";
     SONAR.push({ t: Date.now(), w: null, k: draft }); drawSonar(); return;
   }
   const water = f.z * 100 + (tide === null ? 30 : tide);         // cm d'acqua adesso
@@ -4093,32 +4112,151 @@ function setAppMode(m){
   if (m === "trasporti"){ loadFermate(); renderTr(); }
   const ft = $("#fabTr"); if (ft) ft.classList.toggle("on", m === "trasporti");
 }
-/* ---------- cruscotto ---------- */
+/* ---------- cruscotto: digitale o analogico, strumenti da spostare, nascondere e aggiungere ---------- */
 document.querySelectorAll("#navMode [data-nm]").forEach(b => b.onclick = () => {
   if (b.dataset.nm === "dash"){ openDash(); }
 });
-let dashTimer = null;
+let dashTimer = null, dashEdit = false, TRIP = { km: 0, max: 0, last: null };
+const DASH_I = {   // chiave: [nome, larghezza (1 o 2), descrizione]
+  man: ["Prossima manovra", 2, "Cosa fare al prossimo incrocio durante la navigazione"],
+  spd: ["Velocità", 1, "km/h e nodi"],
+  dep: ["Sotto il piede", 1, "Ecoscandaglio: acqua che resta sotto il piede"],
+  tide: ["Marea", 1, "Livello di adesso a Punta della Salute"],
+  head: ["Bussola", 1, "Rotta e punti cardinali"],
+  vx: ["Velox", 1, "Media della tratta controllata"],
+  boat: ["La mia barca", 2, "Barca attiva, motore e pescaggio"],
+  eco: ["Ecoscandaglio grafico", 2, "Il fondo degli ultimi 3 minuti"],
+  eta: ["Arrivo", 1, "Tempo e distanza che mancano"],
+  clock: ["Ora", 1, "Orologio"],
+  trip: ["Distanza percorsa", 1, "Chilometri da quando hai aperto l'app"],
+  max: ["Velocità massima", 1, "La più alta da quando hai aperto l'app"]
+};
+let DASH = Object.assign({ style: "digitale", order: ["man", "spd", "dep", "tide", "head", "vx", "boat"] }, store.get("ln_dash", {}));
+DASH.order = DASH.order.filter(k => DASH_I[k]);
+const saveDash = () => store.set("ln_dash", DASH);
+const CARD = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"];
+// quadrante analogico: arco di 240°, tacche, numeri e lancetta
+function gaugeSVG(k, min, max, step, unit, red){
+  let t = "";
+  for (let v = min; v <= max + 1e-6; v += step){
+    const a = (-120 + 240 * (v - min) / (max - min)) * Math.PI / 180, x1 = 50 + 40 * Math.sin(a), y1 = 50 - 40 * Math.cos(a), x2 = 50 + 34 * Math.sin(a), y2 = 50 - 34 * Math.cos(a);
+    const lx = 50 + 26 * Math.sin(a), ly = 50 - 26 * Math.cos(a) + 2.5, isRed = red !== undefined && (red > 0 ? v >= red : v <= -red);
+    t += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${isRed ? "#ff3b30" : "#e8e8e8"}" stroke-width="1.6"/>`
+      + `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="7" fill="#bfc3c8" text-anchor="middle">${v}</text>`;
+    if (v + step / 2 <= max){ const b = (-120 + 240 * (v + step / 2 - min) / (max - min)) * Math.PI / 180;
+      t += `<line x1="${(50 + 40 * Math.sin(b)).toFixed(1)}" y1="${(50 - 40 * Math.cos(b)).toFixed(1)}" x2="${(50 + 37 * Math.sin(b)).toFixed(1)}" y2="${(50 - 37 * Math.cos(b)).toFixed(1)}" stroke="#8a8f98" stroke-width="1"/>`; }
+  }
+  return `<svg class="gauge" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" class="bez"/><circle cx="50" cy="50" r="43" fill="#08090a"/>${t}
+    <text x="50" y="76" font-size="7" fill="#8a8f98" text-anchor="middle">${unit}</text><text id="gv-${k}" x="50" y="88" font-size="10" fill="#fff" font-weight="700" text-anchor="middle">–</text>
+    <g id="nd-${k}" transform="rotate(-120 50 50)"><path d="M50 14 L52 50 L48 50 Z" fill="#ff3b30"/><path d="M48 50 L52 50 L50 60 Z" fill="#e8e8e8"/></g><circle cx="50" cy="50" r="4" fill="#c9ccd1"/></svg>`;
+}
+function compassSVG(){
+  let t = ""; for (let d = 0; d < 360; d += 10){ const a = d * Math.PI / 180, l = d % 30 ? 37 : 34;
+    t += `<line x1="${(50 + 41 * Math.sin(a)).toFixed(1)}" y1="${(50 - 41 * Math.cos(a)).toFixed(1)}" x2="${(50 + l * Math.sin(a)).toFixed(1)}" y2="${(50 - l * Math.cos(a)).toFixed(1)}" stroke="#ccc" stroke-width="${d % 30 ? 0.8 : 1.4}"/>`; }
+  ["N", "E", "S", "O"].forEach((c, i) => { const a = i * Math.PI / 2; t += `<text x="${(50 + 27 * Math.sin(a)).toFixed(1)}" y="${(50 - 27 * Math.cos(a) + 3.5).toFixed(1)}" font-size="10" font-weight="800" fill="${c === "N" ? "#ff3b30" : "#fff"}" text-anchor="middle">${c}</text>`; });
+  return `<svg class="gauge" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" class="bez"/><circle cx="50" cy="50" r="43" fill="#08090a"/><g id="rose" style="transition:transform .4s;transform-origin:50px 50px">${t}</g>
+    <path d="M50 4 L54 13 L46 13 Z" fill="#ff3b30"/><path d="M50 36 L56 60 L50 55 L44 60 Z" fill="#c9ccd1"/><text id="gv-head" x="50" y="78" font-size="9" fill="#fff" font-weight="700" text-anchor="middle">–</text></svg>`;
+}
+function clockSVG(){
+  let t = ""; for (let i = 0; i < 12; i++){ const a = i * Math.PI / 6; t += `<line x1="${(50 + 41 * Math.sin(a)).toFixed(1)}" y1="${(50 - 41 * Math.cos(a)).toFixed(1)}" x2="${(50 + 35 * Math.sin(a)).toFixed(1)}" y2="${(50 - 35 * Math.cos(a)).toFixed(1)}" stroke="#ddd" stroke-width="${i % 3 ? 1.2 : 2.4}"/>`; }
+  return `<svg class="gauge" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" class="bez"/><circle cx="50" cy="50" r="43" fill="#08090a"/>${t}
+    <line id="ch" x1="50" y1="50" x2="50" y2="28" stroke="#fff" stroke-width="3" stroke-linecap="round"/><line id="cm" x1="50" y1="50" x2="50" y2="17" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+    <line id="cs" x1="50" y1="56" x2="50" y2="14" stroke="#ff3b30" stroke-width="1"/><circle cx="50" cy="50" r="3" fill="#c9ccd1"/></svg>`;
+}
+const ANALOG = { spd: () => gaugeSVG("spd", 0, 50, 10, "km/h"), dep: () => gaugeSVG("dep", 0, 300, 50, "cm sotto il piede"), tide: () => gaugeSVG("tide", -60, 180, 40, "cm marea", 120),
+  head: compassSVG, clock: clockSVG, trip: null, max: () => gaugeSVG("max", 0, 50, 10, "km/h max") };
+function dashTile(k){
+  const [n, w] = DASH_I[k], an = DASH.style === "analogico" && ANALOG[k];
+  let body;
+  if (k === "eco") body = `<canvas id="dEco" width="640" height="150"></canvas><div class="ts" id="dEcoS"></div>`;
+  else if (k === "boat") body = `<div class="tv sm" id="dBoat">–</div><div class="ts" id="dBoatS"></div>`;
+  else if (an) body = `<div class="gwrap">${ANALOG[k]()}</div><div class="ts" id="dS-${k}"></div>`;
+  else body = `<div class="tv" id="dV-${k}">–</div><div class="ts" id="dS-${k}"></div>`;
+  return `<div class="tile${w === 2 ? " big" : ""}${an ? " an" : ""}" data-dk="${k}" id="dt-${k}"><div class="tl">${n.toUpperCase()}</div>${body}
+    <div class="ted"><button data-dmv="-1" title="Sposta prima">‹</button><button data-dmv="1" title="Sposta dopo">›</button><button data-dhide title="Nascondi">✕</button></div></div>`;
+}
+function renderDash(){
+  const d = $("#dash"); d.classList.toggle("analog", DASH.style === "analogico"); d.classList.toggle("editing", dashEdit);
+  document.querySelectorAll("#dash [data-ds]").forEach(b => b.classList.toggle("on", b.dataset.ds === DASH.style));
+  $("#dashEdit").textContent = dashEdit ? "✓ Fatto" : "✎ Personalizza";
+  const hidden = Object.keys(DASH_I).filter(k => !DASH.order.includes(k));
+  $("#dgrid").innerHTML = DASH.order.map(dashTile).join("") + (dashEdit ? `<button class="tile add big" id="dAdd">＋ Aggiungi strumento${hidden.length ? "" : " (ci sono già tutti)"}</button>` : "")
+    + (!DASH.order.length && !dashEdit ? `<p class="ts" style="grid-column:span 2;text-align:center">Nessuno strumento: tocca ✎ Personalizza per aggiungerli.</p>` : "");
+  if ($("#dAdd")) $("#dAdd").onclick = () => {
+    if (!hidden.length) return;
+    openSheet(`<h3>Aggiungi uno strumento</h3><div class="wzopts">${hidden.map(k => `<button class="wzo" data-dadd="${k}"><b>${DASH_I[k][0]}</b><br><small style="opacity:.7">${DASH_I[k][2]}</small></button>`).join("")}</div>
+      <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
+    document.querySelectorAll("[data-dadd]").forEach(b => b.onclick = () => { DASH.order.push(b.dataset.dadd); saveDash(); closeSheet(); renderDash(); haptic(); });
+  };
+  dashTick();
+}
+$("#dgrid").addEventListener("click", e => {
+  if (!dashEdit){ const t = e.target.closest("[data-dk='boat']"); if (t){ closeDashView(); showView("boat"); } return; }
+  const tile = e.target.closest("[data-dk]"); if (!tile) return; const k = tile.dataset.dk, i = DASH.order.indexOf(k);
+  const mv = e.target.closest("[data-dmv]");
+  if (mv){ const j = i + +mv.dataset.dmv; if (j < 0 || j >= DASH.order.length) return; DASH.order.splice(i, 1); DASH.order.splice(j, 0, k); saveDash(); renderDash(); haptic(); return; }
+  if (e.target.closest("[data-dhide]")){ DASH.order.splice(i, 1); saveDash(); renderDash(); haptic(); }
+});
+// in modifica: tieni premuto uno strumento e trascinalo sopra un altro per scambiarli di posto
+(() => { let drag = null;
+  $("#dgrid").addEventListener("pointerdown", e => { if (!dashEdit || e.target.closest("button")) return; const t = e.target.closest("[data-dk]"); if (!t) return;
+    drag = { k: t.dataset.dk, el: t, x: e.clientX, y: e.clientY }; t.classList.add("drag"); t.setPointerCapture(e.pointerId); });
+  $("#dgrid").addEventListener("pointermove", e => { if (!drag) return; drag.el.style.transform = `translate(${e.clientX - drag.x}px,${e.clientY - drag.y}px)`; });
+  const end = e => { if (!drag) return; const d = drag; drag = null; d.el.style.transform = ""; d.el.classList.remove("drag");
+    d.el.style.visibility = "hidden"; const over = document.elementFromPoint(e.clientX, e.clientY); d.el.style.visibility = "";
+    const t = over && over.closest("[data-dk]"); if (t && t.dataset.dk !== d.k){ const a = DASH.order.indexOf(d.k), b = DASH.order.indexOf(t.dataset.dk); DASH.order[a] = t.dataset.dk; DASH.order[b] = d.k; saveDash(); haptic(); renderDash(); } };
+  $("#dgrid").addEventListener("pointerup", end); $("#dgrid").addEventListener("pointercancel", end);
+})();
+document.querySelectorAll("#dash [data-ds]").forEach(b => b.onclick = () => { DASH.style = b.dataset.ds; saveDash(); renderDash(); });
+$("#dashEdit").onclick = () => { dashEdit = !dashEdit; renderDash(); };
+function setG(k, v, min, max){ const n = $("#nd-" + k); if (!n || v === null || isNaN(v)) return; const a = -120 + 240 * (Math.max(min, Math.min(max, v)) - min) / (max - min); n.setAttribute("transform", `rotate(${a.toFixed(1)} 50 50)`); }
+const setT = (id, t) => { const e = $("#" + id); if (e && e.textContent !== t) e.textContent = t; };
+function dashTick(){
+  const tx = id => ($("#" + id) || {}).textContent || "", kmh = speedMs * 3.6, an = DASH.style === "analogico";
+  const cls = (k, src) => { const t = $("#dt-" + k), s = $("#" + src); if (!t || !s) return; t.classList.remove("ok", "warn", "alarm"); ["ok", "warn", "alarm"].forEach(c => { if (s.classList.contains(c)) t.classList.add(c); }); };
+  // giro: distanza e velocità massima
+  if (lastPos){ if (TRIP.last){ const d = hav(TRIP.last.lat, TRIP.last.lng, lastPos.lat, lastPos.lng); if (d > 5 && d < 500 && kmh > 1){ TRIP.km += d / 1000; TRIP.last = lastPos; } else if (d >= 500) TRIP.last = lastPos; } else TRIP.last = lastPos; }
+  TRIP.max = Math.max(TRIP.max, kmh < 90 ? kmh : 0);
+  const o = DASH.order;
+  if (o.includes("spd")){ const v = kmh < 0.5 ? "0" : kmh.toFixed(kmh < 10 ? 1 : 0); if (an){ setG("spd", kmh, 0, 50); setT("gv-spd", v); } else setT("dV-spd", v); setT("dS-spd", "km/h · " + (speedMs * 1.94384).toFixed(1) + " nodi"); }
+  if (o.includes("max")){ const v = TRIP.max.toFixed(1).replace(".", ","); if (an){ setG("max", TRIP.max, 0, 50); setT("gv-max", v); } else setT("dV-max", v); setT("dS-max", "km/h da quando hai aperto l'app"); }
+  if (o.includes("dep")){ const s = SONAR[SONAR.length - 1], under = s && s.w !== null && s.k !== null ? s.w - s.k : null;
+    if (an){ setG("dep", under, 0, 300); setT("gv-dep", tx("dUnder")); } else setT("dV-dep", tx("dUnder")); setT("dS-dep", tx("dInfo")); cls("dep", "i-depth"); }
+  if (o.includes("tide")){ const t = tideNow(); if (an){ setG("tide", t, -60, 180); setT("gv-tide", t === null ? "–" : (t > 0 ? "+" : "") + t + " cm"); } else setT("dV-tide", tx("tVal")); setT("dS-tide", (tx("tSub") + " " + tx("tNext")).trim()); }
+  if (o.includes("head")){ const h = Math.round(((heading % 360) + 360) % 360), c = CARD[Math.round(h / 45) % 8];
+    if (an){ const r = $("#rose"); if (r) r.style.transform = `rotate(${-h}deg)`; setT("gv-head", h + "° " + c); } else setT("dV-head", h + "° " + c); setT("dS-head", tx("hSub")); }
+  if (o.includes("vx")){ setT("dV-vx", tx("vxAvg")); setT("dS-vx", (tx("vxLim") + " · " + tx("vxInfo")).replace(/^ · | · $/g, "")); cls("vx", "i-velox"); }
+  if (o.includes("man")){ if (NAV){ setT("dV-man", tx("mIcon") + " " + tx("mDist")); setT("dS-man", tx("mText") + " · " + tx("eta")); } else { setT("dV-man", "–"); setT("dS-man", "Cerca un posto dalla mappa per navigare"); } }
+  if (o.includes("eta")){ if (NAV){ setT("dV-eta", tx("eta")); setT("dS-eta", tx("etaSub")); } else { setT("dV-eta", "–"); setT("dS-eta", "Nessuna navigazione attiva"); } }
+  if (o.includes("trip")){ setT("dV-trip", TRIP.km.toFixed(2).replace(".", ",")); setT("dS-trip", "km da quando hai aperto l'app"); }
+  if (o.includes("clock")){ const d = new Date();
+    if (an){ const H = d.getHours() % 12 + d.getMinutes() / 60, M = d.getMinutes() + d.getSeconds() / 60, S = d.getSeconds();
+      [["ch", H * 30], ["cm", M * 6], ["cs", S * 6]].forEach(([id, a]) => { const e = $("#" + id); if (e) e.setAttribute("transform", `rotate(${a.toFixed(1)} 50 50)`); }); setT("dS-clock", d.toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" })); }
+    else { setT("dV-clock", d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })); setT("dS-clock", d.toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" })); } }
+  if (o.includes("boat")){ const b = activeBoat();
+    if (!b){ setT("dBoat", "Nessuna barca"); setT("dBoatS", "Tocca qui per inserire la tua barca: tipo, motore, elica, pescaggio"); }
+    else { const dr = boatDraftCm(b); setT("dBoat", (b.name || "La mia barca") + (b.type ? " · " + b.type : ""));
+      setT("dBoatS", [b.loa ? String(b.loa).replace(".", ",") + " m" : "", b.hp ? b.hp + " cv" + (b.engType ? " " + b.engType.toLowerCase() : "") : "", dr !== null ? "pescaggio " + dr + " cm" : "", "tocca per modificare"].filter(Boolean).join(" · ")); } }
+  if (o.includes("eco")){ const c = $("#dEco"), s = $("#sonar"); if (c && s){ const g = c.getContext("2d"); g.fillStyle = "#08090a"; g.fillRect(0, 0, c.width, c.height); try{ g.drawImage(s, 0, 0, c.width, c.height); }catch(e){} } setT("dEcoS", tx("dInfo")); }
+  if (lastPos) updateDepth(lastPos);
+}
 function openDash(){
   if (watchId === null){ askCompass(); startGps(); }
-  // il cruscotto mostra tutti gli strumenti, anche quelli spenti sulla mappa
   dashOpen = true;   // gli strumenti lavorano anche se sulla mappa sono nascosti
   loadTide(); loadForecast(); loadBridges();
-  $("#dash").classList.remove("hidden");
-  const copy = () => {
-    const tx = id => ($("#" + id) || {}).textContent || "";
-    const cls = (tile, src) => { const t = $("#" + tile), s = $("#" + src); if (!t || !s) return; t.classList.remove("ok", "warn", "alarm"); ["ok", "warn", "alarm"].forEach(c => { if (s.classList.contains(c)) t.classList.add(c); }); };
-    $("#dtSpd").textContent = tx("spd"); $("#dtSpdS").textContent = "km/h · " + tx("kn");
-    $("#dtVx").textContent = tx("vxAvg"); $("#dtVxS").textContent = tx("vxLim") + " · " + tx("vxInfo"); cls("dt-vx", "i-velox");
-    $("#dtDep").textContent = tx("dUnder"); $("#dtDepS").textContent = tx("dInfo"); cls("dt-dep", "i-depth");
-    $("#dtTide").textContent = tx("tVal"); $("#dtTideS").textContent = tx("tSub") + " " + tx("tNext");
-    $("#dtHead").textContent = Math.round(((heading % 360) + 360) % 360) + "°"; $("#dtHeadS").textContent = tx("hSub");
-    if (NAV){ $("#dtManV").textContent = tx("mIcon") + " " + tx("mDist"); $("#dtManS").textContent = tx("mText") + " · " + tx("eta"); }
-    else { $("#dtManV").textContent = "–"; $("#dtManS").textContent = "Cerca una destinazione dalla mappa per navigare"; }
-    if (lastPos){ updateDepth(lastPos); }
-  };
-  copy(); clearInterval(dashTimer); dashTimer = setInterval(copy, 500);
+  $("#dash").classList.remove("hidden"); $("#menu").classList.add("hidden");
+  renderDash(); clearInterval(dashTimer); dashTimer = setInterval(dashTick, 500);
 }
-$("#dashClose").onclick = () => { $("#dash").classList.add("hidden"); clearInterval(dashTimer); dashOpen = false; };
+function closeDashView(){ $("#dash").classList.add("hidden"); clearInterval(dashTimer); dashOpen = false; dashEdit = false; }
+$("#dashClose").onclick = closeDashView;
+// TRIP: la distanza si conta anche a cruscotto chiuso
+setInterval(() => { if (!dashOpen && lastPos){ const kmh = speedMs * 3.6; TRIP.max = Math.max(TRIP.max, kmh < 90 ? kmh : 0);
+  if (TRIP.last){ const d = hav(TRIP.last.lat, TRIP.last.lng, lastPos.lat, lastPos.lng); if (d > 5 && d < 500 && kmh > 1){ TRIP.km += d / 1000; TRIP.last = lastPos; } else if (d >= 500) TRIP.last = lastPos; } else TRIP.last = lastPos; } }, 2000);
+// il tasto in basso a destra apre il cruscotto (al posto del menu ⋯)
+$("#fabMenu").onclick = e => { e.stopPropagation(); openDash(); };
+// funzioni di servizio in fondo al cruscotto: chiudono il cruscotto e tornano alla mappa
+$("#dashMore").addEventListener("click", e => { const b = e.target.closest("button"); if (b && b.id !== "fabVoice") setTimeout(closeDashView, 30); });
+
 
 /* ---------- trasporti: fermate dei vaporetti ---------- */
 let FERMATE = [], trTab = "bus";
@@ -4746,7 +4884,7 @@ async function openChat(nome){
 /* ---------- cosa si vede in ogni modalità ----------
    Nautica: bricole, velox, ponti, fondali e percorso. Trasporti: solo le fermate. Incontra: solo gli stati. */
 function layerVis(){
-  if (!map || !map.isStyleLoaded()) return;
+  if (!map || !map.getLayer("sat")) return;
   const n = appMode === "nautica", dep = !!INST.water, d3 = LY.d3 !== false || !n, me = LY.boat !== false || !n;
   const want = {
     "bricole": n && LY.bricole, "bric3d": n && LY.bricole && d3,
