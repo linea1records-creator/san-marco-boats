@@ -433,36 +433,51 @@
   .stzr .bin.chg{color:#fbbf24}
   .stzr.sop{opacity:.5;text-decoration:line-through}
   .stzseg{margin:6px 0 8px}
-  /* tabellone come in stazione */
-  #board{position:fixed;inset:0;z-index:3500;background:#0a1f5c;color:#fff;display:flex;flex-direction:column;padding:calc(10px + var(--safe-t)) 0 calc(8px + var(--safe-b));font-family:"Arial Narrow",Arial,Helvetica,sans-serif}
-  #board .bdtop{display:flex;align-items:center;gap:10px;padding:4px 12px 8px;border-bottom:2px solid #f5c400}
-  #board .bdtop b{display:block;font-size:24px;letter-spacing:.06em;font-weight:900}
-  #board .bdtop i{display:block;font-style:italic;font-size:12px;color:#b9c6ee;letter-spacing:.08em}
-  #board .bdst{flex:1;text-align:center;font-size:13px;font-weight:700;color:#f5c400;letter-spacing:.05em}
-  #board .bdclk{font-size:26px;font-weight:900;color:#f5c400;font-variant-numeric:tabular-nums}
-  #board .bdtabs{display:flex;gap:6px;padding:8px 10px}
-  #board .bdtabs span{flex:1}
-  #board .bdtabs button{padding:7px 12px;border-radius:6px;background:#132f7d;color:#cfd8f5;font-weight:700;font-size:13px;border:1px solid #2a4aa3}
-  #board .bdtabs button.on{background:#f5c400;color:#0a1f5c;border-color:#f5c400}
-  #board .bdhead,#board .bdr{display:grid;grid-template-columns:72px 1fr 50px 52px 38px;gap:6px;align-items:center;padding:0 10px}
-  #board .bdhead.bus,#board .bdr.bus{grid-template-columns:52px 1fr 52px 44px}
-  #board .bdhead{background:#061545;padding-top:6px;padding-bottom:6px;font-size:11px;font-weight:900;color:#f5c400;letter-spacing:.04em}
-  #board .bdhead i{display:block;font-size:9px;font-style:italic;color:#9fb0e0;font-weight:400}
-  #board .bdrows{flex:1;overflow-y:auto}
-  #board .bdr{min-height:38px;font-size:14px;font-weight:700;border-bottom:1px solid #16337f;font-variant-numeric:tabular-nums}
-  #board .bdr:nth-child(even){background:#0d2669}
-  #board .bdr span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #board .bdr .c-tr{font-size:12px;color:#dfe6fb}
-  #board .bdr .c-h{color:#fff}
-  #board .bdr .c-d{color:#f5c400}
-  #board .bdr .c-b{text-align:center;color:#fff;background:#132f7d;border-radius:4px;padding:2px 0}
-  #board .bdr .c-b.chg{background:#f5c400;color:#0a1f5c}
+  /* tabellone come in stazione: fondo nero, LED arancioni, caselle grigio scuro */
+  #board{position:fixed;inset:0;z-index:3500;background:#050505;color:#ffad1f;display:flex;flex-direction:column;padding:calc(10px + var(--safe-t)) 0 calc(8px + var(--safe-b));
+    font-family:"DejaVu Sans Mono","Courier New",ui-monospace,monospace}
+  #board .bdtop{display:flex;align-items:flex-end;gap:12px;padding:2px 12px 10px}
+  #board .bdtop b{font-family:Arial,Helvetica,sans-serif;font-size:30px;line-height:1;font-weight:900;color:#f2f2f2;letter-spacing:.01em;text-shadow:0 0 6px rgba(255,255,255,.35)}
+  #board .bdtop i{font-family:Arial,Helvetica,sans-serif;font-style:normal;font-size:17px;font-weight:700;color:#f2f2f2;background:#3a3a3a;padding:2px 10px 3px;border-radius:2px}
+  #board .bdst{flex:1;text-align:right;font-size:11px;color:#9a9a9a;font-family:Arial,sans-serif;letter-spacing:.04em;padding-bottom:4px}
+  #board .bdclk{font-size:22px;color:#ffad1f;text-shadow:0 0 6px rgba(255,160,0,.7);padding-bottom:2px}
+  #board .bdtabs{display:flex;gap:6px;padding:0 10px 8px}
+  #board .bdtabs button{padding:6px 11px;border-radius:3px;background:#2a2a2a;color:#cfcfcf;font:700 12px Arial,sans-serif;border:1px solid #3a3a3a}
+  #board .bdtabs button.on{background:#ffad1f;color:#000;border-color:#ffad1f}
+  #board .bdhead,#board .bdr{display:grid;grid-template-columns:76px 1fr 47px 30px 30px;gap:4px;align-items:center;padding:0 8px}
+  #board .bdhead.bus,#board .bdr.bus{grid-template-columns:40px 1fr 47px 38px}
+  @media (min-width:700px){ #board .bdhead,#board .bdr{grid-template-columns:150px 1.2fr 70px 60px 50px 1.3fr} #board .bdhead.bus,#board .bdr.bus{grid-template-columns:70px 1.2fr 70px 60px 1.3fr} }
+  #board .c-i{display:none} @media (min-width:700px){ #board .c-i{display:block} }
+  #board .bdhead{padding-bottom:6px}
+  #board .bdhead span{font-family:Arial,sans-serif;font-size:9.5px;overflow:hidden;line-height:1.05;color:#f2f2f2;background:#3a3a3a;padding:2px 5px;border-radius:2px;font-weight:700}
+  #board .bdhead span:first-child{background:none;color:#9a9a9a}
+  #board .bdhead i{display:block;font-style:normal;font-weight:400}
+  #board .bdrows{flex:1;overflow-y:auto;position:relative;padding-top:2px}
+  #board .bdr{min-height:34px;margin-bottom:3px;font-size:14px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;font-variant-numeric:tabular-nums;
+    text-shadow:0 0 5px rgba(255,150,0,.75)}
+  #board .bdr span{position:relative;background:#141414;height:30px;line-height:30px;padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:clip;border-radius:2px}
+  /* reticolo di puntini dei LED sopra il testo */
+  #board .bdr span::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle,transparent 0.9px,rgba(5,5,5,.45) 1.25px) 0 0/3px 3px}
+  #board .bdr .c-tr{display:flex;align-items:center;gap:5px;background:none;padding:0}
+  #board .bdr .c-tr em{display:none;font:italic 900 10px Arial,sans-serif;color:#ffad1f;letter-spacing:-.02em;text-transform:none;min-width:58px}
+  @media (min-width:700px){ #board .bdr .c-tr em{display:block} #board .bdr{font-size:18px} #board .bdst{display:block!important} }
+  #board .bdst{display:none}
+  #board .bdst2{flex:1;align-self:center;text-align:center;font:700 11px Arial,sans-serif;color:#9a9a9a;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  @media (min-width:700px){ #board .bdst2{visibility:hidden} }
+  #board .bdr .c-tr b{background:#141414;padding:0 3px;font-size:12px}
+  #board .bdr .c-tr b.n{flex:1}
+  #board .bdr .c-b{text-align:center}
+  #board .bdr .c-b.chg{color:#000;background:#ffad1f;text-shadow:none}
   #board .bdr .c-b.blink{animation:bdbl 1s steps(2) infinite}
-  @keyframes bdbl{50%{opacity:.25}}
-  #board .bdr.sop{color:#ff8a80} #board .bdr.sop .c-d{color:#ff5252}
-  #board .bdr.bus .c-tr{color:#0a1f5c;background:#f5c400;border-radius:4px;text-align:center;font-weight:900}
-  #board .bdmsg{padding:30px 14px;text-align:center;color:#f5c400;font-weight:700;letter-spacing:.05em}
-  #board .bdnote{padding:6px 12px 0;font-size:11px;color:#9fb0e0}
+  @keyframes bdbl{50%{opacity:.2}}
+  #board .bdr.sop .c-to{text-decoration:line-through}
+  #board .bdr .c-i span,#board .bdr .c-i{color:#ffad1f}
+  #board .bdr .c-i{position:relative}
+  #board .bdr .c-i b{display:inline-block;padding-left:100%;animation:bdscroll 14s linear infinite}
+  @keyframes bdscroll{to{transform:translateX(-100%)}}
+  #board .bdr.bus .c-tr{display:block;text-align:center;background:#141414;padding:0 3px}
+  #board .bdmsg{padding:30px 14px;text-align:center;color:#ffad1f;text-shadow:0 0 5px rgba(255,150,0,.7);font-weight:700;letter-spacing:.05em}
+  #board .bdnote{padding:6px 12px 0;font:11px Arial,sans-serif;color:#7a7a7a}
   .sdr{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
   .sdd{flex:0 0 46%;display:flex;flex-direction:column}
   .sdd small{color:var(--muted);font-size:12px}
@@ -923,8 +938,8 @@
 
   <!-- tabellone stile stazione -->
   <div id="board" class="hidden">
-    <div class="bdtop"><div><b id="bdTitle">PARTENZE</b><i id="bdTitleEn">DEPARTURES</i></div><div class="bdst" id="bdSt"></div><div class="bdclk" id="bdClock">--:--</div></div>
-    <div class="bdtabs"><button data-bv="partenze" class="on">Partenze</button><button data-bv="arrivi">Arrivi</button><span></span><button id="bdGo">🧭 Portami qui</button><button id="bdX" onclick="closeBoard()">✕</button></div>
+    <div class="bdtop"><div><b id="bdTitle">PARTENZE</b><i id="bdTitleEn">DEPARTURES</i></div><div class="bdst" id="bdSt"></div><span style="flex:1"></span><div class="bdclk" id="bdClock">--:--</div></div>
+    <div class="bdtabs"><button data-bv="partenze" class="on">Partenze</button><button data-bv="arrivi">Arrivi</button><span class="bdst2" id="bdSt2"></span><button id="bdGo">🧭 Portami qui</button><button id="bdX" onclick="closeBoard()">✕</button></div>
     <div class="bdhead" id="bdHead"></div>
     <div class="bdrows" id="bdRows"></div>
     <div class="bdnote" id="bdNote"></div>
@@ -1064,7 +1079,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.28</p>
+      <p class="sub">1Click · ClickVenice · versione 3.29</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -5009,11 +5024,11 @@ async function openStation(st, verso){
   const tren = st.k === "treni", B = $("#board");
   B.classList.remove("hidden"); B.dataset.k = st.k + (st.luogo || "");
   $("#bdClock").textContent = new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
-  $("#bdTitle").textContent = verso === "arrivi" ? "ARRIVI" : "PARTENZE"; $("#bdTitleEn").textContent = verso === "arrivi" ? "ARRIVALS" : "DEPARTURES";
-  $("#bdSt").textContent = st.full.toUpperCase();
+  $("#bdTitle").textContent = verso === "arrivi" ? "Arrivi" : "Partenze"; $("#bdTitleEn").textContent = verso === "arrivi" ? "Arrivals" : "Departures";
+  $("#bdSt").textContent = st.full; $("#bdSt2").textContent = st.full;
   document.querySelectorAll("#board [data-bv]").forEach(b => { b.classList.toggle("on", b.dataset.bv === verso); b.onclick = () => openStation(st, b.dataset.bv); });
-  $("#bdHead").innerHTML = tren ? `<span class="c-tr">TRENO<i>TRAIN</i></span><span class="c-to">${verso === "arrivi" ? "PROVENIENZA<i>FROM</i>" : "DESTINAZIONE<i>DESTINATION</i>"}</span><span class="c-h">ORARIO<i>TIME</i></span><span class="c-d">RIT.<i>DELAY</i></span><span class="c-b">BIN.<i>PLAT.</i></span>`
-    : `<span class="c-tr">LINEA<i>LINE</i></span><span class="c-to">${verso === "arrivi" ? "PROVENIENZA<i>FROM</i>" : "DESTINAZIONE<i>DESTINATION</i>"}</span><span class="c-h">ORARIO<i>TIME</i></span><span class="c-d">TRA<i>IN</i></span>`;
+  $("#bdHead").innerHTML = tren ? `<span class="c-tr">treno<i>train</i></span><span class="c-to">${verso === "arrivi" ? "provenienza<i>from</i>" : "destinazione<i>destination</i>"}</span><span class="c-h">orario<i>time</i></span><span class="c-d">ritardo<i>delay</i></span><span class="c-b">bin.<i>plat.</i></span><span class="c-i">informazioni<i>information</i></span>`
+    : `<span class="c-tr">linea<i>line</i></span><span class="c-to">${verso === "arrivi" ? "provenienza<i>from</i>" : "destinazione<i>destination</i>"}</span><span class="c-h">orario<i>time</i></span><span class="c-d">tra<i>in</i></span><span class="c-i">informazioni<i>information</i></span>`;
   $("#bdHead").classList.toggle("bus", !tren);
   $("#bdGo").onclick = () => { closeBoard(); PLAN = null; openPlan({ name: st.full, lat: st.lat, lng: st.lng }); };
   if (B.dataset.v !== verso || !$("#bdRows").children.length) $("#bdRows").innerHTML = `<div class="bdmsg">CARICAMENTO…</div>`;
@@ -5027,11 +5042,15 @@ async function openStation(st, verso){
   if (!j || j.errore || !Array.isArray(j.corse)){ box.innerHTML = `<div class="bdmsg">TABELLONE NON DISPONIBILE · CONTROLLA LA CONNESSIONE</div>`; return; }
   if (!j.corse.length){ box.innerHTML = `<div class="bdmsg">NESSUN ${tren ? "TRENO" : "BUS"} NELLE PROSSIME ORE</div>`; return; }
   const up = t => esc(String(t || "").toUpperCase());
+  // categoria e gestore come sui tabelloni (Frecciarossa = AV, Regionale = R, ...)
+  const CAT = { FR: ["Frecciarossa", "AV"], FA: ["Frecciargento", "AV"], FB: ["Frecciabianca", "AV"], ITA: ["italo", "AV"], REG: ["Trenitalia", "R"], RV: ["Trenitalia", "RV"], IC: ["Intercity", "IC"], ICN: ["Intercity", "ICN"], EC: ["Trenitalia", "EC"], EN: ["Trenitalia", "EN"], NJ: ["ÖBB", "NJ"] };
+  const trn = t => { const m = String(t || "").match(/^([A-Z]+)\s*(\d+)/); if (!m) return `<em></em><b>${up(t)}</b>`; const c = CAT[m[1]] || ["", m[1]]; return `<em>${esc(c[0])}</em><b>${esc(c[1])}</b><b class="n">${m[2]}</b>`; };
+  const info = c => c.soppresso ? "TRENO SOPPRESSO" : c.cambio_binario ? "ATTENZIONE: CAMBIO BINARIO, PARTE DAL BINARIO " + up(c.binario) : c.in_stazione ? "IN STAZIONE" : c.ritardo > 0 ? "RITARDO " + c.ritardo + " MINUTI" : "";
   box.innerHTML = tren
-    ? j.corse.map(c => `<div class="bdr${c.soppresso ? " sop" : ""}"><span class="c-tr">${up(c.treno)}</span><span class="c-to">${up(c.luogo)}</span><span class="c-h">${esc(c.ora || "")}</span>
-        <span class="c-d">${c.soppresso ? "SOPP." : c.ritardo > 0 ? "+" + c.ritardo + "'" : ""}</span><span class="c-b${c.cambio_binario ? " chg" : ""}${c.in_stazione ? " blink" : ""}">${up(c.binario)}</span></div>`).join("")
+    ? j.corse.map(c => `<div class="bdr${c.soppresso ? " sop" : ""}"><span class="c-tr">${trn(c.treno)}</span><span class="c-to">${up(c.luogo)}</span><span class="c-h">${esc(c.ora || "")}</span>
+        <span class="c-d">${c.ritardo > 0 && !c.soppresso ? c.ritardo + "'" : ""}</span><span class="c-b${c.cambio_binario ? " chg" : ""}${c.in_stazione ? " blink" : ""}">${up(c.binario)}</span><span class="c-i">${info(c) ? `<b>${info(c)}</b>` : ""}</span></div>`).join("")
     : j.corse.map(c => { const lg = verso === "arrivi" ? ((c.luogo || "").split(/\s+-\s+/).filter(x => !/venezia|roma|elisabetta|s\.?m\.?e/i.test(x)).join(" - ") || c.luogo || "") : (c.luogo || "");
-        return `<div class="bdr bus"><span class="c-tr">${up(c.linea)}</span><span class="c-to">${up(lg)}</span><span class="c-h">${esc(c.ora)}</span><span class="c-d">${c.tra_min <= 0 ? "ORA" : c.tra_min + "'"}</span></div>`; }).join("");
+        return `<div class="bdr bus"><span class="c-tr">${up(c.linea)}</span><span class="c-to">${up(lg)}</span><span class="c-h">${esc(c.ora)}</span><span class="c-d">${c.tra_min <= 0 ? "ORA" : c.tra_min + "'"}</span><span class="c-i"></span></div>`; }).join("");
   $("#bdNote").textContent = tren ? "Dati RFI · ViaggiaTreno · si aggiorna ogni 30 secondi" : "Orari programmati ACTV · si aggiorna ogni 30 secondi";
 }
 function closeBoard(){ $("#board").classList.add("hidden"); clearInterval(stzTimer); }
