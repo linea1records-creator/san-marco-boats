@@ -1,7 +1,6 @@
 // ClickVenice — tabelloni di Ferrovia (treni, ViaggiaTreno) e Piazzale Roma (bus ACTV, orari GTFS)
 // ?tipo=treni&verso=partenze|arrivi   → prossimi treni a Venezia Santa Lucia, con ritardi e binari
 // ?tipo=bus&verso=partenze|arrivi     → prossimi bus ACTV a Piazzale Roma
-import { unzipSync, strFromU8 } from 'https://esm.sh/fflate@0.8.2';
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type, apikey, authorization', 'Access-Control-Allow-Methods': 'GET, OPTIONS' };
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...CORS, 'content-type': 'application/json', 'cache-control': 'public, max-age=30' } });
 const UA = 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36';
@@ -29,8 +28,10 @@ async function treni(verso: string) {
   let r = await fetch(url, { headers: { 'User-Agent': UA } });
   if (!r.ok) r = await fetch(url.replace('http:', 'https:'), { headers: { 'User-Agent': UA } });
   if (!r.ok) throw new Error('viaggiatreno ' + r.status);
-  const a = await r.json(), arr = verso === 'arrivi';
-  return (a || []).slice(0, 25).map((t: any) => {
+  const a = await r.json(), arr = verso === 'arrivi', now = romeNow().min;
+  const gone = (t: any) => { const o = arr ? t.compOrarioArrivo : t.compOrarioPartenza; if (!/^\d\d:\d\d$/.test(o || '')) return false;
+    let m = +o.slice(0, 2) * 60 + +o.slice(3) + (typeof t.ritardo === 'number' ? t.ritardo : 0); if (m - now > 720) m -= 1440; if (now - m > 720) m += 1440; return m < now - 2; };
+  return (a || []).filter((t: any) => !gone(t)).slice(0, 25).map((t: any) => {
     const prog = arr ? t.binarioProgrammatoArrivoDescrizione : t.binarioProgrammatoPartenzaDescrizione, eff = arr ? t.binarioEffettivoArrivoDescrizione : t.binarioEffettivoPartenzaDescrizione;
     return {
       ora: arr ? t.compOrarioArrivo : t.compOrarioPartenza,
@@ -47,61 +48,96 @@ async function treni(verso: string) {
 
 /* ---------- bus ACTV a Piazzale Roma (GTFS, solo le corse che toccano Piazzale Roma) ---------- */
 let BUS: any = null;
-function csv(txt: string) {
-  const lines = txt.replace(/^﻿/, '').split(/\r?\n/).filter((l) => l.trim() !== '');
-  const split = (l: string) => { const out: string[] = []; let cur = '', q = false; for (const ch of l) { if (ch === '"') q = !q; else if (ch === ',' && !q) { out.push(cur); cur = ''; } else cur += ch; } out.push(cur); return out.map((x) => x.trim()); };
-  const head = split(lines[0] || ''); return { head, rows: lines.slice(1).map(split), col: (n: string) => head.indexOf(n) };
-}
 const mins = (t: string) => { const [h, m] = t.trim().split(':').map(Number); return h * 60 + m; };
-const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// zip letto a pezzi con richieste "Range": indice in fondo, poi solo i file che servono, decompressi in streaming
+async function getRange(a: number, b: number) {
+  const r = await fetch(BUS_SRC, { headers: { 'User-Agent': UA, Range: `bytes=${a}-${b}` } });
+  if (r.status !== 206) throw new Error('il server degli orari non accetta download a pezzi (' + r.status + ')');
+  return r;
+}
+async function loadZip() {
+  const t = await getRange(0, 0); await t.arrayBuffer();
+  const total = +((t.headers.get('content-range') || '').split('/')[1] || 0); if (!total) throw new Error('dimensione zip sconosciuta');
+  const tailStart = Math.max(0, total - 131072), tail = new Uint8Array(await (await getRange(tailStart, total - 1)).arrayBuffer()), dv = new DataView(tail.buffer);
+  let e = tail.length - 22; while (e > 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+  const n = dv.getUint16(e + 10, true); let p = dv.getUint32(e + 16, true) - tailStart; const files: Record<string, any> = {};
+  for (let i = 0; i < n && p >= 0 && p < tail.length; i++) {
+    const meth = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true), nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+    const name = new TextDecoder().decode(tail.subarray(p + 46, p + 46 + nl)).split('/').pop() || '';
+    files[name] = { meth, csize, off, nl }; p += 46 + nl + xl + cl;
+  }
+  return files;
+}
+function textStream(f: any): ReadableStream<string> {
+  let started = false, skip = 0, left = f.csize, hdr = new Uint8Array(0);
+  const cut = new TransformStream<Uint8Array, Uint8Array>({ transform(ch, ctl) {
+    if (!started){ const h = new Uint8Array(hdr.length + ch.length); h.set(hdr); h.set(ch, hdr.length); if (h.length < 30){ hdr = h; return; }
+      const v = new DataView(h.buffer); skip = 30 + v.getUint16(26, true) + v.getUint16(28, true); started = true; ch = h; }
+    if (skip){ if (ch.length <= skip){ skip -= ch.length; return; } ch = ch.subarray(skip); skip = 0; }
+    if (left <= 0) return; if (ch.length > left) ch = ch.subarray(0, left); left -= ch.length; ctl.enqueue(ch); } });
+  const body = new ReadableStream<Uint8Array>({ async start(ctl) {
+    const r = await getRange(f.off, f.off + 30 + f.nl + 1024 + f.csize); const rd = r.body!.getReader();
+    for (;;) { const { done, value } = await rd.read(); if (done) break; ctl.enqueue(value); } ctl.close(); } });
+  const raw = body.pipeThrough(cut);
+  return (f.meth === 8 ? raw.pipeThrough(new DecompressionStream('deflate-raw') as any) : raw).pipeThrough(new TextDecoderStream() as any) as any;
+}
+async function readText(f: any) { if (!f) return ''; let out = ''; const rd = textStream(f).getReader(); for (;;) { const { done, value } = await rd.read(); if (done) break; out += value; } return out; }
+function rows(txt: string) {   // csv semplice (i file GTFS di ACTV non hanno virgole tra virgolette)
+  const L = txt.replace(/^\uFEFF/, '').split('\n'), head = (L[0] || '').trim().split(',').map((h) => h.trim().replace(/"/g, ''));
+  return { head, col: (c: string) => head.indexOf(c), rows: L.slice(1).filter((l) => l.trim()).map((l) => l.replace('\r', '').split(',').map((x) => x.trim().replace(/^"|"$/g, ''))) };
+}
+// legge un file riga per riga senza tenerlo tutto in memoria
+async function eachLine(f: any, cb: (cells: string[], head: string[]) => void) {
+  if (!f) return; let head: string[] | null = null, rest = ''; const rd = textStream(f).getReader();
+  const doLine = (l: string) => { l = l.replace('\r', ''); if (!l.trim()) return; const c = l.split(',').map((x) => x.trim().replace(/^"|"$/g, ''));
+    if (!head){ head = c.map((x) => x.replace(/^\uFEFF/, '')); return; } cb(c, head); };
+  for (;;) { const { done, value } = await rd.read(); const s2 = rest + (value || ''); const L = s2.split('\n'); rest = done ? '' : L.pop() || ''; L.forEach(doLine); if (done){ if (rest) doLine(rest); break; } }
+}
 async function buildBus() {
   const url = Deno.env.get('SUPABASE_URL')!, srv = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
   const H = { apikey: srv, Authorization: 'Bearer ' + srv };
   const cached = await (await fetch(`${url}/rest/v1/data_cache?key=eq.bus_proma&select=pack`, { headers: H })).json();
-  if (cached && cached[0] && cached[0].pack && Date.now() - cached[0].pack.t < 7 * 864e5) return cached[0].pack;
-  let r = await fetch(BUS_SRC, { headers: { 'User-Agent': UA } });
-  if (!r.ok) r = await fetch(BUS_SRC.replace('https:', 'http:'), { headers: { 'User-Agent': UA } });
-  if (!r.ok) { if (cached && cached[0]) return cached[0].pack; throw new Error('download bus ' + r.status); }
-  const files = unzipSync(new Uint8Array(await r.arrayBuffer()));
-  const get = (n: string) => { const k = Object.keys(files).find((f) => f.endsWith(n)); return k ? strFromU8(files[k]) : ''; };
-  const S = csv(get('stops.txt'));
-  const pr = new Set(S.rows.filter((x) => /piazzale\s*roma|p\.?\s*le\s*roma/i.test(x[S.col('stop_name')])).map((x) => x[S.col('stop_id')]));
-  const R = csv(get('routes.txt')), routes: Record<string, string[]> = {};
+  if (cached && cached[0] && cached[0].pack && cached[0].pack.v === 2 && Date.now() - cached[0].pack.t < 7 * 864e5) return cached[0].pack;
+  const Z = await loadZip();
+  const S = rows(await readText(Z['stops.txt']));
+  // fermate del terminal: tutte quelle entro 300 m da Piazzale Roma (i nomi ACTV non dicono sempre "Piazzale Roma")
+  const near = (x: string[]) => Math.hypot((+x[S.col('stop_lat')] - 45.4379) * 111000, (+x[S.col('stop_lon')] - 12.3175) * 78000) < 300;
+  const pr = S.rows.filter((x) => near(x) || /piazzale\s*roma|p\.?\s*le\s*roma/i.test(x[S.col('stop_name')] || '')).map((x) => x[S.col('stop_id')]);
+  if (!pr.length) throw new Error('fermate di Piazzale Roma non trovate');
+  const R = rows(await readText(Z['routes.txt'])), routes: Record<string, string[]> = {};
   R.rows.forEach((x) => { routes[x[R.col('route_id')]] = [x[R.col('route_short_name')] || '', R.col('route_color') >= 0 ? x[R.col('route_color')] || '' : '', R.col('route_long_name') >= 0 ? x[R.col('route_long_name')] || '' : '']; });
   const services: Record<string, any> = {};
-  const C = csv(get('calendar.txt'));
+  const C = rows(await readText(Z['calendar.txt']));
   if (C.rows.length) { const d = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((x) => C.col(x));
     C.rows.forEach((x) => { services[x[C.col('service_id')]] = { g: d.map((i) => x[i] === '1' ? 1 : 0), da: x[C.col('start_date')], a: x[C.col('end_date')], piu: [], meno: [] }; }); }
-  const CD = csv(get('calendar_dates.txt'));
+  const CD = rows(await readText(Z['calendar_dates.txt']));
   CD.rows.forEach((x) => { const id = x[CD.col('service_id')], s = services[id] || (services[id] = { g: [0, 0, 0, 0, 0, 0, 0], da: '', a: '', piu: [], meno: [] }); (x[CD.col('exception_type')] === '1' ? s.piu : s.meno).push(x[CD.col('date')]); });
-  const T = csv(get('trips.txt')), trips: Record<string, any> = {};
-  T.rows.forEach((x) => { trips[x[T.col('trip_id')]] = { r: x[T.col('route_id')], s: x[T.col('service_id')], h: T.col('trip_headsign') >= 0 ? x[T.col('trip_headsign')] : '' }; });
-  // stop_times: tengo solo le righe di Piazzale Roma (una regex sola sul file intero)
-  const st = get('stop_times.txt'), nl = st.indexOf('\n'), head = st.slice(0, nl).replace(/^﻿/, '').trim().split(',').map((h) => h.trim().replace(/"/g, ''));
-  const iT = head.indexOf('trip_id'), iA = head.indexOf('arrival_time'), iD = head.indexOf('departure_time'), iS = head.indexOf('stop_id'), iQ = head.indexOf('stop_sequence');
-  const ids = [...pr].map(esc).join('|'); const ev: any[] = [];
-  if (ids) {
-    const cols = head.map((_, i) => i === iS ? `"?(?:${ids})"?` : '([^,\\r\\n]*)');
-    const re = new RegExp('^' + cols.join(',') + '(?:,[^\\r\\n]*)?\\r?$', 'gm');
-    let m: RegExpExecArray | null; const idx = (i: number) => i - (i > iS ? 1 : 0) + 1;
-    while ((m = re.exec(st))) {
-      const g = (i: number) => (m![idx(i)] || '').replace(/"/g, '').trim();
-      const t = trips[g(iT)]; if (!t) continue;
-      const a = g(iA) || g(iD), d = g(iD) || g(iA); if (!a) continue;
-      ev.push([g(iT), +g(iQ), mins(a), mins(d)]);
-    }
-  }
-  // ultima fermata di ogni corsa che passa da Piazzale Roma: capisco se a Piazzale Roma arriva (capolinea) o parte
-  const want = new Set(ev.map((e) => e[0])), last: Record<string, number> = {};
-  if (want.size) {
-    let pos = nl + 1;
-    while (pos < st.length) { let end = st.indexOf('\n', pos); if (end < 0) end = st.length; const line = st.slice(pos, end); pos = end + 1;
-      const f = line.split(','); const tid = (f[iT] || '').replace(/"/g, '').trim(); if (!want.has(tid)) continue;
-      const q = +(f[iQ] || '').replace(/"/g, ''); if (!(tid in last) || q > last[tid]) last[tid] = q; }
-  }
-  const out = ev.map(([tid, q, a, d]) => { const t = trips[tid], ro = routes[t.r] || ['', '', ''], fine = last[tid] === q;
-    return [ro[0], ro[1], fine ? (ro[2] || '') : (t.h || ro[2] || ''), t.s, fine ? a : d, fine ? 'a' : 'p']; });
-  const pack = { t: Date.now(), services, ev: out, fermate: pr.size };
+  // stop_times: cerco solo le righe con le fermate di Piazzale Roma (indexOf, velocissimo)
+  const ev: any[] = []; let head: string[] | null = null, rest = '', iT = 0, iA = 0, iD = 0, iS = 0;
+  // una sola passata con un'unica espressione per tutte le fermate del terminal
+  const reS = new RegExp(',"?(?:' + pr.map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')"?,', 'g');
+  const scan = (blk: string) => { reS.lastIndex = 0; let m: RegExpExecArray | null;
+    while ((m = reS.exec(blk))) { const i = m.index; const a0 = blk.lastIndexOf('\n', i) + 1; let b0 = blk.indexOf('\n', i); if (b0 < 0) b0 = blk.length;
+      const f = blk.slice(a0, b0).replace('\r', '').split(',').map((x) => x.replace(/"/g, '').trim());
+      if (pr.includes(f[iS])) { const a = f[iA] || f[iD], d = f[iD] || f[iA]; if (a) ev.push([f[iT], mins(a), mins(d)]); }
+      reS.lastIndex = b0; } };
+  const rd = textStream(Z['stop_times.txt']).getReader();
+  for (;;) { const { done, value } = await rd.read(); let s2 = rest + (value || '');
+    if (!head){ const nl = s2.indexOf('\n'); if (nl < 0 && !done){ rest = s2; continue; }
+      head = s2.slice(0, nl).replace(/^\uFEFF/, '').trim().split(',').map((h) => h.trim().replace(/"/g, ''));
+      iT = head.indexOf('trip_id'); iA = head.indexOf('arrival_time'); iD = head.indexOf('departure_time'); iS = head.indexOf('stop_id'); s2 = '\n' + s2.slice(nl + 1); }
+    if (done){ scan(s2); break; }
+    const cut = s2.lastIndexOf('\n'); if (cut <= 0){ rest = s2; continue; } scan(s2.slice(0, cut)); rest = s2.slice(cut); }
+  // corse: tengo solo quelle che passano da Piazzale Roma
+  const want = new Set(ev.map((x) => x[0])), trips: Record<string, any> = {};
+  let ti = -1, tr = -1, ts = -1, th = -1;
+  await eachLine(Z['trips.txt'], (c, h) => { if (ti < 0){ ti = h.indexOf('trip_id'); tr = h.indexOf('route_id'); ts = h.indexOf('service_id'); th = h.indexOf('trip_headsign'); }
+    if (want.has(c[ti])) trips[c[ti]] = { r: c[tr], s: c[ts], h: th >= 0 ? c[th] : '' }; });
+  // arriva a Piazzale Roma se la corsa è diretta lì (ultima parte della destinazione: Roma o Venezia)
+  const toPR = (h: string) => /roma|venezia/i.test((h || '').split(/\s+-\s+/).pop() || '');
+  const out = ev.filter((x) => trips[x[0]]).map(([tid, a, d]) => { const t = trips[tid], ro = routes[t.r] || ['', '', ''], arr = toPR(t.h);
+    return [ro[0], ro[1], arr ? (ro[2] || t.h || '') : (t.h || ro[2] || ''), t.s, arr ? a : d, arr ? 'a' : 'p']; });
+  const pack = { v: 2, t: Date.now(), services, ev: out, fermate: pr.length };
   await fetch(`${url}/rest/v1/data_cache`, { method: 'POST', headers: { ...H, 'content-type': 'application/json', Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify({ key: 'bus_proma', pack, updated_at: new Date().toISOString() }) });
   return pack;
 }
@@ -128,6 +164,8 @@ Deno.serve(async (req) => {
   const q = new URL(req.url).searchParams, tipo = q.get('tipo') || 'treni', verso = q.get('verso') === 'arrivi' ? 'arrivi' : 'partenze';
   try {
     if (tipo === 'treni') return json({ stazione: 'Venezia Santa Lucia', verso, adesso: hhmm(romeNow().min), corse: await treni(verso) });
+    if (tipo === 'cerca'){ const Z = await loadZip(); const S = rows(await readText(Z['stops.txt'])); const k = (q.get('q') || 'roma').toLowerCase();
+      return json({ file: Object.keys(Z), fermate: S.rows.filter((x) => (x[S.col('stop_name')] || '').toLowerCase().includes(k) || Math.hypot((+x[S.col('stop_lat')] - 45.4379) * 111000, (+x[S.col('stop_lon')] - 12.3175) * 78000) < 300).map((x) => [x[S.col('stop_id')], x[S.col('stop_name')], x[S.col('stop_lat')], x[S.col('stop_lon')]]).slice(0, 80) }); }
     if (tipo === 'bus') return json({ stazione: 'Piazzale Roma', verso, adesso: hhmm(romeNow().min), corse: await bus(verso), fermate: BUS ? BUS.fermate : 0 });
     return json({ errore: 'tipo_sconosciuto' }, 400);
   } catch (e) {
