@@ -540,6 +540,33 @@
   #tabs button.on .c{stroke:#fff}
   #tabs button:active svg{transform:scale(.9)}
   #verMark{position:absolute;right:8px;top:2px;font-size:9px;line-height:1;color:#000;opacity:.4;pointer-events:none;letter-spacing:.03em}
+  /* impostazioni della mappa (Nautica): finestrella con gli interruttori */
+  #fabSet svg{width:24px;height:24px;fill:none;stroke:#111;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  #fabSet.on{background:#111}
+  #fabSet.on svg{stroke:#fff}
+  #setPanel{position:absolute;z-index:24;right:70px;bottom:16px;width:236px;background:#fff;color:#111;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.45);padding:6px 0;overflow:hidden}
+  body.nav #setPanel{bottom:92px}
+  #setPanel .sh{font-size:11px;font-weight:800;letter-spacing:.08em;color:#8a8f98;padding:8px 16px 4px}
+  #setPanel .srow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 16px;text-align:left;font-size:15px;color:#111}
+  #setPanel .srow svg{width:22px;height:22px;flex:0 0 22px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.5}
+  #setPanel .srow.on svg{opacity:1}
+  #setPanel .srow span{flex:1}
+  #setPanel .sw{position:relative;flex:0 0 38px;width:38px;height:22px;border-radius:11px;background:linear-gradient(#d3d6da,#b6bac0);transition:background .15s}
+  #setPanel .sw::after{content:"";position:absolute;left:2px;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35);transition:transform .15s}
+  #setPanel .srow.on .sw{background:#111}
+  #setPanel .srow.on .sw::after{transform:translateX(16px)}
+  body.mode-trasporti #fabSet, body.mode-incontra #fabSet, body.mode-market #fabSet, body.mode-sport #fabSet,
+  body.mode-trasporti #setPanel, body.mode-incontra #setPanel, body.mode-market #setPanel, body.mode-sport #setPanel{display:none!important}
+  /* come ci vai: a piedi, barca, vaporetto, taxi */
+  .rb-modes{display:flex;gap:6px;margin:8px 0 2px}
+  .rb-modes button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 2px 6px;border-radius:12px;background:#f1f2f4;color:#3a3d42;border:1px solid #e1e3e6}
+  .rb-modes svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  .rb-modes b{font-size:11px;font-weight:700}
+  .rb-modes small{font-size:10.5px;color:#6b7078;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .rb-modes button.on{background:#111;color:#fff;border-color:#111}
+  .rb-modes button.on small{color:#c9ccd1}
+  #rbMore{max-height:36vh;overflow-y:auto;margin:0 0 8px}
+  #rbGo:disabled{opacity:.45}
 </style>
 </head>
 <body>
@@ -602,7 +629,14 @@
     <div id="routeBox" class="hidden">
       <div class="rb-row"><span class="rb-l">Da</span><button id="rbFrom" class="rb-f">📍 La mia posizione</button><button id="rbSwap" class="rb-sw" title="Inverti">⇅</button></div>
       <div class="rb-row"><span class="rb-l">A</span><button id="rbTo" class="rb-f">–</button></div>
+      <div id="rbModes" class="rb-modes">
+        <button data-tm="piedi"><svg viewBox="0 0 24 24"><circle cx="13" cy="4.5" r="1.8"/><path d="M9.5 21l2.2-6.5L14.5 17v4M8.5 12.5l1.6-4.6 3.6.4 2.3 3.4h2.5M11.7 14.5l-1.1-4.2"/></svg><b>A piedi</b><small id="tmPiedi">…</small></button>
+        <button data-tm="barca"><svg viewBox="0 0 24 24"><path d="M3 15.5h18l-2.6 4.5H5.6z"/><path d="M12 3v12.5M12 4.5l6 9h-6"/></svg><b>Barca</b><small id="tmBarca">…</small></button>
+        <button data-tm="mezzi"><svg viewBox="0 0 24 24"><path d="M3 16h18l-2.2 4H5.2z"/><rect x="6" y="9" width="12" height="7" rx="1.5"/><path d="M9.5 9V6.5h5V9M9 12.5h1.5M13.5 12.5H15"/></svg><b>Vaporetto</b><small id="tmMezzi">…</small></button>
+        <button data-tm="taxi"><svg viewBox="0 0 24 24"><path d="M3 16h18l-2.2 4H5.2z"/><path d="M6 16l1.6-5h8.8L18 16"/><path d="M10 11V8.5h4V11"/></svg><b>Taxi</b><small id="tmTaxi">…</small></button>
+      </div>
       <div id="rbInfo" class="rb-info">Calcolo il percorso…</div>
+      <div id="rbMore" class="hidden"></div>
       <div class="rb-btns"><button class="btn" id="rbGo">▶ Avvia</button><button class="btn ghost" id="rbX">✕</button></div>
     </div>
 
@@ -672,7 +706,6 @@
 
     <!-- icone piccole: accendono e spengono gli strumenti -->
     <div id="toggles">
-      <button data-inst="water" title="Acqua adesso (fondali con la marea di ora)">💧</button>
       <button id="tgDash" class="dashbtn" title="Cruscotto"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="19" height="14" rx="2.5"/><circle cx="12" cy="10.5" r="4"/><path d="M12 6.5v1.4M12 13.1v1.4M8 10.5h1.4M14.6 10.5H16"/><path d="M12 10.5l1.8-1.8"/><path d="M8 21h8M12 17.5V21"/></svg></button>
     </div>
 
@@ -714,11 +747,22 @@
 
     <div class="fabs">
       <button class="fab sosfab" id="fabSos" title="Emergenza">SOS</button>
-      <button class="fab" id="fabTr" title="Trasporti: vaporetti e taxi">🚤</button>
-      <button class="fab" id="fabSat" title="Tipo di mappa">🗺️</button>
-      <button class="fab" id="fabView" title="Prima persona / nord in alto">3D</button>
+      <button class="fab" id="fabSat" title="Tipo di mappa" style="display:none">🗺️</button>
+      <button class="fab" id="fabView" title="Prima persona / nord in alto" style="display:none">3D</button>
+      <button class="fab" id="fabSet" title="Impostazioni della mappa"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
       <button class="fab" id="fabMenu" title="Altro">⋯</button>
       <button class="fab big" id="fabGps" title="Dove sono">➤</button>
+    </div>
+
+    <!-- impostazioni della mappa: tocca una voce per mostrarla o nasconderla -->
+    <div id="setPanel" class="hidden">
+      <div class="sh">MOSTRA SULLA MAPPA</div>
+      <button class="srow" data-set="bricole"><svg viewBox="0 0 24 24"><path d="M7 5v15M12 3.5V20M17 5v15M4.5 20h15M7 8h0M12 7h0M17 8h0"/></svg><span>Bricole</span><i class="sw"></i></button>
+      <button class="srow" data-set="velox"><svg viewBox="0 0 24 24"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8.5 7.5L10 5h4l1.5 2.5"/></svg><span>Velox</span><i class="sw"></i></button>
+      <button class="srow" data-set="water"><svg viewBox="0 0 24 24"><path d="M12 3.5c3.5 4.3 6 7.6 6 10.5a6 6 0 0 1-12 0c0-2.9 2.5-6.2 6-10.5z"/><path d="M9 15a3 3 0 0 0 3 3"/></svg><span>Acqua</span><i class="sw"></i></button>
+      <button class="srow" data-set="d3"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>Vista 3D</span><i class="sw"></i></button>
+      <button class="srow" data-set="sat"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.8 5.4 3.8 8.5s-1.3 5.9-3.8 8.5c-2.5-2.6-3.8-5.4-3.8-8.5S9.5 6.1 12 3.5z"/></svg><span>Satellitare</span><i class="sw"></i></button>
+      <button class="srow" data-set="boat"><svg viewBox="0 0 24 24"><path d="M3 15.5h18l-2.6 4.5H5.6z"/><path d="M12 3v12.5M12 4.5l6 9h-6"/></svg><span>La tua barca</span><i class="sw"></i></button>
     </div>
 
     <!-- tipo di mappa -->
@@ -742,6 +786,7 @@
       <button class="mi" id="fabRec">● Insegna un tragitto</button>
       <button class="mi" id="fabDepth">≈ Segnala fondale misurato</button>
       <button class="mi" id="goPontili">⚓ Pontili pubblici</button>
+      <button class="mi" id="goTr">🚏 Orari vaporetti e taxi</button>
       <button class="mi" id="goBoat">⛵ La mia barca</button>
     </div>
 
@@ -899,7 +944,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.18</p>
+      <p class="sub">1Click · ClickVenice · versione 3.19</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -1725,7 +1770,7 @@ function addManLayer(){
   map.addLayer({ id: "frman", type: "fill-extrusion", source: "frman", minzoom: MAN_MINZ, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true } });
   map.addLayer({ id: "medot", type: "circle", source: "medot", maxzoom: MAN_MINZ, paint: { "circle-radius": 8, "circle-color": "#1a73e8", "circle-stroke-color": "#ffffff", "circle-stroke-width": 3, "circle-pitch-alignment": "map" } });
   map.addLayer({ id: "meman", type: "fill-extrusion", source: "meman", minzoom: MAN_MINZ, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true } });
-  manKey = ""; drawMan(true); drawFriends();
+  manKey = ""; drawMan(true); drawFriends(); apply3d(false);
 }
 /* amici che condividono la posizione: omino 3D (o puntino da lontano) e il loro clickname */
 let FR_LOC = [], FR_MK = [], frPush = 0;
@@ -1840,9 +1885,11 @@ function addLayers(){
   map.addLayer({ id: "velox-tratte", type: "line", source: "velox-tratte", layout: { visibility: INST.velox ? "visible" : "none" },
     paint: { "line-color": ["case", ["<=", ["get", "v"], 7], "#d32f2f", "#f57c00"], "line-width": 3, "line-opacity": 0.5, "line-dasharray": [1, 1.5] } });
   map.addSource("velox", { type: "geojson", data: empty });
-  map.addLayer({ id: "velox", type: "circle", source: "velox", layout: { visibility: INST.velox ? "visible" : "none" }, paint: {
-    "circle-radius": ["interpolate", ["linear"], ["zoom"], 13, 4, 17, 9], "circle-stroke-color": "#fff", "circle-stroke-width": 2,
-    "circle-color": ["match", ["get", "s"], "ok", "#d32f2f", "ko", "#757575", "#f9a825"] } });
+  addVeloxIcons();
+  map.addLayer({ id: "velox", type: "symbol", source: "velox", layout: { visibility: LY.velox ? "visible" : "none",
+    "icon-image": ["match", ["get", "c"], "r", "vx-r", "g", "vx-g", "vx-o"],
+    "icon-size": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 15, 0.75, 18, 1],
+    "icon-allow-overlap": true, "icon-ignore-placement": true, "icon-pitch-alignment": "viewport", "icon-rotation-alignment": "viewport" } });
   map.addSource("ponti", { type: "geojson", data: empty });
   map.addLayer({ id: "ponti", type: "circle", source: "ponti", minzoom: 14.5, layout: { visibility: "none" }, paint: {
     "circle-radius": 5, "circle-color": ["case", ["get", "known"], "#6d4c41", "#bcaaa4"], "circle-stroke-color": "#fff", "circle-stroke-width": 1.5 } });
@@ -1982,6 +2029,7 @@ $("#fabGps").onclick = () => {
   askCompass();                       // su iPhone il permesso della bussola si chiede solo dentro il tocco
   if (watchId === null) startGps();
   if (follow && lastPos && !view3d){ setFirstPerson(true); return; }   // già centrato: secondo tocco = navigatore in prima persona
+  if (follow && lastPos && view3d && !NAV){ setFirstPerson(false); map.easeTo({ bearing: 0, duration: 600 }); return; }   // terzo tocco: nord in alto
   setFollow(true); camera(true);
 };
 $("#fabView").onclick = () => { setFirstPerson(!view3d); if (view3d) setFollow(true); };
@@ -1989,8 +2037,9 @@ $("#fabView").onclick = () => { setFirstPerson(!view3d); if (view3d) setFollow(t
 function setFirstPerson(on){
   view3d = on; $("#fabView").classList.toggle("on", on); document.body.classList.toggle("fp", on); $("#fabView").title = on ? "Esci dalla prima persona" : "Prima persona (la mappa gira con la bussola)";
   if (!map) return; const h = map.getContainer().clientHeight;
-  if (on) map.easeTo({ center: lastPos ? [lastPos.lng, lastPos.lat] : map.getCenter(), zoom: 17.9, pitch: 72, bearing: heading, padding: { top: h * 0.55, bottom: 0, left: 0, right: 0 }, duration: 900 });
-  else map.easeTo({ pitch: 50, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 600 });
+  const d3 = LY.d3 !== false;
+  if (on) map.easeTo({ center: lastPos ? [lastPos.lng, lastPos.lat] : map.getCenter(), zoom: 17.9, pitch: d3 ? 72 : 0, bearing: heading, padding: { top: h * (d3 ? 0.55 : 0.35), bottom: 0, left: 0, right: 0 }, duration: 900 });
+  else map.easeTo({ pitch: d3 ? 50 : 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 600 });
 }
 $("#fabVoice").onclick = () => { voiceOn = !voiceOn; store.set("ln_voice", voiceOn); paintVoice(); if (voiceOn) say("Voce attiva"); };
 function paintVoice(){ $("#fabVoice").textContent = voiceOn ? "🔊 Voce attiva" : "🔈 Voce spenta"; }
@@ -2634,7 +2683,8 @@ async function startNav(dest, opt){
   if (!map){ toast("La mappa non è pronta."); return; }
   opt = opt || {};
   if (watchId === null){ askCompass(); startGps(); }
-  NAV = { dest, R: null, idx: 0, spoken: "", lastCalc: 0, arrived: false, origin: opt.from || null, pending: !!opt.from };
+  const walk = opt.travel === "piedi";
+  NAV = { dest, R: null, idx: 0, spoken: "", lastCalc: 0, arrived: false, origin: opt.from || null, pending: !!opt.from, travel: walk ? "piedi" : "barca" };
   document.body.classList.add("nav"); setFollow(true); setTimeout(() => setFirstPerson(true), 300);   // navigazione = vista da dietro l'omino
   $("#searchBox").classList.add("hidden"); $("#routeBox").classList.add("hidden"); $("#maneuver").classList.remove("hidden"); $("#navBar").classList.remove("hidden");
   $("#maneuver").classList.remove("off"); $("#mIcon").textContent = "…"; $("#mDist").textContent = dest.name; $("#mText").textContent = NAV.pending ? "Vai al punto di partenza" : "Preparo le rotte…";
@@ -2644,6 +2694,15 @@ async function startNav(dest, opt){
   const myNav = NAV;
   const from = opt.from || lastPos || (() => { const c = map.getCenter(); return { lat: c.lat, lng: c.lng }; })();
   if (!lastPos && !opt.from) toast("GPS non ancora pronto: calcolo dal centro della mappa.");
+  if (walk){   // a piedi: percorso sulle calli e sui ponti, non si registra come tragitto in barca
+    NAV.R = opt.R || walkAir(from, dest); NAV.lastCalc = Date.now();
+    if (!opt.R) walkRoute(from, dest).then(W => { if (NAV === myNav){ NAV.R = W; NAV.idx = 0; drawRoute(); navTick(lastPos); } });
+    drawRoute();
+    if (!lastPos){ const b = new maplibregl.LngLatBounds(); NAV.R.pts.forEach(p => b.extend([p[1], p[0]])); map.fitBounds(b, { padding: 80, duration: 800 }); }
+    else { setFollow(true); camera(true); }
+    navTick(lastPos); say(NAV.pending ? "Vai al punto di partenza" : "Percorso a piedi calcolato");
+    return;
+  }
   if (!G.done){
     NAV.R = computeRoute(from, dest);           // intanto linea d'aria, così non resta bloccato
     drawRoute(); navTick(lastPos);
@@ -2676,13 +2735,64 @@ function drawRoute(){
   const coords = R ? R.pts.slice(NAV && !NAV.pending ? Math.max(0, NAV.idx || 0) : 0).map(p => [p[1], p[0]]) : [];
   if (NAV && !NAV.pending && R && lastPos && coords.length) coords.unshift([lastPos.lng, lastPos.lat]);
   map.getSource("route").setData({ type: "FeatureCollection", features: coords.length > 1 ? [{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: coords } }] : [] });
+  const st = R && R.walk ? (mapMode === "sat" ? "ws" : "w") : "b";
+  if (st !== routeSt && map.getLayer("route")){ routeSt = st;
+    map.setPaintProperty("route", "line-color", st === "b" ? "#2f8cff" : st === "ws" ? "#ffffff" : "#111111");
+    map.setPaintProperty("route", "line-dasharray", st === "b" ? null : [0.1, 1.8]);
+    map.setPaintProperty("route", "line-width", st === "b" ? 8 : 7);
+    if (map.getLayer("route-case")) map.setPaintProperty("route-case", "line-opacity", st === "b" ? 1 : 0); }
 }
+let routeSt = "b";
+/* ---------- a piedi: calli e ponti da OpenStreetMap (server di routing pedonale), se non risponde linea d'aria ---------- */
+const WALK_MS = 1.25;   // circa 4,5 km/h
+const walkMin = R => Math.max(1, Math.round(R.len / WALK_MS / 60));
+const WALK_TURN = { left: ["←", "Gira a sinistra"], right: ["→", "Gira a destra"], "slight left": ["↖", "Tieni la sinistra"], "slight right": ["↗", "Tieni la destra"],
+  "sharp left": ["↙", "Gira tutto a sinistra"], "sharp right": ["↘", "Gira tutto a destra"], straight: ["↑", "Prosegui dritto"], uturn: ["↶", "Torna indietro"] };
+function walkAir(from, to){
+  const d = hav(from.lat, from.lng, to.lat, to.lng), n = Math.max(1, Math.ceil(d / 20)), pts = [], cum = [];
+  for (let i = 0; i <= n; i++){ pts.push([from.lat + (to.lat - from.lat) * i / n, from.lng + (to.lng - from.lng) * i / n]); cum.push(d * 1.3 * i / n); }
+  return { pts, cum, len: d * 1.3, steps: [], src: "aria", walk: true };
+}
+async function walkRoute(from, to){
+  try{
+    const u = `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${from.lng.toFixed(6)},${from.lat.toFixed(6)};${to.lng.toFixed(6)},${to.lat.toFixed(6)}?overview=full&geometries=geojson&steps=true`;
+    const j = await fetchT(u, {}, 12000).then(r => r.json()), rt = j && j.routes && j.routes[0];
+    if (!rt || !rt.geometry || rt.geometry.coordinates.length < 2) return walkAir(from, to);
+    const pts = rt.geometry.coordinates.map(c => [c[1], c[0]]), cum = [0];
+    for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + hav(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]));
+    const steps = []; let at = 0;
+    ((rt.legs && rt.legs[0] && rt.legs[0].steps) || []).forEach(s => { const mv = s.maneuver || {};
+      if (!/^(depart|arrive|new name)$/.test(mv.type || "") && !(mv.type === "continue" && (mv.modifier || "straight") === "straight")){
+        const t = WALK_TURN[mv.modifier] || WALK_TURN.straight; steps.push({ at, icon: t[0], turn: t[1], name: s.name || "" }); }
+      at += s.distance || 0; });
+    return { pts, cum, len: cum[cum.length - 1] || rt.distance, steps, src: "piedi", walk: true };
+  }catch(e){ return walkAir(from, to); }
+}
+/* ---------- vaporetto: orari ACTV dalla posizione di partenza alla fermata più vicina all'arrivo ---------- */
+async function tripActv(from, to){
+  await loadPontiliActv();
+  const P = PONTILI_ACTV ? PONTILI_ACTV.p : [];
+  if (!P.length) return { err: "Orari dei vaporetti non disponibili adesso." };
+  const nearest = q => P.map(x => ({ x, d: hav(q.lat, q.lng, x[1], x[2]) })).sort((a, b) => a.d - b.d)[0];
+  const nt = nearest(to), nf = nearest(from);
+  if (nt.x[0] === nf.x[0]) return { err: "Partenza e arrivo sono vicini alla stessa fermata: conviene andare a piedi." };
+  try{
+    const j = await ACTV("azione=viaggio&da=" + encodeURIComponent(from.lat.toFixed(6) + "," + from.lng.toFixed(6)) + "&a=" + encodeURIComponent(nt.x[0]));
+    if (j.errore) return { err: j.errore === "stesso_pontile" ? "Partenza e arrivo sono alla stessa fermata: conviene andare a piedi." : "Percorso in vaporetto non disponibile." };
+    if (!j.opzioni || !j.opzioni.length) return { err: "Nessun battello utile nelle prossime ore." };
+    j.endWalk = nt.d > 60 ? Math.max(1, Math.round(nt.d * 1.3 / WALK_MS / 60)) : 0;
+    const [hh, mm] = String(j.opzioni[0].arrivo || "").split(":").map(Number);
+    if (!isNaN(hh)){ const a = new Date(); a.setHours(hh, mm, 0, 0); if (a < Date.now() - 36e5) a.setDate(a.getDate() + 1); j.totMin = Math.max(1, Math.round((a - Date.now()) / 60000) + j.endWalk); }
+    return j;
+  }catch(e){ return { err: "Non riesco a calcolare il vaporetto: controlla la connessione." }; }
+}
+const fmtMin = m => m < 60 ? m + " min" : Math.floor(m / 60) + " h " + String(m % 60).padStart(2, "0");
 function navTick(p){
   if (!NAV || !NAV.R || !p) return;
   const R = NAV.R;
   if (NAV.pending){
     const o = NAV.origin, d0 = hav(p.lat, p.lng, o.lat, o.lng);
-    if (d0 < 80){ NAV.pending = false; NAV.idx = 0; NAV.lastCalc = Date.now(); say("Sei alla partenza, inizia la navigazione"); buzz(150); startRec(true); }
+    if (d0 < 80){ NAV.pending = false; NAV.idx = 0; NAV.lastCalc = Date.now(); say("Sei alla partenza, inizia la navigazione"); buzz(150); if (NAV.travel !== "piedi") startRec(true); }
     else {
       $("#maneuver").classList.remove("off"); $("#mIcon").textContent = "⚐"; $("#mDist").textContent = fmtDist(d0);
       $("#mText").textContent = "Vai al punto di partenza" + (o.name ? " · " + o.name : "");
@@ -2704,7 +2814,9 @@ function navTick(p){
   }
   if (bd > 70){
     $("#maneuver").classList.add("off"); $("#mIcon").textContent = "⟲"; $("#mDist").textContent = "Fuori percorso"; $("#mText").textContent = "Ricalcolo…";
-    if (Date.now() - NAV.lastCalc > 8000){ NAV.lastCalc = Date.now(); NAV.R = computeRoute(p, NAV.dest); NAV.idx = 0; say("Ricalcolo il percorso"); drawRoute(); }
+    if (NAV.travel === "piedi"){
+      if (Date.now() - NAV.lastCalc > 15000){ NAV.lastCalc = Date.now(); say("Ricalcolo il percorso"); const me = NAV; walkRoute(p, NAV.dest).then(W => { if (NAV === me){ NAV.R = W; NAV.idx = 0; drawRoute(); } }); }
+    } else if (Date.now() - NAV.lastCalc > 8000){ NAV.lastCalc = Date.now(); NAV.R = computeRoute(p, NAV.dest); NAV.idx = 0; say("Ricalcolo il percorso"); drawRoute(); }
     return;
   }
   $("#maneuver").classList.remove("off");
@@ -2719,10 +2831,10 @@ function navTick(p){
   } else {
     $("#mIcon").textContent = "↑"; $("#mDist").textContent = fmtDist(rest); $("#mText").textContent = "Prosegui fino a " + NAV.dest.name;
   }
-  const v = speedMs > 0.8 ? speedMs : 12 / 3.6, min = Math.max(1, Math.round(rest / v / 60));
+  const v = speedMs > 0.8 ? speedMs : (R.walk ? WALK_MS : 12 / 3.6), min = Math.max(1, Math.round(rest / v / 60));
   const arr = new Date(Date.now() + rest / v * 1000).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
   $("#eta").textContent = `${min} min · ${fmtDist(rest)}`;
-  $("#etaSub").textContent = `Arrivo ${arr} · ` + (R.src === "lavoro" ? "tragitti abituali" : R.src === "rete" ? "rete dei canali" : "linea d'aria");
+  $("#etaSub").textContent = `Arrivo ${arr} · ` + (R.walk ? (R.src === "aria" ? "a piedi, linea d'aria" : "a piedi") : R.src === "lavoro" ? "tragitti abituali" : R.src === "rete" ? "rete dei canali" : "linea d'aria");
   drawRoute();
 }
 
@@ -2753,17 +2865,63 @@ async function showPlan(){
   if (startMarker){ startMarker.remove(); startMarker = null; }
   if (PLAN.from){ const s = document.createElement("div"); s.className = "startpin"; startMarker = new maplibregl.Marker({ element: s }).setLngLat([PLAN.from.lng, PLAN.from.lat]).addTo(map); }
   const seq = ++planSeq, from = planFrom();
-  PLAN.R = null; drawRoute();
+  PLAN.R = null; PLAN.Rb = null; PLAN.walk = null; PLAN.trip = null; PLAN.tx = null; drawRoute();
+  PLAN.mode = PLAN.mode || store.get("ln_travel", null) || (activeBoat() ? "barca" : "piedi");
+  ["tmPiedi", "tmBarca", "tmMezzi", "tmTaxi"].forEach(id => $("#" + id).textContent = "…");
+  document.querySelectorAll("#rbModes [data-tm]").forEach(b => b.classList.toggle("on", b.dataset.tm === PLAN.mode));
+  $("#rbMore").classList.add("hidden"); $("#rbGo").disabled = true;
   if (!from){ $("#rbInfo").textContent = "Aspetto il GPS… oppure scegli un punto di partenza"; setTimeout(() => { if (PLAN && seq === planSeq && lastPos) showPlan(); }, 2500); return; }
   $("#rbInfo").textContent = "Calcolo il percorso…";
   if (!G.done) await loadGraph();
   if (!PLAN || seq !== planSeq) return;
-  const R = computeRoute(from, PLAN.to); PLAN.R = R; drawRoute();
-  const min = Math.max(1, Math.round(R.len / (12 / 3.6) / 60));
-  $("#rbInfo").textContent = `${min} min · ${fmtDist(R.len)} · ` + (R.src === "lavoro" ? "tragitti abituali" : R.src === "rete" ? "rete dei canali" : "linea d'aria");
-  const b = new maplibregl.LngLatBounds(); R.pts.forEach(p => b.extend([p[1], p[0]]));
-  setFollow(false); map.fitBounds(b, { padding: { top: 220, bottom: 120, left: 50, right: 50 }, duration: 700, bearing: 0, pitch: 0 });
+  const R = computeRoute(from, PLAN.to); PLAN.Rb = R;
+  $("#tmBarca").textContent = fmtMin(Math.max(1, Math.round(R.len / (12 / 3.6) / 60)));
+  PLAN.tx = taxiEstimate(from, PLAN.to, 2); $("#tmTaxi").textContent = PLAN.tx.lo + "–" + PLAN.tx.hi + " €";
+  walkRoute(from, PLAN.to).then(W => { if (!PLAN || seq !== planSeq) return; PLAN.walk = W; $("#tmPiedi").textContent = fmtMin(walkMin(W)); if (PLAN.mode === "piedi") paintTravel(true); });
+  tripActv(from, PLAN.to).then(j => { if (!PLAN || seq !== planSeq) return; PLAN.trip = j; $("#tmMezzi").textContent = j.err ? "—" : j.totMin ? fmtMin(j.totMin) : "arr. " + j.opzioni[0].arrivo; if (PLAN.mode === "mezzi") paintTravel(false); });
+  paintTravel(true);
 }
+function fitPlan(R){
+  if (!R || !map) return; const b = new maplibregl.LngLatBounds(); R.pts.forEach(p => b.extend([p[1], p[0]]));
+  setFollow(false); map.fitBounds(b, { padding: { top: 290, bottom: 120, left: 50, right: 50 }, duration: 700, bearing: 0, pitch: 0 });
+}
+// scelta del mezzo: a piedi, la tua barca, vaporetto o taxi
+function paintTravel(fit){
+  if (!PLAN) return; const m = PLAN.mode, info = $("#rbInfo"), more = $("#rbMore"), go = $("#rbGo");
+  document.querySelectorAll("#rbModes [data-tm]").forEach(b => b.classList.toggle("on", b.dataset.tm === m));
+  more.classList.add("hidden"); more.innerHTML = ""; go.disabled = false;
+  if (m === "barca" || m === "taxi"){
+    const R = PLAN.R = PLAN.Rb;
+    if (!R){ info.textContent = "Calcolo il percorso…"; go.disabled = true; }
+    else if (m === "barca"){
+      info.textContent = `${Math.max(1, Math.round(R.len / (12 / 3.6) / 60))} min · ${fmtDist(R.len)} · ` + (R.src === "lavoro" ? "tragitti abituali" : R.src === "rete" ? "rete dei canali" : "linea d'aria");
+      go.textContent = "▶ Avvia in barca";
+      if (!activeBoat()){ more.innerHTML = `<p class="trnote" style="margin-top:0">Imposta la tua barca (⋯ → La mia barca) per avere fondali e acqua sotto il piede.</p>`; more.classList.remove("hidden"); }
+    } else {
+      const t = PLAN.tx; info.textContent = `${t.lo}–${t.hi} € · circa ${t.min} min`; go.textContent = "🚕 Chiama un taxi";
+      more.innerHTML = `<p class="trnote" style="margin-top:0">Prezzo indicativo per 2 persone. La richiesta arriva a tutti i tassisti convenzionati: il primo che accetta prende la corsa.</p>`; more.classList.remove("hidden");
+    }
+  } else if (m === "piedi"){
+    const R = PLAN.R = PLAN.walk;
+    if (!R){ info.textContent = "Calcolo il percorso a piedi…"; go.disabled = true; }
+    else { info.textContent = `${walkMin(R)} min · ${fmtDist(R.len)} · a piedi` + (R.src === "aria" ? " (linea d'aria)" : ""); go.textContent = "▶ Avvia a piedi"; }
+  } else if (m === "mezzi"){
+    PLAN.R = null; const j = PLAN.trip;
+    if (!j){ info.textContent = "Cerco i prossimi vaporetti…"; go.disabled = true; }
+    else if (j.err){ info.textContent = j.err; go.disabled = true; }
+    else {
+      const o = j.opzioni[0]; info.textContent = `Arrivo ${o.arrivo}${j.endWalk ? " + " + j.endWalk + " min a piedi" : ""} · ${o.durata_min} min in vaporetto`;
+      more.innerHTML = `<p class="trnote" style="margin-top:0">Da <b>${esc(j.da)}</b> a <b>${esc(j.a)}</b></p>` + j.opzioni.map((op, k) => tripOptHtml(op, k) .replace(/<\/div>$/, (j.endWalk ? `<div class="leg">🚶 poi a piedi fino a ${esc(PLAN.to.name)} · ${j.endWalk} min</div>` : "") + "</div>")).join("") + orarioNote(j.orario_del);
+      more.classList.remove("hidden");
+      go.textContent = "🚶 Vai alla fermata";
+    }
+  }
+  drawRoute();
+  if (fit && PLAN.R) fitPlan(PLAN.R);
+}
+document.querySelectorAll("#rbModes [data-tm]").forEach(b => b.onclick = () => {
+  if (!PLAN) return; PLAN.mode = b.dataset.tm; store.set("ln_travel", PLAN.mode); paintTravel(true);
+});
 function closePlan(){
   PLAN = null; planSeq++; $("#routeBox").classList.add("hidden"); $("#searchBox").classList.remove("hidden");
   if (addMode === "pickfrom"){ addMode = null; $("#modeHint").classList.add("hidden"); }
@@ -2792,11 +2950,25 @@ $("#rbSwap").onclick = () => {
 };
 $("#rbGo").onclick = () => {
   if (!PLAN) return;
-  const p = PLAN; if (!p.from && !lastPos){ toast("Aspetto il GPS: tocca ➤ oppure scegli un punto di partenza."); return; }
+  const p = PLAN, m = p.mode || "barca"; if (!p.from && !lastPos){ toast("Aspetto il GPS: tocca ➤ oppure scegli un punto di partenza."); return; }
+  if (m === "taxi"){
+    const f = planFrom();
+    taxiAsk({ da: { name: p.from ? p.from.name : "La mia posizione", lat: f.lat, lng: f.lng }, a: { name: p.to.name, lat: p.to.lat, lng: p.to.lng } });
+    return;
+  }
+  if (m === "mezzi"){
+    const o = p.trip && p.trip.opzioni && p.trip.opzioni[0], t = o && o.tappe.find(x => x.tipo !== "piedi");
+    const st = t && PONTILI_ACTV && PONTILI_ACTV.p.find(x => x[0] === t.da);
+    if (!st){ toast("Non trovo la fermata sulla mappa: guarda gli orari qui sopra."); return; }
+    if (startMarker){ startMarker.remove(); startMarker = null; }
+    PLAN = null; startNav({ name: `Fermata ${st[0]} · ${t.linea} alle ${t.parte}`, lat: st[1], lng: st[2] }, { travel: "piedi", from: p.from || null });
+    return;
+  }
   if (startMarker){ startMarker.remove(); startMarker = null; }
   PLAN = null;
-  if (p.from){ startNav(p.to, { from: p.from, R: p.R }); const s = document.createElement("div"); s.className = "startpin"; startMarker = new maplibregl.Marker({ element: s }).setLngLat([p.from.lng, p.from.lat]).addTo(map); }
-  else startNav(p.to);
+  const travel = m === "piedi" ? "piedi" : "barca";
+  if (p.from){ startNav(p.to, { from: p.from, R: p.R, travel }); const s = document.createElement("div"); s.className = "startpin"; startMarker = new maplibregl.Marker({ element: s }).setLngLat([p.from.lng, p.from.lat]).addTo(map); }
+  else startNav(p.to, travel === "piedi" ? { travel, R: p.R } : {});
 };
 
 /* =========================================================
@@ -2807,6 +2979,8 @@ const instOn = k => !!INST[k] || dashOpen;
 let INST = Object.assign({ speed: true, depth: false, tide: false, head: false, velox: true, water: false }, store.get("ln_inst", {}));
 // velocità, velox, marea ed ecoscandaglio ora lavorano sempre e si vedono tutti insieme nel mini widget
 Object.assign(INST, { speed: true, velox: true, tide: true, depth: true }); INST.bridge = false; INST.head = false;
+// cosa si vede sulla mappa in Nautica (finestrella delle impostazioni)
+let LY = Object.assign({ bricole: true, velox: true, boat: true, d3: true }, store.get("ln_layers", {}));
 function paintInst(){
   document.querySelectorAll("#toggles button[data-inst]").forEach(b => b.classList.toggle("on", !!INST[b.dataset.inst]));
   $("#i-speed").classList.toggle("hidden", !INST.speed);
@@ -3241,9 +3415,24 @@ async function loadVelox(){
   }catch(e){}
 }
 const ctr = ids => { const p = ids.map(i => VELOX.byId[i]).filter(Boolean); return p.length ? { lat: p.reduce((s, x) => s + x.lat, 0) / p.length, lng: p.reduce((s, x) => s + x.lng, 0) / p.length } : null; };
+// icona del fotovelox: fondo nero, macchina fotografica bianca, bordo del colore del limite (rosso 7 km/h, arancione 11 km/h, grigio se spento)
+const VX_COL = { r: "#e53935", o: "#fb8c00", g: "#8e8e93" };
+function veloxIcon(col){
+  const S = 72, c = document.createElement("canvas"); c.width = c.height = S; const g = c.getContext("2d");
+  g.beginPath(); g.arc(36, 36, 31, 0, Math.PI * 2); g.fillStyle = "#111"; g.fill(); g.lineWidth = 8; g.strokeStyle = col; g.stroke();
+  const rr = (x, y, w, h, r) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
+  g.fillStyle = "#fff"; rr(28, 21, 16, 8, 2); g.fill(); rr(17, 26, 38, 25, 5); g.fill();
+  g.beginPath(); g.arc(36, 39, 8.5, 0, Math.PI * 2); g.fillStyle = "#111"; g.fill();
+  g.beginPath(); g.arc(36, 39, 4.5, 0, Math.PI * 2); g.fillStyle = "#fff"; g.fill();
+  g.fillStyle = col; rr(46, 29, 6, 4, 1.5); g.fill();
+  return g.getImageData(0, 0, S, S);
+}
+function addVeloxIcons(){ if (!map) return; Object.entries(VX_COL).forEach(([k, col]) => { if (!map.hasImage("vx-" + k)) map.addImage("vx-" + k, veloxIcon(col), { pixelRatio: 2 }); }); }
 function drawVelox(){
   if (!map || !map.getSource("velox")) return;
-  map.getSource("velox").setData({ type: "FeatureCollection", features: VELOX.list.map(v => ({ type: "Feature", properties: { id: v.id, s: v.state }, geometry: { type: "Point", coordinates: [v.lng, v.lat] } })) });
+  const lim = {}; VELOX.tratte.forEach(t => t.A.concat(t.B).forEach(id => { lim[id] = Math.min(lim[id] ?? 99, t.v); }));
+  map.getSource("velox").setData({ type: "FeatureCollection", features: VELOX.list.map(v => ({ type: "Feature",
+    properties: { id: v.id, s: v.state, c: v.state === "ko" ? "g" : (lim[v.id] ?? 11) <= 7 ? "r" : "o" }, geometry: { type: "Point", coordinates: [v.lng, v.lat] } })) });
   map.getSource("velox-tratte").setData({ type: "FeatureCollection", features: VELOX.tratte.map(t => { const a = ctr(t.A), b = ctr(t.B);
     return a && b && hav(a.lat, a.lng, b.lat, b.lng) > 20 ? { type: "Feature", properties: { v: t.v }, geometry: { type: "LineString", coordinates: [[a.lng, a.lat], [b.lng, b.lat]] } } : null; }).filter(Boolean) });
 }
@@ -3670,13 +3859,37 @@ function applyMapMode(){
   layerVis();
   if (dep){ loadTide(); drawChart(); }
   BASE_LAYERS.forEach(l => { if (!map.getLayer(l.id)) return;
-    const show = sat ? (l.type === "symbol" && /place/i.test(l.id)) : keepSimple(l) && !(dep && l.type === "fill-extrusion");
+    const show = sat ? (l.type === "symbol" && /place/i.test(l.id)) : keepSimple(l) && !((dep || LY.d3 === false) && l.type === "fill-extrusion");
     map.setLayoutProperty(l.id, "visibility", show ? "visible" : "none"); });
   map.setLayoutProperty("sat", "visibility", sat ? "visible" : "none");
   $("#fabSat").textContent = sat ? "🛰" : "🗺️";
   document.querySelectorAll("#modes [data-mode]").forEach(b => b.classList.toggle("on", b.dataset.mode === mapMode));
   document.body.classList.toggle("sat", sat);
+  paintSet();
 }
+/* ---------- impostazioni della mappa: tocca una voce per mostrarla o nasconderla ---------- */
+function setGet(k){ return k === "water" ? !!INST.water : k === "sat" ? mapMode === "sat" : LY[k] !== false; }
+function paintSet(){ document.querySelectorAll("#setPanel [data-set]").forEach(b => b.classList.toggle("on", setGet(b.dataset.set))); }
+// 2D: mappa piatta, niente rilievi (edifici, bricole 3D, omino) · 3D: mappa inclinabile con i rilievi
+function apply3d(anim){
+  if (!map) return; const d3 = LY.d3 !== false;
+  try{ map.setMaxPitch(d3 ? 80 : 0); }catch(e){}
+  if (!d3 && map.getPitch() > 0) map.easeTo({ pitch: 0, duration: anim ? 500 : 0 });
+  else if (d3 && anim && map.getPitch() < 5) map.easeTo({ pitch: view3d ? 72 : 50, duration: 500 });
+  ["medot", "frdot"].forEach(id => { if (map.getLayer(id)) map.setLayerZoomRange(id, 0, d3 ? MAN_MINZ : 24); });
+  applyMapMode();
+}
+$("#fabSet").onclick = e => { e.stopPropagation(); $("#menu").classList.add("hidden"); paintSet();
+  const hid = $("#setPanel").classList.toggle("hidden"); $("#fabSet").classList.toggle("on", !hid); };
+document.addEventListener("click", e => { if (!e.target.closest("#setPanel") && !e.target.closest("#fabSet")){ $("#setPanel").classList.add("hidden"); $("#fabSet").classList.remove("on"); } });
+document.querySelectorAll("#setPanel [data-set]").forEach(b => b.onclick = () => {
+  const k = b.dataset.set;
+  if (k === "water"){ INST.water = !INST.water; store.set("ln_inst", INST); paintInst(); applyMapMode(); if (INST.water){ loadTide(); loadChart(); drawFondo(); } }
+  else if (k === "sat"){ mapMode = mapMode === "sat" ? "simple" : "sat"; store.set("ln_mapmode", mapMode); applyMapMode(); }
+  else { LY[k] = !setGet(k); store.set("ln_layers", LY); if (k === "d3") apply3d(true); else layerVis(); }
+  paintSet(); try{ haptic(); }catch(e){}
+});
+paintSet();
 // ogni tocco cambia mappa: semplice ⇄ satellite
 $("#fabSat").onclick = e => { e.stopPropagation(); mapMode = mapMode === "sat" ? "simple" : "sat";
   store.set("ln_mapmode", mapMode); $("#modes").classList.add("hidden"); applyMapMode(); toast(mapMode === "sat" ? "🛰 Satellite" : "🗺️ Mappa semplice"); };
@@ -3869,6 +4082,12 @@ function renderPlan(){
       onDone: v => { trPlan = { da: v.da || trPlan.da || "", a: v.a, shown: true }; doPlan(); } });
   };
 }
+function tripOptHtml(o, k){
+  return `<div class="opt">
+        <div class="oh"><b>${k === 0 ? "Più veloce" : "Senza cambi"}</b><span>arrivo <b>${o.arrivo}</b> · ${o.durata_min} min${o.cambi ? " · " + o.cambi + (o.cambi === 1 ? " cambio" : " cambi") : ""}</span></div>` +
+        o.tappe.map(t => t.tipo === "piedi" ? `<div class="leg">🚶 a piedi fino a ${esc(t.a)} · ${t.min} min</div>`
+          : `<div class="leg">${lineBadge(t.linea, t.colore)} <b>${t.parte}</b> da ${esc(t.da)}, direzione ${esc(cleanDir(t.direzione))}<br><span class="trnote">scendi a ${esc(t.a)} alle ${t.arriva} (${t.min} min)</span></div>`).join("") + `</div>`;
+}
 async function doPlan(){
   const lb = $("#trList"); if (!lb) return;
   lb.innerHTML = `<div class="trback" id="trBackP">‹ Fermate vicine</div><div id="trRes"></div>`;
@@ -3879,10 +4098,7 @@ async function doPlan(){
       const j = await ACTV("azione=viaggio&da=" + encodeURIComponent(da) + "&a=" + encodeURIComponent(trPlan.a));
       if (j.errore){ $("#trRes").innerHTML = `<p class="trnote">${j.errore === "pontile_non_trovato" ? "Non trovo il pontile: sceglilo dalla lista." : j.errore === "stesso_pontile" ? "Partenza e arrivo sono lo stesso pontile." : "Percorso non disponibile."}</p>`; return; }
       if (!j.opzioni || !j.opzioni.length){ $("#trRes").innerHTML = `<p class="trnote">Nessun battello utile nelle prossime ore da ${esc(j.da)} a ${esc(j.a)}.</p>`; return; }
-      $("#trRes").innerHTML = `<p class="trnote">Da <b>${esc(j.da)}</b> a <b>${esc(j.a)}</b></p>` + j.opzioni.map((o, k) => `<div class="opt">
-        <div class="oh"><b>${k === 0 ? "Più veloce" : "Senza cambi"}</b><span>arrivo <b>${o.arrivo}</b> · ${o.durata_min} min${o.cambi ? " · " + o.cambi + (o.cambi === 1 ? " cambio" : " cambi") : ""}</span></div>` +
-        o.tappe.map(t => t.tipo === "piedi" ? `<div class="leg">🚶 a piedi fino a ${esc(t.a)} · ${t.min} min</div>`
-          : `<div class="leg">${lineBadge(t.linea, t.colore)} <b>${t.parte}</b> da ${esc(t.da)}, direzione ${esc(cleanDir(t.direzione))}<br><span class="trnote">scendi a ${esc(t.a)} alle ${t.arriva} (${t.min} min)</span></div>`).join("") + `</div>`).join("") + orarioNote(j.orario_del);
+      $("#trRes").innerHTML = `<p class="trnote">Da <b>${esc(j.da)}</b> a <b>${esc(j.a)}</b></p>` + j.opzioni.map(tripOptHtml).join("") + orarioNote(j.orario_del);
   }catch(e){ $("#trRes").innerHTML = `<p class="trnote">Non riesco a calcolare: controlla la connessione.</p>`; }
   renderPlan();
 }
@@ -3913,12 +4129,12 @@ function txNear(){ const ref = lastPos || refPoint(); return (PONTILI_ACTV ? PON
 const TX_POP = [["Aeroporto Marco Polo", "✈️ Aeroporto", 45.5008, 12.3373], ["Piazzale Roma", "🚌 Piazzale Roma", 45.4391, 12.3177], ["Stazione Santa Lucia", "🚆 Stazione", 45.4410, 12.3215],
   ["San Marco", "🏛️ San Marco", 45.4322, 12.3384], ["Rialto", "🌉 Rialto", 45.4372, 12.3350], ["Murano", "🏺 Murano", 45.4560, 12.3530], ["Lido Santa Maria Elisabetta", "🏖️ Lido", 45.4177, 12.3683],
   ["Tronchetto", "🅿️ Tronchetto", 45.4402, 12.3064], ["Burano", "🎨 Burano", 45.4855, 12.4170], ["Giudecca", "Giudecca", 45.4268, 12.3255]];
-function taxiAsk(){
-  loadPontiliActv();
-  wizard({ title: "🚕 Taxi acqueo", values: { pax: 2 },
+function taxiAsk(pre){
+  loadPontiliActv(); pre = pre && pre.da && pre.a ? pre : null;
+  wizard({ title: "🚕 Taxi acqueo", values: Object.assign({ pax: 2 }, pre || {}),
     steps: [
-      { k: "da", q: "Da dove parti?", type: "place", hereLabel: "Dove sono adesso", hereName: "La mia posizione", chips: () => txNear().concat(TX_POP.slice(0, 4)) },
-      { k: "a", q: "Dove vai?", type: "place", noHere: true, chips: () => TX_POP },
+      { k: "da", q: "Da dove parti?", type: "place", hereLabel: "Dove sono adesso", hereName: "La mia posizione", chips: () => txNear().concat(TX_POP.slice(0, 4)), when: () => !pre },
+      { k: "a", q: "Dove vai?", type: "place", noHere: true, chips: () => TX_POP, when: () => !pre },
       { k: "pax", q: "Quante persone?", type: "choice", options: [1, 2, 3, 4, 5, 6, 8, 10].map(n => [n, n + (n === 1 ? " persona" : " persone")]) },
       { k: "note", q: "Qualcosa da sapere?", type: "text", max: 200, multi: true, optional: true, skipLabel: "No",
         chips: ["Ho le valigie", "Con un cane", "Con passeggino", "È urgente", "Serve fattura"] },
@@ -3941,7 +4157,7 @@ function renderTaxi(){
   if (txRide) return renderTaxiWait();
   box.innerHTML = `<h4 style="color:#b45309">🚕 Taxi acqueo</h4><p class="trnote" style="margin-top:0">La richiesta arriva a tutti i tassisti convenzionati: il primo che accetta prende la corsa. Prima di mandarla vedi il prezzo indicativo.</p>
     <button class="btn small" id="txStart" style="width:100%;background:#f59e0b;color:#111">🚕 Chiama un taxi</button><div id="txDrv"></div>`;
-  $("#txStart").onclick = taxiAsk;
+  $("#txStart").onclick = () => taxiAsk();
   renderDriverBox();
 }
 function renderTaxiWait(){
@@ -4412,10 +4628,11 @@ async function openChat(nome){
    Nautica: bricole, velox, ponti, fondali e percorso. Trasporti: solo le fermate. Incontra: solo gli stati. */
 function layerVis(){
   if (!map || !map.isStyleLoaded()) return;
-  const n = appMode === "nautica", dep = !!INST.water;
+  const n = appMode === "nautica", dep = !!INST.water, d3 = LY.d3 !== false, me = LY.boat !== false || !n;
   const want = {
-    "bricole": n, "bric3d": n,
-    "velox": n && INST.velox, "velox-tratte": n && INST.velox,
+    "bricole": n && LY.bricole, "bric3d": n && LY.bricole && d3,
+    "velox": n && LY.velox, "velox-tratte": n && LY.velox,
+    "meman": me && d3, "medot": me, "frman": d3,
     "ponti": false,
     "carta": n && dep, "carta-num": n && dep, "depths": n && dep,
     "fondo": n && dep,
@@ -4426,10 +4643,11 @@ function layerVis(){
   };
   Object.entries(want).forEach(([id, v]) => { if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", v ? "visible" : "none"); });
   if (destMarker) destMarker.getElement().style.display = n ? "" : "none";
+  if (meMarker) meMarker.getElement().style.display = me ? "" : "none";
 }
 
-/* Trasporti dentro Nautica: il tasto 🚤 apre e chiude vaporetti e taxi */
-$("#fabTr").onclick = () => setAppMode(appMode === "trasporti" ? "nautica" : "trasporti");
+/* Trasporti: orari dei vaporetti e area taxi dal menu ⋯ (le indicazioni si scelgono quando cerchi un posto) */
+$("#goTr").onclick = () => setAppMode("trasporti");
 $("#trClose").onclick = () => setAppMode("nautica");
 
 /* ---------- mini widget in basso a sinistra: velocità · velox · marea · acqua sotto il piede ---------- */
