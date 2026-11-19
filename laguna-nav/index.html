@@ -433,6 +433,41 @@
   .stzr .bin.chg{color:#fbbf24}
   .stzr.sop{opacity:.5;text-decoration:line-through}
   .stzseg{margin:6px 0 8px}
+  /* tabellone come in stazione */
+  #board{position:fixed;inset:0;z-index:3500;background:#0a1f5c;color:#fff;display:flex;flex-direction:column;padding:calc(10px + var(--safe-t)) 0 calc(8px + var(--safe-b));font-family:"Arial Narrow",Arial,Helvetica,sans-serif}
+  #board .bdtop{display:flex;align-items:center;gap:10px;padding:4px 12px 8px;border-bottom:2px solid #f5c400}
+  #board .bdtop b{display:block;font-size:24px;letter-spacing:.06em;font-weight:900}
+  #board .bdtop i{display:block;font-style:italic;font-size:12px;color:#b9c6ee;letter-spacing:.08em}
+  #board .bdst{flex:1;text-align:center;font-size:13px;font-weight:700;color:#f5c400;letter-spacing:.05em}
+  #board .bdclk{font-size:26px;font-weight:900;color:#f5c400;font-variant-numeric:tabular-nums}
+  #board .bdtabs{display:flex;gap:6px;padding:8px 10px}
+  #board .bdtabs span{flex:1}
+  #board .bdtabs button{padding:7px 12px;border-radius:6px;background:#132f7d;color:#cfd8f5;font-weight:700;font-size:13px;border:1px solid #2a4aa3}
+  #board .bdtabs button.on{background:#f5c400;color:#0a1f5c;border-color:#f5c400}
+  #board .bdhead,#board .bdr{display:grid;grid-template-columns:72px 1fr 50px 52px 38px;gap:6px;align-items:center;padding:0 10px}
+  #board .bdhead.bus,#board .bdr.bus{grid-template-columns:52px 1fr 52px 44px}
+  #board .bdhead{background:#061545;padding-top:6px;padding-bottom:6px;font-size:11px;font-weight:900;color:#f5c400;letter-spacing:.04em}
+  #board .bdhead i{display:block;font-size:9px;font-style:italic;color:#9fb0e0;font-weight:400}
+  #board .bdrows{flex:1;overflow-y:auto}
+  #board .bdr{min-height:38px;font-size:14px;font-weight:700;border-bottom:1px solid #16337f;font-variant-numeric:tabular-nums}
+  #board .bdr:nth-child(even){background:#0d2669}
+  #board .bdr span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #board .bdr .c-tr{font-size:12px;color:#dfe6fb}
+  #board .bdr .c-h{color:#fff}
+  #board .bdr .c-d{color:#f5c400}
+  #board .bdr .c-b{text-align:center;color:#fff;background:#132f7d;border-radius:4px;padding:2px 0}
+  #board .bdr .c-b.chg{background:#f5c400;color:#0a1f5c}
+  #board .bdr .c-b.blink{animation:bdbl 1s steps(2) infinite}
+  @keyframes bdbl{50%{opacity:.25}}
+  #board .bdr.sop{color:#ff8a80} #board .bdr.sop .c-d{color:#ff5252}
+  #board .bdr.bus .c-tr{color:#0a1f5c;background:#f5c400;border-radius:4px;text-align:center;font-weight:900}
+  #board .bdmsg{padding:30px 14px;text-align:center;color:#f5c400;font-weight:700;letter-spacing:.05em}
+  #board .bdnote{padding:6px 12px 0;font-size:11px;color:#9fb0e0}
+  .sdr{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+  .sdd{flex:0 0 46%;display:flex;flex-direction:column}
+  .sdd small{color:var(--muted);font-size:12px}
+  .sdm{flex:1;display:flex;gap:6px;justify-content:flex-end;align-items:center;font-size:15px}
+  .sdm span{color:var(--muted)}
   #dash .tile.big{grid-column:span 2}
   #dash .tl{font-size:11px;letter-spacing:.1em;color:#9a9ea4;font-weight:700}
   #dash #dashClose{width:40px;background:#1a1b1d;color:#ddd;border:1px solid #2c2e31}
@@ -836,6 +871,7 @@
       <div class="sh">MOSTRA SULLA MAPPA</div>
       <button class="srow" data-set="bricole"><svg viewBox="0 0 24 24"><path d="M7 5v15M12 3.5V20M17 5v15M4.5 20h15M7 8h0M12 7h0M17 8h0"/></svg><span>Bricole</span><i class="sw"></i></button>
       <button class="srow" data-set="velox"><svg viewBox="0 0 24 24"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8.5 7.5L10 5h4l1.5 2.5"/></svg><span>Velox</span><i class="sw"></i></button>
+      <button class="srow" data-set="canali"><svg viewBox="0 0 24 24"><path d="M3 17c3-1 5-6 9-6s6 5 9 6"/><path d="M3 21c3-1 5-6 9-6s6 5 9 6" stroke-dasharray="2 2.5"/><path d="M7 4v6M17 4v6"/></svg><span>Canali lagunari</span><i class="sw"></i></button>
       <button class="srow" data-set="cantieri"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5l-5.6 5.6a1.6 1.6 0 0 0 2.3 2.3l5.6-5.6a4 4 0 0 0 5-5.4l-2.4 2.4-2.1-.4-.4-2.1z"/></svg><span>Cantieri nautici</span><i class="sw"></i></button>
       <button class="srow" data-set="water"><svg viewBox="0 0 24 24"><path d="M12 3.5c3.5 4.3 6 7.6 6 10.5a6 6 0 0 1-12 0c0-2.9 2.5-6.2 6-10.5z"/><path d="M9 15a3 3 0 0 0 3 3"/></svg><span>Acqua</span><i class="sw"></i></button>
       <button class="srow" data-set="d3"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>Vista 3D</span><i class="sw"></i></button>
@@ -883,6 +919,15 @@
       <button class="dm" id="goTr">🚏 Orari vaporetti e taxi</button>
       <button class="dm" id="goBoat">⛵ La mia barca</button>
     </div>
+  </div>
+
+  <!-- tabellone stile stazione -->
+  <div id="board" class="hidden">
+    <div class="bdtop"><div><b id="bdTitle">PARTENZE</b><i id="bdTitleEn">DEPARTURES</i></div><div class="bdst" id="bdSt"></div><div class="bdclk" id="bdClock">--:--</div></div>
+    <div class="bdtabs"><button data-bv="partenze" class="on">Partenze</button><button data-bv="arrivi">Arrivi</button><span></span><button id="bdGo">🧭 Portami qui</button><button id="bdX" onclick="closeBoard()">✕</button></div>
+    <div class="bdhead" id="bdHead"></div>
+    <div class="bdrows" id="bdRows"></div>
+    <div class="bdnote" id="bdNote"></div>
   </div>
 
   <!-- LA MIA BARCA -->
@@ -1019,7 +1064,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.27</p>
+      <p class="sub">1Click · ClickVenice · versione 3.28</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -1978,6 +2023,14 @@ function addLayers(){
     coordinates: [[12.15, 45.60], [12.62, 45.60], [12.62, 45.18], [12.15, 45.18]] });
   map.addLayer({ id: "fondo", type: "raster", source: "fondo", layout: { visibility: "none" }, paint: { "raster-opacity": 0.85, "raster-resampling": "linear", "raster-fade-duration": 0 } },
     firstBuilding && map.getLayer(firstBuilding) ? firstBuilding : undefined);
+  // canali lagunari ufficiali (vie d'acqua segnate con le bricole): linea tratteggiata con il nome
+  map.addSource("canali", { type: "geojson", data: empty });
+  map.addLayer({ id: "canali", type: "line", source: "canali", minzoom: 10, layout: { visibility: LY.canali ? "visible" : "none", "line-cap": "round", "line-join": "round" },
+    paint: { "line-color": "#0b1f4b", "line-opacity": 0.75, "line-width": ["interpolate", ["linear"], ["zoom"], 10, 1, 14, 2.4, 17, 4], "line-dasharray": [3, 2] } });
+  if (map.getStyle().glyphs) map.addLayer({ id: "canali-lbl", type: "symbol", source: "canali", minzoom: 12.5, layout: { visibility: LY.canali ? "visible" : "none",
+    "symbol-placement": "line", "text-field": ["get", "n"], "text-size": 11, "text-font": ["Noto Sans Regular"], "symbol-spacing": 350, "text-max-angle": 30 },
+    paint: { "text-color": "#0b1f4b", "text-halo-color": "#ffffff", "text-halo-width": 1.6 } });
+  loadCanals().then(drawCanali);
   // bricole: puntini da lontano, 3D da vicino
   map.addSource("bricole", { type: "geojson", data: empty });
   map.addLayer({ id: "bricole", type: "circle", source: "bricole", paint: {
@@ -3070,7 +3123,7 @@ let INST = Object.assign({ speed: true, depth: false, tide: false, head: false, 
 // velocità, velox, marea ed ecoscandaglio ora lavorano sempre e si vedono tutti insieme nel mini widget
 Object.assign(INST, { speed: true, velox: true, tide: true, depth: true }); INST.bridge = false; INST.head = false;
 // cosa si vede sulla mappa in Nautica (finestrella delle impostazioni)
-let LY = Object.assign({ bricole: true, velox: true, boat: true, d3: true, cantieri: true }, store.get("ln_layers", {}));
+let LY = Object.assign({ bricole: true, velox: true, boat: true, d3: true, cantieri: true, canali: true }, store.get("ln_layers", {}));
 function paintInst(){
   document.querySelectorAll("#toggles button[data-inst]").forEach(b => b.classList.toggle("on", !!INST[b.dataset.inst]));
   $("#i-speed").classList.toggle("hidden", !INST.speed);
@@ -4053,6 +4106,17 @@ async function loadCantieri(){
   if (o && o.p) o.p.forEach(c => { if (!CANT.some(x => hav(x.lat, x.lng, c.lat, c.lng) < 90 || x.n.toLowerCase() === c.n.toLowerCase())) CANT.push(c); });
   drawCantieri();
 }
+// dalla rete dei canali tengo solo quelli lagunari: vie d'acqua segnate (fairway) e i "Canale ..." fuori dal centro storico
+function drawCanali(pack){
+  if (!map || !map.getSource("canali") || !pack || !pack.w) return;
+  const inCity = (la, lo) => la > 45.426 && la < 45.448 && lo > 12.306 && lo < 12.366;
+  const f = [];
+  pack.w.forEach(w => { const nm = pack.n[w[0]] || "", fl = w[2]; if (!(w[1] || /^(canale|canal)\b/i.test(nm)) || /^(rio|ramo|riello)\b/i.test(nm)) return;
+    const c = []; for (let i = 0; i < fl.length; i += 2) c.push([fl[i + 1] / 1e6, fl[i] / 1e6]);
+    if (c.length < 2) return; const mid = c[Math.floor(c.length / 2)]; if (!w[1] && inCity(mid[1], mid[0])) return;
+    f.push({ type: "Feature", properties: { n: nm }, geometry: { type: "LineString", coordinates: c } }); });
+  map.getSource("canali").setData({ type: "FeatureCollection", features: f });
+}
 function drawCantieri(){
   if (!map || !map.getSource("cantieri")) return;
   map.getSource("cantieri").setData({ type: "FeatureCollection", features: CANT.map((c, i) => ({ type: "Feature", properties: { i, n: c.n }, geometry: { type: "Point", coordinates: [c.lng, c.lat] } })) });
@@ -4906,6 +4970,7 @@ function layerVis(){
     "velox": n && LY.velox, "velox-tratte": n && LY.velox,
     "meman": me && d3, "medot": me, "frman": d3,
     "cantieri": n && LY.cantieri, "cantieri-lbl": n && LY.cantieri,
+    "canali": n && LY.canali, "canali-lbl": n && LY.canali,
     "ponti": false,
     "carta": n && dep, "carta-num": n && dep, "depths": n && dep,
     "fondo": n && dep,
@@ -4924,42 +4989,69 @@ function layerVis(){
 const STZ = [
   { k: "treni", n: "Ferrovia", full: "Venezia Santa Lucia", lat: 45.44120, lng: 12.32130,
     ic: '<path d="M7 4h10a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z"/><path d="M4 11h16M8 21l2-3M16 21l-2-3"/><circle cx="8.5" cy="14.5" r="1"/><circle cx="15.5" cy="14.5" r="1"/>' },
-  { k: "bus", n: "P.le Roma", full: "Piazzale Roma", lat: 45.43800, lng: 12.31880,
-    ic: '<rect x="4" y="3.5" width="16" height="15" rx="3"/><path d="M4 12h16M7 18.5v2M17 18.5v2M9 7h6"/><circle cx="8" cy="15.3" r="1"/><circle cx="16" cy="15.3" r="1"/>' }
+  { k: "bus", luogo: "proma", n: "P.le Roma", full: "Piazzale Roma", lat: 45.43800, lng: 12.31880,
+    ic: '<rect x="4" y="3.5" width="16" height="15" rx="3"/><path d="M4 12h16M7 18.5v2M17 18.5v2M9 7h6"/><circle cx="8" cy="15.3" r="1"/><circle cx="16" cy="15.3" r="1"/>' },
+  { k: "bus", luogo: "lido", n: "Lido S.M.E.", full: "Lido S.M.E. · bus", lat: 45.41760, lng: 12.36890,
+    ic: '<rect x="4" y="3.5" width="16" height="15" rx="3"/><path d="M4 12h16M7 18.5v2M17 18.5v2M9 7h6"/><circle cx="8" cy="15.3" r="1"/><circle cx="16" cy="15.3" r="1"/>' },
+  { k: "stadio", n: "Stadio Penzo", full: "Stadio Pier Luigi Penzo", lat: 45.42860, lng: 12.36450,
+    ic: '<ellipse cx="12" cy="12" rx="9" ry="6.5"/><ellipse cx="12" cy="12" rx="5" ry="3"/><path d="M12 5.5v13M3 12h4M17 12h4"/>' }
 ];
 let STZ_MK = [], stzTimer = null;
 function addStations(){
   if (STZ_MK.length || !map) return;
   STZ.forEach(st => { const el = document.createElement("div"); el.className = "stz";
     el.innerHTML = `<i><svg viewBox="0 0 24 24">${st.ic}</svg></i><span>${st.n}</span>`;
-    el.onclick = ev => { ev.stopPropagation(); openStation(st, "partenze"); };
+    el.onclick = ev => { ev.stopPropagation(); if (st.k === "stadio") openStadium(st); else openStation(st, "partenze"); };
     STZ_MK.push(new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([st.lng, st.lat]).addTo(map)); });
 }
+// tabellone come quello della stazione: fondo blu, scritte bianche e gialle, colonne fisse
 async function openStation(st, verso){
-  const tren = st.k === "treni";
-  const shell = body => openSheet(`<h3>${tren ? "🚆" : "🚌"} ${st.full}</h3>
-    <div class="seg stzseg"><button data-sv="partenze" class="${verso === "partenze" ? "on" : ""}">Partenze</button><button data-sv="arrivi" class="${verso === "arrivi" ? "on" : ""}">Arrivi</button></div>
-    <div id="stzBody">${body}</div>
-    <div class="row" style="margin-top:12px"><button class="btn ghost" id="stzGo">🧭 Portami qui</button><button class="btn ghost" id="stzX">Chiudi</button></div>`);
-  if (!$("#stzBody") || $("#sheet").classList.contains("hidden") || !$("#sheet .stzseg")) shell(`<p class="muted">Carico il tabellone…</p>`);
-  document.querySelectorAll("#sheet [data-sv]").forEach(b => { b.classList.toggle("on", b.dataset.sv === verso); b.onclick = () => openStation(st, b.dataset.sv); });
-  $("#stzGo").onclick = () => { clearInterval(stzTimer); closeSheet(); PLAN = null; openPlan({ name: st.full, lat: st.lat, lng: st.lng }); };
-  $("#stzX").onclick = () => { clearInterval(stzTimer); closeSheet(); };
-  clearInterval(stzTimer); stzTimer = setInterval(() => { if ($("#sheet").classList.contains("hidden") || !$("#sheet .stzseg")){ clearInterval(stzTimer); return; } openStation(st, verso); }, 30000);
+  const tren = st.k === "treni", B = $("#board");
+  B.classList.remove("hidden"); B.dataset.k = st.k + (st.luogo || "");
+  $("#bdClock").textContent = new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+  $("#bdTitle").textContent = verso === "arrivi" ? "ARRIVI" : "PARTENZE"; $("#bdTitleEn").textContent = verso === "arrivi" ? "ARRIVALS" : "DEPARTURES";
+  $("#bdSt").textContent = st.full.toUpperCase();
+  document.querySelectorAll("#board [data-bv]").forEach(b => { b.classList.toggle("on", b.dataset.bv === verso); b.onclick = () => openStation(st, b.dataset.bv); });
+  $("#bdHead").innerHTML = tren ? `<span class="c-tr">TRENO<i>TRAIN</i></span><span class="c-to">${verso === "arrivi" ? "PROVENIENZA<i>FROM</i>" : "DESTINAZIONE<i>DESTINATION</i>"}</span><span class="c-h">ORARIO<i>TIME</i></span><span class="c-d">RIT.<i>DELAY</i></span><span class="c-b">BIN.<i>PLAT.</i></span>`
+    : `<span class="c-tr">LINEA<i>LINE</i></span><span class="c-to">${verso === "arrivi" ? "PROVENIENZA<i>FROM</i>" : "DESTINAZIONE<i>DESTINATION</i>"}</span><span class="c-h">ORARIO<i>TIME</i></span><span class="c-d">TRA<i>IN</i></span>`;
+  $("#bdHead").classList.toggle("bus", !tren);
+  $("#bdGo").onclick = () => { closeBoard(); PLAN = null; openPlan({ name: st.full, lat: st.lat, lng: st.lng }); };
+  if (B.dataset.v !== verso || !$("#bdRows").children.length) $("#bdRows").innerHTML = `<div class="bdmsg">CARICAMENTO…</div>`;
+  B.dataset.v = verso;
+  clearInterval(stzTimer); stzTimer = setInterval(() => { if (B.classList.contains("hidden")){ clearInterval(stzTimer); return; } openStation(st, verso); }, 30000);
   let j;
-  try{ const r = await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/stazioni?tipo=" + st.k + "&verso=" + verso, {}, 20000); j = await r.json(); }
+  try{ const r = await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/stazioni?tipo=" + st.k + (st.luogo ? "&luogo=" + st.luogo : "") + "&verso=" + verso, {}, 25000); j = await r.json(); }
   catch(e){ j = { errore: "rete" }; }
-  const box = $("#stzBody"); if (!box) return;
-  if (!j || j.errore || !Array.isArray(j.corse)){
-    const missing = j && /not found|NOT_FOUND/i.test(String(j.errore || j.message || j.msg || ""));
-    box.innerHTML = `<p class="muted">${j && (j.message || j.msg) && !j.corse ? "Il tabellone si sta attivando sul server: riprova tra poco." : missing ? "Il tabellone si sta attivando sul server: riprova tra poco." : "Tabellone non disponibile: controlla la connessione."}</p>`; return;
-  }
-  if (!j.corse.length){ box.innerHTML = `<p class="muted">Nessun ${tren ? "treno" : "bus"} nelle prossime ore.</p>`; return; }
-  box.innerHTML = `<p class="muted" style="margin:0 0 6px">Aggiornato alle ${esc(j.adesso || "")} · si aggiorna da solo</p>` + (tren
-    ? j.corse.map(c => `<div class="stzr${c.soppresso ? " sop" : ""}"><b class="t">${esc(c.ora || "")}</b><div class="d"><b>${esc(c.luogo || "")}</b><small>${esc(c.treno || "")}${c.soppresso ? " · SOPPRESSO" : c.ritardo > 0 ? ` · <span class="late">+${c.ritardo} min</span>` : c.ritardo < 0 ? " · in anticipo" : " · in orario"}</small></div><span class="bin${c.cambio_binario ? " chg" : ""}">${c.binario ? "Bin. " + esc(c.binario) : ""}</span></div>`).join("")
-    : j.corse.map(c => { const lg = verso === "arrivi" ? "da " + ((c.luogo || "").split(/\s+-\s+/).filter(x => !/venezia|roma/i.test(x)).join(" - ") || c.luogo || "") : (c.luogo || "");
-      return `<div class="stzr"><b class="t">${esc(c.ora)}</b><div class="d">${lineBadge(c.linea, c.colore)}<b>${esc(lg)}</b></div><span class="bin">${c.tra_min <= 0 ? "ora" : c.tra_min + " min"}</span></div>`; }).join("")
-      + `<p class="muted" style="font-size:12px">Orari ufficiali ACTV (programmati, senza ritardi in tempo reale).</p>`);
+  if (B.classList.contains("hidden") || B.dataset.k !== st.k + (st.luogo || "") || B.dataset.v !== verso) return;
+  const box = $("#bdRows");
+  if (!j || j.errore || !Array.isArray(j.corse)){ box.innerHTML = `<div class="bdmsg">TABELLONE NON DISPONIBILE · CONTROLLA LA CONNESSIONE</div>`; return; }
+  if (!j.corse.length){ box.innerHTML = `<div class="bdmsg">NESSUN ${tren ? "TRENO" : "BUS"} NELLE PROSSIME ORE</div>`; return; }
+  const up = t => esc(String(t || "").toUpperCase());
+  box.innerHTML = tren
+    ? j.corse.map(c => `<div class="bdr${c.soppresso ? " sop" : ""}"><span class="c-tr">${up(c.treno)}</span><span class="c-to">${up(c.luogo)}</span><span class="c-h">${esc(c.ora || "")}</span>
+        <span class="c-d">${c.soppresso ? "SOPP." : c.ritardo > 0 ? "+" + c.ritardo + "'" : ""}</span><span class="c-b${c.cambio_binario ? " chg" : ""}${c.in_stazione ? " blink" : ""}">${up(c.binario)}</span></div>`).join("")
+    : j.corse.map(c => { const lg = verso === "arrivi" ? ((c.luogo || "").split(/\s+-\s+/).filter(x => !/venezia|roma|elisabetta|s\.?m\.?e/i.test(x)).join(" - ") || c.luogo || "") : (c.luogo || "");
+        return `<div class="bdr bus"><span class="c-tr">${up(c.linea)}</span><span class="c-to">${up(lg)}</span><span class="c-h">${esc(c.ora)}</span><span class="c-d">${c.tra_min <= 0 ? "ORA" : c.tra_min + "'"}</span></div>`; }).join("");
+  $("#bdNote").textContent = tren ? "Dati RFI · ViaggiaTreno · si aggiorna ogni 30 secondi" : "Orari programmati ACTV · si aggiorna ogni 30 secondi";
+}
+function closeBoard(){ $("#board").classList.add("hidden"); clearInterval(stzTimer); }
+setInterval(() => { const c = $("#bdClock"); if (c && !$("#board").classList.contains("hidden")) c.textContent = new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }); }, 1000);
+/* ---------- stadio Penzo: prossime 5 partite del Venezia in casa ---------- */
+let STADIO = null;
+async function openStadium(st){
+  openSheet(`<h3>🏟️ ${esc(st.full)}</h3><p class="muted" style="margin:-6px 0 10px">Le prossime partite del Venezia in casa</p><div id="sdBody"><p class="muted">Carico il calendario…</p></div>
+    <div class="row" style="margin-top:12px"><button class="btn ghost" id="sdGo">🧭 Portami qui</button><button class="btn ghost" onclick="closeSheet()">Chiudi</button></div>`);
+  $("#sdGo").onclick = () => { closeSheet(); PLAN = null; openPlan({ name: st.full, lat: st.lat, lng: st.lng }); };
+  if (!STADIO){ try{ STADIO = await fetch("stadio.json", { cache: "no-cache" }).then(r => r.json()); }catch(e){} }
+  const box = $("#sdBody"); if (!box) return;
+  if (!STADIO){ box.innerHTML = `<p class="muted">Calendario non disponibile: controlla la connessione.</p>`; return; }
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const next = STADIO.partite.filter(m => new Date(m.a + "T23:59:00") >= today).slice(0, 5);
+  if (!next.length){ box.innerHTML = `<p class="muted">Nessuna partita in casa in calendario.</p>`; return; }
+  const day = d => new Date(d + "T12:00:00").toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" });
+  box.innerHTML = next.map(m => `<div class="sdr"><div class="sdd"><b>${m.da === m.a ? day(m.da) : day(m.da) + " / " + day(m.a)}</b><small>${m.ora ? "ore " + esc(m.ora) : "orario da definire"} · ${m.g}ª giornata</small></div>
+      <div class="sdm"><b>Venezia</b><span>–</span><b>${esc(m.vs)}</b></div></div>`).join("")
+    + `<p class="muted" style="font-size:12px;margin-top:8px">${esc(STADIO.stagione)}. Data e ora esatte le fissa la Lega qualche settimana prima.</p>`;
 }
 /* dissolvenza di mezzo secondo quando uno strato appare o sparisce (cambio modalità, impostazioni) */
 const FADE_P = { circle: ["circle-opacity", "circle-stroke-opacity"], symbol: ["icon-opacity", "text-opacity"], line: ["line-opacity"], fill: ["fill-opacity"],
