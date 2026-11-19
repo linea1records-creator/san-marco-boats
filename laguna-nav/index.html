@@ -521,6 +521,14 @@
   .list-row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
   .list-row:first-child{border-top:0}
   .x{color:var(--danger);font-size:13px}
+  /* barra in basso: 5 modalità, icone sottili che si riempiono quando sono selezionate */
+  #tabs{display:flex;width:100%;max-width:520px;justify-content:space-around}
+  #tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0 2px;color:#7f8896;font-size:11px;font-weight:600;letter-spacing:.01em;background:none;border:0}
+  #tabs svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
+  #tabs button.on{color:#fff}
+  #tabs button.on .s{fill:currentColor}
+  #tabs button.on .c{stroke:#0b0f17}
+  #tabs button:active svg{transform:scale(.9)}
 </style>
 </head>
 <body>
@@ -878,7 +886,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.8</p>
+      <p class="sub">1Click · ClickVenice · versione 3.9</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -914,12 +922,7 @@
   </section>
 
   <nav id="dock">
-    <div id="dial" role="group" aria-label="Cambia modalità">
-      <button id="dPrev" aria-label="Modalità precedente">‹</button>
-      <div id="dCur" role="button" aria-label="Scegli la modalità"><div id="dTrack"></div><span class="dots" id="dDots"></span><b id="dName" class="sr">Nautica</b></div>
-      <button id="dNext" aria-label="Modalità successiva">›</button>
-    </div>
-    <div id="dPick" class="hidden"></div>
+    <div id="tabs" role="tablist" aria-label="Modalità"></div>
   </nav>
 </div>
 
@@ -1159,57 +1162,30 @@ function haptic(){
   try{ let l = document.getElementById("hapL"); if (!l){ l = document.createElement("label"); l.id = "hapL"; l.style.cssText = "position:fixed;left:-99px;top:0;width:1px;height:1px;overflow:hidden";
     l.innerHTML = '<input type="checkbox" switch>'; document.body.appendChild(l); } l.click(); }catch(e){}
 }
+const TAB_IC = {   // linea sottile · .s si riempie quando la scheda è selezionata, .c resta come dettaglio
+  nautica: '<path class="s" d="M3 14.5h18l-2.6 5H5.6z"/><path d="M12 3.5v11"/><path class="s" d="M12 4.5l6 8h-6z"/>',
+  market: '<path class="s" d="M5.5 8h13l-1 12.5h-11z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>',
+  meet: '<path class="s" d="M4 5h16v11H9.5L4 20z"/>',
+  sport: '<circle class="s" cx="12" cy="12" r="8.7"/><path class="c" d="M3.3 12h17.4M12 3.3v17.4M6 5.8a8.7 8.7 0 0 1 0 12.4M18 5.8a8.7 8.7 0 0 0 0 12.4"/>',
+  my: '<circle class="s" cx="12" cy="8" r="3.9"/><path class="s" d="M4.3 20.5a7.7 7.7 0 0 1 15.4 0z"/>'
+};
 function buildDial(){
-  $("#dTrack").innerHTML = MODES.map(x => `<div class="dItem"><span class="ic">${x.ic}</span><b>${x.n}</b></div>`).join("");
-}
-function placeDial(pos, anim){
-  const t = $("#dTrack"); t.style.transition = anim ? "transform .22s cubic-bezier(.2,.8,.2,1)" : "none";
-  t.style.transform = `translateX(${-pos * DW}px)`;
-  const r = Math.round(Math.max(0, Math.min(MODES.length - 1, pos)));
-  [...t.children].forEach((c, i) => { const d = Math.min(1, Math.abs(i - pos)); c.style.opacity = 1 - d * .6; c.style.transform = `scale(${1 - d * .18})`; });
-  $("#dDots").innerHTML = MODES.map((_, i) => `<i class="${i === r ? "on" : ""}"></i>`).join("");
-  MODES.forEach((x, i) => document.body.classList.toggle("m-" + x.k, i === r));
+  $("#tabs").innerHTML = MODES.map(x => `<button role="tab" data-pm="${x.k}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_IC[x.k] || ""}</svg><span>${x.n}</span></button>`).join("");
 }
 function paintDial(){
-  dPos = modeIdx; placeDial(dPos, true); $("#dName").textContent = MODES[modeIdx].n;
-  $("#dPick").innerHTML = MODES.map((x, i) => `<button data-pm="${x.k}" class="${i === modeIdx ? "on" : ""}"><span>${x.ic}</span>${x.n}</button>`).join("");
+  document.querySelectorAll("#tabs [data-pm]").forEach((b, i) => { const on = i === modeIdx; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+  MODES.forEach((x, i) => document.body.classList.toggle("m-" + x.k, i === modeIdx));
 }
 function setMode(k){
   const i = MODES.findIndex(x => x.k === k); if (i < 0) return;
-  const m = MODES[i]; $("#dPick").classList.add("hidden");
+  const m = MODES[i];
   if (m.am === "incontra" && !store.get("ln_adult", false)){ paintDial(); showView("map"); setAppMode("incontra"); return; }   // prima chiede i 18 anni
   modeIdx = i; paintDial();
   showView(m.v);
   if (m.am) setAppMode(m.am);
 }
 function stepMode(d){ haptic(); setMode(MODES[(modeIdx + d + MODES.length) % MODES.length].k); }
-$("#dPrev").onclick = () => stepMode(-1);
-$("#dNext").onclick = () => stepMode(1);
-(() => {   // trascinamento in tempo reale: poco = una modalità, tanto = più modalità
-  const d = $("#dial"); let x0 = null, start = 0, last = 0, dragging = false, pid = null;
-  d.addEventListener("pointerdown", e => { if (e.target.closest("#dPrev,#dNext")) return; x0 = e.clientX; start = modeIdx; last = modeIdx; dragging = false; pid = e.pointerId; });
-  d.addEventListener("pointermove", e => {
-    if (x0 === null || e.pointerId !== pid) return;
-    const dx = e.clientX - x0; if (!dragging && Math.abs(dx) < 6) return;
-    if (!dragging){ dragging = true; try{ d.setPointerCapture(pid); }catch(_){} $("#dPick").classList.add("hidden"); }
-    let pos = start - dx / DSTEP; const max = MODES.length - 1;
-    if (pos < 0) pos = pos / 3; if (pos > max) pos = max + (pos - max) / 3;   // elastico ai bordi
-    dPos = pos; placeDial(pos, false);
-    const r = Math.round(Math.max(0, Math.min(max, pos))); if (r !== last){ last = r; haptic(); }
-  });
-  const end = e => {
-    if (x0 === null) return; const dx = e.clientX - x0; x0 = null;
-    if (!dragging){ return; }
-    dragging = false; d._swiped = Date.now();
-    let r = Math.round(Math.max(0, Math.min(MODES.length - 1, start - dx / DSTEP)));
-    if (r === start && Math.abs(dx) > 22){ r = Math.max(0, Math.min(MODES.length - 1, start + (dx < 0 ? 1 : -1))); haptic(); }
-    if (r !== start) setMode(MODES[r].k); else placeDial(modeIdx, true);
-  };
-  d.addEventListener("pointerup", end); d.addEventListener("pointercancel", e => { x0 = null; dragging = false; placeDial(modeIdx, true); });
-  $("#dCur").onclick = () => { if (d._swiped && Date.now() - d._swiped < 400) return; $("#dPick").classList.toggle("hidden"); };
-})();
-$("#dPick").addEventListener("click", e => { const b = e.target.closest("[data-pm]"); if (b){ haptic(); setMode(b.dataset.pm); } });
-document.addEventListener("click", e => { if (!e.target.closest("#dock")) $("#dPick").classList.add("hidden"); });
+$("#tabs").addEventListener("click", e => { const b = e.target.closest("[data-pm]"); if (b){ if (b.dataset.pm !== MODES[modeIdx].k) haptic(); setMode(b.dataset.pm); } });
 buildDial(); paintDial();
 // dal profilo si entra in Barca, Rider e Info; "‹ Profilo" torna indietro
 document.addEventListener("click", e => {
