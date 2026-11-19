@@ -100,6 +100,7 @@
   .eta{font-size:22px;font-weight:800;color:var(--ok)}
   .btn.danger{background:var(--danger);color:#fff}
   .me{width:1px;height:1px;pointer-events:none}
+  body.fp .meTag{display:none}
   .meTag{position:absolute;left:50%;bottom:0;transform:translateX(-50%);white-space:nowrap;background:#111;color:#fff;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.35)}
   .dest{width:22px;height:22px;border-radius:50%;background:#d32f2f;border:4px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5)}
   /* ===== Tema: blu per la navigazione, rosso e bianco (trattoria) per i ristoranti ===== */
@@ -889,7 +890,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.15</p>
+      <p class="sub">1Click · ClickVenice · versione 3.16</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -1843,7 +1844,7 @@ function drawMan(force){
   const key = [lastPos.lat.toFixed(6), lastPos.lng.toFixed(6), Math.round(heading / 4)].join();
   if (!force && key === manKey) return; manKey = key;
   if (map.getSource("medot")) map.getSource("medot").setData({ type: "Point", coordinates: [lastPos.lng, lastPos.lat] });
-  map.getSource("meman").setData(manFeatures(lastPos.lat, lastPos.lng, heading, z));
+  map.getSource("meman").setData(manFeatures(lastPos.lat, lastPos.lng, heading));
 }
 // la scritta "Sei qui" sta sopra la testa dell'omino (più la mappa è inclinata, più l'omino è alto sullo schermo)
 let meOff = null;
@@ -1857,14 +1858,15 @@ let headingSrc = store.get("ln_hsrc", "phone"), courseHeading = null, compassAt 
 $("#fabGps").onclick = () => {
   askCompass();                       // su iPhone il permesso della bussola si chiede solo dentro il tocco
   if (watchId === null) startGps();
+  if (follow && lastPos && !view3d){ setFirstPerson(true); return; }   // già centrato: secondo tocco = navigatore in prima persona
   setFollow(true); camera(true);
 };
 $("#fabView").onclick = () => { setFirstPerson(!view3d); if (view3d) setFollow(true); };
 // prima persona: da vicino, la mappa gira con la bussola · altrimenti la mappa resta come la giri tu e vedi l'omino in 3D
 function setFirstPerson(on){
-  view3d = on; $("#fabView").classList.toggle("on", on); $("#fabView").title = on ? "Esci dalla prima persona" : "Prima persona (la mappa gira con la bussola)";
+  view3d = on; $("#fabView").classList.toggle("on", on); document.body.classList.toggle("fp", on); $("#fabView").title = on ? "Esci dalla prima persona" : "Prima persona (la mappa gira con la bussola)";
   if (!map) return; const h = map.getContainer().clientHeight;
-  if (on) map.easeTo({ center: lastPos ? [lastPos.lng, lastPos.lat] : map.getCenter(), zoom: 19.4, pitch: 76, bearing: heading, padding: { top: h * 0.5, bottom: 0, left: 0, right: 0 }, duration: 900 });
+  if (on) map.easeTo({ center: lastPos ? [lastPos.lng, lastPos.lat] : map.getCenter(), zoom: 17.9, pitch: 72, bearing: heading, padding: { top: h * 0.55, bottom: 0, left: 0, right: 0 }, duration: 900 });
   else map.easeTo({ pitch: 50, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 600 });
 }
 $("#fabVoice").onclick = () => { voiceOn = !voiceOn; store.set("ln_voice", voiceOn); paintVoice(); if (voiceOn) say("Voce attiva"); };
@@ -1967,9 +1969,9 @@ function camera(force){
   if (!map || !lastPos) return;
   const h = map.getContainer().clientHeight;
   camC = { lat: lastPos.lat, lng: lastPos.lng };
-  map.easeTo({ center: [lastPos.lng, lastPos.lat], zoom: force ? (view3d ? 19.4 : Math.max(map.getZoom(), 16.5)) : map.getZoom(),
-    bearing: view3d ? heading : map.getBearing(), pitch: view3d ? 76 : Math.max(map.getPitch(), force ? 50 : 0),
-    padding: { top: view3d ? h * 0.5 : 0, bottom: 0, left: 0, right: 0 }, duration: 700, essential: true });
+  map.easeTo({ center: [lastPos.lng, lastPos.lat], zoom: force ? (view3d ? 17.9 : Math.max(map.getZoom(), 16.5)) : map.getZoom(),
+    bearing: view3d ? heading : map.getBearing(), pitch: view3d ? 72 : Math.max(map.getPitch(), force ? 50 : 0),
+    padding: { top: view3d ? h * 0.55 : 0, bottom: 0, left: 0, right: 0 }, duration: 700, essential: true });
 }
 
 /* ---------- zone controllate e bassi fondali ---------- */
@@ -2510,7 +2512,7 @@ async function startNav(dest, opt){
   opt = opt || {};
   if (watchId === null){ askCompass(); startGps(); }
   NAV = { dest, R: null, idx: 0, spoken: "", lastCalc: 0, arrived: false, origin: opt.from || null, pending: !!opt.from };
-  document.body.classList.add("nav");
+  document.body.classList.add("nav"); setFollow(true); setTimeout(() => setFirstPerson(true), 300);   // navigazione = vista da dietro l'omino
   $("#searchBox").classList.add("hidden"); $("#routeBox").classList.add("hidden"); $("#maneuver").classList.remove("hidden"); $("#navBar").classList.remove("hidden");
   $("#maneuver").classList.remove("off"); $("#mIcon").textContent = "…"; $("#mDist").textContent = dest.name; $("#mText").textContent = NAV.pending ? "Vai al punto di partenza" : "Preparo le rotte…";
   if (destMarker) destMarker.remove();
