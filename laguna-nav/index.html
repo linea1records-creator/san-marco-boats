@@ -889,7 +889,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.14</p>
+      <p class="sub">1Click · ClickVenice · versione 3.15</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -1645,13 +1645,13 @@ function initMap(){
   if (!window.maplibregl){ mapError("Controlla la connessione internet e ricarica la pagina."); return; }
   map = new maplibregl.Map({ container: "map", style: STYLE_VECTOR, center: [12.3326, 45.4371], zoom: 14,
     maxBounds: [[11.95, 45.12], [12.80, 45.68]], // solo Venezia e la sua laguna
-    pitch: 0, maxPitch: 70, attributionControl: { compact: true }, dragRotate: true, touchPitch: true });
+    pitch: 0, maxPitch: 80, attributionControl: { compact: true }, dragRotate: true, touchPitch: true });
   let styled = false;
   const fallback = setTimeout(() => { if (!styled) map.setStyle(STYLE_RASTER); }, 9000);
   map.on("error", e => { if (!styled && e && e.error && /style|json/i.test(String(e.error.message || ""))) { clearTimeout(fallback); map.setStyle(STYLE_RASTER); } });
   map.on("style.load", () => { styled = true; clearTimeout(fallback); addLayers(); });
   map.on("dragstart", e => { if (e.originalEvent) setFollow(false); });
-  map.on("pitch", rotMe);
+  map.on("pitch", rotMe); map.on("zoom", rotMe);
   map.on("zoomend", e => { if (view3d && e.originalEvent && map.getZoom() < 16) setFirstPerson(false); });
   map.on("click", e => {
     if (addMode === "wzpick"){ addMode = null; $("#modeHint").classList.add("hidden"); if (window._wzPick){ const f = window._wzPick; window._wzPick = null; f(e.lngLat); } return; }
@@ -1680,7 +1680,8 @@ function initMap(){
 }
 function addManLayer(){
   if (!map.getSource("meman") || map.getLayer("meman")) return;
-  map.addLayer({ id: "meman", type: "fill-extrusion", source: "meman", paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true } });
+  map.addLayer({ id: "medot", type: "circle", source: "medot", maxzoom: MAN_MINZ, paint: { "circle-radius": 8, "circle-color": "#1a73e8", "circle-stroke-color": "#ffffff", "circle-stroke-width": 3, "circle-pitch-alignment": "map" } });
+  map.addLayer({ id: "meman", type: "fill-extrusion", source: "meman", minzoom: MAN_MINZ, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true } });
   manKey = ""; drawMan(true);
 }
 function addLayers(){
@@ -1695,6 +1696,7 @@ function addLayers(){
   // le zone controllate non si disegnano più (i limiti veri arrivano dalle tratte dei velox)
   map.addSource("route", { type: "geojson", data: empty });
   map.addSource("meman", { type: "geojson", data: empty });
+  map.addSource("medot", { type: "geojson", data: empty });
   map.addLayer({ id: "route-case", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#0b4fa8", "line-width": 13 } });
   map.addLayer({ id: "route", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#2f8cff", "line-width": 8 } });
   map.addSource("depths", { type: "geojson", data: empty });
@@ -1815,7 +1817,7 @@ function makeArrow(){
 const MAN_C = { skin: "#f6c9a0", hair: "#6b3f1f", shirt: "#1a73e8", legs: "#2b3a55", shoe: "#222222", eye: "#2b1a10", mouth: "#c0392b" };
 let manKey = "";
 function manFeatures(lat, lng, hdg, zoom){
-  const u = manUnit(lat, zoom);
+  const u = MAN_U;
   const r = hdg * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r), kLat = 1 / 111320, kLng = 1 / (111320 * Math.cos(lat * Math.PI / 180));
   const pt = (x, y) => { const E = (x * cs + y * sn) * u, N = (-x * sn + y * cs) * u; return [lng + E * kLng, lat + N * kLat]; };
   const out = [], box = (x0, x1, y0, y1, b, t, c) => out.push({ type: "Feature", properties: { c: MAN_C[c], b: b * u, h: t * u },
@@ -1832,21 +1834,21 @@ function manFeatures(lat, lng, hdg, zoom){
   box(-0.8, 0.8, 1.6, 1.85, 8.7, 9.0, "mouth"); box(-1.05, -0.75, 1.6, 1.85, 8.9, 9.25, "mouth"); box(0.75, 1.05, 1.6, 1.85, 8.9, 9.25, "mouth");
   return { type: "FeatureCollection", features: out };
 }
-// grandezza di un blocchetto in metri: da vicino è un oggetto vero (cresce con lo zoom),
-// da lontano non scende sotto ~2,5 pixel (l'omino resta piccolo ma visibile)
-const MAN_U = 1.5;
-function manUnit(lat, zoom){ const mpp = 156543.03 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom); return Math.max(MAN_U, mpp * 2.5); }
-function manPx(){ if (!map || !lastPos) return 2.5; const mpp = 156543.03 * Math.cos(lastPos.lat * Math.PI / 180) / Math.pow(2, map.getZoom()); return manUnit(lastPos.lat, map.getZoom()) / mpp; }
+// l'omino è alto 40 metri veri (non cambia con lo zoom); da lontano, quando diventa troppo piccolo, resta il puntino blu
+const MAN_U = 40 / 11.9, MAN_MINZ = 15.6;
+function manUnit(){ return MAN_U; }
+function manPx(){ if (!map || !lastPos) return 0; const mpp = 156543.03 * Math.cos(lastPos.lat * Math.PI / 180) / Math.pow(2, map.getZoom()); return MAN_U / mpp; }
 function drawMan(force){
   if (!map || !lastPos || !map.getSource("meman")) return;
-  const u = manUnit(lastPos.lat, map.getZoom()), key = [lastPos.lat.toFixed(6), lastPos.lng.toFixed(6), Math.round(heading / 4), Math.round(Math.log(u) * 25)].join();
+  const key = [lastPos.lat.toFixed(6), lastPos.lng.toFixed(6), Math.round(heading / 4)].join();
   if (!force && key === manKey) return; manKey = key;
+  if (map.getSource("medot")) map.getSource("medot").setData({ type: "Point", coordinates: [lastPos.lng, lastPos.lat] });
   map.getSource("meman").setData(manFeatures(lastPos.lat, lastPos.lng, heading, z));
 }
 // la scritta "Sei qui" sta sopra la testa dell'omino (più la mappa è inclinata, più l'omino è alto sullo schermo)
 let meOff = null;
 function rotMe(){ if (!meMarker || !map) return; const p = map.getPitch() * Math.PI / 180, px = manPx();
-  const o = -Math.round(Math.max(12, 11.9 * px * Math.sin(p) + 2 * px * Math.cos(p))) - 4;
+  const o = map.getZoom() < MAN_MINZ ? -12 : -Math.round(Math.max(12, 11.9 * px * Math.sin(p) + 2 * px * Math.cos(p))) - 4;
   if (o !== meOff){ meOff = o; meMarker.setOffset([0, o]); } }
 
 /* ---------- GPS e bussola ---------- */
@@ -1862,7 +1864,7 @@ $("#fabView").onclick = () => { setFirstPerson(!view3d); if (view3d) setFollow(t
 function setFirstPerson(on){
   view3d = on; $("#fabView").classList.toggle("on", on); $("#fabView").title = on ? "Esci dalla prima persona" : "Prima persona (la mappa gira con la bussola)";
   if (!map) return; const h = map.getContainer().clientHeight;
-  if (on) map.easeTo({ center: lastPos ? [lastPos.lng, lastPos.lat] : map.getCenter(), zoom: Math.max(map.getZoom(), 18.3), pitch: 72, bearing: heading, padding: { top: h * 0.42, bottom: 0, left: 0, right: 0 }, duration: 700 });
+  if (on) map.easeTo({ center: lastPos ? [lastPos.lng, lastPos.lat] : map.getCenter(), zoom: 19.4, pitch: 76, bearing: heading, padding: { top: h * 0.5, bottom: 0, left: 0, right: 0 }, duration: 900 });
   else map.easeTo({ pitch: 50, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 600 });
 }
 $("#fabVoice").onclick = () => { voiceOn = !voiceOn; store.set("ln_voice", voiceOn); paintVoice(); if (voiceOn) say("Voce attiva"); };
@@ -1965,9 +1967,9 @@ function camera(force){
   if (!map || !lastPos) return;
   const h = map.getContainer().clientHeight;
   camC = { lat: lastPos.lat, lng: lastPos.lng };
-  map.easeTo({ center: [lastPos.lng, lastPos.lat], zoom: force ? Math.max(map.getZoom(), view3d ? 18.3 : 16.5) : map.getZoom(),
-    bearing: view3d ? heading : map.getBearing(), pitch: view3d ? 72 : Math.max(map.getPitch(), force ? 50 : 0),
-    padding: { top: view3d ? h * 0.42 : 0, bottom: 0, left: 0, right: 0 }, duration: 700, essential: true });
+  map.easeTo({ center: [lastPos.lng, lastPos.lat], zoom: force ? (view3d ? 19.4 : Math.max(map.getZoom(), 16.5)) : map.getZoom(),
+    bearing: view3d ? heading : map.getBearing(), pitch: view3d ? 76 : Math.max(map.getPitch(), force ? 50 : 0),
+    padding: { top: view3d ? h * 0.5 : 0, bottom: 0, left: 0, right: 0 }, duration: 700, essential: true });
 }
 
 /* ---------- zone controllate e bassi fondali ---------- */
