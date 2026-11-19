@@ -1,8 +1,8 @@
 -- 1Click · Gioca: tris tra amici (da eseguire una volta sul progetto Supabase LAGUNA NAV)
 create table if not exists public.tris_games (
   id bigserial primary key,
-  x_id uuid not null references public.profiles(id) on delete cascade,
-  o_id uuid not null references public.profiles(id) on delete cascade,
+  x_id bigint not null references public.profiles(id) on delete cascade,
+  o_id bigint not null references public.profiles(id) on delete cascade,
   board text not null default '.........',
   turn char(1) not null default 'X',
   status text not null default 'invito',   -- invito | gioco | fine | rifiutata
@@ -20,7 +20,7 @@ create or replace function public.tris_win(b text) returns char language sql imm
     case when position('.' in b) = 0 then '=' else null end);
 $$;
 
-create or replace function public.tris_json(g public.tris_games, me uuid) returns jsonb language sql stable set search_path to 'public' as $$
+create or replace function public.tris_json(g public.tris_games, me bigint) returns jsonb language sql stable set search_path to 'public' as $$
   select jsonb_build_object('id', g.id, 'board', g.board, 'turn', g.turn, 'status', g.status, 'winner', g.winner,
     'io', case when g.x_id = me then 'X' else 'O' end,
     'avversario', (select clickname from profiles where id = case when g.x_id = me then g.o_id else g.x_id end),
