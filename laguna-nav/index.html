@@ -525,11 +525,13 @@
   #tabs{display:flex;width:100%;max-width:520px;justify-content:space-around}
   #tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0 2px;color:#7f8896;font-size:11px;font-weight:600;letter-spacing:.01em;background:none;border:0}
   #tabs svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
-  #tabs button.on{color:#fff}
+  body nav#dock{background:#fff;border-top:1px solid #e3e5e8}
+  #tabs button{color:#8a8f98}
+  #tabs button.on{color:#000}
   #tabs button.on .s{fill:currentColor}
-  #tabs button.on .c{stroke:#0b0f17}
+  #tabs button.on .c{stroke:#fff}
   #tabs button:active svg{transform:scale(.9)}
-  #verMark{position:absolute;right:8px;top:2px;font-size:9px;line-height:1;color:#fff;opacity:.35;pointer-events:none;letter-spacing:.03em}
+  #verMark{position:absolute;right:8px;top:2px;font-size:9px;line-height:1;color:#000;opacity:.4;pointer-events:none;letter-spacing:.03em}
 </style>
 </head>
 <body>
@@ -887,7 +889,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.10</p>
+      <p class="sub">1Click · ClickVenice · versione 3.11</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
