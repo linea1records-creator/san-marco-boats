@@ -306,6 +306,11 @@
   .wzo.on .wzck{background:#2f8cff;border-color:#2f8cff;box-shadow:inset 0 0 0 3px #14284d}
   .boatpick{display:flex;gap:8px;flex-wrap:wrap} .boatpick button{background:var(--panel2);border:1.5px solid var(--line);color:var(--text);border-radius:14px;padding:10px 14px;font-weight:700}
   .boatpick button.on{border-color:#2f8cff;background:#14284d}
+  .me.fr .meTag{pointer-events:auto;cursor:pointer}
+  .kiss{font-size:22px;line-height:1;pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+  .kiss span{display:block;will-change:transform}
+  .kiss.pop span{animation:kpop .45s ease-out forwards}
+  @keyframes kpop{to{transform:scale(2.2);opacity:0}}
   #tideC{width:100%;height:36px;display:block;margin-top:4px;border-radius:8px;background:#06101f}
   /* ===== 1Click / ClickVenice ===== */
   #splash{background:radial-gradient(120% 80% at 50% 0%,#0d2b5a 0%,#000 70%)}
@@ -894,7 +899,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.17</p>
+      <p class="sub">1Click · ClickVenice · versione 3.18</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -1693,6 +1698,8 @@ function initMap(){
     if (addMode === "pickfrom"){ addMode = null; $("#modeHint").classList.add("hidden"); if (PLAN){ PLAN.from = { name: "Punto sulla mappa", lat: e.lngLat.lat, lng: e.lngLat.lng }; showPlan(); } return; }
     if (addMode === "zone") return zoneForm(e.lngLat);
     if (addMode === "depth") return depthForm(e.lngLat);
+    { const fr = map.queryRenderedFeatures([[e.point.x - 14, e.point.y - 14], [e.point.x + 14, e.point.y + 14]], { layers: ["frman", "frdot"].filter(l => map.getLayer(l)) })[0];
+      if (fr && fr.properties.n) return kissAsk(fr.properties.n); }
     if (INST.water && appMode === "nautica"){
       const z = fondoAt(e.lngLat.lat, e.lngLat.lng), t = tideNow() ?? 30;
       const ff = map.queryRenderedFeatures(e.point, { layers: ["partners", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
@@ -1725,11 +1732,12 @@ let FR_LOC = [], FR_MK = [], frPush = 0;
 function drawFriends(){
   if (!map || !map.getSource("frman")) return;
   const list = appMode === "nautica" ? FR_LOC : [], feats = [];
-  list.forEach(f => manFeatures(f.lat, f.lng, f.hdg || 0, f.avatar || {}, feats));
+  list.forEach(f => { const k = feats.length; manFeatures(f.lat, f.lng, f.hdg || 0, f.avatar || {}, feats); for (let i = k; i < feats.length; i++) feats[i].properties.n = f.nome; });
   map.getSource("frman").setData({ type: "FeatureCollection", features: feats });
-  map.getSource("frdot").setData({ type: "FeatureCollection", features: list.map(f => ({ type: "Feature", properties: { c: (f.avatar && f.avatar.shirt) || "#0a8f4e" }, geometry: { type: "Point", coordinates: [f.lng, f.lat] } })) });
+  map.getSource("frdot").setData({ type: "FeatureCollection", features: list.map(f => ({ type: "Feature", properties: { c: (f.avatar && f.avatar.shirt) || "#0a8f4e", n: f.nome }, geometry: { type: "Point", coordinates: [f.lng, f.lat] } })) });
   FR_MK.forEach(m => m.remove()); FR_MK = list.map(f => { const el = document.createElement("div"); el.className = "me fr";
     el.innerHTML = `<div class="meTag">${esc(f.nome)}${f.minuti >= 2 ? ` <small>${f.minuti}′ fa</small>` : ""}</div>`;
+    el.querySelector(".meTag").onclick = ev => { ev.stopPropagation(); kissAsk(f.nome); };
     return new maplibregl.Marker({ element: el, anchor: "bottom", offset: [0, meOff || -12] }).setLngLat([f.lng, f.lat]).addTo(map); });
 }
 async function loadFriendsLoc(){
@@ -1741,7 +1749,55 @@ function pushMyLoc(p){
   if (!store.get("ln_share", false) || typeof PROFILE === "undefined" || !PROFILE || Date.now() - frPush < 25000) return;
   frPush = Date.now(); rpc("loc_push", { p_lat: p.lat, p_lng: p.lng, p_hdg: Math.round(heading) }).catch(() => {});
 }
-setTimeout(() => { loadFriendsLoc(); setInterval(loadFriendsLoc, 20000); }, 4000);
+setTimeout(() => { loadFriendsLoc(); setInterval(loadFriendsLoc, 20000); kissPoll(); setInterval(kissPoll, 5000); }, 4000);
+
+/* baci da lontano: volano sulla mappa da chi li manda a chi li riceve in 7 secondi */
+const KISS_MS = 7000;
+function kissAsk(nome){
+  const f = FR_LOC.find(x => x.nome === nome); if (!f) return;
+  openSheet(`<h3>${esc(nome)}</h3><p class="muted" style="margin-top:-4px">${f.minuti >= 2 ? "Posizione di " + f.minuti + " minuti fa" : "È qui adesso"}</p>
+    <button class="btn" id="kissGo" style="font-size:19px">😘 Manda un bacio</button><button class="btn ghost" id="kissX" style="margin-top:10px">Chiudi</button>`);
+  $("#kissX").onclick = closeSheet;
+  $("#kissGo").onclick = async () => {
+    closeSheet(); if (!lastPos){ toast("Serve la tua posizione: tocca ➤"); return; }
+    let r; try{ r = await rpc("kiss_send", { p_nome: nome, p_lat: lastPos.lat, p_lng: lastPos.lng }); }catch(e){ toast("Bacio non partito: controlla la connessione."); return; }
+    if (r && r.errore){ toast(r.errore === "troppi" ? "Piano con i baci! Riprova tra un minuto 😄" : r.errore === "non_amici" ? "Puoi mandare baci solo ai tuoi amici." : "Bacio non partito."); return; }
+    haptic(); kissFly([lastPos.lng, lastPos.lat], [f.lng, f.lat], () => toast(`😘 Bacio arrivato a ${nome}`));
+  };
+}
+function kissFly(from, to, done){
+  if (!map) return;
+  const N = 5, mks = [], t0 = performance.now(), dpx = Math.hypot(...[0, 1].map(i => map.project(from)[["x", "y"][i]] - map.project(to)[["x", "y"][i]]));
+  const arc = Math.max(40, Math.min(160, dpx * 0.35));
+  for (let i = 0; i < N; i++){ const el = document.createElement("div"); el.className = "kiss"; el.innerHTML = `<span>${i % 2 ? "❤️" : "💋"}</span>`;
+    mks.push(new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat(from).addTo(map)); }
+  const step = now => {
+    let alive = false;
+    mks.forEach((m, i) => {
+      const t = (now - t0 - i * 450) / KISS_MS; const el = m.getElement();
+      if (t < 0){ el.style.opacity = 0; alive = true; return; }
+      if (t >= 1){ if (!el._done){ el._done = 1; el.classList.add("pop"); setTimeout(() => m.remove(), 450); } return; }
+      alive = true; const e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      m.setLngLat([from[0] + (to[0] - from[0]) * e, from[1] + (to[1] - from[1]) * e]);
+      m.setOffset([Math.sin(t * Math.PI * 3 + i) * 10, -Math.sin(t * Math.PI) * arc - 30]);
+      el.style.opacity = 1; el.firstChild.style.transform = `scale(${0.8 + Math.sin(t * Math.PI) * 0.6})`;
+    });
+    if (alive) requestAnimationFrame(step); else done && done();
+  };
+  requestAnimationFrame(step);
+}
+let KISS_LAST = null;   // all'apertura prende solo il numero dell'ultimo bacio, poi mostra quelli nuovi
+async function kissPoll(){
+  if (typeof PROFILE === "undefined" || !PROFILE || document.hidden) return;
+  let r; try{ r = await rpc("kiss_inbox", { p_after: KISS_LAST }); }catch(e){ return; }
+  if (!r || r.errore) return;
+  const first = KISS_LAST === null; KISS_LAST = Math.max(KISS_LAST || 0, r.ultimo || 0);
+  if (first) return;
+  (r.baci || []).forEach((k, i) => setTimeout(() => {
+    haptic(); toast(`😘 ${k.nome} ti manda un bacio!`);
+    if (lastPos && k.lat && appMode === "nautica" && $("#v-map") && !$("#v-map").classList.contains("hidden")) kissFly([k.lng, k.lat], [lastPos.lng, lastPos.lat], () => { haptic(); });
+  }, i * 1500));
+}
 function addLayers(){
   setTimeout(drawOneWay, 300); setTimeout(addManLayer, 400);
   BASE_LAYERS = map.getStyle().layers.map(l => ({ id: l.id, type: l.type, vis: (l.layout && l.layout.visibility) || "visible" }));
