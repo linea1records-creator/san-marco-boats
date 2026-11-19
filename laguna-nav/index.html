@@ -533,20 +533,20 @@
   #tabs{display:flex;width:100%;max-width:520px;justify-content:space-around}
   #tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0 2px;color:#7f8896;font-size:11px;font-weight:600;letter-spacing:.01em;background:none;border:0}
   #tabs svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
-  body nav#dock{background:#fff;border-top:1px solid #e3e5e8}
+  body nav#dock{background:#000;border-top:1px solid #2a2a2a}
   #tabs button{color:#8a8f98}
-  #tabs button.on{color:#000}
+  #tabs button.on{color:#fff}
   #tabs button.on .s{fill:currentColor}
-  #tabs button.on .c{stroke:#fff}
+  #tabs button.on .c{stroke:#000}
   #tabs button:active svg{transform:scale(.9)}
   /* tasto centrale Naviga: più grande, cerchio nero che esce dalla barra */
   #tabs button.mid{flex:1.15;gap:2px;padding-top:0}
-  #tabs button.mid .ring{width:58px;height:58px;margin-top:-26px;display:flex;align-items:center;justify-content:center;transition:transform .15s;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35))}
+  #tabs button.mid .ring{width:58px;height:58px;margin-top:-26px;display:flex;align-items:center;justify-content:center;transition:transform .15s;filter:drop-shadow(0 3px 8px rgba(47,164,255,.45))}
   #tabs button.mid svg{width:58px;height:58px;stroke:none}
-  #tabs button.mid .arw{fill:#5f646b;stroke:#fff;stroke-width:3.5;stroke-linejoin:round}
-  #tabs button.mid .arl{fill:none;stroke:#c9ccd1;stroke-width:1.6;stroke-linecap:round}
-  #tabs button.mid.on .arw{fill:#000}
-  #tabs button.mid span{font-size:12px;font-weight:800;color:#000}
+  #tabs button.mid .arw{fill:#7cc4ff;stroke:#000;stroke-width:3.5;stroke-linejoin:round;opacity:.75}
+  #tabs button.mid .arl{fill:none;stroke:#e6f4ff;stroke-width:1.6;stroke-linecap:round}
+  #tabs button.mid.on .arw{fill:#2fa4ff;opacity:1}
+  #tabs button.mid span{font-size:12px;font-weight:800;color:#fff}
   #tabs button.mid:active .ring{transform:scale(.93)}
   #tabs button.mid:active svg{transform:none}
   /* Gioca: giochi dal vivo / tris */
@@ -569,7 +569,7 @@
   .tboard button:disabled{cursor:default}
   .tstate{text-align:center;font-size:16px;font-weight:700;margin:4px 0}
   .tsub{text-align:center;color:var(--muted);font-size:13px}
-  #verMark{position:absolute;right:8px;top:2px;font-size:9px;line-height:1;color:#000;opacity:.4;pointer-events:none;letter-spacing:.03em}
+  #verMark{position:absolute;right:8px;top:2px;font-size:9px;line-height:1;color:#fff;opacity:.4;pointer-events:none;letter-spacing:.03em}
   /* impostazioni della mappa (Nautica): finestrella con gli interruttori */
   #fabSet svg{width:24px;height:24px;fill:none;stroke:#111;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
   #fabSet.on{background:#111}
@@ -979,7 +979,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.21</p>
+      <p class="sub">1Click · ClickVenice · versione 3.22</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
