@@ -522,192 +522,8 @@
   .list-row:first-child{border-top:0}
   .x{color:var(--danger);font-size:13px}
 </style>
-<style id="theme">
-  /* ===== TASTI: neri e grigio metallizzato, icone sottili (piene quando selezionate) ===== */
-  :root{
-    --metal:linear-gradient(160deg,#eef0f2 0%,#b9bec5 38%,#8d939b 62%,#d6d9dd 100%);
-    --metal2:linear-gradient(160deg,#3a3d42 0%,#24262a 55%,#33363b 100%);
-  }
-  .i{width:1.15em;height:1.15em;vertical-align:-.2em;fill:none;stroke:currentColor;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
-  .ico{display:inline-flex;line-height:1}
-  button .emo,.btn .emo{filter:grayscale(1) contrast(1.05) brightness(1.1)}
-  .on .i .s, .i.f .s{fill:currentColor}
-  .on .i .c, .i.f .c{stroke:#000}
-  .on .i, .i.f{stroke-width:1.6}
-
-  /* tasti principali */
-  .btn,.btn.danger,a.btn{background:var(--metal)!important;color:#0a0a0b!important;border:0!important;font-weight:650;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 1px 2px rgba(0,0,0,.5)}
-  .btn.ghost{background:#0e0f10!important;color:#f1f2f4!important;border:1px solid #2c2e32!important;box-shadow:none}
-  .btn .i .c{stroke:#c9cdd2}
-
-  /* tasti tondi sulla mappa */
-  .fab{background:#0e0f10!important;color:#e9ebee!important;border:1px solid #2e3034!important;box-shadow:0 3px 12px rgba(0,0,0,.5)!important}
-  .fab .i{width:22px;height:22px}
-  .fab.big,.fab.on{background:var(--metal)!important;color:#000!important;border:0!important}
-  .fab.big .i .c,.fab.on .i .c{stroke:#c9cdd2}
-  .fab.sosfab,.fab.rec{background:#f1f2f4!important;color:#000!important;font-weight:800;letter-spacing:.04em;border:0!important}
-  #toggles button{background:#0e0f10!important;color:#e9ebee!important;border:1px solid #2e3034!important}
-  #toggles button.on{background:var(--metal)!important;color:#000!important}
-  #toggles button.on .i .c{stroke:#c9cdd2}
-
-  /* tasto centrale delle modalità */
-  #dial, body[class*="m-"] #dial{background:var(--metal2)!important;border:1px solid #3a3d42;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 16px rgba(0,0,0,.6)!important}
-  #dial button,.dItem{color:#e9ebee}
-  .dItem .i{width:24px;height:24px}
-  .dots i{background:rgba(255,255,255,.25)} .dots i.on{background:#d6d9dd}
-  #dPick{background:#0e0f10!important;border:1px solid #2c2e32}
-  #dPick button{color:#a4a9b0!important}
-  #dPick button span .i{width:24px;height:24px}
-  #dPick button.on{background:var(--metal)!important;color:#000!important}
-  #dPick button.on .i .c{stroke:#c9cdd2}
-
-  /* schede e filtri */
-  .seg button,.mkcats button,#meetModes button,#meetFilters button,.chips button,.chip{background:#0e0f10!important;color:#d4d7db!important;border:1px solid #2a2c30!important}
-  .seg button.on,.mkcats button.on,#meetModes button.on,#meetFilters button.on,.chips button.on,.chip.on{background:var(--metal)!important;color:#000!important;border-color:transparent!important}
-  .seg button.on .i .c,.mkcats button.on .i .c,#meetModes button.on .i .c,#meetFilters button.on .i .c,.chips button.on .i .c,.chip.on .i .c{stroke:#c9cdd2}
-
-  /* risposte dei questionari */
-  .wzo{background:#0f1011!important;color:#f1f2f4!important;border:1px solid #2a2c30!important}
-  .wzo.on,.wzo:active{background:var(--metal)!important;color:#000!important;border-color:transparent!important}
-  .wzo.on .i .c{stroke:#c9cdd2}
-  #meetBanner,#evBanner{background:#0e0f10!important;color:#f1f2f4!important;border:1px solid #2c2e32!important;box-shadow:0 3px 12px rgba(0,0,0,.35)!important}
-  #meetBanner *,#evBanner *{color:inherit!important}
-</style>
 </head>
 <body>
-<script id="icons">
-/* =========================================================
-   ICONE — linea sottile; piene quando il tasto è selezionato
-   s = parte che si riempie · c = dettaglio che "taglia" la parte piena
-   ========================================================= */
-const IC = {
-  pin: '<path class="s" d="M12 21s-6.5-6.1-6.5-11.1a6.5 6.5 0 0 1 13 0C18.5 14.9 12 21 12 21z"/><circle class="c" cx="12" cy="9.9" r="2.3"/>',
-  buoy: '<circle class="s" cx="12" cy="12" r="8.5"/><circle class="c" cx="12" cy="12" r="3.6"/><path class="c" d="M6 6l3.4 3.4M18 6l-3.4 3.4M6 18l3.4-3.4M18 18l-3.4-3.4"/>',
-  taxi: '<path class="s" d="M2.5 15h19l-2.6 4.5H5.2z"/><path class="s" d="M6.5 15v-4h8l3 4"/><rect class="s" x="9" y="7.5" width="4" height="2" rx=".5"/>',
-  office: '<rect class="s" x="5" y="3.5" width="14" height="17" rx="1"/><path class="c" d="M8.5 7.5h2M13.5 7.5h2M8.5 11h2M13.5 11h2M8.5 14.5h2M13.5 14.5h2M10.5 20.5v-2.5h3v2.5"/>',
-  boat: '<path class="s" d="M2.5 14.5h18l-2.4 4H5.4z"/><path class="s" d="M7.5 14.5l2-4h5.5l2.5 4"/><path d="M2 21.2c1.5 0 1.5-.9 3-.9s1.5.9 3 .9 1.5-.9 3-.9 1.5.9 3 .9 1.5-.9 3-.9 1.5.9 3 .9"/>',
-  sail: '<path class="s" d="M11.3 3.5v10.8H5.2z"/><path class="s" d="M12.8 6.5v7.8h5.2z"/><path class="s" d="M3.5 16.3h17l-2.4 3.6H5.9z"/>',
-  users: '<circle class="s" cx="9" cy="8.5" r="3.2"/><path class="s" d="M2.8 19.5a6.2 6.2 0 0 1 12.4 0z"/><path d="M15.2 5.6a3.1 3.1 0 0 1 0 5.9M17.5 13.6a6.2 6.2 0 0 1 3.7 5.9"/>',
-  user: '<circle class="s" cx="12" cy="8" r="3.8"/><path class="s" d="M4.5 20.5a7.5 7.5 0 0 1 15 0z"/>',
-  phone: '<path class="s" d="M6.6 3.5h2.6l1.4 4.3-2 1.6a11 11 0 0 0 6 6l1.6-2 4.3 1.4v2.6a1.6 1.6 0 0 1-1.7 1.6A15.5 15.5 0 0 1 5 5.2a1.6 1.6 0 0 1 1.6-1.7z"/>',
-  chat: '<path class="s" d="M4 5h16v10.5h-9.5L6 19v-3.5H4z"/>',
-  spark: '<path class="s" d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path class="s" d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/>',
-  star: '<path class="s" d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z"/>',
-  party: '<path class="s" d="M4 20l3.8-10.8 7 7z"/><path d="M14 4.5v2M19.5 10h-2M17.2 6.8l1.4-1.4M12.5 8.5c.8-1.5.8-2.5 0-4M15.5 11.5c1.5-.8 2.5-.8 4 0"/>',
-  nav: '<path class="s" d="M20 4L4 11l7 2 2 7z"/>',
-  bag: '<path class="s" d="M5 8h14l-1 12.5H6z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>',
-  anchor: '<circle class="s" cx="12" cy="5" r="1.9"/><path d="M12 7v13.5M8 10.5h8M4.5 13.5a7.5 7.5 0 0 0 15 0M4.5 13.5l-1.3 1.6M19.5 13.5l1.3 1.6"/>',
-  map: '<path class="s" d="M3 6.2l6-2 6 2 6-2v13.6l-6 2-6-2-6 2z"/><path class="c" d="M9 4.2v13.6M15 6.2v13.6"/>',
-  video: '<rect class="s" x="2.5" y="6.5" width="12.5" height="11" rx="2"/><path class="s" d="M15 10.5l6.5-3.3v9.6L15 13.5z"/>',
-  flag: '<path d="M5.5 21V3.5"/><path class="s" d="M5.5 4.2h12.5l-2.6 4.2 2.6 4.2H5.5"/>',
-  camera: '<path class="s" d="M3 8h4l1.6-2.5h6.8L17 8h4v11.5H3z"/><circle class="c" cx="12" cy="13.5" r="3.5"/>',
-  up: '<path class="s" d="M7.5 10.5v9.5H4v-9.5z"/><path class="s" d="M7.5 10.5L11 3.5c1.7 0 2.6 1.1 2.2 2.7L12.4 9.5h6a1.9 1.9 0 0 1 1.9 2.2l-1.2 6.4a2.3 2.3 0 0 1-2.3 1.9H7.5"/>',
-  down: '<g transform="rotate(180 12 12)"><path class="s" d="M7.5 10.5v9.5H4v-9.5z"/><path class="s" d="M7.5 10.5L11 3.5c1.7 0 2.6 1.1 2.2 2.7L12.4 9.5h6a1.9 1.9 0 0 1 1.9 2.2l-1.2 6.4a2.3 2.3 0 0 1-2.3 1.9H7.5"/></g>',
-  pencil: '<path class="s" d="M4 20l1-4.6L15.6 4.8l3.6 3.6L8.6 19z"/><path class="c" d="M13.6 6.8l3.6 3.6"/>',
-  warn: '<path class="s" d="M12 3.5l9.5 16.5h-19z"/><path class="c" d="M12 9.5v4.5M12 16.8v.4"/>',
-  stop: '<circle class="s" cx="12" cy="12" r="8.5"/><path class="c" d="M7.5 12h9"/>',
-  food: '<path class="s" d="M3.5 11.5h17a8.5 8.5 0 0 1-17 0z"/><path d="M9 8.5c-.8-1.2.8-2.3 0-3.5M13 8.5c-.8-1.2.8-2.3 0-3.5"/>',
-  recycle: '<path d="M19.8 13.5A8 8 0 1 1 17.6 6.4"/><path d="M19.5 3.8v4.5H15"/>',
-  compass: '<circle class="s" cx="12" cy="12" r="8.5"/><path class="c" d="M15.5 8.5l-2 5-5 2 2-5z"/>',
-  walk: '<circle class="s" cx="13" cy="4.6" r="1.9"/><path d="M10.5 21l2-6.5 3 2.5V21M12.5 14.5l-.8-5 3.3 3 2.5.5M11.7 9.5L8.5 11l-1 3"/>',
-  search: '<circle class="s" cx="10.8" cy="10.8" r="6.3"/><path d="M15.5 15.5L20.5 20.5"/>',
-  ball: '<circle class="s" cx="12" cy="12" r="8.5"/><path class="c" d="M12 8l3.4 2.5-1.3 4h-4.2l-1.3-4zM12 8V3.6M15.4 10.5l4.2-1.3M14.1 14.5l2.6 3.5M9.9 14.5L7.3 18M8.6 10.5L4.4 9.2"/>',
-  drop: '<path class="s" d="M12 3.5s6 6.4 6 10.6a6 6 0 0 1-12 0c0-4.2 6-10.6 6-10.6z"/>',
-  sat: '<rect class="s" x="9.2" y="9.2" width="5.6" height="5.6" rx=".8" transform="rotate(45 12 12)"/><rect class="s" x="2.8" y="2.8" width="5" height="5" transform="rotate(45 5.3 5.3)"/><rect class="s" x="16.2" y="16.2" width="5" height="5" transform="rotate(45 18.7 18.7)"/><path d="M7.1 7.1l2 2M14.9 14.9l2 2"/>',
-  case: '<rect class="s" x="3" y="7.5" width="18" height="12.5" rx="2"/><path d="M9 7.5V5.5h6v2"/><path class="c" d="M3 12.5h18"/>',
-  clock: '<circle class="s" cx="12" cy="12" r="8.5"/><path class="c" d="M12 7.5V12l3 2"/>',
-  heart: '<path class="s" d="M12 20s-7.8-4.7-7.8-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.8 2.5C19.8 15.3 12 20 12 20z"/>',
-  drink: '<path class="s" d="M5 4.5h14L12 12z"/><path d="M12 12v8M8.5 20.5h7"/>',
-  mic: '<rect class="s" x="9" y="3" width="6" height="11" rx="3"/><path d="M5.8 11a6.2 6.2 0 0 0 12.4 0M12 17.2V21"/>',
-  sound: '<path class="s" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>',
-  mute: '<path class="s" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/>',
-  doc: '<path class="s" d="M6 3h8.5L18.5 7v14H6z"/><path class="c" d="M9 11h6.5M9 14.5h6.5M9 18h4"/>',
-  smile: '<circle class="s" cx="12" cy="12" r="8.5"/><path class="c" d="M8.5 13.8a4 4 0 0 0 7 0M9.3 9.6v.4M14.7 9.6v.4"/>',
-  lock: '<rect class="s" x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',
-  bridge: '<path d="M2.5 18.5h19M3.5 18.5a8.5 6.5 0 0 1 17 0M7 18.5v-4M12 18.5v-6.5M17 18.5v-4"/>',
-  waves: '<path d="M2.5 9c1.6 0 1.6-1.2 3.2-1.2S7.3 9 8.9 9s1.6-1.2 3.2-1.2S13.7 9 15.3 9s1.6-1.2 3.2-1.2S20.1 9 21.5 9M2.5 13.5c1.6 0 1.6-1.2 3.2-1.2s1.6 1.2 3.2 1.2 1.6-1.2 3.2-1.2 1.6 1.2 3.2 1.2 1.6-1.2 3.2-1.2 1.6 1.2 3 1.2M2.5 18c1.6 0 1.6-1.2 3.2-1.2S7.3 18 8.9 18s1.6-1.2 3.2-1.2 1.6 1.2 3.2 1.2 1.6-1.2 3.2-1.2 1.6 1.2 3 1.2"/>',
-  image: '<rect class="s" x="3" y="4.5" width="18" height="15" rx="2"/><path class="c" d="M3.5 17l5-5 4 4 2.5-2.5 5 5"/><circle class="c" cx="15.5" cy="9" r="1.5"/>',
-  cal: '<rect class="s" x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M8 3v4M16 3v4"/><path class="c" d="M3.5 10h17"/>',
-  bolt: '<path class="s" d="M13 2.5L5 13.5h6l-1 8 8-11h-6z"/>',
-  home: '<path class="s" d="M4 11L12 4l8 7v9.5H4z"/><path class="c" d="M10 20.5v-5h4v5"/>',
-  key: '<circle class="s" cx="8" cy="15" r="4"/><path d="M11 12l8.5-8.5M16.5 6.5l2.5 2.5M14.5 8.5l2 2"/>',
-  globe: '<circle class="s" cx="12" cy="12" r="8.5"/><path class="c" d="M3.5 12h17M12 3.5c2.5 2.5 3.5 5.3 3.5 8.5s-1 6-3.5 8.5c-2.5-2.5-3.5-5.3-3.5-8.5s1-6 3.5-8.5z"/>',
-  mail: '<rect class="s" x="3" y="5.5" width="18" height="13" rx="2"/><path class="c" d="M3.5 6.5L12 13l8.5-6.5"/>',
-  eye: '<path class="s" d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle class="c" cx="12" cy="12" r="3"/>',
-  hide: '<path d="M2.5 12S6 5.5 12 5.5c2 0 3.7.7 5.1 1.7M21.5 12s-3.5 6.5-9.5 6.5c-2 0-3.7-.7-5.1-1.7M4 20L20 4"/>',
-  bus: '<rect class="s" x="5" y="3.5" width="14" height="15" rx="2.5"/><path class="c" d="M5 11h14M8.5 15.2v.3M15.5 15.2v.3"/><path d="M7.5 18.5v2M16.5 18.5v2"/>',
-  plane: '<path class="s" d="M10.5 3.5c0-.8.7-1.5 1.5-1.5s1.5.7 1.5 1.5V9l7.5 4.5v2L13.5 13v4.5l2.5 2V21L12 20l-4 1v-1.5l2.5-2V13L3 15.5v-2L10.5 9z"/>',
-  museum: '<path class="s" d="M3 9.5L12 4l9 5.5z"/><path d="M5.5 10v8M9.5 10v8M14.5 10v8M18.5 10v8M3 20.5h18"/>',
-  wrench: '<path class="s" d="M14.5 3.5a4.8 4.8 0 0 0-4.4 6.6L3.5 16.7 7.3 20.5l6.6-6.6a4.8 4.8 0 0 0 6.6-4.4l-2.8 2.8-2.9-.8-.8-2.9z"/>',
-  trash: '<path d="M4 6.5h16M9.5 6.5V4h5v2.5"/><path class="s" d="M6 6.5l1 14h10l1-14z"/>',
-  music: '<path d="M9 17.5V5l10-2v12.5"/><circle class="s" cx="6.5" cy="17.5" r="2.5"/><circle class="s" cx="16.5" cy="15.5" r="2.5"/>',
-  fire: '<path class="s" d="M12 21a6.5 6.5 0 0 1-6.5-6.5c0-4.5 4.5-6 4.5-11 3 1.5 4 4 4 6 1-1 1.5-2 1.5-3 2 2 3 5 3 8A6.5 6.5 0 0 1 12 21z"/>',
-  hand: '<path class="s" d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11V4a1.5 1.5 0 0 1 3 0v7V5.5a1.5 1.5 0 0 1 3 0V14c0 4-2.5 7-6.5 7-2.5 0-4-1.2-5.5-3.5L3 13.7a1.5 1.5 0 0 1 2.5-1.6z"/>',
-  bell: '<path class="s" d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
-  dots: '<circle class="s" cx="5.5" cy="12" r="1.4"/><circle class="s" cx="12" cy="12" r="1.4"/><circle class="s" cx="18.5" cy="12" r="1.4"/>',
-  layers: '<path class="s" d="M12 3.5l9 4.8-9 4.8-9-4.8z"/><path d="M3 12.5l9 4.8 9-4.8M3 16.5l9 4.8 9-4.8"/>',
-  cube: '<path class="s" d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path class="c" d="M4 7.5l8 4.5 8-4.5M12 12v9"/>',
-  gauge: '<path class="s" d="M3.5 17a8.5 8.5 0 1 1 17 0z"/><path class="c" d="M12 17l3.5-5"/>',
-  sonar: '<path d="M2.5 10c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 3-2"/><path class="s" d="M2.5 14.5c2 0 2-1.5 4-1.5s2 3 4 3 2-2 4-2 2 2.5 4 2.5 2-1 3-1v5h-19z"/>',
-  speed: '<circle class="s" cx="12" cy="13" r="8"/><path class="c" d="M12 13l4-4M12 6v1.5M6 13H7.5M18 13h-1.5"/>',
-  plus: '<path d="M12 5v14M5 12h14"/>',
-  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
-  steer: '<circle class="s" cx="12" cy="12" r="6"/><circle class="c" cx="12" cy="12" r="1.8"/><path d="M12 2.5v3.5M12 18v3.5M2.5 12H6M18 12h3.5M5.3 5.3l2.5 2.5M16.2 16.2l2.5 2.5M5.3 18.7l2.5-2.5M16.2 7.8l2.5-2.5"/>',
-  vibe: '<rect class="s" x="7.5" y="3.5" width="9" height="17" rx="2"/><path d="M4.5 8v8M19.5 8v8M2 10v4M22 10v4"/>',
-  medkit: '<rect class="s" x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V4.5h6V7"/><path class="c" d="M12 10.5v6M9 13.5h6"/>',
-  run: '<circle class="s" cx="15" cy="4.5" r="1.9"/><path d="M6 20.5l3.5-4.5 3 1.5 1-5 3 2.5h3M13.5 12.5L11 8.5 7.5 10l-1.5 3"/>',
-  bike: '<circle cx="6" cy="16" r="3.5"/><circle cx="18" cy="16" r="3.5"/><path d="M6 16l3.5-7h6L18 16M9 6h3M12.5 16l3-7"/>',
-  row: '<path class="s" d="M2.5 15h19l-2.5 3.5h-14z"/><path d="M5 20.5L19 6"/><circle class="s" cx="12" cy="9" r="1.6"/>',
-  trophy: '<path class="s" d="M7.5 4h9v5a4.5 4.5 0 0 1-9 0z"/><path d="M7.5 6H4.5a3 3 0 0 0 3 4M16.5 6h3a3 3 0 0 1-3 4M12 13.5V17M8.5 20.5h7M9.5 17h5v3.5"/>',
-  cart: '<path d="M2.5 4h2.5l2.2 11.5h11l2-8H6"/><circle class="s" cx="9" cy="19.5" r="1.4"/><circle class="s" cx="17" cy="19.5" r="1.4"/>',
-  parking: '<rect class="s" x="3.5" y="3.5" width="17" height="17" rx="3"/><path class="c" d="M9.5 17V7h3.5a3 3 0 0 1 0 6H9.5"/>',
-  wave: '<path class="s" d="M3 17c3 0 4-9 9-9s5 5 9 5v5.5H3z"/>',
-  art: '<path class="s" d="M12 3.5a8.5 8.5 0 0 0 0 17c1.5 0 1.8-1.2 1.2-2.2-.7-1.2 0-2.6 1.4-2.6h2.2A3.7 3.7 0 0 0 20.5 12 8.5 8.5 0 0 0 12 3.5z"/><path class="c" d="M7.5 11.5v.3M10 7.5v.3M15 7.5v.3"/>',
-  ticket: '<path class="s" d="M3.5 7h17v3a2 2 0 0 0 0 4v3h-17v-3a2 2 0 0 0 0-4z"/><path class="c" d="M14.5 7.5v9" stroke-dasharray="1.5 1.5"/>',
-  hourglass: '<path class="s" d="M6.5 3.5h11c0 4-5.5 5.5-5.5 8.5s5.5 4.5 5.5 8.5h-11c0-4 5.5-5.5 5.5-8.5S6.5 7.5 6.5 3.5z"/>'
-};
-// emoji → icona
-const EMO = {
-  "📍": "pin", "📌": "pin", "🆘": "buoy", "🚨": "buoy", "🚕": "taxi", "🏢": "office", "🚤": "boat", "🛥": "boat", "⛵": "sail",
-  "👥": "users", "🤝": "users", "👤": "user", "🧑‍🔧": "wrench", "🧑‍✈️": "steer", "📞": "phone", "📲": "phone", "📟": "phone", "📳": "vibe",
-  "💬": "chat", "✨": "spark", "⭐": "star", "🎉": "party", "➤": "nav", "🛍": "bag", "🛒": "cart", "⚓": "anchor", "🗺": "map",
-  "🎥": "video", "⚑": "flag", "⚐": "flag", "🏁": "flag", "📷": "camera", "📸": "camera", "🤳": "camera", "👍": "up", "👎": "down",
-  "✏": "pencil", "⚠": "warn", "⛔": "stop", "🍝": "food", "♻": "recycle", "🧭": "compass", "🚶": "walk", "🏃": "run", "🔍": "search",
-  "⚽": "ball", "🥅": "ball", "🏀": "ball", "🏐": "ball", "🎾": "ball", "🏓": "ball", "🏅": "trophy", "💧": "drop", "🛰": "sat",
-  "💼": "case", "🕐": "clock", "⏳": "hourglass", "💛": "heart", "❤": "heart", "🍹": "drink", "🎙": "mic", "🔈": "sound", "🔊": "sound",
-  "🔇": "mute", "📋": "doc", "📄": "doc", "🙂": "smile", "👋": "hand", "✋": "hand", "🔞": "lock", "🔒": "lock", "🔑": "key", "🌉": "bridge",
-  "🏖": "wave", "🌊": "waves", "〰": "sonar", "🖼": "image", "📅": "cal", "🗓": "cal", "⚡": "bolt", "🏠": "home", "🌐": "globe", "✉": "mail",
-  "📨": "mail", "👁": "eye", "🙈": "hide", "🚌": "bus", "🚆": "bus", "🚏": "bus", "✈": "plane", "🏛": "museum", "🏺": "museum", "🅿": "parking",
-  "🎨": "art", "🔧": "wrench", "🩹": "medkit", "🗑": "trash", "🎵": "music", "🔥": "fire", "🚣": "row", "🚴": "bike", "💥": "spark", "🎫": "ticket"
-};
-const EMO_RX = /(?:\p{Extended_Pictographic}|[⚐⚑➤〰])(?:️|‍(?:\p{Extended_Pictographic})️?)*/gu;
-function icon(name, full){ const p = IC[name]; return p ? `<svg class="i${full ? " f" : ""}" viewBox="0 0 24 24" aria-hidden="true">${p}</svg>` : ""; }
-function iconize(root){
-  const skip = n => { for (let e = n.parentNode; e && e !== document.body; e = e.parentNode){ const t = e.nodeName; if (t === "SCRIPT" || t === "STYLE" || t === "TEXTAREA" || t === "INPUT" || t === "OPTION" || t === "SELECT" || t === "svg" || t === "TITLE" || (e.classList && (e.classList.contains("ugc") || e.classList.contains("emo") || e.classList.contains("ico"))) || e.isContentEditable) return true; } return false; };
-  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), list = [];
-  for (let n = w.nextNode(); n; n = w.nextNode()){ EMO_RX.lastIndex = 0; if (EMO_RX.test(n.nodeValue)) list.push(n); }
-  list.forEach(n => { if (!n.parentNode || skip(n)) return;
-    const s = n.nodeValue, frag = document.createDocumentFragment(); let last = 0; EMO_RX.lastIndex = 0;
-    for (let m; (m = EMO_RX.exec(s));){
-      if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index)));
-      const key = m[0].replace(/️/g, ""), name = EMO[key] || EMO[[...key][0]];
-      const sp = document.createElement("span"); sp.dataset.e = m[0];
-      if (name){ sp.className = "ico"; sp.innerHTML = icon(name); } else { sp.className = "emo"; sp.textContent = m[0]; }
-      frag.appendChild(sp); last = m.index + m[0].length;
-    }
-    if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last)));
-    n.parentNode.replaceChild(frag, n);
-  });
-}
-// sostituisce le emoji appena compaiono nella pagina
-(() => {
-  let pending = false; const queue = new Set();
-  const flush = () => { pending = false; queue.forEach(n => { if (n.isConnected) iconize(n); }); queue.clear(); };
-  new MutationObserver(ms => { ms.forEach(m => { if (m.type === "characterData") queue.add(m.target.parentNode || m.target); else m.addedNodes.forEach(n => queue.add(n.nodeType === 3 ? n.parentNode || n : n)); });
-    if (!pending){ pending = true; queueMicrotask(flush); } }).observe(document.documentElement, { childList: true, subtree: true, characterData: true });
-  if (document.body) iconize(document.body); else document.addEventListener("DOMContentLoaded", () => iconize(document.body));
-})();
-</script>
 
 <!-- ============ SPLASH: avviso obbligatorio ============ -->
 <div id="splash">
@@ -1062,7 +878,7 @@ function iconize(root){
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">1Click · ClickVenice · versione 3.10</p>
+      <p class="sub">1Click · ClickVenice · versione 3.8</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa 1Click</button>
@@ -1328,7 +1144,7 @@ function showView(v){
   if (v === "boat") setTimeout(() => { renderBoat(); paintEngChips(); }, 0);
 }
 const MODES = [
-  { k: "nautica", ic: "⛵", n: "Nautica", v: "map", am: "nautica" },
+  { k: "nautica", ic: "⚓", n: "Nautica", v: "map", am: "nautica" },
   { k: "market", ic: "🛍️", n: "Shopping", v: "map", am: "market" },
   { k: "meet", ic: "💬", n: "Meetup", v: "map", am: "incontra" },
   { k: "sport", ic: "⚽", n: "Sport", v: "map", am: "sport" },
@@ -1350,7 +1166,7 @@ function placeDial(pos, anim){
   const t = $("#dTrack"); t.style.transition = anim ? "transform .22s cubic-bezier(.2,.8,.2,1)" : "none";
   t.style.transform = `translateX(${-pos * DW}px)`;
   const r = Math.round(Math.max(0, Math.min(MODES.length - 1, pos)));
-  [...t.children].forEach((c, i) => { const d = Math.min(1, Math.abs(i - pos)); c.style.opacity = 1 - d * .6; c.style.transform = `scale(${1 - d * .18})`; c.classList.toggle("on", i === r); });
+  [...t.children].forEach((c, i) => { const d = Math.min(1, Math.abs(i - pos)); c.style.opacity = 1 - d * .6; c.style.transform = `scale(${1 - d * .18})`; });
   $("#dDots").innerHTML = MODES.map((_, i) => `<i class="${i === r ? "on" : ""}"></i>`).join("");
   MODES.forEach((x, i) => document.body.classList.toggle("m-" + x.k, i === r));
 }
