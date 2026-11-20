@@ -1107,7 +1107,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">unClick · unClick · versione 3.40</p>
+      <p class="sub">unClick · unClick · versione 3.41</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa unClick</button>
@@ -1934,7 +1934,7 @@ function addManLayer(){
   map.addLayer({ id: "frman", type: "fill-extrusion", source: "frman", minzoom: MAN_MINZ, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true } });
   map.addLayer({ id: "medot", type: "circle", source: "medot", maxzoom: MAN_MINZ, paint: { "circle-radius": 8, "circle-color": "#0c3851", "circle-stroke-color": "#ffffff", "circle-stroke-width": 3, "circle-pitch-alignment": "map" } });
   map.addLayer({ id: "meman", type: "fill-extrusion", source: "meman", minzoom: MAN_MINZ, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true } });
-  manKey = ""; drawMan(true); drawFriends(); apply3d(false);
+  manKey = ""; drawMan(true); drawFriends(); apply3d(false); hookManWater();
 }
 /* amici che condividono la posizione: omino 3D (o puntino da lontano) e il loro clickname */
 let FR_LOC = [], FR_MK = [], frPush = 0;
@@ -2174,8 +2174,12 @@ function manFeatures(lat, lng, hdg, av, out){
   const u = MAN_U, C = Object.assign({}, MAN_C, { shirt: /^#[0-9a-f]{6}$/i.test(av.shirt || "") ? av.shirt : MAN_C.shirt }), girl = av.sex === "f";
   const r = hdg * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r), kLat = 1 / 111320, kLng = 1 / (111320 * Math.cos(lat * Math.PI / 180));
   const pt = (x, y) => { const E = (x * cs + y * sn) * u, N = (-x * sn + y * cs) * u; return [lng + E * kLng, lat + N * kLat]; };
-  const box = (x0, x1, y0, y1, b, t, c) => out.push({ type: "Feature", properties: { c: C[c] || c, b: b * u, h: t * u },
-    geometry: { type: "Polygon", coordinates: [[pt(x0, y0), pt(x1, y0), pt(x1, y1), pt(x0, y1), pt(x0, y0)]] } });
+  const poly = (P, b, t, c) => out.push({ type: "Feature", properties: { c: C[c] || c, b: b * u, h: t * u },
+    geometry: { type: "Polygon", coordinates: [P.concat([P[0]]).map(q => pt(q[0], q[1]))] } });
+  // sull'acqua l'omino sta in piedi dentro una barchetta grande come lui (un po' verso poppa, sopra il pagliolo)
+  const wat = onWater(lat, lng), dz = wat ? 0.9 : 0, dy = wat ? -1.6 : 0;
+  if (wat) boatFeatures(poly);
+  const box = (x0, x1, y0, y1, b, t, c) => poly([[x0, y0 + dy], [x1, y0 + dy], [x1, y1 + dy], [x0, y1 + dy]], b + dz, t + dz, c);
   // x = destra, y = avanti (verso dove guarda), altezze in blocchetti
   box(-1.4, -0.2, -0.6, 0.8, 0, 0.6, "shoe"); box(0.2, 1.4, -0.6, 0.8, 0, 0.6, "shoe");
   if (girl){ box(-1.2, -0.3, -0.45, 0.45, 0.6, 3, "skin"); box(0.3, 1.2, -0.45, 0.45, 0.6, 3, "skin"); box(-1.9, 1.9, -1.1, 1.1, 3, 4.6, "shirt"); }
@@ -2190,6 +2194,33 @@ function manFeatures(lat, lng, hdg, av, out){
   box(-0.8, 0.8, 1.6, 1.85, 8.7, 9.0, "mouth"); box(-1.05, -0.75, 1.6, 1.85, 8.9, 9.25, "mouth"); box(0.75, 1.05, 1.6, 1.85, 8.9, 9.25, "mouth");
   return { type: "FeatureCollection", features: out };
 }
+// barchetta vista dall'alto: scafo bianco, bordo blu, pagliolo di legno, consolle e motore fuoribordo (lunga quanto l'omino è alto)
+const BOAT_OUT = [[-3.0, -6.8], [3.0, -6.8], [3.2, -3], [3.2, 2.2], [2.7, 4.3], [1.6, 5.8], [0, 6.8], [-1.6, 5.8], [-2.7, 4.3], [-3.2, 2.2], [-3.2, -3]];
+const BOAT_IN = BOAT_OUT.map(([x, y]) => [x * 0.84, y > 0 ? y * 0.86 : y * 0.93]);
+function boatFeatures(poly){
+  poly(BOAT_OUT, 0, 0.85, "#f4f6f8");                                   // scafo
+  poly(BOAT_IN, 0.85, 0.9, "#c89b62");                                  // pagliolo
+  for (let i = 0; i < BOAT_OUT.length; i++){                            // fiancate: bianche con il bordo blu in cima
+    const j = (i + 1) % BOAT_OUT.length, q = [BOAT_OUT[i], BOAT_OUT[j], BOAT_IN[j], BOAT_IN[i]];
+    poly(q, 0.85, 2.2, "#f4f6f8"); poly(q, 2.2, 2.55, "#0c3851"); }
+  poly([[-1.3, 1.3], [1.3, 1.3], [1.3, 2.2], [-1.3, 2.2]], 0.9, 3.3, "#d7dce2");      // consolle davanti all'omino
+  poly([[-1.2, 2.2], [1.2, 2.2], [1.1, 2.5], [-1.1, 2.5]], 3.3, 4.3, "#9fc6dd");      // parabrezza
+  poly([[-0.75, -8.1], [0.75, -8.1], [0.75, -6.8], [-0.75, -6.8]], 0.3, 3.0, "#1d1d1d"); // fuoribordo
+}
+// la posizione è sull'acqua? poligoni dell'acqua della mappa; se non ci sono, la rete dei canali
+const WATER_AT = new Map();
+function inRing(x, y, R){ let a = false; for (let i = 0, j = R.length - 1; i < R.length; j = i++){ const [xi, yi] = R[i], [xj, yj] = R[j];
+  if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) a = !a; } return a; }
+function onWater(lat, lng){
+  if (!map) return false;
+  const k = lat.toFixed(4) + "," + lng.toFixed(4); if (WATER_AT.has(k)) return WATER_AT.get(k);
+  let res = null;
+  try{ const F = map.querySourceFeatures("openmaptiles", { sourceLayer: "water" });
+    if (F.length){ res = F.some(f => { const g = f.geometry, P = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : [];
+      return P.some(rings => rings.length && inRing(lng, lat, rings[0]) && !rings.slice(1).some(h => inRing(lng, lat, h))); }); } }catch(e){}
+  if (res === null){ if (typeof G === "undefined" || !G.done) return false; res = !!gNear(lat, lng, 12); }   // tessere non pronte: non lo segno in memoria
+  if (WATER_AT.size > 400) WATER_AT.clear(); WATER_AT.set(k, res); return res;
+}
 // l'omino è alto 40 metri veri (non cambia con lo zoom); da lontano, quando diventa troppo piccolo, resta il puntino blu
 const MAN_U = 40 / 11.9, MAN_MINZ = 15.6;
 function manUnit(){ return MAN_U; }
@@ -2199,8 +2230,14 @@ function drawMan(force){
   const key = [lastPos.lat.toFixed(6), lastPos.lng.toFixed(6), Math.round(heading / 4)].join();
   if (!force && key === manKey) return; manKey = key;
   if (map.getSource("medot")) map.getSource("medot").setData({ type: "Point", coordinates: [lastPos.lng, lastPos.lat] });
+  manWat = onWater(lastPos.lat, lastPos.lng);
   map.getSource("meman").setData(manFeatures(lastPos.lat, lastPos.lng, heading, myAvatar()));
 }
+// quando la mappa ha finito di caricare ricontrollo se sei sull'acqua (la barchetta compare o sparisce)
+let manWat = null, manWatHook = false;
+function hookManWater(){ if (manWatHook || !map) return; manWatHook = true;
+  map.on("idle", () => { if (!lastPos) return; WATER_AT.delete(lastPos.lat.toFixed(4) + "," + lastPos.lng.toFixed(4));
+    if (onWater(lastPos.lat, lastPos.lng) !== manWat){ manKey = ""; drawMan(true); drawFriends(); } }); }
 // la scritta "Sei qui" sta sopra la testa dell'omino (più la mappa è inclinata, più l'omino è alto sullo schermo)
 let meOff = null;
 function rotMe(){ if (!meMarker || !map || !lastPos) return;
