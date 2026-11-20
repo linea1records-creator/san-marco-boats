@@ -926,6 +926,7 @@
       <button class="srow" data-set="bricole"><svg viewBox="0 0 24 24"><path d="M7 5v15M12 3.5V20M17 5v15M4.5 20h15M7 8h0M12 7h0M17 8h0"/></svg><span>Bricole</span><i class="sw"></i></button>
       <button class="srow" data-set="velox"><svg viewBox="0 0 24 24"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8.5 7.5L10 5h4l1.5 2.5"/></svg><span>Velox</span><i class="sw"></i></button>
       <button class="srow" data-set="actv"><svg viewBox="0 0 24 24"><path d="M3 16h18l-2.2 4H5.2z"/><rect x="6" y="9" width="12" height="7" rx="1.5"/><path d="M9.5 9V6.5h5V9M9 12.5h1.5M13.5 12.5H15"/></svg><span>ACTV</span><i class="sw"></i></button>
+      <button class="srow" data-set="alilaguna"><svg viewBox="0 0 24 24"><path d="M4 16.5h16l-2.3 4H6.3z"/><path d="M12 3.5v8M12 3.5l4.5 1.6L12 6.7"/><path d="M8.5 11.5h7l-1 5h-5z"/></svg><span>Alilaguna</span><i class="sw"></i></button>
       <button class="srow" data-set="canali"><svg viewBox="0 0 24 24"><path d="M3 17c3-1 5-6 9-6s6 5 9 6"/><path d="M3 21c3-1 5-6 9-6s6 5 9 6" stroke-dasharray="2 2.5"/><path d="M7 4v6M17 4v6"/></svg><span>Canali lagunari</span><i class="sw"></i></button>
       <button class="srow" data-set="cantieri"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5l-5.6 5.6a1.6 1.6 0 0 0 2.3 2.3l5.6-5.6a4 4 0 0 0 5-5.4l-2.4 2.4-2.1-.4-.4-2.1z"/></svg><span>Cantieri nautici</span><i class="sw"></i></button>
       <button class="srow" data-set="water"><svg viewBox="0 0 24 24"><path d="M12 3.5c3.5 4.3 6 7.6 6 10.5a6 6 0 0 1-12 0c0-2.9 2.5-6.2 6-10.5z"/><path d="M9 15a3 3 0 0 0 3 3"/></svg><span>Acqua</span><i class="sw"></i></button>
@@ -3548,7 +3549,7 @@ let INST = Object.assign({ speed: true, depth: false, tide: false, head: false, 
 // velocità, velox, marea ed ecoscandaglio ora lavorano sempre e si vedono tutti insieme nel mini widget
 Object.assign(INST, { speed: true, velox: true, tide: true, depth: true }); INST.bridge = false; INST.head = false;
 // cosa si vede sulla mappa in Nautica (finestrella delle impostazioni)
-let LY = Object.assign({ bricole: true, velox: true, boat: true, d3: true, cantieri: true, canali: true, actv: true }, store.get("ln_layers", {}));
+let LY = Object.assign({ bricole: true, velox: true, boat: true, d3: true, cantieri: true, canali: true, actv: true, alilaguna: true }, store.get("ln_layers", {}));
 function paintInst(){
   document.querySelectorAll("#toggles button[data-inst]").forEach(b => b.classList.toggle("on", !!INST[b.dataset.inst]));
   $("#i-speed").classList.toggle("hidden", !INST.speed);
@@ -4459,7 +4460,7 @@ document.querySelectorAll("#setPanel [data-set]").forEach(b => b.onclick = () =>
   if (k === "water"){ INST.water = !INST.water; store.set("ln_inst", INST); paintInst(); applyMapMode(); if (INST.water){ loadTide(); loadChart(); drawFondo(); } }
   else if (k === "sat"){ mapMode = mapMode === "sat" ? "simple" : "sat"; store.set("ln_mapmode", mapMode); applyMapMode(); }
   else { LY[k] = !setGet(k); store.set("ln_layers", LY); if (k === "d3") apply3d(true); else layerVis();
-    if (k === "actv"){ if (LY.actv && appMode === "nautica"){ loadFermate(); actvStart(); } else actvStop(); } }
+    if (k === "actv" || k === "alilaguna"){ if (appMode === "nautica" && (LY.actv || LY.alilaguna)){ if (LY.actv) loadFermate(); actvStart(); } else actvStop(); setBattelliFilter(); } }
   paintSet(); try{ haptic(); }catch(e){}
 });
 paintSet();
@@ -4625,7 +4626,7 @@ function setAppMode(m){
   if (m !== "nautica" && PLAN) closePlan();
   if (m === "market"){ loadPartners(); renderMk(); }
   layerVis();
-  if (m === "nautica" && LY.actv){ loadFermate(); actvStart(); } else actvStop();
+  if (m === "nautica" && (LY.actv || LY.alilaguna)){ if (LY.actv) loadFermate(); actvStart(); setBattelliFilter(); } else actvStop();
   if (m === "trasporti"){ loadFermate(); renderTr(); }
   const ft = $("#fabTr"); if (ft) ft.classList.toggle("on", m === "trasporti");
 }
@@ -4881,17 +4882,50 @@ async function doPlan(){
 }
 /* ---------- battelli ACTV e Alilaguna sulla mappa: posizione stimata dall'orario (senza ritardi) ---------- */
 let BOATS_ACTV = [], actvRaw = null, actvFetchT = null, actvAnimT = null, actvAt = 0;
+// colori ufficiali-indicativi per linea (ACTV) e per colore della linea (Alilaguna)
+const ALI_COL = { blu:"#0a4fa0", arancio:"#e8731c", rossa:"#cc2b2b", rosso:"#cc2b2b", verde:"#1f8a3b", gialla:"#d9b40a", giallo:"#d9b40a", oro:"#b8860b", viola:"#7b1fa2" };
+const ACTV_COL = { "1":"#e2001a","2":"#ff7900","3":"#009640","4.1":"#915fa7","4.2":"#915fa7","5.1":"#0083c7","5.2":"#0083c7","6":"#c8102e","7":"#00a3a3","8":"#8db600","9":"#6d4c41","10":"#607d8b","11":"#5d4037","12":"#0072bb","13":"#5b8f22","14":"#00897b","15":"#8e24aa","16":"#546e7a","17":"#4e342e","18":"#ef6c00","19":"#3949ab","20":"#00838f","21":"#7cb342","22":"#d81b60","N":"#263238","NMU":"#37474f","NLN":"#455a64","T":"#0288d1","DM":"#00acc1" };
+function hashCol(str){ let h = 0; for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  const pal = ["#1565c0","#2e7d32","#ef6c00","#6a1b9a","#00838f","#c62828","#558b2f","#4527a0","#00695c","#ad1457","#283593","#827717"]; return pal[h % pal.length]; }
+function lineColor(line, az){
+  if (az === "Alilaguna"){ const m = String(line).toLowerCase().match(/blu|arancio|ross[ao]|verde|giall[ao]|oro|viola/); return m ? ALI_COL[m[0]] : "#0a4fa0"; }
+  const key = String(line).trim().toUpperCase().replace(",", ".");
+  if (ACTV_COL[key]) return ACTV_COL[key];
+  const base = key.split(/[^0-9.]/)[0]; if (ACTV_COL[base]) return ACTV_COL[base];
+  return hashCol(key || "?");
+}
+// scafo visto dall'alto: ACTV arrotondato · Alilaguna più affusolato e appuntito (forma diversa)
+function hullPath(g, ali){
+  g.beginPath();
+  if (ali){ g.moveTo(20, 2); g.lineTo(33, 26); g.lineTo(33, 60); g.quadraticCurveTo(33, 69, 25, 69); g.lineTo(15, 69); g.quadraticCurveTo(7, 69, 7, 60); g.lineTo(7, 26); g.closePath(); }
+  else { g.moveTo(20, 3); g.bezierCurveTo(33, 14, 35, 26, 35, 36); g.lineTo(35, 62); g.quadraticCurveTo(35, 69, 28, 69); g.lineTo(12, 69); g.quadraticCurveTo(5, 69, 5, 62); g.lineTo(5, 36); g.bezierCurveTo(5, 26, 7, 14, 20, 3); g.closePath(); }
+}
+function boatImg(color, ali){
+  const W = 40, H = 72, c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
+  hullPath(g, ali); g.fillStyle = color; g.fill(); g.lineWidth = 3.5; g.strokeStyle = "#111"; g.stroke();
+  g.fillStyle = "#fff"; g.beginPath(); g.moveTo(20, ali ? 8 : 10); g.lineTo(26, 18); g.lineTo(14, 18); g.closePath(); g.fill();   // prua chiara: si vede la direzione
+  g.globalAlpha = 0.9; g.fillRect(12, 59, 16, 3); g.globalAlpha = 1;                                                              // poppa
+  return g.getImageData(0, 0, W, H);
+}
+function boatImgName(color, ali){ return "boat|" + (ali ? "a" : "v") + "|" + color; }
+function ensureBoatImage(color, ali){ const n = boatImgName(color, ali); if (map && !map.hasImage(n)) map.addImage(n, boatImg(color, ali), { pixelRatio: 2 }); return n; }
+function setBattelliFilter(){
+  if (!map || !map.getLayer("battelli")) return;
+  const fil = ["match", ["get", "al"], 1, LY.alilaguna !== false, LY.actv !== false];
+  map.setFilter("battelli", fil); if (map.getLayer("battelli-lbl")) map.setFilter("battelli-lbl", fil);
+}
 function addBoatsLayer(){
   if (!map || map.getSource("battelli")) return;
   map.addSource("battelli", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
   if (!map.hasImage("battello")) map.addImage("battello", battelloIcon(), { pixelRatio: 2 });
   map.addLayer({ id: "battelli", type: "symbol", source: "battelli", minzoom: 10.5, layout: { visibility: appMode === "nautica" && LY.actv ? "visible" : "none",
-    "icon-image": "battello", "icon-size": ["interpolate", ["linear"], ["zoom"], 11, 0.45, 14, 0.8, 17, 1.15], "icon-rotate": ["get", "a"],
+    "icon-image": ["get", "img"], "icon-size": ["interpolate", ["linear"], ["zoom"], 11, 0.45, 14, 0.8, 17, 1.15], "icon-rotate": ["get", "a"],
     "icon-rotation-alignment": "map", "icon-pitch-alignment": "map", "icon-allow-overlap": true, "icon-ignore-placement": true },
     paint: { "icon-opacity": 1 } });
   if (map.getStyle().glyphs) map.addLayer({ id: "battelli-lbl", type: "symbol", source: "battelli", minzoom: 12.5, layout: { visibility: appMode === "nautica" && LY.actv ? "visible" : "none",
     "text-field": ["get", "l"], "text-size": ["interpolate", ["linear"], ["zoom"], 12.5, 8, 16, 11], "text-font": ["Noto Sans Bold", "Noto Sans Regular"], "text-allow-overlap": true, "text-ignore-placement": true },
-    paint: { "text-color": "#111111", "text-halo-color": "#ffffff", "text-halo-width": 1 } });
+    paint: { "text-color": ["get", "col"], "text-halo-color": "#ffffff", "text-halo-width": 1.6 } });
+  setBattelliFilter();
 }
 // imbarcadero: cartello giallo e nero come quelli ACTV (tettoia del pontile sull'acqua)
 function pontileIcon(){
@@ -4940,8 +4974,9 @@ function actvPaint(){
         break; }
     }
     if (!pos) return;
+    const ali = b[3] === "Alilaguna", col = lineColor(b[0], b[3]), img = ensureBoatImage(col, ali);
     const i = BOATS_ACTV.length; BOATS_ACTV.push({ l: b[0].replace(/^Alilaguna\s+/, ""), h: cleanDir(b[2]), az: b[3], next: b[5] });
-    feats.push({ type: "Feature", properties: { i, l: b[3] === "Alilaguna" ? "AL" : b[0], a: ang }, geometry: { type: "Point", coordinates: pos } });
+    feats.push({ type: "Feature", properties: { i, l: ali ? "AL" : b[0], a: ang, img, col, al: ali ? 1 : 0 }, geometry: { type: "Point", coordinates: pos } });
   });
   map.getSource("battelli").setData({ type: "FeatureCollection", features: feats });
 }
@@ -4978,7 +5013,7 @@ function actvStart(){
   if (!actvAnimT) actvAnimT = setInterval(() => { if (!document.hidden) actvPaint(); }, 2000);
 }
 function actvStop(){ clearInterval(actvFetchT); clearInterval(actvAnimT); actvFetchT = actvAnimT = null; }
-setTimeout(() => { if (appMode === "nautica" && LY.actv){ loadFermate(); actvStart(); } }, 3000);
+setTimeout(() => { if (appMode === "nautica" && (LY.actv || LY.alilaguna)){ if (LY.actv) loadFermate(); actvStart(); } }, 3000);
 /* ---------- taxi acqueo: richiesta a tutti i tassisti convenzionati, il primo che accetta prende la corsa ---------- */
 let TX = { da: null, a: null, pax: 2, est: null }, txRide = store.get("ln_taxi_ride", null), txTimer = null, txBoard = null, txOn = store.get("ln_taxi_on", true), txSeen = [];
 const TX_AIRPORT = [45.5008, 12.3373], TX_LIDO = [45.4177, 12.3683], TX_MURANO = [45.4560, 12.3530];
@@ -5518,7 +5553,7 @@ function layerVis(){
     "route": n, "route-case": n,
     "poi": n && foodOn, "poi-label": n && foodOn,
     "sensi": n, "fermate": appMode === "trasporti" || (n && LY.actv), "fermate-lbl": appMode === "trasporti" || (n && LY.actv),
-    "battelli": n && LY.actv, "battelli-lbl": n && LY.actv,
+    "battelli": n && (LY.actv || LY.alilaguna), "battelli-lbl": n && (LY.actv || LY.alilaguna),
     "partners": appMode === "market", "partners-lbl": appMode === "market"
   };
   Object.entries(want).forEach(([id, v]) => /^route/.test(id) ? (map.getLayer(id) && map.setLayoutProperty(id, "visibility", v ? "visible" : "none")) : fadeVis(id, v));
