@@ -1105,7 +1105,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">unClick · unClick · versione 3.35</p>
+      <p class="sub">unClick · unClick · versione 3.36</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa unClick</button>
@@ -4520,7 +4520,7 @@ function actvPaint(){
         break; }
     }
     if (!pos) return;
-    const i = BOATS_ACTV.length; BOATS_ACTV.push({ l: b[0].replace(/^Alilaguna\s+/, ""), h: b[2], az: b[3], next: b[5] });
+    const i = BOATS_ACTV.length; BOATS_ACTV.push({ l: b[0].replace(/^Alilaguna\s+/, ""), h: cleanDir(b[2]), az: b[3], next: b[5] });
     feats.push({ type: "Feature", properties: { i, l: b[3] === "Alilaguna" ? "AL" : b[0], a: ang }, geometry: { type: "Point", coordinates: pos } });
   });
   map.getSource("battelli").setData({ type: "FeatureCollection", features: feats });
