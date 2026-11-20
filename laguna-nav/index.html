@@ -299,6 +299,11 @@
   .wzin span{color:#9fb0c5;font-size:16px}
   .wzchips{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px} .wzchips button{background:#1d2738;color:#dbe6f5;border-radius:18px;padding:9px 13px;font-size:14px} .wzchips button.on{background:#ff6446;color:#fff}
   .wzgo{margin-top:16px} .wzskip{display:block;margin:16px auto 0;color:#8fa0b5;font-size:15px;text-decoration:underline}
+  .avwrap{display:flex;gap:12px;align-items:flex-start} #avPrev{width:96px;height:148px;flex:none;background:linear-gradient(#cfe8f6,#9fd3ee);border-radius:14px}
+  .avopts{flex:1;min-width:0;display:flex;flex-direction:column;gap:9px} .avopts b{display:block;font-size:12.5px;margin-bottom:4px;color:var(--muted);font-weight:700}
+  .avsx{display:flex;gap:6px} .avsx button{flex:1;padding:7px 0;border-radius:10px;border:1px solid var(--line);background:transparent;color:inherit;font-weight:700;font-size:13px}
+  .avsx button.on{background:#ff6446;border-color:#ff6446;color:#fff}
+  .avsw{display:flex;flex-wrap:wrap;gap:6px} .avsw button{width:24px;height:24px;border-radius:50%;border:2px solid #8884;padding:0} .avsw button.on{border-color:#fff;box-shadow:0 0 0 2px #ff6446}
   .wzcols{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px} .wzcol{aspect-ratio:1;border-radius:50%;border:3px solid #243149} .wzcol.on{border-color:#fff;box-shadow:0 0 0 3px #ff6446}
   .wzph{height:260px;border-radius:18px;background:#151d2b center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:56px;margin-top:8px}
   .wzsum{margin-top:6px} .wzsum .row1{display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer;font-size:14.5px} .wzsum .row1 span{color:var(--muted)} .wzsum .row1 b{text-align:right;max-width:58%}
@@ -1066,7 +1071,10 @@
           <p class="sub" id="pfSub" style="margin:0"></p>
           <button class="btn small ghost" id="pfCustom" style="margin-top:12px">✏️ Personalizza il profilo</button>
         </div>
-        <button class="card rowbtn" id="pfAv3d">🧍 Il mio omino sulla mappa <span id="pfAvSub">›</span></button>
+        <div class="card avcard" id="pfAvCard">
+          <h3 style="margin:0 0 10px">Avatar</h3>
+          <div class="avwrap"><canvas id="avPrev" width="150" height="230"></canvas><div id="avOpts" class="avopts"></div></div>
+        </div>
         <button class="card rowbtn" id="pfShare">📍 Posizione agli amici <span id="pfShareSub">No ›</span></button>
         <button class="card rowbtn" data-go="boat">⛵ La mia barca <span>›</span></button>
         <button class="card rowbtn" data-go="rider">🚶 Rider <span>›</span></button>
@@ -1107,7 +1115,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">unClick · unClick · versione 3.42</p>
+      <p class="sub">unClick · unClick · versione 3.43</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa unClick</button>
@@ -1747,25 +1755,54 @@ function renderProfile(){
 }
 /* omino sulla mappa e posizione condivisa con gli amici */
 const AV_COLS = ["#0c3851", "#c8102e", "#0a8f4e", "#f59e0b", "#7c3aed", "#d6336c", "#111111", "#ffffff", "#0891b2", "#8b4513"];
+const AV_DEF = { sex: "m", shirt: "#0c3851", legs: "#2b3a55", shoe: "#222222", hair: "#6b3f1f" };
+const AV_PAL = {
+  shirt: AV_COLS,
+  legs: ["#2b3a55", "#111111", "#4a5a7a", "#6b7280", "#c9b48a", "#ffffff", "#8b4513", "#0a8f4e", "#c8102e", "#d6336c"],
+  shoe: ["#222222", "#ffffff", "#8b4513", "#c8102e", "#0c3851", "#f59e0b", "#6b7280", "#0a8f4e"],
+  hair: ["#6b3f1f", "#111111", "#3b2414", "#a0522d", "#e3c16f", "#d9d9d9", "#c0392b"]
+};
+function avGet(){ return Object.assign({}, AV_DEF, store.get("ln_avatar", null) || {}); }
+// anteprima di fronte, con gli stessi blocchetti dell'omino sulla mappa
+function avPreview(){
+  const cv = $("#avPrev"); if (!cv) return; const g = cv.getContext("2d"), a = avGet(), girl = a.sex === "f", W = cv.width, H = cv.height;
+  g.clearRect(0, 0, W, H); const k = 15, cx = W / 2, by = H - 14;
+  const r = (x0, x1, z0, z1, c) => { g.fillStyle = c; g.fillRect(cx + x0 * k, by - z1 * k, (x1 - x0) * k, (z1 - z0) * k); };
+  const C = Object.assign({}, MAN_C, a);
+  g.fillStyle = "rgba(0,0,0,.15)"; g.beginPath(); g.ellipse(cx, by + 3, 42, 7, 0, 0, 7); g.fill();
+  r(-1.4, -0.2, 0, 0.6, C.shoe); r(0.2, 1.4, 0, 0.6, C.shoe);
+  if (girl){ r(-1.2, -0.3, 0.6, 3, C.skin); r(0.3, 1.2, 0.6, 3, C.skin); r(-1.9, 1.9, 3, 4.6, C.legs); }
+  else { r(-1.3, -0.2, 0.6, 4, C.legs); r(0.2, 1.3, 0.6, 4, C.legs); }
+  r(-1.6, 1.6, 4, 8, C.shirt); r(-2.5, -1.6, 4.6, 8, C.shirt); r(1.6, 2.5, 4.6, 8, C.shirt); r(-2.5, -1.6, 4, 4.6, C.skin); r(1.6, 2.5, 4, 4.6, C.skin);
+  if (girl){ r(-1.85, -1.6, 6.4, 11.9, C.hair); r(1.6, 1.85, 6.4, 11.9, C.hair); }
+  r(-1.6, 1.6, 8, 11.2, C.skin); r(-1.75, 1.75, 10.4, 11.9, C.hair);
+  r(-0.95, -0.45, 9.6, 10.2, C.eye); r(0.45, 0.95, 9.6, 10.2, C.eye); r(-0.8, 0.8, 8.7, 9, C.mouth); r(-1.05, -0.75, 8.9, 9.25, C.mouth); r(0.75, 1.05, 8.9, 9.25, C.mouth);
+}
 function paintAvRow(){
-  const a = store.get("ln_avatar", null) || { sex: "m", shirt: "#0c3851" }, sh = store.get("ln_share", false);
-  $("#pfAvSub").innerHTML = `${a.sex === "f" ? "Femmina" : "Maschio"} <i style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${esc(a.shirt)};border:1px solid #888;vertical-align:-1px"></i> ›`;
-  $("#pfShareSub").textContent = (sh ? "Sì" : "No") + " ›";
+  const a = avGet(), box = $("#avOpts"), sh = store.get("ln_share", false);
+  if ($("#pfShareSub")) $("#pfShareSub").textContent = (sh ? "Sì" : "No") + " ›";
+  if (!box) return;
+  const sw = (key, label) => `<div><b>${label}</b><div class="avsw">${AV_PAL[key].map(c => `<button data-av="${key}" data-c="${c}" class="${a[key] === c ? "on" : ""}" style="background:${c}" aria-label="${label}"></button>`).join("")}</div></div>`;
+  box.innerHTML = `<div><b>Sesso</b><div class="avsx"><button data-sx="m" class="${a.sex !== "f" ? "on" : ""}">Maschio</button><button data-sx="f" class="${a.sex === "f" ? "on" : ""}">Femmina</button></div></div>`
+    + sw("shirt", "Maglietta") + sw("legs", a.sex === "f" ? "Gonna" : "Pantaloni") + sw("shoe", "Scarpe") + sw("hair", "Capelli");
+  box.querySelectorAll("[data-sx]").forEach(b => b.onclick = () => avSave({ sex: b.dataset.sx }));
+  box.querySelectorAll("[data-av]").forEach(b => b.onclick = () => avSave({ [b.dataset.av]: b.dataset.c }));
+  try{ avPreview(); }catch(e){}
+}
+let avSyncT = 0;
+function avSave(ch){
+  const n = Object.assign(avGet(), ch); store.set("ln_avatar", n); paintAvRow();
+  try{ manKey = ""; drawMan(true); }catch(e){}
+  clearTimeout(avSyncT); avSyncT = setTimeout(async () => {
+    try{ const r = await rpc("avatar_set2", { p_avatar: { sex: n.sex, shirt: n.shirt, legs: n.legs, shoe: n.shoe, hair: n.hair } }); if (r && !r.errore) return; }catch(e){}
+    rpc("avatar_set", { p_sex: n.sex, p_shirt: n.shirt }).catch(() => {}); }, 800);
 }
 async function syncAvatar(){
   try{ const r = await rpc("loc_state", {}); if (!r || r.errore) return;
-    if (r.avatar && r.avatar.sex) store.set("ln_avatar", r.avatar);
-    else if (store.get("ln_avatar", null)){ const a = store.get("ln_avatar"); rpc("avatar_set", { p_sex: a.sex, p_shirt: a.shirt }).catch(() => {}); }
+    if (r.avatar && r.avatar.sex) store.set("ln_avatar", Object.assign(avGet(), r.avatar));
+    else if (store.get("ln_avatar", null)){ avSave({}); }
     store.set("ln_share", !!r.share); paintAvRow(); try{ manKey = ""; drawMan(true); }catch(e){} }catch(e){}
 }
-$("#pfAv3d").onclick = () => {
-  const a = store.get("ln_avatar", null) || { sex: "m", shirt: "#0c3851" };
-  wizard({ title: "Il tuo omino sulla mappa", values: { sex: a.sex, shirt: a.shirt }, steps: [
-    { k: "sex", q: "Maschio o femmina?", type: "choice", options: [["m", "🙋‍♂️ Maschio"], ["f", "🙋‍♀️ Femmina"]] },
-    { k: "shirt", q: "Di che colore è la maglietta?", type: "color", options: AV_COLS }
-  ], onDone: v => { const n = { sex: v.sex === "f" ? "f" : "m", shirt: v.shirt || "#0c3851" }; store.set("ln_avatar", n); paintAvRow();
-    try{ manKey = ""; drawMan(true); }catch(e){} rpc("avatar_set", { p_sex: n.sex, p_shirt: n.shirt }).catch(() => {}); toast("Omino aggiornato ✓"); } });
-};
 $("#pfShare").onclick = () => {
   const sh = store.get("ln_share", false);
   openSheet(`<h3>📍 Posizione agli amici</h3><p class="muted" style="line-height:1.45">Se la condividi, i tuoi amici di myClick vedono il tuo omino sulla mappa Nautica, con il tuo clickname, mentre usi l'app. Solo gli amici che hai accettato. Puoi spegnerla quando vuoi.</p>
@@ -2167,11 +2204,12 @@ function makeArrow(){
 }
 /* omino 3D: blocchetti in rilievo sulla mappa, gira verso dove guardi e si vede da ogni lato */
 const MAN_C = { skin: "#f6c9a0", hair: "#6b3f1f", shirt: "#0c3851", legs: "#2b3a55", shoe: "#222222", eye: "#2b1a10", mouth: "#c0392b" };
-function myAvatar(){ return store.get("ln_avatar", null) || { sex: "m", shirt: "#0c3851" }; }
+function myAvatar(){ return avGet(); }
 let manKey = "";
 function manFeatures(lat, lng, hdg, av, out){
   av = av || myAvatar(); out = out || [];
-  const u = MAN_U, C = Object.assign({}, MAN_C, { shirt: /^#[0-9a-f]{6}$/i.test(av.shirt || "") ? av.shirt : MAN_C.shirt }), girl = av.sex === "f";
+  const u = MAN_U, C = Object.assign({}, MAN_C), girl = av.sex === "f";
+  ["shirt", "legs", "shoe", "hair"].forEach(k => { if (/^#[0-9a-f]{6}$/i.test(av[k] || "")) C[k] = av[k]; });
   const r = hdg * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r), kLat = 1 / 111320, kLng = 1 / (111320 * Math.cos(lat * Math.PI / 180));
   const pt = (x, y) => { const E = (x * cs + y * sn) * u, N = (-x * sn + y * cs) * u; return [lng + E * kLng, lat + N * kLat]; };
   const poly = (P, b, t, c) => out.push({ type: "Feature", properties: { c: C[c] || c, b: b * u, h: t * u },
@@ -2182,7 +2220,7 @@ function manFeatures(lat, lng, hdg, av, out){
   const box = (x0, x1, y0, y1, b, t, c) => poly([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], b, t, c);
   // x = destra, y = avanti (verso dove guarda), altezze in blocchetti
   box(-1.4, -0.2, -0.6, 0.8, 0, 0.6, "shoe"); box(0.2, 1.4, -0.6, 0.8, 0, 0.6, "shoe");
-  if (girl){ box(-1.2, -0.3, -0.45, 0.45, 0.6, 3, "skin"); box(0.3, 1.2, -0.45, 0.45, 0.6, 3, "skin"); box(-1.9, 1.9, -1.1, 1.1, 3, 4.6, "shirt"); }
+  if (girl){ box(-1.2, -0.3, -0.45, 0.45, 0.6, 3, "skin"); box(0.3, 1.2, -0.45, 0.45, 0.6, 3, "skin"); box(-1.9, 1.9, -1.1, 1.1, 3, 4.6, "legs"); }
   else { box(-1.3, -0.2, -0.5, 0.5, 0.6, 4, "legs"); box(0.2, 1.3, -0.5, 0.5, 0.6, 4, "legs"); }
   box(-1.6, 1.6, -0.8, 0.8, 4, 8, "shirt");
   box(-2.5, -1.6, -0.5, 0.5, 4.6, 8, "shirt"); box(1.6, 2.5, -0.5, 0.5, 4.6, 8, "shirt");
@@ -2219,7 +2257,7 @@ function seatedMan(poly, C, girl){
   const leg = girl ? "skin" : "legs";
   box(-1.4, -0.2, 2.6, 4.0, 0.9, 1.5, "shoe"); box(0.2, 1.4, 2.6, 4.0, 0.9, 1.5, "shoe");          // scarpe sul pagliolo
   box(-1.3, -0.2, 2.7, 3.7, 1.5, 3.7, leg); box(0.2, 1.3, 2.7, 3.7, 1.5, 3.7, leg);                // gambe
-  box(-1.3, -0.2, -0.5, 3.7, 3.2, 4.3, girl ? "shirt" : "legs"); box(0.2, 1.3, -0.5, 3.7, 3.2, 4.3, girl ? "shirt" : "legs");   // cosce
+  box(-1.3, -0.2, -0.5, 3.7, 3.2, 4.3, "legs"); box(0.2, 1.3, -0.5, 3.7, 3.2, 4.3, "legs");   // cosce
   box(-1.6, 1.6, -0.8, 0.8, 3.2, 7.4, "shirt");                                                  // busto
   box(1.6, 2.5, -0.5, 0.5, 4.8, 7.4, "shirt"); box(1.6, 2.5, -0.5, 0.5, 4.2, 4.8, "skin");       // braccio destro giù
   box(-2.5, -1.6, -0.5, 0.5, 5.6, 7.4, "shirt");                                                 // braccio sinistro
