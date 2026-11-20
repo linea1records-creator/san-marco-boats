@@ -314,6 +314,8 @@
   .boatpick{display:flex;gap:8px;flex-wrap:wrap} .boatpick button{background:var(--panel2);border:1.5px solid var(--line);color:var(--text);border-radius:14px;padding:10px 14px;font-weight:700}
   .boatpick button.on{border-color:#ff6446;background:#14284d}
   .me.fr .meTag{pointer-events:auto;cursor:pointer}
+  .emogrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px} .emogrid button{font-size:30px;line-height:1;padding:10px 0;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.06)}
+  .emogrid button:active{transform:scale(.92)} .kssum{padding:8px 0;border-top:1px solid var(--line);font-size:15px;line-height:1.5} .ksn{white-space:nowrap;font-size:17px;margin-left:4px}
   .kiss{font-size:22px;line-height:1;pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
   .kiss span{display:block;will-change:transform}
   .kiss.pop span{animation:kpop .45s ease-out forwards}
@@ -1123,7 +1125,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">unClick · unClick · versione 3.49</p>
+      <p class="sub">unClick · unClick · versione 3.50</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa unClick</button>
@@ -1986,11 +1988,11 @@ let FR_LOC = [], FR_MK = [], frPush = 0;
 function drawFriends(){
   if (!map || !map.getSource("frman")) return;
   const list = appMode === "nautica" ? FR_LOC : [], feats = [];
-  list.forEach(f => { const k = feats.length; manFeatures(f.lat, f.lng, f.hdg || 0, f.avatar || {}, feats); for (let i = k; i < feats.length; i++) feats[i].properties.n = f.nome; });
+  list.forEach(f => { const k = feats.length; manFeatures(f.lat, f.lng, f.hdg || 0, f.avatar || {}, feats, 0, f.barca === true); for (let i = k; i < feats.length; i++) feats[i].properties.n = f.nome; });
   map.getSource("frman").setData({ type: "FeatureCollection", features: feats });
   map.getSource("frdot").setData({ type: "FeatureCollection", features: list.map(f => ({ type: "Feature", properties: { c: (f.avatar && f.avatar.shirt) || "#ff6446", n: f.nome }, geometry: { type: "Point", coordinates: [f.lng, f.lat] } })) });
   FR_MK.forEach(m => m.remove()); FR_MK = list.map(f => { const el = document.createElement("div"); el.className = "me fr";
-    el.innerHTML = `<div class="meTag">${esc(f.nome)}${f.minuti >= 2 ? ` <small>${f.minuti}′ fa</small>` : ""}</div>`;
+    el.innerHTML = `<div class="meTag">${esc(f.nome)}${f.minuti >= 2 ? ` <small>${agoMin(f.minuti)}</small>` : ""}</div>`;
     el.querySelector(".meTag").onclick = ev => { ev.stopPropagation(); kissAsk(f.nome); };
     return new maplibregl.Marker({ element: el, anchor: "bottom", offset: [0, meOff || -12] }).setLngLat([f.lng, f.lat]).addTo(map); });
 }
@@ -2001,29 +2003,41 @@ async function loadFriendsLoc(){
 }
 function pushMyLoc(p){
   if (!store.get("ln_share", false) || typeof PROFILE === "undefined" || !PROFILE || Date.now() - frPush < 25000) return;
-  frPush = Date.now(); rpc("loc_push", { p_lat: p.lat, p_lng: p.lng, p_hdg: Math.round(heading) }).catch(() => {});
+  frPush = Date.now(); const b = !!manWat;
+  rpc("loc_push2", { p_lat: p.lat, p_lng: p.lng, p_hdg: Math.round(heading), p_boat: b })
+    .then(r => { if (!r || r.errore === undefined && r.ok === undefined) throw 0; }).catch(() => rpc("loc_push", { p_lat: p.lat, p_lng: p.lng, p_hdg: Math.round(heading) }).catch(() => {}));
 }
 setTimeout(() => { loadFriendsLoc(); setInterval(loadFriendsLoc, 20000); kissPoll(); setInterval(kissPoll, 5000); }, 4000);
 
-/* baci da lontano: volano sulla mappa da chi li manda a chi li riceve in 7 secondi */
+/* emoji da lontano (baci, cuori, drink...): volano sulla mappa da chi le manda a chi le riceve in 7 secondi */
 const KISS_MS = 7000;
+const EMOJI_AMICI = [["💋", "un bacio", "baci"], ["❤️", "un cuore", "cuori"], ["😘", "un bacino", "bacini"], ["💌", "una lettera d'amore", "lettere d'amore"], ["🌹", "una rosa", "rose"],
+  ["🍹", "un drink", "drink"], ["🔥", "un fuoco", "fuochi"], ["😂", "una risata", "risate"], ["👋", "un saluto", "saluti"], ["💩", "una cacca", "cacche"]];
+const emoName1 = e => (EMOJI_AMICI.find(x => x[0] === e) || [e, "un bacio"])[1], emoNameN = e => (EMOJI_AMICI.find(x => x[0] === e) || [e, "", "baci"])[2];
+function agoMin(m){ return m < 60 ? m + "′ fa" : m < 1440 ? Math.round(m / 60) + " h fa" : Math.round(m / 1440) + " g fa"; }
 function kissAsk(nome){
   const f = FR_LOC.find(x => x.nome === nome); if (!f) return;
-  openSheet(`<h3>${esc(nome)}</h3><p class="muted" style="margin-top:-4px">${f.minuti >= 2 ? "Posizione di " + f.minuti + " minuti fa" : "È qui adesso"}</p>
-    <button class="btn" id="kissGo" style="font-size:19px">😘 Manda un bacio</button><button class="btn ghost" id="kissX" style="margin-top:10px">Chiudi</button>`);
+  openSheet(`<h3>${esc(nome)}</h3><p class="muted" style="margin-top:-4px">${f.minuti >= 2 ? "Ultima posizione " + agoMin(f.minuti) : "È qui adesso"}</p>
+    <div class="emogrid" data-noico>${EMOJI_AMICI.map(e => `<button data-emo="${e[0]}" title="${esc(e[1])}">${e[0]}</button>`).join("")}</div>
+    <button class="btn ghost" id="kissX" style="margin-top:12px">Chiudi</button>`);
   $("#kissX").onclick = closeSheet;
-  $("#kissGo").onclick = async () => {
-    closeSheet(); if (!lastPos){ toast("Serve la tua posizione: tocca ➤"); return; }
-    let r; try{ r = await rpc("kiss_send", { p_nome: nome, p_lat: lastPos.lat, p_lng: lastPos.lng }); }catch(e){ toast("Bacio non partito: controlla la connessione."); return; }
-    if (r && r.errore){ toast(r.errore === "troppi" ? "Piano con i baci! Riprova tra un minuto 😄" : r.errore === "non_amici" ? "Puoi mandare baci solo ai tuoi amici." : "Bacio non partito."); return; }
-    haptic(); kissFly([lastPos.lng, lastPos.lat], [f.lng, f.lat], () => toast(`😘 Bacio arrivato a ${nome}`));
-  };
+  document.querySelectorAll("[data-emo]").forEach(bt => bt.onclick = async () => {
+    const emo = bt.dataset.emo; closeSheet(); if (!lastPos){ toast("Serve la tua posizione: tocca ➤"); return; }
+    let r;
+    try{ r = await rpc("kiss_send2", { p_nome: nome, p_lat: lastPos.lat, p_lng: lastPos.lng, p_emoji: emo }); }catch(e){ r = null; }
+    if (!r || (r.errore === undefined && r.ok === undefined)){   // server non ancora aggiornato: parte come bacio
+      try{ r = await rpc("kiss_send", { p_nome: nome, p_lat: lastPos.lat, p_lng: lastPos.lng }); }catch(e){ toast("Non partito: controlla la connessione."); return; } }
+    if (r && r.errore){ toast(r.errore === "troppi" ? "Piano! Riprova tra un minuto" : r.errore === "non_amici" ? "Puoi mandarli solo ai tuoi amici." : "Non partito."); return; }
+    haptic(); kissFly([lastPos.lng, lastPos.lat], [f.lng, f.lat], () => toastEmo(`${emo} ${emoName1(emo).replace(/^un[a']? ?/, "").replace(/^./, c => c.toUpperCase())} arrivato a ${nome}`), emo);
+  });
 }
-function kissFly(from, to, done){
+// i messaggi con le emoji tengono i loro colori (non diventano icone)
+function toastEmo(t){ toast(t, true); }
+function kissFly(from, to, done, emo){
   if (!map) return;
   const N = 5, mks = [], t0 = performance.now(), dpx = Math.hypot(...[0, 1].map(i => map.project(from)[["x", "y"][i]] - map.project(to)[["x", "y"][i]]));
   const arc = Math.max(40, Math.min(160, dpx * 0.35));
-  for (let i = 0; i < N; i++){ const el = document.createElement("div"); el.className = "kiss"; el.innerHTML = `<span>${i % 2 ? "❤️" : "💋"}</span>`;
+  for (let i = 0; i < N; i++){ const el = document.createElement("div"); el.className = "kiss"; el.setAttribute("data-noico", ""); el.innerHTML = `<span>${emo || (i % 2 ? "❤️" : "💋")}</span>`;
     mks.push(new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat(from).addTo(map)); }
   const step = now => {
     let alive = false;
@@ -2040,17 +2054,32 @@ function kissFly(from, to, done){
   };
   requestAnimationFrame(step);
 }
-let KISS_LAST = null;   // all'apertura prende solo il numero dell'ultimo bacio, poi mostra quelli nuovi
+// all'apertura: riepilogo di cosa è arrivato mentre l'app era chiusa; poi i nuovi arrivano in tempo reale
+let KISS_LAST = null;
 async function kissPoll(){
   if (typeof PROFILE === "undefined" || !PROFILE || document.hidden) return;
+  if (KISS_LAST === null){
+    const seen = store.get("ln_kiss_seen", null);
+    if (seen !== null){
+      try{ const s = await rpc("kiss_summary", { p_after: seen });
+        if (s && Array.isArray(s.righe)){ KISS_LAST = s.ultimo || seen; store.set("ln_kiss_seen", KISS_LAST); if (s.righe.length) kissSummary(s.righe); return; } }catch(e){}
+    }
+  }
   let r; try{ r = await rpc("kiss_inbox", { p_after: KISS_LAST }); }catch(e){ return; }
   if (!r || r.errore) return;
-  const first = KISS_LAST === null; KISS_LAST = Math.max(KISS_LAST || 0, r.ultimo || 0);
+  const first = KISS_LAST === null; KISS_LAST = Math.max(KISS_LAST || 0, r.ultimo || 0); store.set("ln_kiss_seen", KISS_LAST);
   if (first) return;
   (r.baci || []).forEach((k, i) => setTimeout(() => {
-    haptic(); toast(`😘 ${k.nome} ti manda un bacio!`);
-    if (lastPos && k.lat && appMode === "nautica" && $("#v-map") && !$("#v-map").classList.contains("hidden")) kissFly([k.lng, k.lat], [lastPos.lng, lastPos.lat], () => { haptic(); });
+    const emo = k.emoji || "💋";
+    haptic(); toastEmo(`${emo} ${k.nome} ti manda ${emoName1(emo)}!`);
+    if (lastPos && k.lat && appMode === "nautica" && $("#v-map") && !$("#v-map").classList.contains("hidden")) kissFly([k.lng, k.lat], [lastPos.lng, lastPos.lat], () => { haptic(); }, emo);
   }, i * 1500));
+}
+function kissSummary(rows){
+  const by = {}; rows.forEach(x => { (by[x.nome] = by[x.nome] || []).push(x); });
+  const html = Object.entries(by).map(([n, l]) => `<div class="kssum"><b>@${esc(n)}</b> ti ha mandato ${l.map(x => `<span class="ksn">${x.n} ${x.emoji}</span>`).join(" ")}</div>`).join("");
+  haptic();
+  openSheet(`<h3>Mentre eri via</h3><div data-noico>${html}</div><button class="btn" style="margin-top:12px" onclick="closeSheet()">Ok</button>`);
 }
 function addLayers(){
   setTimeout(drawOneWay, 300); setTimeout(addManLayer, 400);
@@ -2063,9 +2092,9 @@ function addLayers(){
   map.addSource("zones", { type: "geojson", data: empty });
   // le zone controllate non si disegnano più (i limiti veri arrivano dalle tratte dei velox)
   map.addSource("route", { type: "geojson", data: empty });
-  map.addSource("meman", { type: "geojson", data: empty });
+  map.addSource("meman", { type: "geojson", data: empty, maxzoom: 15, tolerance: 0, buffer: 32 });   // pochi pezzi da ricalcolare: l'avatar si aggiorna subito
   map.addSource("medot", { type: "geojson", data: empty });
-  map.addSource("frman", { type: "geojson", data: empty }); map.addSource("frdot", { type: "geojson", data: empty });
+  map.addSource("frman", { type: "geojson", data: empty, maxzoom: 15, tolerance: 0, buffer: 32 }); map.addSource("frdot", { type: "geojson", data: empty });
   map.addLayer({ id: "route-case", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#0c3851", "line-width": 13 } });
   map.addLayer({ id: "route", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#ff6446", "line-width": 8 } });
   map.addSource("depths", { type: "geojson", data: empty });
@@ -2199,8 +2228,8 @@ document.addEventListener("click", async e => {
   try{ await deleteOwn(k, id); mine[k] = mine[k].filter(x => x !== id); saveMine(); closePopups(); await loadShared(); }
   catch(err){ toast("Non riesco a eliminare: controlla la connessione."); }
 });
-function toast(msg){
-  const h = $("#modeHint"); h.textContent = msg; h.classList.remove("hidden");
+function toast(msg, colori){
+  const h = $("#modeHint"); h.toggleAttribute("data-noico", !!colori); h.textContent = msg; h.classList.remove("hidden");
   clearTimeout(toast._t); toast._t = setTimeout(() => { if (!addMode) h.classList.add("hidden"); }, 3500);
 }
 
@@ -2214,7 +2243,7 @@ function makeArrow(){
 const MAN_C = { skin: "#f6c9a0", hair: "#6b3f1f", shirt: "#0c3851", legs: "#2b3a55", shoe: "#222222", eye: "#2b1a10", mouth: "#c0392b" };
 function myAvatar(){ return avGet(); }
 let manKey = "";
-function manFeatures(lat, lng, hdg, av, out, tilt){
+function manFeatures(lat, lng, hdg, av, out, tilt, boatHint){
   av = av || myAvatar(); out = out || [];
   const u = MAN_U, C = Object.assign({}, MAN_C), girl = av.sex === "f";
   ["shirt", "legs", "shoe", "hair"].forEach(k => { if (/^#[0-9a-f]{6}$/i.test(av[k] || "")) C[k] = av[k]; });
@@ -2224,7 +2253,7 @@ function manFeatures(lat, lng, hdg, av, out, tilt){
   const tl = tilt || 0, poly = (P, b, t, c) => { const dz = tl ? P.reduce((a, q) => a + q[1], 0) / P.length * tl : 0; out.push({ type: "Feature", properties: { c: C[c] || c, b: Math.max(0, b + dz) * u, h: Math.max(0.05, t + dz) * u },
     geometry: { type: "Polygon", coordinates: [P.concat([P[0]]).map(q => pt(q[0], q[1]))] } }); };
   // sull'acqua l'omino sta in piedi dentro una barchetta grande come lui (un po' verso poppa, sopra il pagliolo)
-  const wat = onWater(lat, lng);
+  const wat = boatHint === true || onWater(lat, lng);
   const SZ = avSizes(), sm = SZ.man, sb = SZ.boat;
   if (wat){ boatFeatures((P, b, t, c) => poly(P.map(q => [q[0] * sb, q[1] * sb]), b * sb, t * sb, c)); seatedMan(poly, C, girl, sm, sb); return { type: "FeatureCollection", features: out }; }
   const box = (x0, x1, y0, y1, b, t, c) => poly([[x0 * sm, y0 * sm], [x1 * sm, y0 * sm], [x1 * sm, y1 * sm], [x0 * sm, y1 * sm]], b * sm, t * sm, c);
@@ -2305,7 +2334,8 @@ function onWater(lat, lng){
   try{ const F = map.querySourceFeatures("openmaptiles", { sourceLayer: "water" });
     if (F.length){ res = F.some(f => { const g = f.geometry, P = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : [];
       return P.some(rings => rings.length && inRing(lng, lat, rings[0]) && !rings.slice(1).some(h => inRing(lng, lat, h))); }); } }catch(e){}
-  if (res === null){ if (typeof G === "undefined" || !G.done) return false; res = !!gNear(lat, lng, 12); }   // tessere non pronte: non lo segno in memoria
+  if (!res && typeof G !== "undefined" && G.done && gNear(lat, lng, 10)) res = true;   // sopra un canale della rete (anche dove le tessere della mappa non sono caricate)
+  if (res === null) return false;   // tessere non pronte: non lo segno in memoria
   if (WATER_AT.size > 400) WATER_AT.clear(); WATER_AT.set(k, res); return res;
 }
 // l'omino è alto 13 metri veri (non cambia con lo zoom); da lontano, quando diventa troppo piccolo, resta il puntino blu
@@ -2324,11 +2354,16 @@ function dispTick(){
   else { disp.lat += (tla - disp.lat) * 0.3; disp.lng += (tlo - disp.lng) * 0.3; }
   return disp;
 }
+// un aggiornamento dell'avatar alla volta: la telecamera va dove l'avatar è stato davvero disegnato,
+// così sullo schermo l'avatar resta fermo nel suo punto anche quando il telefono è lento
+let manPend = null, manShown = null;
 function drawMan(force){
   if (!map || !lastPos || !map.getSource("meman")) return;
+  if (manPend && Date.now() - manPend.t < 400) return;
   const P = disp || lastPos;
   const key = [P.lat.toFixed(6), P.lng.toFixed(6), Math.round(heading / 4)].join();
   if (!force && key === manKey) return; manKey = key;
+  manPend = { P: { lat: P.lat, lng: P.lng }, t: Date.now() };
   if (map.getSource("medot")) map.getSource("medot").setData({ type: "Point", coordinates: [P.lng, P.lat] });
   manWat = onWater(P.lat, P.lng);
   manTiltLast = planeTilt(); map.getSource("meman").setData(manFeatures(P.lat, P.lng, heading, myAvatar(), null, manTiltLast));
@@ -2336,6 +2371,7 @@ function drawMan(force){
 // quando la mappa ha finito di caricare ricontrollo se sei sull'acqua (la barchetta compare o sparisce)
 let manWat = null, manWatHook = false, manTiltLast = 0;
 function hookManWater(){ if (manWatHook || !map) return; manWatHook = true;
+  map.on("sourcedata", e => { if (e.sourceId === "meman" && manPend && map.isSourceLoaded("meman")){ manShown = manPend.P; manPend = null; } });
   map.on("idle", () => { if (!lastPos) return; WATER_AT.delete(lastPos.lat.toFixed(4) + "," + lastPos.lng.toFixed(4));
     if (onWater(lastPos.lat, lastPos.lng) !== manWat){ manKey = ""; drawMan(true); drawFriends(); } }); }
 // la scritta "Sei qui" sta sopra la testa dell'omino (più la mappa è inclinata, più l'omino è alto sullo schermo)
@@ -2473,7 +2509,8 @@ function frame(){
   if (!map) return;
   const t = targetHeading();
   if (t !== null) heading = (heading + angDiff(heading, t) * 0.22 + 360) % 360;
-  const D = dispTick(); if (D && meMarker) meMarker.setLngLat([D.lng, D.lat]);
+  dispTick(); if (manPend && Date.now() - manPend.t >= 400){ manShown = manPend.P; manPend = null; }
+  const D = (map.getZoom() >= MAN_MINZ && manShown) || disp; if (D && meMarker) meMarker.setLngLat([D.lng, D.lat]);
   frame.n = (frame.n || 0) + 1;
   rotMe(); if (frame.n % 2 === 0) drawMan(manTiltLast || (manWat && speedMs * 3.6 > 10));   // avatar ridisegnato insieme alla mappa
   if ((userBusy && !view3d) || map.isEasing && map.isEasing()) return;
