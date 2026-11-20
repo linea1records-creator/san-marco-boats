@@ -1026,12 +1026,12 @@
   <!-- PROFILO -->
   <section class="view hidden" id="v-profile">
     <div class="scroll" id="pfScroll">
-      <div class="mchead"><h2>myClick</h2><button id="pfFrBtn" class="mcic" title="Amici">👥<i id="frBadge" class="hidden"></i></button><button id="pfMeBtn" class="mcic" title="Il mio profilo"><span class="av" id="pfMini">?</span></button></div>
+      <div class="mchead"><h2>myClick</h2><button id="pfFrBtn" class="mcic" title="Amici">👥<i id="frBadge" class="hidden"></i></button><button id="pfMeBtn" class="mcic" title="Il mio profilo"><span class="av" id="pfMini" data-noico>?</span></button></div>
       <div class="seg mcseg" id="pfSeg"><button data-pt="home" class="on">🏠 Home</button><button data-pt="friends">👥 Amici</button><button data-pt="work">💼 Lavoro</button><button data-pt="me">👤 Profilo</button></div>
 
       <div id="pt-home">
         <div class="card compose">
-          <div class="cmrow"><span class="av" id="cmAv">?</span><textarea id="cmText" maxlength="1000" rows="2" placeholder="A cosa stai pensando?"></textarea></div>
+          <div class="cmrow"><span class="av" id="cmAv" data-noico>?</span><textarea id="cmText" maxlength="1000" rows="2" placeholder="A cosa stai pensando?"></textarea></div>
           <img id="cmImg" class="hidden" alt="">
           <div class="cmbar"><label class="btn small ghost cmph">📷 Foto<input type="file" id="cmFile" accept="image/*" hidden></label><button class="btn small ghost hidden" id="cmNoImg">✕ Togli foto</button><button class="btn small" id="cmGo">Pubblica</button></div>
         </div>
@@ -1061,7 +1061,7 @@
 
       <div id="pt-me" class="hidden">
         <div class="card" style="text-align:center;padding:22px">
-          <div class="avatar" id="pfAvatar">?</div>
+          <div class="avatar" id="pfAvatar" data-noico>?</div>
           <h2 id="pfName" style="margin-top:10px">@</h2>
           <p class="sub" id="pfSub" style="margin:0"></p>
           <button class="btn small ghost" id="pfCustom" style="margin-top:12px">✏️ Personalizza il profilo</button>
@@ -1107,7 +1107,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">unClick · unClick · versione 3.38</p>
+      <p class="sub">unClick · unClick · versione 3.39</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa unClick</button>
@@ -1424,7 +1424,7 @@ document.addEventListener("click", e => {
 let MY = store.get("ln_my", null);
 const MY_COLORS = ["#0c3851", "#c8102e", "#0a8f4e", "#d6336c", "#6d28d9", "#f59e0b", "#0891b2", "#334155"];
 function avatarHtml(p, big){ const c = (p && p.colore) || "#0c3851", t = (p && p.emoji) || ((p && p.nome) || "?")[0].toUpperCase();
-  return `<span class="av${big ? " big" : ""}" style="background:${c}">${esc(t)}</span>`; }
+  return `<span class="av${big ? " big" : ""}" data-noico style="background:${c}">${esc(t)}</span>`; }
 function paintMe(){
   if (!PROFILE) return; const me = (MY && MY.io) || { nome: PROFILE.clickname };
   const a = $("#pfAvatar"); a.textContent = me.emoji || PROFILE.clickname[0].toUpperCase(); a.style.background = me.colore || "";
@@ -5331,7 +5331,7 @@ async function trisChallenge(){
   if (!MY || !MY.amici){ try{ const j = await rpc("friend_list", {}); if (j && !j.errore){ MY = j; store.set("ln_my", j); } }catch(e){} }
   const A = (MY && MY.amici) || [];
   if (!A.length){ openSheet(`<h3>✕◯ Sfida un amico</h3><p class="muted">Non hai ancora amici su unClick. Aggiungili da myClick e poi sfidali a tris.</p><button class="btn" onclick="closeSheet()">Ok</button>`); return; }
-  openSheet(`<h3>✕◯ Chi sfidi?</h3><div class="wzopts">${A.map(a => `<button class="wzo" data-tri="${esc(a.nome)}">${esc(a.emoji || "🙂")} @${esc(a.nome)}</button>`).join("")}</div>
+  openSheet(`<h3>✕◯ Chi sfidi?</h3><div class="wzopts">${A.map(a => `<button class="wzo" data-tri="${esc(a.nome)}"><span data-noico>${esc(a.emoji || "")}</span> @${esc(a.nome)}</button>`).join("")}</div>
     <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
   document.querySelectorAll("[data-tri]").forEach(b => b.onclick = async () => {
     b.disabled = true;
