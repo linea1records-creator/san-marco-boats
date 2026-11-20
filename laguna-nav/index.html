@@ -741,6 +741,21 @@
   .ae-s{flex:0 0 auto;font-size:12px;font-weight:700;color:#8a8f98;text-align:right;max-width:34%}
   .ae-s.ae-d{color:#2e7d32} .ae-s.ae-l{color:#ef6c00} .ae-s.ae-x{color:#c62828}
   #aeroBox .aeFoot{padding:7px 14px;font-size:11px;color:#9aa0a8;border-top:1px solid #eee}
+  #corsaBox{position:fixed;z-index:3450;left:10px;right:10px;bottom:calc(16px + var(--safe-b, 0px));max-height:45vh;display:flex;flex-direction:column;background:#fff;color:#111;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.45);overflow:hidden}
+  #corsaBox.hidden{display:none}
+  #corsaBox .cbHead{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #eee}
+  #corsaBox .cbDir{flex:1;font-weight:800;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #cbClose{flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:#eef0f2;color:#555;font-size:18px;line-height:1}
+  #cbList{overflow-y:auto;padding:4px 0}
+  .cbMsg{padding:16px 14px;color:#8a8f98;font-size:14px}
+  .cbRow{position:relative;display:flex;align-items:center;gap:10px;padding:7px 14px;font-size:14px}
+  .cbRow::before{content:"";position:absolute;left:72px;top:0;bottom:0;width:4px;background:var(--lc)}
+  .cbRow.first::before{top:50%} .cbRow.last::before{bottom:50%} .cbRow.first.last::before{display:none}
+  .cbRow .cbT{flex:0 0 42px;font-weight:800;font-variant-numeric:tabular-nums}
+  .cbRow .cbDot{position:relative;z-index:1;flex:0 0 14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--ld);box-sizing:border-box}
+  .cbRow .cbN{flex:1;line-height:1.2} .cbRow .cbN small{display:block;color:#8a8f98;font-size:11px}
+  .cbRow.first .cbN,.cbRow.last .cbN{font-weight:800}
+  #corsaBox .cbNote{padding:6px 14px;font-size:11px;color:#9aa0a8;border-top:1px solid #eee}
   #aeroMk{display:flex;align-items:center;gap:5px;padding:5px 11px 5px 9px;background:#111;color:#fff;border-radius:999px;font-size:12px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.5);white-space:nowrap}
   #aeroMk svg{width:15px;height:15px;fill:#fff;stroke:none}
   #modeFlash{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:60;color:#fff;font-size:15px;font-weight:700;letter-spacing:.02em;text-shadow:0 1px 4px rgba(0,0,0,.85),0 0 12px rgba(0,0,0,.5);pointer-events:none;opacity:0;transition:opacity .12s;white-space:nowrap}
@@ -810,6 +825,7 @@
     </div>
 
     <!-- pianifica il tragitto: partenza e arrivo -->
+    <div id="corsaBox" class="hidden"><div class="cbHead" id="cbHead"></div><div id="cbList"></div><div class="cbNote" id="cbNote"></div></div>
     <div id="aeroBox" class="hidden">
       <div class="aeHead">
         <span class="aeTtl"><svg viewBox="0 0 24 24"><path d="M2 16l20-6-20-6 4 6-4 6z"/></svg>Marco Polo</span>
@@ -2237,9 +2253,8 @@ function popupFor(f, ll){
   if (f.layer.id === "aero"){ openAero(); return; }
   if (f.layer.id === "partners"){ const p = PARTNERS.find(x => x.id === f.properties.id); if (p) openPartner(p); return; }
   if (f.layer.id === "cantieri"){ const c = CANT[f.properties.i]; if (c) openCantiere(c); return; }
-  if (f.layer.id === "battelli"){ const b = BOATS_ACTV[f.properties.i]; if (!b) return;
-    html = `<b>${esc(b.az === "Alilaguna" ? "" : "Linea ")}${esc(b.l)}</b> → ${esc(b.h)}<br><span style="color:#aaa">Prossima fermata: ${esc(b.next)}</span><br><span style="color:#888;font-size:12px">Posizione stimata dall'orario</span>`;
-    new maplibregl.Popup({ closeButton: true, maxWidth: "240px" }).setLngLat(ll).setHTML(html).addTo(map); return; }
+  if (f.layer.id === "battelli"){ const b = BOATS_ACTV[f.properties.i]; if (!b) return;   // percorso e fermate che mancano al capolinea
+    openCorsa({ linea: b.L, dir: b.d, la: b.s0[0], lng: b.s0[1], t: b.s0[3], tol: 60, az: b.az, boat: true }); return; }
   if (f.layer.id === "fermate" && appMode === "nautica"){ const nm = f.properties.n, c = f.geometry.coordinates;
     html = `<b>${esc(nm)}</b><br><a href="#" id="fmDep" style="color:#ff6446">Prossime partenze</a> · <a href="#" data-goto="${c[1]},${c[0]}" data-name="${esc(nm)}" style="color:#7fc1ff">Portami qui</a>`;
     new maplibregl.Popup({ closeButton: true, maxWidth: "240px" }).setLngLat(ll).setHTML(html).addTo(map);
@@ -4902,7 +4917,9 @@ async function loadPontiliActv(){
   try{ const j = await ACTV("azione=fermate"); if (j.pontili){ PONTILI_ACTV = { t: Date.now(), p: j.pontili }; store.set("ln_actv_pontili", PONTILI_ACTV); } }catch(e){}
 }
 const cleanDir = d => String(d || "").replace(/\s+[A-Z]$/, "").replace(/\s*"[^"]*"\s*$/, "");
-const lineBadge = (l, c) => { const ali = /^Alilaguna /.test(l); return `<span class="lb${ali ? " ali" : ""}" style="background:#${c && c !== "FFFFFF" ? c : "1a56db"};color:${c && /^(FFFFFF|DAD635|8FD2BF|F[0-9A-F]{5})$/i.test(c) ? "#111" : "#fff"}">${ali ? "<small>Alilaguna</small> " + esc(l.slice(10)) : esc(l)}</span>`; };
+const lineBadge = (l, c) => { const ali = /^Alilaguna /.test(l), key = String(l).trim().toUpperCase().replace(",", ".");
+  const col = ali ? lineColor(l, "Alilaguna") : ACTV_COL[key] || (c ? "#" + c : lineColor(l, "ACTV")), lt = hexLight(col);   // colori ufficiali (linea 1 bianca)
+  return `<span class="lb${ali ? " ali" : ""}" style="background:${col};color:${lt ? "#111" : "#fff"}${lt ? ";box-shadow:inset 0 0 0 1.5px #111" : ""}">${ali ? "<small>Alilaguna</small> " + esc(l.slice(10)) : esc(l)}</span>`; };
 const orarioNote = od => od ? `<p class="trnote">L'orario ACTV in uso parte dal 20 novembre: ti mostro quello di ${new Date(od.slice(0, 4) + "-" + od.slice(4, 6) + "-" + od.slice(6)).toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "numeric" })}, stesso giorno della settimana.</p>` : "";
 function renderTr(){
   const box = $("#trBody"); if (!box) return;
@@ -4928,11 +4945,13 @@ async function renderDepartures(){
   try{
     const j = await ACTV("azione=partenze&n=10&pontile=" + encodeURIComponent(s.lat.toFixed(6) + "," + s.lng.toFixed(6)));
     if (trStop !== s) return;
-    const list = (j.partenze || []).map(p => `<div class="dep">${lineBadge(p.linea, p.colore)}<span class="dd">${esc(cleanDir(p.direzione))}</span>
+    const list = (j.partenze || []).map((p, k) => `<div class="dep" data-k="${k}" style="cursor:pointer">${lineBadge(p.linea, p.colore)}<span class="dd">${esc(cleanDir(p.direzione))}</span>
       <span class="dt"><b>${p.tra_min <= 0 ? "ora" : p.tra_min < 60 ? p.tra_min + " min" : p.ora}</b><small>${p.ora}</small></span></div>`).join("");
     box.innerHTML = `<div class="trback" id="trBack">‹ Fermate</div><h4>🚤 ${esc(j.pontile || s.n)}</h4>` + (list || `<p class="trnote">Nessuna partenza nelle prossime 4 ore.</p>`) +
       `<button class="btn small" id="trGoPlan" style="margin-top:8px">Calcola un percorso da qui</button>` + orarioNote(j.orario_del);
     $("#trBack").onclick = () => { trStop = null; $("#trBody").innerHTML = ""; renderTr(); };
+    box.querySelectorAll(".dep[data-k]").forEach(el => el.onclick = () => { const p = j.partenze[+el.dataset.k], hm = String(p.ora || "").split(":");
+      openCorsa({ linea: p.linea, dir: p.direzione, la: s.lat, lng: s.lng, t: +hm[0] * 60 + +hm[1], tol: 400, az: p.azienda }); });
     $("#trGoPlan").onclick = () => { trPlan = { da: j.pontile || s.n, a: "" }; trStop = null; $("#trBody").innerHTML = ""; renderTr(); setTimeout(() => { const b = $("#trAsk"); if (b) b.click(); }, 50); };
   }catch(e){ box.innerHTML = `<div class="trback" id="trBack">‹ Fermate</div><p class="trnote">Orari non disponibili: controlla la connessione.</p>`; $("#trBack").onclick = () => { trStop = null; $("#trBody").innerHTML = ""; renderTr(); }; }
 }
@@ -5066,7 +5085,7 @@ function actvPaint(){
     }
     if (!pos) return;
     const ali = b[3] === "Alilaguna", col = lineColor(b[0], b[3]), img = ensureBoatImage(col, ali);
-    const i = BOATS_ACTV.length; BOATS_ACTV.push({ l: b[0].replace(/^Alilaguna\s+/, ""), h: cleanDir(b[2]), az: b[3], next: b[5] });
+    const i = BOATS_ACTV.length; BOATS_ACTV.push({ l: b[0].replace(/^Alilaguna\s+/, ""), h: cleanDir(b[2]), az: b[3], next: b[5], L: b[0], d: b[2], s0: st[0] });
     feats.push({ type: "Feature", properties: { i, l: ali ? "AL" : b[0], a: ang, img, col, al: ali ? 1 : 0 }, geometry: { type: "Point", coordinates: pos } });
   });
   map.getSource("battelli").setData({ type: "FeatureCollection", features: feats });
@@ -5103,6 +5122,48 @@ function pathAt(P, f){
   while (hi - lo > 1){ const m = (lo + hi) >> 1; if (P.cum[m] <= d) lo = m; else hi = m; }
   const seg = P.cum[hi] - P.cum[lo] || 1, u = (d - P.cum[lo]) / seg, a = P.pts[lo], b = P.pts[hi];
   return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, Math.atan2((b[1] - a[1]) * 0.703, b[0] - a[0]) * 180 / Math.PI];
+}
+/* ---------- corsa di un battello: tutte le fermate che mancano al capolinea, sulla mappa e in elenco ---------- */
+const CORSA = q => fetchT(CONFIG.SUPABASE_URL + "/functions/v1/corsa?" + q, {}, 20000).then(r => r.json());
+function hexLight(h){ const m = /^#?([0-9a-f]{6})$/i.exec(h || ""); if (!m) return false; const n = parseInt(m[1], 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255 > 0.72; }
+let corsaSeq = 0;
+function corsaLayers(){
+  if (!map || map.getSource("corsa")) return;
+  map.addSource("corsa", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+  const L = ["==", ["geometry-type"], "LineString"], P = ["==", ["geometry-type"], "Point"];
+  map.addLayer({ id: "corsa-case", type: "line", source: "corsa", filter: L, layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#111", "line-width": 8 } });
+  map.addLayer({ id: "corsa-line", type: "line", source: "corsa", filter: L, layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": ["get", "c"], "line-width": 5 } });
+  map.addLayer({ id: "corsa-pt", type: "circle", source: "corsa", filter: P, paint: { "circle-radius": ["case", ["get", "f"], 8, 6], "circle-color": "#ffffff", "circle-stroke-color": ["get", "s"], "circle-stroke-width": 3 } });
+  if (map.getStyle().glyphs) map.addLayer({ id: "corsa-lbl", type: "symbol", source: "corsa", filter: P, layout: { "text-field": ["get", "t"], "text-font": ["Noto Sans Bold", "Noto Sans Regular"],
+    "text-size": 12, "text-offset": [0, 1.2], "text-anchor": "top" }, paint: { "text-color": "#111", "text-halo-color": "#fff", "text-halo-width": 1.6 } });
+}
+function closeCorsa(){ corsaSeq++; const b = $("#corsaBox"); if (b) b.classList.add("hidden"); if (map && map.getSource("corsa")) map.getSource("corsa").setData({ type: "FeatureCollection", features: [] }); }
+async function openCorsa(o){
+  const seq = ++corsaSeq, box = $("#corsaBox"), ali = o.az === "Alilaguna" || /^Alilaguna /.test(o.linea);
+  const col = lineColor(o.linea, ali ? "Alilaguna" : "ACTV"), light = hexLight(col);
+  try{ closePopups(); }catch(e){}
+  box.classList.remove("hidden"); box.style.setProperty("--lc", light ? "#9aa0a8" : col); box.style.setProperty("--ld", light ? "#111" : col);
+  $("#cbHead").innerHTML = `${lineBadge(o.linea)}<span class="cbDir">\u2192 ${esc(cleanDir(o.dir))}</span><button id="cbClose" aria-label="Chiudi">\u00d7</button>`;
+  $("#cbClose").onclick = closeCorsa; $("#cbNote").textContent = "";
+  $("#cbList").innerHTML = `<div class="cbMsg">Carico le fermate\u2026</div>`;
+  let j; try{ j = await CORSA(`linea=${encodeURIComponent(o.linea)}&dir=${encodeURIComponent(o.dir)}&la=${o.la}&lo=${o.lng}&t=${o.t}&tol=${o.tol || 60}`); }catch(e){ j = { errore: "rete" }; }
+  if (seq !== corsaSeq) return;
+  if (!j || !Array.isArray(j.fermate) || !j.fermate.length){ $("#cbList").innerHTML = `<div class="cbMsg">${j && j.errore === "corsa_non_trovata" ? "Non trovo questa corsa negli orari." : "Fermate non disponibili: controlla la connessione."}</div>`; return; }
+  let F = j.fermate.slice();
+  if (o.boat){ let t = romeMinNow(); const d0 = F[0].dep; if (t < d0 - 600) t += 1440; else if (t > d0 + 600) t -= 1440; if (F.length > 1 && t > d0 + 0.2) F = F.slice(1); }   // fermata già lasciata
+  $("#cbList").innerHTML = F.map((f, i) => `<div class="cbRow${i === 0 ? " first" : ""}${i === F.length - 1 ? " last" : ""}"><span class="cbT">${esc(f.arr)}</span><span class="cbDot"></span>
+    <span class="cbN">${esc(f.n)}${i === 0 ? `<small>${o.boat ? "prossima fermata" : "partenza"}</small>` : i === F.length - 1 ? "<small>capolinea</small>" : ""}</span></div>`).join("");
+  const nf = F.length - 1; $("#cbNote").textContent = (nf === 1 ? "1 fermata" : nf + " fermate") + " fino al capolinea \u00b7 orari ufficiali, senza ritardi";
+  if (!map) return; corsaLayers();
+  // tragitto lungo i canali consentiti (mai in linea retta) e fermate
+  const pts = (o.boat ? [[o.la, o.lng]] : []).concat(F.map(f => [f.lat, f.lng])), feats = [];
+  actvBudget = 400; actvDeadline = performance.now() + 2500;
+  for (let i = 1; i < pts.length; i++){ const P = actvPath(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]);
+    if (P) feats.push({ type: "Feature", properties: { c: col }, geometry: { type: "LineString", coordinates: P.pts.map(p => [p[1], p[0]]) } }); }
+  F.forEach((f, i) => feats.push({ type: "Feature", properties: { s: light ? "#111" : col, f: i === 0 || i === F.length - 1, t: f.arr + " " + f.n }, geometry: { type: "Point", coordinates: [f.lng, f.lat] } }));
+  map.getSource("corsa").setData({ type: "FeatureCollection", features: feats });
+  try{ follow = false; const bb = new maplibregl.LngLatBounds(); pts.forEach(p => bb.extend([p[1], p[0]]));
+    map.fitBounds(bb, { padding: { top: 70, left: 40, right: 40, bottom: Math.round(innerHeight * 0.45) + 20 }, maxZoom: 16, duration: 700 }); }catch(e){}
 }
 function actvStart(){
   if (typeof loadGraph === "function") loadGraph();
