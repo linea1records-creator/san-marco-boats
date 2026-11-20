@@ -737,6 +737,8 @@
   .ae-s{flex:0 0 auto;font-size:12px;font-weight:700;color:#8a8f98;text-align:right;max-width:34%}
   .ae-s.ae-d{color:#2e7d32} .ae-s.ae-l{color:#ef6c00} .ae-s.ae-x{color:#c62828}
   #aeroBox .aeFoot{padding:7px 14px;font-size:11px;color:#9aa0a8;border-top:1px solid #eee}
+  #aeroMk{display:flex;align-items:center;gap:5px;padding:5px 11px 5px 9px;background:#111;color:#fff;border-radius:999px;font-size:12px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.5);white-space:nowrap}
+  #aeroMk svg{width:15px;height:15px;fill:#fff;stroke:none}
   #modeFlash{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:60;color:#fff;font-size:15px;font-weight:700;letter-spacing:.02em;text-shadow:0 1px 4px rgba(0,0,0,.85),0 0 12px rgba(0,0,0,.5);pointer-events:none;opacity:0;transition:opacity .12s;white-space:nowrap}
   #modeFlash.on{opacity:1}
   #fabGps{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -4640,7 +4642,7 @@ function drawBric3d(){
 let appMode = "nautica";
 function setAppMode(m){
   if (m === "incontra" && !store.get("ln_adult", false)){ adultGate(); return; }
-  appMode = m; try{ drawFriends(); }catch(e){}
+  appMode = m; try{ drawFriends(); }catch(e){} try{ updateAeroMk(); }catch(e){}
   document.body.classList.toggle("mode-trasporti", m === "trasporti");
   document.body.classList.toggle("mode-incontra", m === "incontra");
   document.body.classList.toggle("mode-market", m === "market");
@@ -4864,14 +4866,15 @@ function aeroIcon(){
   g.lineTo(-2.2, 2); g.lineTo(-13, 6); g.lineTo(-13, 3); g.lineTo(-2.2, -4); g.quadraticCurveTo(-2.2, -11, 0, -13); g.closePath(); g.fill(); g.restore();
   return g.getImageData(0, 0, S, S);
 }
-function addAeroLayer(){
-  if (!map || map.getSource("aero")) return;
-  if (!map.hasImage("aereo")) map.addImage("aereo", aeroIcon(), { pixelRatio: 2 });
-  map.addSource("aero", { type: "geojson", data: { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [12.3519, 45.5053] } } });
-  map.addLayer({ id: "aero", type: "symbol", source: "aero", minzoom: 9, layout: { visibility: appMode === "nautica" ? "visible" : "none",
-    "icon-image": "aereo", "icon-size": ["interpolate", ["linear"], ["zoom"], 9, 0.5, 13, 0.85, 16, 1.05], "icon-allow-overlap": true, "icon-ignore-placement": true,
-    "text-field": "Marco Polo", "text-font": ["Noto Sans Bold", "Noto Sans Regular"], "text-size": 11, "text-offset": [0, 1.25], "text-optional": true },
-    paint: { "text-color": "#0c3851", "text-halo-color": "#ffffff", "text-halo-width": 1.4 } });
+let aeroMk = null;
+function updateAeroMk(){ if (aeroMk) aeroMk.getElement().style.display = (appMode === "nautica" || appMode === "trasporti") ? "flex" : "none"; }
+function addAeroLayer(){   // aeroporto Marco Polo: tasto nero sempre visibile che apre il tabellone voli
+  if (aeroMk || !map || typeof maplibregl === "undefined") return;
+  const el = document.createElement("button"); el.id = "aeroMk"; el.type = "button";
+  el.innerHTML = '<svg viewBox="0 0 24 24"><path d="M2 16l20-6-20-6 4 6-4 6z"/></svg>Marco Polo';
+  el.addEventListener("click", ev => { ev.stopPropagation(); openAero(); });
+  aeroMk = new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([12.3519, 45.5053]).addTo(map);
+  updateAeroMk();
 }
 let PONTILI_ACTV = store.get("ln_actv_pontili", null), trStop = null, trPlan = null;
 async function loadPontiliActv(){
