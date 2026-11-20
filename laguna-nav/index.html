@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0c3851">
+<meta name="theme-color" content="#050706">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -18,9 +18,9 @@
 <script>if(!window.maplibregl){document.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"><\/script>');}</script>
 <style>
   :root{
-    --bg:#082a3e; --panel:#0c3851; --panel2:#124766; --line:#1f587a;
+    --bg:#082a3e; --panel:#050706; --panel2:#124766; --line:#1f587a;
     --text:#f7f7f2; --muted:#a3b8c6; --accent:#ff6446;
-    --navy:#0c3851; --coral:#ff6446; --cream:#f7f7f2;
+    --navy:#050706; --coral:#ff6446; --cream:#f7f7f2;
     --warn:#ffc400; --danger:#ff3b30; --ok:#30d158;
     --safe-b: env(safe-area-inset-bottom, 0px);
     --safe-t: env(safe-area-inset-top, 0px);
@@ -93,9 +93,9 @@
   body.nav .fabs{bottom:92px}
   .fab{width:50px;height:50px;border-radius:50%;background:var(--cream);color:var(--navy);font-size:19px;font-weight:800;box-shadow:0 2px 10px rgba(0,0,0,.35);
     display:flex;align-items:center;justify-content:center}
-  .fab.big{width:58px;height:58px;font-size:24px;color:#0c3851}
+  .fab.big{width:58px;height:58px;font-size:24px;color:#050706}
   .fab.on{background:var(--accent);color:#000}
-  .fab.follow{background:#0c3851;color:#fff}
+  .fab.follow{background:#050706;color:#fff}
   #navBar{position:absolute;z-index:20;left:0;right:0;bottom:0;background:#111;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
     padding:12px 16px}
   .eta{font-size:22px;font-weight:800;color:var(--ok)}
@@ -108,11 +108,11 @@
   .meTag{position:absolute;left:50%;bottom:0;transform:translateX(-50%);white-space:nowrap;background:#111;color:#fff;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.35)}
   .dest{width:22px;height:22px;border-radius:50%;background:#d32f2f;border:4px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5)}
   /* ===== Tema: blu per la navigazione, rosso e bianco (trattoria) per i ristoranti ===== */
-  #maneuver{background:#0c3851}
+  #maneuver{background:#050706}
   .fab.rec{background:#d32f2f;color:#fff;animation:pulse 1.2s infinite}
-  .fab.on{background:#0c3851;color:#fff}
+  .fab.on{background:#050706;color:#fff}
   nav#dock{flex:0 0 auto;position:relative;z-index:40;display:flex;justify-content:center;align-items:center;padding:8px 10px calc(8px + var(--safe-b));background:#0b0f17;border-top:1px solid var(--line)}
-  #dial{display:flex;align-items:center;background:#0c3851;transition:background .25s;border-radius:30px;box-shadow:0 3px 14px rgba(0,0,0,.45);touch-action:pan-y;user-select:none;-webkit-user-select:none;overflow:hidden}
+  #dial{display:flex;align-items:center;background:#050706;transition:background .25s;border-radius:30px;box-shadow:0 3px 14px rgba(0,0,0,.45);touch-action:pan-y;user-select:none;-webkit-user-select:none;overflow:hidden}
   #dial button{color:#fff;background:none;border:0}
   #dPrev,#dNext{width:46px;height:52px;font-size:26px;font-weight:300;opacity:.75}
   #dCur{position:relative;width:170px;height:56px;overflow:hidden;cursor:grab;touch-action:none;
@@ -128,7 +128,7 @@
   #dPick{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);display:flex;gap:6px;background:#fff;border-radius:22px;padding:8px;box-shadow:0 6px 22px rgba(0,0,0,.45)}
   #dPick button{display:flex;flex-direction:column;align-items:center;gap:3px;width:62px;padding:8px 2px;border-radius:14px;color:#222;font-size:10.5px;font-weight:700;line-height:1.1}
   #dPick button span{font-size:24px}
-  #dPick button.on{background:#e8efff;color:#0c3851}
+  #dPick button.on{background:#e8efff;color:#050706}
   body.food{--accent:#ff6446}
   body.food .sbar{border:3px solid #ff6446}
   body.food #searchBox::before{content:"";display:block;height:14px;margin:0 10px -3px;border-radius:10px 10px 0 0;
@@ -160,7 +160,7 @@
   body.nav #toggles{top:calc(104px + var(--safe-t))}
   #toggles button{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.92);color:#111;font-size:16px;
     box-shadow:0 1px 6px rgba(0,0,0,.3);opacity:.55}
-  #toggles button.on{opacity:1;background:#0c3851;color:#fff}
+  #toggles button.on{opacity:1;background:#050706;color:#fff}
   body.food #toggles{display:none}
   #banner{left:54px} #shallow{left:54px}
   #inst{position:absolute;z-index:18;left:10px;bottom:16px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;max-width:calc(100% - 84px)}
@@ -179,7 +179,7 @@
   .ic-card.alarm{background:#b3261e;animation:pulse 1s infinite} .ic-card.alarm .ic-big{color:#fff}
   .chips{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
   .chips button{font-size:11px;padding:4px 8px;border-radius:20px;background:#1b2a44;color:#cfe0ff}
-  .chips button.on{background:#0c3851;color:#fff}
+  .chips button.on{background:#050706;color:#fff}
   #menu{position:absolute;z-index:23;right:70px;bottom:16px;background:#fff;color:#111;border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,.4);overflow:hidden;min-width:220px}
   body.nav #menu{bottom:92px}
   #menu .mi{display:block;width:100%;text-align:left;padding:13px 16px;font-size:15px;border-top:1px solid #eee;color:#111}
@@ -189,7 +189,7 @@
   #v-boat .card h4{color:#8fb3ff;margin-bottom:10px}
   .hint{font-size:12px;color:var(--muted);margin-top:4px}
   #modes{position:absolute;z-index:23;right:70px;bottom:130px;background:#fff;color:#111;border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,.4);overflow:hidden;min-width:200px}
-  #modes .mi.on{background:#e8f0fe;color:#0c3851;font-weight:700}
+  #modes .mi.on{background:#e8f0fe;color:#050706;font-weight:700}
   body.nav #modes{bottom:206px}
   #depthLegend{position:absolute;z-index:17;right:70px;top:calc(76px + var(--safe-t));background:rgba(255,255,255,.94);color:#111;border-radius:12px;padding:8px 10px;
     box-shadow:0 2px 10px rgba(0,0,0,.3);font-size:11px;max-width:170px}
@@ -236,7 +236,7 @@
     box-shadow:0 3px 12px rgba(0,0,0,.4);width:170px;cursor:pointer}
   body.nav #miniW{bottom:92px}
   body.mode-trasporti #miniW, body.mode-incontra #miniW, body.mode-market #miniW{display:none}
-  .mwc{background:rgba(12,56,81,.93);color:#fff;padding:5px 7px;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:4px;align-items:center}
+  .mwc{background:rgba(5,7,6,.93);color:#fff;padding:5px 7px;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:4px;align-items:center}
   .mwc i{font-style:normal;font-size:12px;grid-row:span 2}
   .mwc b{font-size:13.5px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .mwc small{font-size:8.5px;color:#9ab;letter-spacing:.02em;line-height:1;white-space:nowrap}
@@ -287,7 +287,7 @@
   #wz{position:fixed;inset:0;z-index:6000;background:#0b0f17;color:#fff;display:flex;flex-direction:column;animation:obIn .25s ease}
   .wzbar{display:flex;align-items:center;gap:10px;padding:calc(10px + var(--safe-t)) 12px 8px}
   .wzbar button{font-size:24px;color:#cfd8e3;width:36px} .wzbar span{font-size:12px;color:#8fa0b5;min-width:34px;text-align:right}
-  .wzprog{flex:1;height:6px;border-radius:3px;background:#1d2738;overflow:hidden} .wzprog i{display:block;height:100%;background:linear-gradient(90deg,#0c3851,#ff6446);transition:width .25s}
+  .wzprog{flex:1;height:6px;border-radius:3px;background:#1d2738;overflow:hidden} .wzprog i{display:block;height:100%;background:linear-gradient(90deg,#050706,#ff6446);transition:width .25s}
   .wzmain{flex:1;overflow-y:auto;padding:14px 18px calc(24px + var(--safe-b))}
   .wzt{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#7fa6e8;font-weight:800;margin-bottom:6px}
   .wzq{font-size:25px;line-height:1.2;margin:0 0 8px} .wzh{color:#9fb0c5;font-size:14px;line-height:1.45;margin:0 0 14px}
@@ -322,7 +322,7 @@
   @keyframes kpop{to{transform:scale(2.2);opacity:0}}
   #tideC{width:100%;height:36px;display:block;margin-top:4px;border-radius:8px;background:#06101f}
   /* ===== unClick / unClick ===== */
-  #splash{background:radial-gradient(120% 80% at 50% 0%,#0d2b5a 0%,#000 70%)}
+  #splash{background:radial-gradient(120% 80% at 50% 0%,#141816 0%,#000 70%)}
   .ob{display:flex;flex-direction:column;justify-content:center;min-height:100%;animation:obIn .35s ease}
   @keyframes obIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
   .logo1{font-size:64px;font-weight:900;letter-spacing:-2px;text-align:center}
@@ -351,14 +351,14 @@
   .cn span{color:#ff6446;font-weight:700}
   .cn input{border:0;background:none}
   .hint.ok{color:#4ade80} .hint.ko{color:#ff6b60}
-  .avatar{width:84px;height:84px;border-radius:50%;margin:0 auto;background:linear-gradient(135deg,#0c3851,#ff6446);display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:800}
+  .avatar{width:84px;height:84px;border-radius:50%;margin:0 auto;background:linear-gradient(135deg,#050706,#ff6446);display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:800}
   .rowbtn{display:flex;justify-content:space-between;width:100%;text-align:left;font-size:16px;font-weight:600}
   .rowbtn span{color:var(--muted)}
   .backbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;color:#ff6446;font-weight:600}
   #navMode{position:absolute;z-index:19;left:50%;transform:translateX(-50%);top:calc(70px + var(--safe-t));display:flex;background:rgba(255,255,255,.95);border-radius:20px;
     box-shadow:0 2px 10px rgba(0,0,0,.3);overflow:hidden}
   #navMode button{padding:7px 14px;font-size:13px;font-weight:700;color:#333}
-  #navMode button.on{background:#0c3851;color:#fff}
+  #navMode button.on{background:#050706;color:#fff}
   body.nav #navMode{display:none}
   body.mode-trasporti #toggles, body.mode-trasporti #inst, body.mode-trasporti #navMode, body.mode-trasporti #fabFood,
   body.mode-trasporti #fabMenu, body.mode-trasporti #fabView{display:none!important}
@@ -371,10 +371,10 @@
   body:not(.mode-trasporti) #trPanel{display:none}
   .txest{background:#fff7e6;border:1px solid #fcd34d;border-radius:12px;padding:9px 11px;font-size:14px;color:#3b2a00;margin:4px 0 8px;line-height:1.35} .txest small{color:#7a5b00}
   .txpm{width:36px!important;padding:6px 0!important;color:#111!important;background:#eee!important;border:0!important}
-  .txwait{display:flex;gap:6px;margin:6px 0} .txwait i{width:10px;height:10px;border-radius:50%;background:#0c3851;animation:txb 1s infinite alternate} .txwait i:nth-child(2){animation-delay:.2s} .txwait i:nth-child(3){animation-delay:.4s}
+  .txwait{display:flex;gap:6px;margin:6px 0} .txwait i{width:10px;height:10px;border-radius:50%;background:#050706;animation:txb 1s infinite alternate} .txwait i:nth-child(2){animation-delay:.2s} .txwait i:nth-child(3){animation-delay:.4s}
   @keyframes txb{from{opacity:.25;transform:scale(.8)}to{opacity:1;transform:scale(1.1)}}
   .txdh{display:flex;justify-content:space-between;align-items:center;margin:14px 0 6px;padding-top:10px;border-top:1px solid #eee} .txsw{font-size:13px;color:#444;display:flex;gap:6px;align-items:center}
-  .txr{border:1px solid #eee;border-radius:12px;padding:9px 10px;margin-bottom:8px;font-size:14px} .txr.mine{border-color:#0c3851;background:#f0fbf5}
+  .txr{border:1px solid #eee;border-radius:12px;padding:9px 10px;margin-bottom:8px;font-size:14px} .txr.mine{border-color:#050706;background:#f0fbf5}
   .txb{display:flex;gap:6px;margin-top:6px} .txb .btn{width:auto}
   body.mode-market #toggles, body.mode-market #inst, body.mode-market #navMode, body.mode-market #fabMenu, body.mode-market #fabView,
   body.mode-market #searchBox, body.mode-market #routeBox, body.mode-market #banner, body.mode-market #shallow, body.mode-market #depthLegend{display:none!important}
@@ -511,8 +511,8 @@
   .fr b{flex:1} .fr .btn.small{padding:7px 10px;font-size:13px}
   .fr.small{font-size:14px;color:var(--muted)}
   .frh{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#8fb3ff;margin:12px 0 2px}
-  .colrow{display:flex;gap:8px;flex-wrap:wrap} .colb{width:34px;height:34px;border-radius:50%;border:3px solid transparent} .colb.on{border-color:#fff;box-shadow:0 0 0 2px #0c3851}
-  .mchead{display:flex;align-items:center;gap:8px;margin-bottom:10px} .mchead h2{flex:1;margin:0;font-size:26px;background:linear-gradient(90deg,#0c3851,#ff6446);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .colrow{display:flex;gap:8px;flex-wrap:wrap} .colb{width:34px;height:34px;border-radius:50%;border:3px solid transparent} .colb.on{border-color:#fff;box-shadow:0 0 0 2px #050706}
+  .mchead{display:flex;align-items:center;gap:8px;margin-bottom:10px} .mchead h2{flex:1;margin:0;font-size:26px;background:linear-gradient(90deg,#050706,#ff6446);-webkit-background-clip:text;background-clip:text;color:transparent}
   .mcic{position:relative;width:42px;height:42px;border-radius:50%;background:var(--panel2);border:1px solid var(--line);font-size:19px;display:flex;align-items:center;justify-content:center;color:var(--text)}
   .mcic .av{width:34px;height:34px;font-size:15px}
   .mcic i{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:#d32f2f;color:#fff;font-size:11px;font-style:normal;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px}
@@ -551,7 +551,7 @@
   .dep .dd{flex:1;color:#222}
   .dep .dt{text-align:right;line-height:1.1}.dep .dt small{display:block;color:#888;font-size:11px}
   .trnote{color:#777;font-size:12px;line-height:1.35;margin:8px 0 0}
-  .trback{color:#0c3851;font-weight:700;font-size:13px;margin-bottom:4px;cursor:pointer}
+  .trback{color:#050706;font-weight:700;font-size:13px;margin-bottom:4px;cursor:pointer}
   .opt{border:1px solid #e3e8ef;border-radius:12px;padding:8px 10px;margin-top:8px}
   .opt .oh{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:4px}
   .leg{font-size:13px;color:#222;padding:5px 0;border-top:1px dashed #e3e8ef;line-height:1.35}
@@ -652,7 +652,7 @@
   #tabs svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
   body nav#dock{background:#fff;border-top:1px solid #e3e5e8}
   #tabs button{color:#8a8f98}
-  #tabs button.on{color:#0c3851}
+  #tabs button.on{color:#050706}
   #tabs button.on .s{fill:currentColor}
   #tabs button.on .c{stroke:#fff}
   #tabs button:active svg{transform:scale(.9)}
@@ -662,7 +662,7 @@
   #tabs button.mid svg{width:58px;height:58px;stroke:none}
   #tabs button.mid .arw{fill:#4a5f86;stroke:#fff;stroke-width:3.5;stroke-linejoin:round}
   #tabs button.mid .arl{fill:none;stroke:#9fb0cc;stroke-width:1.6;stroke-linecap:round}
-  #tabs button.mid.on .arw{fill:#0c3851}
+  #tabs button.mid.on .arw{fill:#050706}
   #tabs button.mid span{font-size:12px;font-weight:800;color:#000}
   #tabs button.mid:active .ring{transform:scale(.93)}
   #tabs button.mid:active svg{transform:none}
@@ -692,7 +692,7 @@
   /* ===== intro animata ===== */
   #intro{position:fixed;inset:0;z-index:6000;background:#f7f7f2;display:flex;align-items:center;justify-content:center;pointer-events:none}
   #intro svg{width:min(86vw,440px);height:auto;overflow:visible}
-  #intro text{font-family:"Avenir Next","Montserrat","Segoe UI",Roboto,Arial,sans-serif;fill:#0c3851;font-size:64px}
+  #intro text{font-family:"Avenir Next","Montserrat","Segoe UI",Roboto,Arial,sans-serif;fill:#050706;font-size:64px}
   #intro .lt{font-weight:300} #intro .bd{font-weight:800;letter-spacing:-1px}
   #intro .an{transform-box:fill-box;transform-origin:50% 100%;opacity:0}
   /* ===== unClick: navy + corallo su crema ===== */
@@ -995,7 +995,7 @@
       <button class="srow" data-set="water"><svg viewBox="0 0 24 24"><path d="M12 3.5c3.5 4.3 6 7.6 6 10.5a6 6 0 0 1-12 0c0-2.9 2.5-6.2 6-10.5z"/><path d="M9 15a3 3 0 0 0 3 3"/></svg><span>Secca</span><i class="sw"></i></button>
       <button class="srow" data-set="d3"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>Vista 3D</span><i class="sw"></i></button>
       <button class="srow" data-set="sat"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.8 5.4 3.8 8.5s-1.3 5.9-3.8 8.5c-2.5-2.6-3.8-5.4-3.8-8.5S9.5 6.1 12 3.5z"/></svg><span>Satellitare</span><i class="sw"></i></button>
-      <label class="srow hidden" id="waterColRow"><svg viewBox="0 0 24 24"><path d="M3 15c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/><path d="M3 19c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/><path d="M12 3.5c2.4 3 4 5.2 4 7a4 4 0 0 1-8 0c0-1.8 1.6-4 4-7z"/></svg><span>Colore dell'acqua</span><input type="color" id="waterCol" value="#9ad1e8"><button type="button" id="waterColReset" title="Colore originale">↺</button></label>
+      <label class="srow hidden" id="waterColRow"><svg viewBox="0 0 24 24"><path d="M3 15c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/><path d="M3 19c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/><path d="M12 3.5c2.4 3 4 5.2 4 7a4 4 0 0 1-8 0c0-1.8 1.6-4 4-7z"/></svg><span>Colore dell'acqua</span><input type="color" id="waterCol" value="#3dc991"><button type="button" id="waterColReset" title="Colore di default">↺</button></label>
       <button class="srow" data-set="boat"><svg viewBox="0 0 24 24"><path d="M3 15.5h18l-2.6 4.5H5.6z"/><path d="M12 3v12.5M12 4.5l6 9h-6"/></svg><span>La tua barca</span><i class="sw"></i></button>
       <div class="sh">DIMENSIONI</div>
       <label class="srng"><span>Avatar <b id="szManV">100%</b></span><input type="range" id="szMan" min="0.4" max="3" step="0.1" value="1"></label>
@@ -1036,7 +1036,7 @@
     <div class="dbar"><button class="btn small ghost" id="dashEdit">✎ Personalizza</button></div>
     <div class="dgrid" id="dgrid"></div>
     <div class="dmore" id="dashMore">
-      <button class="dm" id="fabVoice">🔈 Voce</button>
+      <button class="dm hidden" id="fabVoice" style="display:none">🔈 Voce</button>
       <button class="dm" id="fabRec">● Insegna un tragitto</button>
       <button class="dm" id="fabDepth">≈ Segnala fondale misurato</button>
       <button class="dm" id="goPontili">⚓ Pontili pubblici</button>
@@ -1238,7 +1238,7 @@
 /* =========================================================
    CONFIGURAZIONE — modifica qui
    ========================================================= */
-const NAVY = "#0c3851", CORAL = "#ff6446";   // blu navy di unClick: freccia Naviga, tasto ➤, acqua, icone selezionate
+const NAVY = "#050706", CORAL = "#ff6446";   // blu navy di unClick: freccia Naviga, tasto ➤, acqua, icone selezionate
 const CONFIG = {
   // Numero WhatsApp che riceve gli ordini (formato internazionale senza +, es. "393401234567")
   ORDER_WHATSAPP: "",
@@ -1534,15 +1534,15 @@ document.addEventListener("click", e => {
 });
 /* ---------- myClick: profilo personalizzato e amici ---------- */
 let MY = store.get("ln_my", null);
-const MY_COLORS = ["#0c3851", "#c8102e", "#0a8f4e", "#d6336c", "#6d28d9", "#f59e0b", "#0891b2", "#334155"];
-function avatarHtml(p, big){ const c = (p && p.colore) || "#0c3851", t = (p && p.emoji) || ((p && p.nome) || "?")[0].toUpperCase();
+const MY_COLORS = ["#050706", "#c8102e", "#0a8f4e", "#d6336c", "#6d28d9", "#f59e0b", "#0891b2", "#334155"];
+function avatarHtml(p, big){ const c = (p && p.colore) || "#050706", t = (p && p.emoji) || ((p && p.nome) || "?")[0].toUpperCase();
   return `<span class="av${big ? " big" : ""}" data-noico style="background:${c}">${esc(t)}</span>`; }
 function paintMe(){
   if (!PROFILE) return; const me = (MY && MY.io) || { nome: PROFILE.clickname };
   const a = $("#pfAvatar"); a.textContent = me.emoji || PROFILE.clickname[0].toUpperCase(); a.style.background = me.colore || "";
   $("#pfName").textContent = "@" + PROFILE.clickname;
   $("#pfSub").textContent = me.bio || "unClick";
-  ["#pfMini", "#cmAv"].forEach(s => { const el = $(s); el.textContent = me.emoji || PROFILE.clickname[0].toUpperCase(); el.style.background = me.colore || "#0c3851"; });
+  ["#pfMini", "#cmAv"].forEach(s => { const el = $(s); el.textContent = me.emoji || PROFILE.clickname[0].toUpperCase(); el.style.background = me.colore || "#050706"; });
   $("#cmText").placeholder = "A cosa stai pensando, @" + PROFILE.clickname + "?";
 }
 async function loadFriends(){
@@ -1858,12 +1858,12 @@ function renderProfile(){
   setPfTab(pfTab);
 }
 /* omino sulla mappa e posizione condivisa con gli amici */
-const AV_COLS = ["#0c3851", "#c8102e", "#0a8f4e", "#f59e0b", "#7c3aed", "#d6336c", "#111111", "#ffffff", "#0891b2", "#8b4513"];
-const AV_DEF = { sex: "m", shirt: "#0c3851", legs: "#2b3a55", shoe: "#222222", hair: "#6b3f1f" };
+const AV_COLS = ["#050706", "#c8102e", "#0a8f4e", "#f59e0b", "#7c3aed", "#d6336c", "#111111", "#ffffff", "#0891b2", "#8b4513"];
+const AV_DEF = { sex: "m", shirt: "#050706", legs: "#2b3a55", shoe: "#222222", hair: "#6b3f1f" };
 const AV_PAL = {
   shirt: AV_COLS,
   legs: ["#2b3a55", "#111111", "#4a5a7a", "#6b7280", "#c9b48a", "#ffffff", "#8b4513", "#0a8f4e", "#c8102e", "#d6336c"],
-  shoe: ["#222222", "#ffffff", "#8b4513", "#c8102e", "#0c3851", "#f59e0b", "#6b7280", "#0a8f4e"],
+  shoe: ["#222222", "#ffffff", "#8b4513", "#c8102e", "#050706", "#f59e0b", "#6b7280", "#0a8f4e"],
   hair: ["#6b3f1f", "#111111", "#3b2414", "#a0522d", "#e3c16f", "#d9d9d9", "#c0392b"]
 };
 function avGet(){ return Object.assign({}, AV_DEF, store.get("ln_avatar", null) || {}); }
@@ -2074,7 +2074,7 @@ function addManLayer(){
   if (!map.getSource("meman") || map.getLayer("meman")) return;
   map.addLayer({ id: "frdot", type: "circle", source: "frdot", maxzoom: MAN_MINZ, paint: { "circle-radius": 7, "circle-color": ["get", "c"], "circle-stroke-color": "#ffffff", "circle-stroke-width": 2.5, "circle-pitch-alignment": "map" } });
   map.addLayer({ id: "frman", type: "fill-extrusion", source: "frman", minzoom: MAN_MINZ, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true } });
-  map.addLayer({ id: "medot", type: "circle", source: "medot", maxzoom: MAN_MINZ, paint: { "circle-radius": 8, "circle-color": "#0c3851", "circle-stroke-color": "#ffffff", "circle-stroke-width": 3, "circle-pitch-alignment": "map" } });
+  map.addLayer({ id: "medot", type: "circle", source: "medot", maxzoom: MAN_MINZ, paint: { "circle-radius": 8, "circle-color": "#050706", "circle-stroke-color": "#ffffff", "circle-stroke-width": 3, "circle-pitch-alignment": "map" } });
   map.addLayer({ id: "meman", type: "fill-extrusion", source: "meman", minzoom: MAN_MINZ, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true } });
   manKey = ""; drawMan(true); drawFriends(); apply3d(false); hookManWater();
 }
@@ -2191,7 +2191,7 @@ function addLayers(){
   map.addSource("meman", { type: "geojson", data: empty, maxzoom: 15, tolerance: 0, buffer: 32 });   // pochi pezzi da ricalcolare: l'avatar si aggiorna subito
   map.addSource("medot", { type: "geojson", data: empty });
   map.addSource("frman", { type: "geojson", data: empty, maxzoom: 15, tolerance: 0, buffer: 32 }); map.addSource("frdot", { type: "geojson", data: empty });
-  map.addLayer({ id: "route-case", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#0c3851", "line-width": 13 } });
+  map.addLayer({ id: "route-case", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#050706", "line-width": 13 } });
   map.addLayer({ id: "route", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#ff6446", "line-width": 8 } });
   map.addSource("depths", { type: "geojson", data: empty });
   map.addLayer({ id: "depths", type: "circle", source: "depths", layout: { visibility: "none" }, paint: {
@@ -2214,7 +2214,7 @@ function addLayers(){
     "circle-color": ["case", [">", ["get", "d"], 0], "#9e9d24", [">", ["get", "d"], -1], "#ff3b30", [">", ["get", "d"], -2], "#ff9f0a", [">", ["get", "d"], -4], "#4fc3f7", "#1565c0"] } });
   if (map.getStyle().glyphs) map.addLayer({ id: "carta-num", type: "symbol", source: "carta", minzoom: 14.5, filter: [">", ["get", "d"], -2], layout: { visibility: INST.depth ? "visible" : "none",
     "text-field": ["get", "t"], "text-size": ["interpolate", ["linear"], ["zoom"], 14, 10, 17, 13], "text-offset": [0, 0.9], "text-font": ["Noto Sans Regular"], "text-allow-overlap": false },
-    paint: { "text-color": "#0d3b66", "text-halo-color": "#fff", "text-halo-width": 1.2 } });
+    paint: { "text-color": "#050706", "text-halo-color": "#fff", "text-halo-width": 1.2 } });
   map.addSource("velox-tratte", { type: "geojson", data: empty });
   map.addLayer({ id: "velox-tratte", type: "line", source: "velox-tratte", layout: { visibility: INST.velox ? "visible" : "none" },
     paint: { "line-color": ["case", ["<=", ["get", "v"], 7], "#d32f2f", "#f57c00"], "line-width": 3, "line-opacity": 0.5, "line-dasharray": [1, 1.5] } });
@@ -2236,10 +2236,10 @@ function addLayers(){
   // canali lagunari ufficiali (vie d'acqua segnate con le bricole): linea tratteggiata con il nome
   map.addSource("canali", { type: "geojson", data: empty });
   map.addLayer({ id: "canali", type: "line", source: "canali", minzoom: 10, layout: { visibility: LY.canali ? "visible" : "none", "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": "#0c3851", "line-opacity": 0.75, "line-width": ["interpolate", ["linear"], ["zoom"], 10, 1, 14, 2.4, 17, 4], "line-dasharray": [3, 2] } });
+    paint: { "line-color": "#050706", "line-opacity": 0.75, "line-width": ["interpolate", ["linear"], ["zoom"], 10, 1, 14, 2.4, 17, 4], "line-dasharray": [3, 2] } });
   if (map.getStyle().glyphs) map.addLayer({ id: "canali-lbl", type: "symbol", source: "canali", minzoom: 12.5, layout: { visibility: LY.canali ? "visible" : "none",
     "symbol-placement": "line", "text-field": ["get", "n"], "text-size": 11, "text-font": ["Noto Sans Regular"], "symbol-spacing": 350, "text-max-angle": 30 },
-    paint: { "text-color": "#0c3851", "text-halo-color": "#ffffff", "text-halo-width": 1.6 } });
+    paint: { "text-color": "#050706", "text-halo-color": "#ffffff", "text-halo-width": 1.6 } });
   loadCanals().then(drawCanali);
   // bricole: puntini da lontano, 3D da vicino
   map.addSource("bricole", { type: "geojson", data: empty });
@@ -2336,7 +2336,7 @@ function makeArrow(){
   return new maplibregl.Marker({ element: el, anchor: "bottom", rotationAlignment: "viewport", pitchAlignment: "viewport" });
 }
 /* omino 3D: blocchetti in rilievo sulla mappa, gira verso dove guardi e si vede da ogni lato */
-const MAN_C = { skin: "#f6c9a0", hair: "#6b3f1f", shirt: "#0c3851", legs: "#2b3a55", shoe: "#222222", eye: "#2b1a10", mouth: "#c0392b" };
+const MAN_C = { skin: "#f6c9a0", hair: "#6b3f1f", shirt: "#050706", legs: "#2b3a55", shoe: "#222222", eye: "#2b1a10", mouth: "#c0392b" };
 function myAvatar(){ return avGet(); }
 let manKey = "";
 function manFeatures(lat, lng, hdg, av, out, tilt, boatHint){
@@ -2378,7 +2378,7 @@ function boatFeatures(poly){
     const j = (i + 1) % BOAT_OUT.length, A = BOAT_OUT[i], B = BOAT_OUT[j], a = BOAT_IN[i], b = BOAT_IN[j];
     const n = Math.max(1, Math.ceil(Math.hypot(B[0] - A[0], B[1] - A[1]) / 1.2)), L = (P, Q, t) => [P[0] + (Q[0] - P[0]) * t, P[1] + (Q[1] - P[1]) * t];
     for (let k = 0; k < n; k++){ const t0 = k / n, t1 = (k + 1) / n, q = [L(A, B, t0), L(A, B, t1), L(a, b, t1), L(a, b, t0)];   // a pezzi, per inclinarsi in planata
-      poly(q, 0.85, 2.2, "#f4f6f8"); poly(q, 2.2, 2.55, "#0c3851"); } }
+      poly(q, 0.85, 2.2, "#f4f6f8"); poly(q, 2.2, 2.55, "#050706"); } }
   poly([[-2.7, -5.3], [2.7, -5.3], [2.7, -3.7], [-2.7, -3.7]], 0.9, 3.2, "#c89b62");    // panca di poppa
   // fuoribordo a barra: gambo nell'acqua, motore con la calandra, barra che sale verso la mano e manetta
   poly([[-0.35, -7.9], [0.35, -7.9], [0.35, -7.1], [-0.35, -7.1]], 0, 1.6, "#2a2a2a");
@@ -2526,7 +2526,8 @@ function setFirstPerson(on){
 $("#fabVoice").onclick = () => { voiceOn = !voiceOn; store.set("ln_voice", voiceOn); paintVoice(); if (voiceOn) say("Voce attiva"); };
 function paintVoice(){ $("#fabVoice").textContent = voiceOn ? "🔊 Voce attiva" : "🔈 Voce spenta"; }
 paintVoice();
-function say(t){ if (!voiceOn || !window.speechSynthesis) return; try{ const u = new SpeechSynthesisUtterance(t); u.lang = "it-IT"; speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} }
+function say(t){ return;   // voce delle indicazioni tolta
+  if (!voiceOn || !window.speechSynthesis) return; try{ const u = new SpeechSynthesisUtterance(t); u.lang = "it-IT"; speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} }
 
 // prima persona: la visuale resta incollata all'avatar (niente trascinamento né rotazione col dito, solo lo zoom)
 function fpLock(on){ if (!map) return;
@@ -4427,7 +4428,7 @@ function applyEngine(b, force){
 }
 function paintArrow(){
   const b = activeBoat(), path = document.querySelector(".me svg path.hull"); if (!path) return;   // ora c'è l'avatar: niente da colorare
-  path.setAttribute("fill", b && b.colorHull && b.colorHull.toLowerCase() !== "#ffffff" ? b.colorHull : "#0c3851");
+  path.setAttribute("fill", b && b.colorHull && b.colorHull.toLowerCase() !== "#ffffff" ? b.colorHull : "#050706");
   path.setAttribute("stroke", b && b.colorStripe ? b.colorStripe : "#fff");
 }
 
@@ -4512,13 +4513,14 @@ function keepSimple(l){
   return false;
 }
 // colore dell'acqua della mappa (scelto da tropss, uguale per tutti)
+const WATER_DEFAULT = "#3dc991";   // acqua verde di default (tropss può cambiarla per tutti)
 let WATER_COL = store.get("ln_water_col", null), WATER_ORIG = null;
 function applyWaterColor(){
   if (!map || !BASE_LAYERS.length) return;
   const L = BASE_LAYERS.filter(l => /water|river|canal|ocean|sea|lake/i.test(l.id) && (l.type === "fill" || l.type === "line"));
   if (!WATER_ORIG){ WATER_ORIG = {}; L.forEach(l => { try{ WATER_ORIG[l.id] = map.getPaintProperty(l.id, l.type + "-color"); }catch(e){} }); }
-  L.forEach(l => { try{ map.setPaintProperty(l.id, l.type + "-color", WATER_COL || WATER_ORIG[l.id]); }catch(e){} });
-  const inp = $("#waterCol"); if (inp && WATER_COL) inp.value = WATER_COL;
+  L.forEach(l => { try{ map.setPaintProperty(l.id, l.type + "-color", WATER_COL || WATER_DEFAULT); }catch(e){} });
+  const inp = $("#waterCol"); if (inp) inp.value = WATER_COL || WATER_DEFAULT;
 }
 async function loadWaterColor(){
   try{ const r = await api("app_settings?key=eq.water_color&select=value"); const v = r && r[0] ? r[0].value : null;
@@ -4528,7 +4530,7 @@ function paintWaterRow(){ const r = $("#waterColRow"); if (r) r.classList.toggle
 async function saveWaterColor(v){
   try{ const j = await rpc("app_setting_set", { p_key: "water_color", p_value: v });
     if (!j || j.errore) return toast(j && j.errore === "non_autorizzato" ? "Solo tropss può cambiare il colore dell'acqua." : "Colore non salvato, riprova.");
-    toast(v ? "Colore dell'acqua salvato \u2713 \u00b7 vale per tutti" : "Colore originale ripristinato \u2713");
+    toast(v ? "Colore dell'acqua salvato \u2713 \u00b7 vale per tutti" : "Colore di default ripristinato \u2713");
   }catch(e){ toast("Colore non salvato: controlla la connessione."); }
 }
 if ($("#waterCol")){
@@ -4911,7 +4913,7 @@ function addFermateLayer(){
     paint: { "icon-opacity": 1 } });
   if (map.getStyle().glyphs) map.addLayer({ id: "fermate-lbl", type: "symbol", source: "fermate", minzoom: 14, layout: { visibility: appMode === "trasporti" ? "visible" : "none",
     "text-field": ["get", "n"], "text-size": 12, "text-offset": [0, 1.2], "text-anchor": "top", "text-font": ["Noto Sans Regular"] },
-    paint: { "text-color": "#0c3851", "text-halo-color": "#fff", "text-halo-width": 1.5 } });
+    paint: { "text-color": "#050706", "text-halo-color": "#fff", "text-halo-width": 1.5 } });
   addBoatsLayer();
 }
 document.querySelectorAll("#trPanel [data-tr]").forEach(b => b.onclick = () => {
@@ -4946,8 +4948,8 @@ document.querySelectorAll("#aeroBox [data-vt]").forEach(b => b.onclick = () => {
 // icona aereo (vista dall'alto) su pastiglia bianca
 function aeroIcon(){
   const S = 46, c = document.createElement("canvas"); c.width = c.height = S; const g = c.getContext("2d");
-  g.beginPath(); g.arc(S/2, S/2, 20, 0, 7); g.fillStyle = "#ffffff"; g.fill(); g.lineWidth = 3; g.strokeStyle = "#0c3851"; g.stroke();
-  g.save(); g.translate(S/2, S/2); g.rotate(-0.35); g.fillStyle = "#0c3851";
+  g.beginPath(); g.arc(S/2, S/2, 20, 0, 7); g.fillStyle = "#ffffff"; g.fill(); g.lineWidth = 3; g.strokeStyle = "#050706"; g.stroke();
+  g.save(); g.translate(S/2, S/2); g.rotate(-0.35); g.fillStyle = "#050706";
   g.beginPath(); g.moveTo(0, -13); g.quadraticCurveTo(2.2, -11, 2.2, -4); g.lineTo(13, 3); g.lineTo(13, 6); g.lineTo(2.2, 2);
   g.lineTo(2.2, 9); g.lineTo(5.5, 12); g.lineTo(5.5, 14); g.lineTo(0, 12.5); g.lineTo(-5.5, 14); g.lineTo(-5.5, 12); g.lineTo(-2.2, 9);
   g.lineTo(-2.2, 2); g.lineTo(-13, 6); g.lineTo(-13, 3); g.lineTo(-2.2, -4); g.quadraticCurveTo(-2.2, -11, 0, -13); g.closePath(); g.fill(); g.restore();
@@ -5366,7 +5368,7 @@ function taxiAsk(pre){
           return `<div class="txsum"><div>📍 <b>${esc(v.da.name)}</b></div><div class="txarr">↓</div><div>🏁 <b>${esc(v.a.name)}</b></div>
             <p>${v.pax} ${v.pax === 1 ? "persona" : "persone"}${v.note ? " · " + esc(v.note) : ""}</p>
             <div class="txprice">${est.lo}–${est.hi} €</div><p class="wzh">Prezzo indicativo · circa ${est.min} min · ${String(est.km).replace(".", ",")} km. Il prezzo vero lo conferma il tassista.</p></div>
-            <div class="wzopts"><button class="wzo" id="wzTxGo" style="background:#0c3851;border-color:#0c3851;color:#fff;text-align:center;font-size:18px">🚕 Chiama i tassisti</button></div>`; },
+            <div class="wzopts"><button class="wzo" id="wzTxGo" style="background:#050706;border-color:#050706;color:#fff;text-align:center;font-size:18px">🚕 Chiama i tassisti</button></div>`; },
         bind: v => { $("#wzTxGo").onclick = async () => { $("#wzTxGo").disabled = true; const est = WZ.v._est;
           try{ const r = await rpc("taxi_call", { p_from: v.da.name, p_flat: v.da.lat, p_flng: v.da.lng, p_to: v.a.name, p_tlat: v.a.lat, p_tlng: v.a.lng, p_pax: v.pax, p_note: v.note || "", p_phone: "", p_price: est.p, p_km: est.km });
             if (r && r.errore){ $("#wzTxGo").disabled = false; return toast(r.errore === "troppe" ? "Hai fatto troppe richieste nell'ultima ora." : "Esci e rientra con il tuo account per chiamare un taxi."); }
@@ -5379,16 +5381,16 @@ function renderTaxi(){
   const box = $("#trBody"); loadPontiliActv();
   if (txRide) return renderTaxiWait();
   box.innerHTML = `<h4 style="color:#b45309">🚕 Taxi acqueo</h4><p class="trnote" style="margin-top:0">La richiesta arriva a tutti i tassisti convenzionati: il primo che accetta prende la corsa. Prima di mandarla vedi il prezzo indicativo.</p>
-    <button class="btn small" id="txStart" style="width:100%;background:#0c3851;color:#fff">🚕 Chiama un taxi</button><div id="txDrv"></div>`;
+    <button class="btn small" id="txStart" style="width:100%;background:#050706;color:#fff">🚕 Chiama un taxi</button><div id="txDrv"></div>`;
   $("#txStart").onclick = () => taxiAsk();
   renderDriverBox();
 }
 function renderTaxiWait(){
   const box = $("#trBody"), r = txRide; if (!box || trTab !== "taxi") return;
   if (r.stato === "taken"){
-    box.innerHTML = `<h4 style="color:#0c3851">🚕 Taxi in arrivo!</h4><p style="margin:4px 0;font-size:15px"><b>@${esc(r.tassista || "tassista")}</b>${r.barca ? " · " + esc(r.barca) : ""} ha preso la tua corsa.</p>
+    box.innerHTML = `<h4 style="color:#050706">🚕 Taxi in arrivo!</h4><p style="margin:4px 0;font-size:15px"><b>@${esc(r.tassista || "tassista")}</b>${r.barca ? " · " + esc(r.barca) : ""} ha preso la tua corsa.</p>
       <p class="trnote">${esc(r.da)} → ${esc(r.a)} · indicativo ${r.prezzo} €</p>
-      ${r.telefono ? `<a class="btn small" style="display:block;text-align:center;text-decoration:none;background:#0c3851;color:#fff" href="tel:${esc(r.telefono.replace(/[^+\d]/g, ""))}">📞 Chiama il tassista</a>` : ""}
+      ${r.telefono ? `<a class="btn small" style="display:block;text-align:center;text-decoration:none;background:#050706;color:#fff" href="tel:${esc(r.telefono.replace(/[^+\d]/g, ""))}">📞 Chiama il tassista</a>` : ""}
       <button class="btn small ghost" id="txEnd" style="width:100%;margin-top:8px;color:#111;background:#eee;border:0">Fatto, chiudi</button>`;
     $("#txEnd").onclick = () => { txRide = null; store.set("ln_taxi_ride", null); txPollStop(); renderTaxi(); }; return;
   }
@@ -5447,7 +5449,7 @@ function renderDriverBox(){
     mie.map(r => `<div class="txr mine"><b>In corso:</b> ${esc(r.da)} → ${esc(r.a)} · ${r.persone} pers. · ~${r.prezzo} €<br><span class="trnote">@${esc(r.cliente)}${r.nota ? " · " + esc(r.nota) : ""}</span>
       <div class="txb">${r.telefono ? `<a class="btn small" href="tel:${esc(r.telefono)}" style="text-decoration:none">📞</a>` : ""}<button class="btn small" data-txgo="${r.id}">⚓ Portami</button><button class="btn small ghost" data-txdone="${r.id}" style="color:#111;background:#eee;border:0">Fatta ✓</button></div></div>`).join("") +
     (txOn ? (ap.length ? ap.map(r => `<div class="txr"><b>${esc(r.da)} → ${esc(r.a)}</b><br><span class="trnote">${r.persone} pers. · ${String(r.km || "").replace(".", ",")} km · ~${r.prezzo} € · ${r.min ? r.min + " min fa" : "adesso"}${r.nota ? " · " + esc(r.nota) : ""}</span>
-      <div class="txb"><button class="btn small" data-txok="${r.id}" style="background:#0c3851;color:#fff">✓ Accetta la corsa</button></div></div>`).join("") : `<p class="trnote">Nessuna richiesta aperta in questo momento.</p>`) : `<p class="trnote">Non ricevi corse.</p>`);
+      <div class="txb"><button class="btn small" data-txok="${r.id}" style="background:#050706;color:#fff">✓ Accetta la corsa</button></div></div>`).join("") : `<p class="trnote">Nessuna richiesta aperta in questo momento.</p>`) : `<p class="trnote">Non ricevi corse.</p>`);
   $("#txOnSw").onchange = e => { txOn = e.target.checked; store.set("ln_taxi_on", txOn); renderDriverBox(); };
   box.querySelectorAll("[data-txok]").forEach(b => b.onclick = async () => { b.disabled = true;
     try{ const j = await rpc("taxi_accept", { p_id: +b.dataset.txok }); toast(j && j.ok ? "Corsa tua ✓ il cliente è avvisato" : "Troppo tardi: l'ha già presa un altro tassista."); haptic(); }catch(e){ toast("Controlla la connessione."); }
@@ -5463,7 +5465,7 @@ setInterval(() => { if (appMode === "trasporti" && trTab === "bus" && !(document
 /* =========================================================
    SHOPPING: le attività convenzionate sulla mappa
    ========================================================= */
-const MK_CATS = { food: ["🍝", "Food", "#ff6446"], shop: ["🛍️", "Shopping", "#ff6446"], boats: ["⛵", "Barche", "#0c3851"], used: ["♻️", "Usato", "#ff6446"] };
+const MK_CATS = { food: ["🍝", "Food", "#ff6446"], shop: ["🛍️", "Shopping", "#ff6446"], boats: ["⛵", "Barche", "#050706"], used: ["♻️", "Usato", "#ff6446"] };
 let PARTNERS = store.get("ln_partners", []), mkCat = "", partnersAt = 0;
 async function loadPartners(){
   if (Date.now() - partnersAt < 5 * 60000) { drawPartners(); return; }
@@ -6418,7 +6420,7 @@ function wzPaint(){
   let body = "";
   if (s.type === "choice") body = `<div class="wzopts${(opts || []).length > 6 ? " grid" : ""}">${(opts || []).map(([v, l], i) => `<button class="wzo${String(v) === String(cur) ? " on" : ""}" data-wi="${i}">${l}</button>`).join("")}</div>`;
   else if (s.type === "yesno") body = `<div class="wzopts two"><button class="wzo${cur === true ? " on" : ""}" data-yn="1">👍 Sì</button><button class="wzo${cur === false ? " on" : ""}" data-yn="0">👎 No</button></div>`;
-  else if (s.type === "color") body = `<div class="wzcols">${(opts || ["#ffffff", "#111111", "#0c3851", "#0b2a5b", "#c8102e", "#0a8f4e", "#f59e0b", "#c9b48a", "#6b7280", "#7c3aed", "#0891b2", "#8b4513"]).map(c => `<button class="wzcol${c === cur ? " on" : ""}" data-col="${c}" style="background:${c}"></button>`).join("")}</div>`;
+  else if (s.type === "color") body = `<div class="wzcols">${(opts || ["#ffffff", "#111111", "#050706", "#0b2a5b", "#c8102e", "#0a8f4e", "#f59e0b", "#c9b48a", "#6b7280", "#7c3aed", "#0891b2", "#8b4513"]).map(c => `<button class="wzcol${c === cur ? " on" : ""}" data-col="${c}" style="background:${c}"></button>`).join("")}</div>`;
   else if (s.type === "text" || s.type === "number" || s.type === "long"){
     const inp = s.type === "long" ? `<textarea id="wzIn" rows="4" maxlength="${s.max || 600}" placeholder="${esc(s.ph || "")}">${esc(cur ?? "")}</textarea>`
       : `<input id="wzIn" ${s.type === "number" ? `type="number" inputmode="decimal" step="any"` : `type="${s.inputType || "text"}" maxlength="${s.max || 120}"`} placeholder="${esc(s.ph || "")}" value="${esc(cur ?? "")}" autocomplete="off">`;
@@ -6699,7 +6701,7 @@ function playIntro(){
   const box = $("#intro"), svg = $("#introSvg"); if (!box || !svg) return;
   const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (reduce || !svg.animate){ box.remove(); return; }
-  const NS = "http://www.w3.org/2000/svg", BASE = 92, NAV = "#0c3851", COR = "#ff6446";
+  const NS = "http://www.w3.org/2000/svg", BASE = 92, NAV = "#050706", COR = "#ff6446";
   const el = (tag, at) => { const e = document.createElementNS(NS, tag); Object.entries(at).forEach(([k, v]) => e.setAttribute(k, v)); svg.appendChild(e); return e; };
   const txt = (ch, cls, x) => { const t = el("text", { x, y: BASE, class: cls + " an" }); t.textContent = ch; return t; };
   // impaginazione: misuro ogni lettera con il carattere del telefono
