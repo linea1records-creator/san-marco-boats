@@ -1115,7 +1115,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">unClick · unClick · versione 3.46</p>
+      <p class="sub">unClick · unClick · versione 3.47</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa unClick</button>
@@ -2206,14 +2206,15 @@ function makeArrow(){
 const MAN_C = { skin: "#f6c9a0", hair: "#6b3f1f", shirt: "#0c3851", legs: "#2b3a55", shoe: "#222222", eye: "#2b1a10", mouth: "#c0392b" };
 function myAvatar(){ return avGet(); }
 let manKey = "";
-function manFeatures(lat, lng, hdg, av, out){
+function manFeatures(lat, lng, hdg, av, out, tilt){
   av = av || myAvatar(); out = out || [];
   const u = MAN_U, C = Object.assign({}, MAN_C), girl = av.sex === "f";
   ["shirt", "legs", "shoe", "hair"].forEach(k => { if (/^#[0-9a-f]{6}$/i.test(av[k] || "")) C[k] = av[k]; });
   const r = hdg * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r), kLat = 1 / 111320, kLng = 1 / (111320 * Math.cos(lat * Math.PI / 180));
   const pt = (x, y) => { const E = (x * cs + y * sn) * u, N = (-x * sn + y * cs) * u; return [lng + E * kLng, lat + N * kLat]; };
-  const poly = (P, b, t, c) => out.push({ type: "Feature", properties: { c: C[c] || c, b: b * u, h: t * u },
-    geometry: { type: "Polygon", coordinates: [P.concat([P[0]]).map(q => pt(q[0], q[1]))] } });
+  // tilt: la barca in planata alza la prua (ogni blocco sale o scende in base a quanto è avanti o indietro)
+  const tl = tilt || 0, poly = (P, b, t, c) => { const dz = tl ? P.reduce((a, q) => a + q[1], 0) / P.length * tl : 0; out.push({ type: "Feature", properties: { c: C[c] || c, b: Math.max(0, b + dz) * u, h: Math.max(0.05, t + dz) * u },
+    geometry: { type: "Polygon", coordinates: [P.concat([P[0]]).map(q => pt(q[0], q[1]))] } }); };
   // sull'acqua l'omino sta in piedi dentro una barchetta grande come lui (un po' verso poppa, sopra il pagliolo)
   const wat = onWater(lat, lng);
   if (wat){ boatFeatures(poly); seatedMan(poly, C, girl); return { type: "FeatureCollection", features: out }; }
@@ -2236,11 +2237,14 @@ function manFeatures(lat, lng, hdg, av, out){
 const BOAT_OUT = [[-3.0, -6.8], [3.0, -6.8], [3.2, -3], [3.2, 2.2], [2.7, 4.3], [1.6, 5.8], [0, 6.8], [-1.6, 5.8], [-2.7, 4.3], [-3.2, 2.2], [-3.2, -3]];
 const BOAT_IN = BOAT_OUT.map(([x, y]) => [x * 0.84, y > 0 ? y * 0.86 : y * 0.93]);
 function boatFeatures(poly){
-  poly(BOAT_OUT, 0, 0.85, "#f4f6f8");                                   // scafo
-  poly(BOAT_IN, 0.85, 0.9, "#c89b62");                                  // pagliolo
+  for (let y = -7; y < 7; y += 1.2){                                     // scafo e pagliolo a fette, così si inclinano in planata
+    const a = clipBand(BOAT_OUT, y, y + 1.2), b = clipBand(BOAT_IN, y, y + 1.2);
+    if (a.length > 2) poly(a, 0, 0.85, "#f4f6f8"); if (b.length > 2) poly(b, 0.85, 0.9, "#c89b62"); }
   for (let i = 0; i < BOAT_OUT.length; i++){                            // fiancate: bianche con il bordo blu in cima
-    const j = (i + 1) % BOAT_OUT.length, q = [BOAT_OUT[i], BOAT_OUT[j], BOAT_IN[j], BOAT_IN[i]];
-    poly(q, 0.85, 2.2, "#f4f6f8"); poly(q, 2.2, 2.55, "#0c3851"); }
+    const j = (i + 1) % BOAT_OUT.length, A = BOAT_OUT[i], B = BOAT_OUT[j], a = BOAT_IN[i], b = BOAT_IN[j];
+    const n = Math.max(1, Math.ceil(Math.hypot(B[0] - A[0], B[1] - A[1]) / 1.2)), L = (P, Q, t) => [P[0] + (Q[0] - P[0]) * t, P[1] + (Q[1] - P[1]) * t];
+    for (let k = 0; k < n; k++){ const t0 = k / n, t1 = (k + 1) / n, q = [L(A, B, t0), L(A, B, t1), L(a, b, t1), L(a, b, t0)];   // a pezzi, per inclinarsi in planata
+      poly(q, 0.85, 2.2, "#f4f6f8"); poly(q, 2.2, 2.55, "#0c3851"); } }
   poly([[-2.7, -5.3], [2.7, -5.3], [2.7, -3.7], [-2.7, -3.7]], 0.9, 3.2, "#c89b62");    // panca di poppa
   // fuoribordo a barra: gambo nell'acqua, motore con la calandra, barra che sale verso la mano e manetta
   poly([[-0.35, -7.9], [0.35, -7.9], [0.35, -7.1], [-0.35, -7.1]], 0, 1.6, "#2a2a2a");
@@ -2251,6 +2255,14 @@ function boatFeatures(poly){
   poly([[-0.95, -3.5], [-0.35, -3.5], [-0.35, -2.6], [-0.95, -2.6]], 4.1, 4.8, "#2a2a2a");
   poly([[-1.0, -2.6], [-0.3, -2.6], [-0.3, -1.6], [-1.0, -1.6]], 4.6, 5.4, "#d7263d");          // manetta
 }
+// ritaglia un poligono convesso tra due valori di y (fette dello scafo)
+function clipBand(P, y0, y1){
+  const cut = (Q, keep, edge) => { const o = []; for (let i = 0; i < Q.length; i++){ const a = Q[i], b = Q[(i + 1) % Q.length], ka = keep(a), kb = keep(b);
+    if (ka) o.push(a); if (ka !== kb){ const t = (edge - a[1]) / (b[1] - a[1]); o.push([a[0] + (b[0] - a[0]) * t, edge]); } } return o; };
+  return cut(cut(P, q => q[1] >= y0, y0), q => q[1] <= y1, y1);
+}
+// planata: sopra i 10 km/h la prua sale e scende una volta al secondo
+function planeTilt(){ if (speedMs * 3.6 <= 10 || !manWat) return 0; const a = (5 + 3 * Math.sin(Date.now() / 1000 * 2 * Math.PI)) * Math.PI / 180; return Math.tan(a); }
 // omino seduto sulla panca a dritta, guarda avanti e tiene la manetta con la mano sinistra
 function seatedMan(poly, C, girl){
   const ox = 1.4, oy = -4.5, box = (x0, x1, y0, y1, b, t, c) => poly([[x0 + ox, y0 + oy], [x1 + ox, y0 + oy], [x1 + ox, y1 + oy], [x0 + ox, y1 + oy]], b, t, c);
@@ -2292,10 +2304,10 @@ function drawMan(force){
   if (!force && key === manKey) return; manKey = key;
   if (map.getSource("medot")) map.getSource("medot").setData({ type: "Point", coordinates: [lastPos.lng, lastPos.lat] });
   manWat = onWater(lastPos.lat, lastPos.lng);
-  map.getSource("meman").setData(manFeatures(lastPos.lat, lastPos.lng, heading, myAvatar()));
+  manTiltLast = planeTilt(); map.getSource("meman").setData(manFeatures(lastPos.lat, lastPos.lng, heading, myAvatar(), null, manTiltLast));
 }
 // quando la mappa ha finito di caricare ricontrollo se sei sull'acqua (la barchetta compare o sparisce)
-let manWat = null, manWatHook = false;
+let manWat = null, manWatHook = false, manTiltLast = 0;
 function hookManWater(){ if (manWatHook || !map) return; manWatHook = true;
   map.on("idle", () => { if (!lastPos) return; WATER_AT.delete(lastPos.lat.toFixed(4) + "," + lastPos.lng.toFixed(4));
     if (onWater(lastPos.lat, lastPos.lng) !== manWat){ manKey = ""; drawMan(true); drawFriends(); } }); }
@@ -2416,6 +2428,7 @@ function frame(){
   const t = targetHeading();
   if (t !== null) heading = (heading + angDiff(heading, t) * 0.22 + 360) % 360;
   rotMe(); if (!frame.n || ++frame.n % 10 === 0) { frame.n = frame.n || 1; if (!userBusy) drawMan(); }
+  else if (frame.n % 3 === 0 && ((manWat && speedMs * 3.6 > 10) || manTiltLast)) drawMan(true);   // in planata la barca si muove: ridisegno spesso
   if ((userBusy && !view3d) || map.isEasing && map.isEasing()) return;
   const o = {};
   if (view3d && Math.abs(angDiff(map.getBearing(), heading)) > 0.4) o.bearing = heading;
