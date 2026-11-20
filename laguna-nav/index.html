@@ -1125,7 +1125,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">unClick · unClick · versione 3.50</p>
+      <p class="sub">unClick · unClick · versione 3.52</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa unClick</button>
@@ -1155,7 +1155,7 @@
       </div>
       <div class="card">
         <h4>Mappe</h4>
-        <p class="muted" style="line-height:1.45">Mappa © OpenStreetMap contributors, stile OpenFreeMap. Bricole e segnali da OpenStreetMap / OpenSeaMap (disegnate in 3D e ingrandite per vederle meglio). Foto satellitare © Esri, Maxar, Earthstar Geographics. Orari dei vaporetti: ACTV (dati aperti GTFS). Ricerca dei posti: Nominatim e Photon (OpenStreetMap). Marea, previsioni, fondali e pontili pubblici: Comune di Venezia (le mappe dei fondali del Comune sono indicate come non ufficiali e non valide per la navigazione). Percorsi: rete dei canali OpenStreetMap e tragitti abituali delle barche di lavoro.</p>
+        <p class="muted" style="line-height:1.45">Mappa © OpenStreetMap contributors, stile OpenFreeMap. Numeri civici di Venezia: Comune di Venezia, toponimi e numeri civici (licenza IODL 2.0). Bricole e segnali da OpenStreetMap / OpenSeaMap (disegnate in 3D e ingrandite per vederle meglio). Foto satellitare © Esri, Maxar, Earthstar Geographics. Orari dei vaporetti: ACTV (dati aperti GTFS). Ricerca dei posti: Nominatim e Photon (OpenStreetMap). Marea, previsioni, fondali e pontili pubblici: Comune di Venezia (le mappe dei fondali del Comune sono indicate come non ufficiali e non valide per la navigazione). Percorsi: rete dei canali OpenStreetMap e tragitti abituali delle barche di lavoro.</p>
       </div>
     </div>
   </section>
@@ -2798,12 +2798,42 @@ async function search(){
   const local = localSearch(q).concat(pontiliSearch(q));
   if (local.length) renderResults(local);
   else { resBox.innerHTML = `<div class="res info">Cerco…</div>`; resBox.classList.remove("hidden"); }
-  const [a, b] = await Promise.all([photon(q).catch(() => []), nominatim(q).catch(() => [])]);
+  const [a, b, cv] = await Promise.all([photon(q).catch(() => []), nominatim(q).catch(() => []), civicoSearch(q).catch(() => [])]);
   if (my !== qSeq) return;
-  const all = local.slice(), seen = all.map(r => [r.lat, r.lng]);
+  const all = cv.concat(local), seen = all.map(r => [r.lat, r.lng]);
   a.concat(b).forEach(r => { if (!seen.some(s => hav(s[0], s[1], r.lat, r.lng) < 40)){ all.push(r); seen.push([r.lat, r.lng]); } });
   if (!all.length){ resBox.innerHTML = `<div class="res info">Nessun risultato in laguna per “${esc(q)}”.</div>`; return; }
   renderResults(all.slice(0, 12));
+}
+/* ---------- indirizzi veneziani: sestiere + numero civico (es. "Cannaregio 4119") ----------
+   tutti i civici dal Comune di Venezia (toponimi e numeri civici, IODL 2.0), nel file civici.json */
+const SESTIERI = [["cannaregio", /^can+are(g|gg)io$/], ["castello", /^castel+o$/], ["dorsoduro", /^dorso ?duro$/], ["san marco", /^(s|san) ?marco$/],
+  ["san polo", /^(s|san) ?polo$/], ["santa croce", /^(s|sa|santa) ?croce$/], ["giudecca", /^giudec+a$/], ["burano", /^burano$/], ["pellestrina", /^pel+estrina$/]];
+function parseCivico(q){
+  const t = norm(q).replace(/\bsestiere\b|\bvenezia\b|\bn\b|\bnr\b|\bnumero\b|\bcivico\b/g, " ").replace(/\s+/g, " ").trim();
+  const m = t.match(/^(.+?) (\d{1,4})( ?[a-z])?$/) || t.match(/^(\d{1,4})( ?[a-z])? (.+)$/); if (!m) return null;
+  const name = /^\d/.test(m[1]) ? m[3] : m[1], num = /^\d/.test(m[1]) ? m[1] : m[2], let_ = ((/^\d/.test(m[1]) ? m[2] : m[3]) || "").trim();
+  const s = SESTIERI.find(x => x[1].test(name.trim()) || x[0] === name.trim()); if (!s) return null;
+  return { sest: s[0], num: +num, lett: let_ };
+}
+let CIVICI = null;
+async function loadCivici(){
+  if (CIVICI) return CIVICI;
+  const j = await fetch("civici.json").then(r => r.json()), out = {};
+  Object.entries(j.s).forEach(([k, str]) => { const L = out[k] = []; str.split(";").forEach(x => { const [h, la, lo] = x.split(",");
+    L.push({ h, n: parseInt(h, 10), lat: j.base[0] + la / j.scala, lng: j.base[1] + lo / j.scala }); }); });
+  return (CIVICI = out);
+}
+async function civicoSearch(q){
+  const c = parseCivico(q); if (!c) return [];
+  let C; try{ C = await loadCivici(); }catch(e){ return []; }
+  const L = C[c.sest] || []; if (!L.length) return [];
+  const want = c.num + (c.lett || "");
+  const exact = L.find(x => x.h === want) || (!c.lett && L.find(x => x.n === c.num)) || (c.lett && L.find(x => x.n === c.num));
+  const best = exact || L.reduce((a, x) => Math.abs(x.n - c.num) < Math.abs(a.n - c.num) ? x : a, L[0]);
+  const nice = c.sest.replace(/\b\w/g, l => l.toUpperCase()), ref = refPoint();
+  return [{ name: nice + " " + c.num + (c.lett ? c.lett.toUpperCase() : ""), lat: best.lat, lng: best.lng,
+    sub: (exact ? "Numero civico" : "Civico non trovato: il più vicino è il " + best.h) + " · " + fmtDist(hav(ref.lat, ref.lng, best.lat, best.lng)) }];
 }
 async function searchNav(q){
   const my = ++qSeq;
@@ -2811,9 +2841,11 @@ async function searchNav(q){
   const local = navLocal(q).concat(pontiliSearch(q));
   if (local.length) renderResults(local);
   else { resBox.innerHTML = `<div class="res info">Cerco…</div>`; resBox.classList.remove("hidden"); }
-  const [a, b] = await Promise.all([photonNav(q).catch(() => []), nominatimNav(q).catch(() => [])]);
+  const civ = parseCivico(q);
+  if (civ){ const cv0 = await civicoSearch(q).catch(() => []); if (my !== qSeq) return; if (cv0.length) renderResults(cv0.concat(local)); }
+  const [a, b, cv] = await Promise.all([photonNav(q).catch(() => []), nominatimNav(q).catch(() => []), civicoSearch(q).catch(() => [])]);
   if (my !== qSeq) return;
-  const all = local.slice(), seen = all.filter(r => r.lat).map(r => [r.lat, r.lng, norm(r.name)]);
+  const all = cv.concat(local), seen = all.filter(r => r.lat).map(r => [r.lat, r.lng, norm(r.name)]);
   a.concat(b).forEach(r => { if (!seen.some(s => hav(s[0], s[1], r.lat, r.lng) < 40 || (s[2] === norm(r.name) && hav(s[0], s[1], r.lat, r.lng) < 400))){ all.push(r); seen.push([r.lat, r.lng, norm(r.name)]); } });
   if (!all.length){ resBox.innerHTML = `<div class="res info">Nessun posto in laguna per “${esc(q)}”.</div>`; return; }
   renderResults(all.slice(0, 14));
