@@ -1,6 +1,7 @@
 // ClickVenice — tabelloni di Ferrovia (treni, ViaggiaTreno) e Piazzale Roma (bus ACTV, orari GTFS)
 // ?tipo=treni&verso=partenze|arrivi   → prossimi treni a Venezia Santa Lucia, con ritardi e binari
 // ?tipo=bus&luogo=proma|lido&verso=partenze|arrivi → prossimi bus ACTV a Piazzale Roma o al Lido S.M.E.
+// ?tipo=porto&verso=partenze|arrivi  → prossime navi del porto di Venezia (Autorità di Sistema Portuale, riepilogo navi)
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type, apikey, authorization', 'Access-Control-Allow-Methods': 'GET, OPTIONS' };
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...CORS, 'content-type': 'application/json', 'cache-control': 'public, max-age=30' } });
 const UA = 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36';
@@ -166,6 +167,32 @@ async function bus(k: string, verso: string) {
   return out.filter((x) => { const kk = x.ora + x.linea + x.luogo; if (seen.has(kk)) return false; seen.add(kk); return true; }).slice(0, 25);
 }
 
+/* ---------- porto: navi previste in arrivo e partenza (riepilogo dell'Autorità Portuale) ---------- */
+const PORTO_SRC = 'https://venezia.ilogis.it/riepiloghi/pages/riepilogoNavi/layout_riepilogoNavi.zul';
+let PORTO: any = null;
+async function porto(verso: string) {
+  if (!PORTO || Date.now() - PORTO.at > 300e3) {
+    const r = await fetch(PORTO_SRC, { headers: { 'User-Agent': UA } }); if (!r.ok) throw new Error('porto ' + r.status);
+    const html = await r.text(), tk: string[] = [];
+    for (const m of html.matchAll(/(?:label|value):'((?:[^'\\]|\\.)*)'/g)) tk.push(m[1].replace(/\\n|\\t/g, ' ').replace(/\\(.)/g, '$1').replace(/\\$/, '').replace(/\s+/g, ' ').trim());
+    // il primo blocco ARRIVI / PARTENZE è Venezia (poi Chioggia e Porto Levante)
+    const block = (from: number) => { const out: any[] = []; let i = tk.indexOf('ORA', from) + 1, cur: string[] = [];
+      for (; i > 0 && i < tk.length && !/dato al momento/.test(tk[i]); i++) {
+        if (/^\d\d\/\d\d\/\d{4}$/.test(tk[i]) && /^\d{1,2}[.:]\d\d$/.test(tk[i + 1] || '')) {
+          out.push({ nave: cur[0] || '', bandiera: cur.length > 3 ? cur[1] : '', agenzia: cur[cur.length - 2] || '', luogo: cur[cur.length - 1] || '', data: tk[i], ora: tk[i + 1].replace('.', ':').padStart(5, '0') });
+          cur = []; i++; continue; }
+        cur.push(tk[i]); }
+      return out; };
+    const a = tk.indexOf('ARRIVI'), p = tk.indexOf('PARTENZE');
+    PORTO = { at: Date.now(), arrivi: a >= 0 ? block(a) : [], partenze: p >= 0 ? block(p) : [] };
+  }
+  const now = romeNow(), list = verso === 'arrivi' ? PORTO.arrivi : PORTO.partenze;
+  const nowKey = now.ymd + hhmm(now.min).replace(':', '');
+  return list.map((x: any) => { const [d, m, y] = x.data.split('/'); return { ...x, k: y + m + d + x.ora.replace(':', ''), ymd: y + m + d }; })
+    .filter((x: any) => x.k >= nowKey).sort((a: any, b: any) => a.k < b.k ? -1 : 1).slice(0, 10)
+    .map((x: any) => ({ nave: x.nave, luogo: x.luogo, agenzia: x.agenzia, bandiera: x.bandiera, ora: x.ora, giorno: x.ymd === now.ymd ? 'oggi' : x.data.slice(0, 5) }));
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   const q = new URL(req.url).searchParams, tipo = q.get('tipo') || 'treni', verso = q.get('verso') === 'arrivi' ? 'arrivi' : 'partenze';
@@ -175,6 +202,7 @@ Deno.serve(async (req) => {
       return json({ file: Object.keys(Z), fermate: S.rows.filter((x) => (x[S.col('stop_name')] || '').toLowerCase().includes(k) || Math.hypot((+x[S.col('stop_lat')] - L.lat) * 111000, (+x[S.col('stop_lon')] - L.lng) * 78000) < 600).map((x) => [x[S.col('stop_id')], x[S.col('stop_name')], x[S.col('stop_lat')], x[S.col('stop_lon')]]).slice(0, 80) }); }
     if (tipo === 'bus'){ const k = LUOGHI[q.get('luogo') || ''] ? q.get('luogo')! : 'proma';
       return json({ stazione: LUOGHI[k].nome, verso, adesso: hhmm(romeNow().min), corse: await bus(k, verso), fermate: BUS[k] ? BUS[k].fermate : 0 }); }
+    if (tipo === 'porto') return json({ stazione: 'Porto di Venezia', verso, adesso: hhmm(romeNow().min), corse: await porto(verso) });
     return json({ errore: 'tipo_sconosciuto' }, 400);
   } catch (e) {
     return json({ errore: String(e) }, 502);

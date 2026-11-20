@@ -447,7 +447,9 @@
   #board .bdtabs button.on{background:#ffad1f;color:#000;border-color:#ffad1f}
   #board .bdhead,#board .bdr{display:grid;grid-template-columns:76px 1fr 47px 30px 30px;gap:4px;align-items:center;padding:0 8px}
   #board .bdhead.bus,#board .bdr.bus{grid-template-columns:40px 1fr 47px 38px}
-  @media (min-width:700px){ #board .bdhead,#board .bdr{grid-template-columns:150px 1.2fr 70px 60px 50px 1.3fr} #board .bdhead.bus,#board .bdr.bus{grid-template-columns:70px 1.2fr 70px 60px 1.3fr} }
+  #board .bdhead.porto,#board .bdr.porto{grid-template-columns:1.1fr 1fr 47px 46px}
+  #board .bdr.porto .c-tr{background:#141414;padding:0 4px;display:block;font-size:12px}
+  @media (min-width:700px){ #board .bdhead,#board .bdr{grid-template-columns:150px 1.2fr 70px 60px 50px 1.3fr} #board .bdhead.bus,#board .bdr.bus{grid-template-columns:70px 1.2fr 70px 60px 1.3fr} #board .bdhead.porto,#board .bdr.porto{grid-template-columns:1.3fr 1fr 70px 70px 1.1fr} #board .bdr.porto .c-tr{font-size:16px} }
   #board .c-i{display:none} @media (min-width:700px){ #board .c-i{display:block} }
   #board .bdhead{padding-bottom:6px}
   #board .bdhead span{font-family:Arial,sans-serif;font-size:9.5px;overflow:hidden;line-height:1.05;color:#f2f2f2;background:#3a3a3a;padding:2px 5px;border-radius:2px;font-weight:700}
@@ -1105,7 +1107,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">unClick · unClick · versione 3.37</p>
+      <p class="sub">unClick · unClick · versione 3.38</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa unClick</button>
@@ -5143,6 +5145,8 @@ const STZ = [
     ic: '<rect x="4" y="3.5" width="16" height="15" rx="3"/><path d="M4 12h16M7 18.5v2M17 18.5v2M9 7h6"/><circle cx="8" cy="15.3" r="1"/><circle cx="16" cy="15.3" r="1"/>' },
   { k: "bus", luogo: "lido", n: "Lido S.M.E.", full: "Lido S.M.E. · bus", lat: 45.41760, lng: 12.36890,
     ic: '<rect x="4" y="3.5" width="16" height="15" rx="3"/><path d="M4 12h16M7 18.5v2M17 18.5v2M9 7h6"/><circle cx="8" cy="15.3" r="1"/><circle cx="16" cy="15.3" r="1"/>' },
+  { k: "porto", n: "S. Basilio", full: "Terminal San Basilio", lat: 45.43060, lng: 12.31960,
+    ic: '<path d="M3 15h18l-2.5 4.5h-13z"/><path d="M6 15v-4h12v4M9 11V8h6v3M12 8V5"/><path d="M2 21.5c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1 2-1 4-1"/>' },
   { k: "stadio", n: "Stadio Penzo", full: "Stadio Pier Luigi Penzo", lat: 45.42860, lng: 12.36450,
     ic: '<ellipse cx="12" cy="12" rx="9" ry="6.5"/><ellipse cx="12" cy="12" rx="5" ry="3"/><path d="M12 5.5v13M3 12h4M17 12h4"/>' }
 ];
@@ -5164,7 +5168,8 @@ async function openStation(st, verso){
   document.querySelectorAll("#board [data-bv]").forEach(b => { b.classList.toggle("on", b.dataset.bv === verso); b.onclick = () => openStation(st, b.dataset.bv); });
   $("#bdHead").innerHTML = tren ? `<span class="c-tr">treno<i>train</i></span><span class="c-to">${verso === "arrivi" ? "provenienza<i>from</i>" : "destinazione<i>destination</i>"}</span><span class="c-h">orario<i>time</i></span><span class="c-d">ritardo<i>delay</i></span><span class="c-b">bin.<i>plat.</i></span><span class="c-i">informazioni<i>information</i></span>`
     : `<span class="c-tr">linea<i>line</i></span><span class="c-to">${verso === "arrivi" ? "provenienza<i>from</i>" : "destinazione<i>destination</i>"}</span><span class="c-h">orario<i>time</i></span><span class="c-d">tra<i>in</i></span><span class="c-i">informazioni<i>information</i></span>`;
-  $("#bdHead").classList.toggle("bus", !tren);
+  if (st.k === "porto") $("#bdHead").innerHTML = `<span class="c-tr">nave<i>ship</i></span><span class="c-to">${verso === "arrivi" ? "provenienza<i>from</i>" : "destinazione<i>destination</i>"}</span><span class="c-h">orario<i>time</i></span><span class="c-d">giorno<i>day</i></span><span class="c-i">agenzia<i>agency</i></span>`;
+  $("#bdHead").classList.toggle("bus", !tren); $("#bdHead").classList.toggle("porto", st.k === "porto");
   $("#bdGo").onclick = () => { closeBoard(); PLAN = null; openPlan({ name: st.full, lat: st.lat, lng: st.lng }); };
   if (B.dataset.v !== verso || !$("#bdRows").children.length) $("#bdRows").innerHTML = `<div class="bdmsg">CARICAMENTO…</div>`;
   B.dataset.v = verso;
@@ -5175,12 +5180,16 @@ async function openStation(st, verso){
   if (B.classList.contains("hidden") || B.dataset.k !== st.k + (st.luogo || "") || B.dataset.v !== verso) return;
   const box = $("#bdRows");
   if (!j || j.errore || !Array.isArray(j.corse)){ box.innerHTML = `<div class="bdmsg">TABELLONE NON DISPONIBILE · CONTROLLA LA CONNESSIONE</div>`; return; }
-  if (!j.corse.length){ box.innerHTML = `<div class="bdmsg">NESSUN ${tren ? "TRENO" : "BUS"} NELLE PROSSIME ORE</div>`; return; }
+  if (!j.corse.length){ box.innerHTML = `<div class="bdmsg">${st.k === "porto" ? "NESSUNA NAVE PREVISTA" : `NESSUN ${tren ? "TRENO" : "BUS"} NELLE PROSSIME ORE`}</div>`; return; }
   const up = t => esc(String(t || "").toUpperCase());
   // categoria e gestore come sui tabelloni (Frecciarossa = AV, Regionale = R, ...)
   const CAT = { FR: ["Frecciarossa", "AV"], FA: ["Frecciargento", "AV"], FB: ["Frecciabianca", "AV"], ITA: ["italo", "AV"], REG: ["Trenitalia", "R"], RV: ["Trenitalia", "RV"], IC: ["Intercity", "IC"], ICN: ["Intercity", "ICN"], EC: ["Trenitalia", "EC"], EN: ["Trenitalia", "EN"], NJ: ["ÖBB", "NJ"] };
   const trn = t => { const m = String(t || "").match(/^([A-Z]+)\s*(\d+)/); if (!m) return `<em></em><b>${up(t)}</b>`; const c = CAT[m[1]] || ["", m[1]]; return `<em>${esc(c[0])}</em><b>${esc(c[1])}</b><b class="n">${m[2]}</b>`; };
   const info = c => c.soppresso ? "TRENO SOPPRESSO" : c.cambio_binario ? "ATTENZIONE: CAMBIO BINARIO, PARTE DAL BINARIO " + up(c.binario) : c.in_stazione ? "IN STAZIONE" : c.ritardo > 0 ? "RITARDO " + c.ritardo + " MINUTI" : "";
+  if (st.k === "porto"){
+    box.innerHTML = j.corse.map(c => `<div class="bdr bus porto"><span class="c-tr">${up(c.nave)}</span><span class="c-to">${up(c.luogo)}</span><span class="c-h">${esc(c.ora)}</span><span class="c-d">${c.giorno === "oggi" ? "OGGI" : esc(c.giorno)}</span><span class="c-i">${up(c.agenzia)}</span></div>`).join("");
+    $("#bdNote").textContent = "Autorità di Sistema Portuale · navi previste nel porto di Venezia · si aggiorna ogni 30 secondi"; return;
+  }
   box.innerHTML = tren
     ? j.corse.map(c => `<div class="bdr${c.soppresso ? " sop" : ""}"><span class="c-tr">${trn(c.treno)}</span><span class="c-to">${up(c.luogo)}</span><span class="c-h">${esc(c.ora || "")}</span>
         <span class="c-d">${c.ritardo > 0 && !c.soppresso ? c.ritardo + "'" : ""}</span><span class="c-b${c.cambio_binario ? " chg" : ""}${c.in_stazione ? " blink" : ""}">${up(c.binario)}</span><span class="c-i">${info(c) ? `<b>${info(c)}</b>` : ""}</span></div>`).join("")
