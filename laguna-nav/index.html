@@ -3113,6 +3113,10 @@ function blockedNodes(){
     for (let i = 0; i < G.la.length; i++){ if (Math.abs(G.la[i] - b.lat) < dla && Math.abs(G.lo[i] - b.lng) < dlo && hav(G.la[i], G.lo[i], b.lat, b.lng) < 18){ bl[i] = 1; n++; } } });
   return n ? bl : null;
 }
+// filtro facoltativo sui tratti (per i battelli di linea: solo i canali dove possono passare)
+let DIJ_EDGE_OK = null;
+const BIG_CANAL = /^(canal|canale|canalazzo|bacino|bocca|porto|darsena|laguna)\b/i;
+function bigEdge(e){ if (e[3] === 1) return true; if (e[3] !== 0 || e[2] < 0) return false; return BIG_CANAL.test(G.names[e[2]] || ""); }
 function dijkstra(src, dst, bl, noRules){
   const N = G.la.length, d = new Float64Array(N).fill(Infinity), prev = new Int32Array(N).fill(-1), pe = new Array(N);
   const cx = noRules ? null : ruleCtx(), ends = cx ? new Set(nodesNear(src, 90).concat(nodesNear(dst, 90))) : null;
@@ -3123,7 +3127,7 @@ function dijkstra(src, dst, bl, noRules){
     if (l < h.length && h[l][0] < h[m][0]) m = l; if (r < h.length && h[r][0] < h[m][0]) m = r; if (m === i) break; [h[m], h[i]] = [h[i], h[m]]; i = m; } } return top; };
   while (h.length){
     const [fu, u] = pop(); const du = d[u]; if (fu - hh(u) > du + 1e-6) continue; if (u === dst) break;
-    for (const e of G.adj[u]){ if (bl && bl[e[0]] && e[0] !== dst) continue; if (cx && edgeBanned(u, e, cx, ends)) continue; const nd = du + e[1]; if (nd < d[e[0]]){ d[e[0]] = nd; prev[e[0]] = u; pe[e[0]] = e; push([nd + hh(e[0]), e[0]]); } }
+    for (const e of G.adj[u]){ if (bl && bl[e[0]] && e[0] !== dst) continue; if (DIJ_EDGE_OK && !DIJ_EDGE_OK(e)) continue; if (cx && edgeBanned(u, e, cx, ends)) continue; const nd = du + e[1]; if (nd < d[e[0]]){ d[e[0]] = nd; prev[e[0]] = u; pe[e[0]] = e; push([nd + hh(e[0]), e[0]]); } }
   }
   if (d[dst] === Infinity) return null;
   const path = [], segs = []; let v = dst;
@@ -5067,8 +5071,14 @@ function actvPath(la0, lo0, la1, lo1){
   actvBudget--;
   let P = null;
   try{ // percorso sulla rete dei canali senza le regole del diporto (i vaporetti hanno i loro permessi) e senza avvisi
-    const a = gNear(la0, lo0, 400), b = gNear(la1, lo1, 400), straight = hav(la0, lo0, la1, lo1);
-    const res = a && b ? dijkstra(a.n, b.n, null, true) : null;
+    const straight = hav(la0, lo0, la1, lo1), onBig = n => !G.adj[n].some(bigEdge);
+    // prima solo i canali grandi (niente rii), poi, se non si arriva, tutta la rete come prima
+    let res = null; const a2 = gNear(la0, lo0, 400, onBig), b2 = gNear(la1, lo1, 400, onBig);
+    if (a2 && b2){ DIJ_EDGE_OK = bigEdge; try{ res = dijkstra(a2.n, b2.n, null, true); } finally { DIJ_EDGE_OK = null; } }
+    let rl = 0; if (res) for (let i = 1; i < res.path.length; i++) rl += hav(G.la[res.path[i - 1]], G.lo[res.path[i - 1]], G.la[res.path[i]], G.lo[res.path[i]]);
+    if (res && rl > straight * 3.5 + 300) res = null;
+    const a = gNear(la0, lo0, 400), b = gNear(la1, lo1, 400);
+    if (!res) res = a && b ? dijkstra(a.n, b.n, null, true) : null;
     const mid = res ? res.path.map(n => [G.la[n], G.lo[n]]) : null;
     let len = 0; if (mid) for (let i = 1; i < mid.length; i++) len += hav(mid[i - 1][0], mid[i - 1][1], mid[i][0], mid[i][1]);
     // se la rete non collega i due imbarcaderi o fa un giro assurdo, resta la linea dritta
