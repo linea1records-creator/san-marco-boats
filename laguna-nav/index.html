@@ -281,7 +281,7 @@
   .vcstart{position:absolute;inset:0;z-index:4;background:#0b0b10;display:flex;flex-direction:column;justify-content:center;padding:24px;text-align:left}
   .vcstart .big{font-size:56px;text-align:center} .vcstart h3{text-align:center;font-size:22px;margin:6px 0} .vcstart p,.vcstart li{color:#ccc;line-height:1.45;font-size:14px} .vcstart ul{padding-left:18px}
   body:not(.mode-incontra) #cmOv, body:not(.mode-incontra) #vcOv{display:none!important}
-  body.mm-ov #meetTop{z-index:31} body.mm-ov #meetBanner, body.mm-ov #evBanner, body.mm-ov #meetFilters, body.mm-ov #fabMatch{display:none!important}
+  body.mm-ov #meetTop{z-index:31} body.mm-ov #meetBanner, body.mm-ov #evBanner, body.mm-ov #discoBanner, body.mm-ov #meetFilters, body.mm-ov #fabMatch{display:none!important}
   body.mm-ov #v-map::before{content:"";position:absolute;left:0;right:0;top:0;height:calc(58px + var(--safe-t));background:#0b0b10;z-index:29}
   /* domande una alla volta */
   #wz{position:fixed;inset:0;z-index:6000;background:#0b0f17;color:#fff;display:flex;flex-direction:column;animation:obIn .25s ease}
@@ -568,6 +568,16 @@
   #meetBanner small{display:block;opacity:.9;font-size:12px}
   #evBanner{display:flex;align-items:center;gap:10px;width:100%;text-align:left;margin-top:8px;background:linear-gradient(135deg,#e2553a,#ff7a5c);color:#fff;border-radius:16px;padding:9px 14px;box-shadow:0 3px 12px rgba(0,0,0,.35)}
   #evBanner .evi{font-size:24px} #evBanner .evt{flex:1;line-height:1.2} #evBanner small{display:block;opacity:.9;font-size:12px}
+  #discoBanner{display:flex;align-items:center;gap:10px;width:100%;text-align:left;margin-top:8px;background:linear-gradient(135deg,#1b1f3b,#3b2a6b);color:#fff;border-radius:16px;padding:9px 14px;box-shadow:0 3px 12px rgba(0,0,0,.35)}
+  #discoBanner .evi{font-size:24px} #discoBanner .evt{flex:1;line-height:1.2} #discoBanner small{display:block;opacity:.9;font-size:12px}
+  .discoMk{display:flex;align-items:center;gap:5px;padding:4px 10px 4px 6px;background:#1b1f3b;color:#fff;border-radius:999px;font:700 12px system-ui,sans-serif;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.5);border:2px solid #b388ff;cursor:pointer}
+  .discoMk i{font-style:normal;font-size:15px;line-height:1}
+  .dcard{border-top:1px solid var(--line,#eee);padding:12px 0}
+  .dcard h4{margin:0 0 2px;font-size:16px} .dcard .dad{color:#8a8f98;font-size:12px}
+  .dcard .dev{margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(124,77,255,.08)}
+  .dcard .dev b{display:block} .dcard .dev small{color:#8a8f98}
+  .dcard .dnone{margin-top:6px;color:#8a8f98;font-size:13px}
+  .dcard .evb{margin-top:8px}
   .evday{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#8fb3ff;margin:14px 0 4px}
   .ev{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:11px 12px;margin-bottom:8px}
   .ev b{display:block;font-size:15px} .ev .evm{font-size:13px;color:var(--muted);margin-top:2px} .ev p{margin:6px 0 0;font-size:13px;line-height:1.4}
@@ -855,6 +865,7 @@
       <div id="meetModes"><button data-mm="map" class="on">🗺️ Stati</button><button data-mm="match">🔥 Click Match</button><button data-mm="video">🎥 Videochat</button></div>
       <button id="meetBanner"><span id="mbIcon">✨</span><span id="mbText"><b>Aggiorna il tuo stato</b><small>Fatti trovare da chi è in giro a Venezia</small></span><span>›</span></button>
       <button id="evBanner"><span class="evi">🎉</span><span class="evt"><b>Feste ed eventi della settimana</b><small id="evSub">Cosa succede a Venezia nei prossimi giorni</small></span><span>›</span></button>
+      <button id="discoBanner"><span class="evi">🪩</span><span class="evt"><b>Discoteche</b><small id="discoSub">Le serate della settimana nei locali di Venezia</small></span><span>›</span></button>
       <div id="meetFilters">
         <button data-mf="" class="on">Tutti</button><button data-mf="amicizie">🤝 Amicizie</button><button data-mf="aperitivo">🍹 Aperitivo</button><button data-mf="festa">🎉 Festa</button><button data-mf="incontro">❤️ Incontro</button>
       </div>
@@ -2041,7 +2052,7 @@ function initMap(){
   });
   loadShared(); setInterval(loadShared, 60000);
   map.on("idle", () => { try{ layerVis(); }catch(e){} });   // se un cambio è arrivato mentre la mappa caricava, lo rimette a posto
-  loadGraph(); loadPOI(); loadVelox(); loadChart(); loadPontili(); loadBricole(); loadBridges(); loadCantieri(); addAeroLayer();
+  loadGraph(); loadPOI(); loadVelox(); loadChart(); loadPontili(); loadBricole(); loadBridges(); loadCantieri(); addAeroLayer(); addDiscos();
   map.on("moveend", () => { if (map.getZoom() >= 15.3) drawBric3d(); });
 }
 function addManLayer(){
@@ -4677,7 +4688,7 @@ function drawBric3d(){
 let appMode = "nautica";
 function setAppMode(m){
   if (m === "incontra" && !store.get("ln_adult", false)){ adultGate(); return; }
-  appMode = m; try{ drawFriends(); }catch(e){} try{ updateAeroMk(); }catch(e){}
+  appMode = m; try{ drawFriends(); }catch(e){} try{ updateAeroMk(); }catch(e){} try{ updateDiscoMk(); }catch(e){}
   document.body.classList.toggle("mode-trasporti", m === "trasporti");
   document.body.classList.toggle("mode-incontra", m === "incontra");
   document.body.classList.toggle("mode-market", m === "market");
@@ -5469,13 +5480,13 @@ setInterval(() => { if ((appMode === "nautica" && !$("#v-map").classList.contain
 setTimeout(sosPoll, 6000);
 
 /* ---------- Meetup: feste ed eventi della settimana ---------- */
-const EV_KINDS = { festa: "🎉 Festa", evento: "✨ Evento", concerto: "🎵 Concerto", mostra: "🖼️ Mostra", sagra: "🛍️ Mercato e sagra" };
+const EV_KINDS = { festa: "🎉 Festa", evento: "✨ Evento", concerto: "🎵 Concerto", mostra: "🖼️ Mostra", sagra: "🛍️ Mercato e sagra", disco: "🪩 Discoteca" };
 let EVENTS = store.get("ln_events", []), eventsAt = 0;
 const isoDay = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 async function loadEvents(){
   if (Date.now() - eventsAt < 10 * 60000) return EVENTS;
   try{ const r = await api("events?select=id,title,kind,place,lat,lng,day_from,day_to,hour,info,link,source&order=day_from.asc&limit=300"); if (Array.isArray(r)){ EVENTS = r; store.set("ln_events", r); eventsAt = Date.now(); } }catch(e){}
-  paintEvBanner(); return EVENTS;
+  paintEvBanner(); try{ paintDiscoBanner(); }catch(e){} return EVENTS;
 }
 function weekEvents(){
   const t = new Date(), today = isoDay(t), end = isoDay(new Date(t.getTime() + 7 * 864e5));
@@ -5529,6 +5540,53 @@ function evForm(){
     } });
 }
 $("#evBanner").onclick = openEvents;
+
+/* ---------- discoteche: sulla mappa di Socializza e nel banner con le serate della settimana ---------- */
+const DISCO = [
+  { k: "anda", n: "Anda Venice", ad: "Via Ortigara 10, Mestre", q: "Via Ortigara 10 Mestre", link: "https://www.hostelworld.com/hostels/p/285768/anda-venice/", note: "Ostello con bar: serate quasi ogni sera" },
+  { k: "molo5", n: "Molo 5", ad: "Via dell'Elettricità 8, Marghera", q: "Via dell'Elettricità 8 Marghera", link: "https://www.instagram.com/molo5_venice/", note: "Aperta il venerdì e il sabato sera" },
+  { k: "area", n: "Area City", ad: "Via Don Federico Tosatto 9, Mestre", q: "Via Don Federico Tosatto 9 Mestre", link: "https://areacityvenezia.it" },
+  { k: "night", n: "Night and Day", ad: "Via A. De Pol 1, Noale", q: "Via Antonio De Pol Noale", link: "http://www.nightandday.it" },
+  { k: "sabia", n: "Sabia", ad: "Piazzale Ravà 1, Lido di Venezia", q: "Piazzale Ravà Lido di Venezia", link: "https://www.visitlido.it/en/?p=17338", note: "Beach club al Lido" },
+  { k: "pagoda", n: "La Pagoda", ad: "Lungomare G. Marconi 10, Lido di Venezia", q: "Lungomare Guglielmo Marconi 10 Lido di Venezia", link: "https://xceed.me/venezia/club/la-pagoda", note: "Sulla spiaggia del Des Bains, al Lido" }
+];
+let DISCO_GEO = store.get("ln_disco_geo", {}), DISCO_MK = [];
+async function discoGeo(d){   // posizione dall'indirizzo (Photon / OpenStreetMap), salvata sul telefono
+  if (DISCO_GEO[d.k]) return DISCO_GEO[d.k];
+  try{ const r = await fetch("https://photon.komoot.io/api/?limit=1&lat=45.48&lon=12.24&q=" + encodeURIComponent(d.q)); const j = await r.json(), f = j.features && j.features[0];
+    if (f){ DISCO_GEO[d.k] = { lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] }; store.set("ln_disco_geo", DISCO_GEO); return DISCO_GEO[d.k]; } }catch(e){}
+  return null;
+}
+function discoEvents(d){ return weekEvents().filter(e => e.kind === "disco" && (e.place || "").toLowerCase() === d.n.toLowerCase()).sort((a, b) => (a.day_from + (a.hour || "")).localeCompare(b.day_from + (b.hour || ""))); }
+function paintDiscoBanner(){ const s = $("#discoSub"); if (!s) return; const n = weekEvents().filter(e => e.kind === "disco").length;
+  s.textContent = DISCO.length + " locali" + (n ? " · " + n + (n === 1 ? " serata" : " serate") + " nei prossimi 7 giorni" : " · le serate della settimana"); }
+function updateDiscoMk(){ DISCO_MK.forEach(m => m.getElement().style.display = appMode === "incontra" ? "flex" : "none"); }
+async function addDiscos(){
+  if (DISCO_MK.length || !map || typeof maplibregl === "undefined") return;
+  for (const d of DISCO){ const g = await discoGeo(d); if (!g) continue;
+    const el = document.createElement("div"); el.className = "discoMk"; el.innerHTML = `<i>🪩</i>${esc(d.n)}`;
+    el.onclick = ev => { ev.stopPropagation(); openDiscos(d.k); };
+    DISCO_MK.push(new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([g.lng, g.lat]).addTo(map)); }
+  updateDiscoMk();
+}
+function discoCard(d){
+  const ev = discoEvents(d), g = DISCO_GEO[d.k];
+  return `<div class="dcard" id="dc-${d.k}"><h4>🪩 ${esc(d.n)}</h4><div class="dad">${esc(d.ad)}${d.note ? " · " + esc(d.note) : ""}</div>` +
+    (ev.length ? ev.map(e => `<div class="dev"><b>${esc(e.title)}</b><small>${dayLbl(e.day_from < isoDay(new Date()) ? isoDay(new Date()) : e.day_from)}${e.hour ? " · ore " + esc(e.hour) : ""}${e.info ? " · " + esc(e.info) : ""}</small></div>`).join("")
+      : `<div class="dnone">Nessuna serata annunciata per i prossimi 7 giorni.</div>`) +
+    `<div class="evb">${g ? `<button class="btn ghost" data-dgo="${d.k}">⚓ Portami qui</button>` : ""}<a class="btn ghost" href="${esc(d.link)}" target="_blank" rel="noopener" style="text-decoration:none">Programma ↗</a></div></div>`;
+}
+async function openDiscos(focus){
+  openSheet(`<h3>🪩 Discoteche</h3><p class="muted">Carico le serate…</p>`);
+  await loadEvents();
+  const list = focus ? DISCO.filter(d => d.k === focus).concat(DISCO.filter(d => d.k !== focus)) : DISCO;
+  $("#sheetIn").innerHTML = `<h3>🪩 Discoteche</h3><p class="muted" style="margin:-4px 0 4px">Le serate dei prossimi 7 giorni nei locali principali di Venezia.</p>` + list.map(discoCard).join("") +
+    `<p class="muted" style="font-size:12px;line-height:1.4;margin-top:10px">Le serate vengono dalle pagine dei locali e dai siti di eventi. Controlla sempre orari e ingresso sul programma del locale.</p>
+    <button class="btn ghost" style="margin-top:6px" onclick="closeSheet()">Chiudi</button>`;
+  document.querySelectorAll("[data-dgo]").forEach(b => b.onclick = () => { const d = DISCO.find(x => x.k === b.dataset.dgo), g = DISCO_GEO[d.k]; if (!g) return;
+    closeSheet(); setMode("nautica"); openPlan({ name: d.n, lat: g.lat, lng: g.lng }); });
+}
+$("#discoBanner").onclick = () => openDiscos();
 
 /* =========================================================
    INCONTRA: stati sulla mappa (solo la zona), match reciproco, chat
