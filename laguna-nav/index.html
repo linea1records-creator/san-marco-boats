@@ -4952,7 +4952,7 @@ async function doPlan(){
 let BOATS_ACTV = [], actvRaw = null, actvFetchT = null, actvAnimT = null, actvAt = 0;
 // colori ufficiali-indicativi per linea (ACTV) e per colore della linea (Alilaguna)
 const ALI_COL = { blu:"#0a4fa0", arancio:"#e8731c", rossa:"#cc2b2b", rosso:"#cc2b2b", verde:"#1f8a3b", gialla:"#d9b40a", giallo:"#d9b40a", oro:"#b8860b", viola:"#7b1fa2" };
-const ACTV_COL = { "1":"#e2001a","2":"#ff7900","3":"#009640","4.1":"#915fa7","4.2":"#915fa7","5.1":"#0083c7","5.2":"#0083c7","6":"#c8102e","7":"#00a3a3","8":"#8db600","9":"#6d4c41","10":"#607d8b","11":"#5d4037","12":"#0072bb","13":"#5b8f22","14":"#00897b","15":"#8e24aa","16":"#546e7a","17":"#4e342e","18":"#ef6c00","19":"#3949ab","20":"#00838f","21":"#7cb342","22":"#d81b60","N":"#263238","NMU":"#37474f","NLN":"#455a64","T":"#0288d1","DM":"#00acc1" };
+const ACTV_COL = { "1":"#ffffff","2":"#fd0000","3":"#f7a262","4.1":"#b43c96","4.2":"#b43c96","5.1":"#8fd2c0","5.2":"#8fd2c0","6":"#006cb7","9":"#958f2f","11":"#f6acbb","12":"#dad635","13":"#58419b","14":"#f37737","15":"#dd7128","17":"#82858c","20":"#c6aad2" };   // colori ufficiali ACTV dai riferimenti di Pietro; le altre linee usano un colore di ripiego
 function hashCol(str){ let h = 0; for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
   const pal = ["#1565c0","#2e7d32","#ef6c00","#6a1b9a","#00838f","#c62828","#558b2f","#4527a0","#00695c","#ad1457","#283593","#827717"]; return pal[h % pal.length]; }
 function lineColor(line, az){
