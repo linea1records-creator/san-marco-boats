@@ -721,6 +721,22 @@
   #setPanel .srow.on .sw::after{transform:translateX(16px)}
   #setPanel .srng{display:block;padding:6px 16px 8px;font-size:14px;color:#111} #setPanel .srng span{display:flex;justify-content:space-between} #setPanel .srng b{font-weight:700;color:var(--navy)}
   #setPanel .srng input{width:100%;accent-color:var(--navy);margin:4px 0 0}
+  #aeroBox{position:absolute;z-index:25;left:10px;right:10px;bottom:16px;max-height:60vh;display:flex;flex-direction:column;background:#fff;color:#111;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.45);overflow:hidden}
+  body.nav #aeroBox{bottom:92px}
+  #aeroBox .aeHead{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #eee}
+  #aeroBox .aeHead .aeTtl{display:flex;align-items:center;gap:7px;font-weight:800;font-size:16px;color:var(--navy)}
+  #aeroBox .aeHead .aeTtl svg{width:20px;height:20px;fill:none;stroke:var(--navy);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  #aeroBox .aeTabs{display:flex;gap:4px;margin-left:auto;background:#eef0f2;border-radius:10px;padding:3px}
+  #aeroBox .aeTabs button{padding:5px 12px;border-radius:8px;font-size:13px;font-weight:700;color:#555}
+  #aeroBox .aeTabs button.on{background:var(--navy);color:#fff}
+  #aeroBox #aeClose{flex:0 0 auto;width:28px;height:28px;border-radius:50%;background:#eef0f2;color:#555;font-size:16px;line-height:1}
+  #aeList{overflow-y:auto;padding:4px 0}
+  .ae-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid #f3f3f3}
+  .ae-t{flex:0 0 46px;font-weight:800;font-size:15px;color:#111}
+  .ae-m{flex:1;font-size:13px;line-height:1.3} .ae-m .ae-a{color:#8a8f98;font-size:12px}
+  .ae-s{flex:0 0 auto;font-size:12px;font-weight:700;color:#8a8f98;text-align:right;max-width:34%}
+  .ae-s.ae-d{color:#2e7d32} .ae-s.ae-l{color:#ef6c00} .ae-s.ae-x{color:#c62828}
+  #aeroBox .aeFoot{padding:7px 14px;font-size:11px;color:#9aa0a8;border-top:1px solid #eee}
   #modeFlash{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:60;color:#fff;font-size:15px;font-weight:700;letter-spacing:.02em;text-shadow:0 1px 4px rgba(0,0,0,.85),0 0 12px rgba(0,0,0,.5);pointer-events:none;opacity:0;transition:opacity .12s;white-space:nowrap}
   #modeFlash.on{opacity:1}
   #fabGps{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -788,6 +804,15 @@
     </div>
 
     <!-- pianifica il tragitto: partenza e arrivo -->
+    <div id="aeroBox" class="hidden">
+      <div class="aeHead">
+        <span class="aeTtl"><svg viewBox="0 0 24 24"><path d="M2 16l20-6-20-6 4 6-4 6z"/></svg>Marco Polo</span>
+        <span class="aeTabs"><button data-vt="dep" class="on">Partenze</button><button data-vt="arr">Arrivi</button></span>
+        <button id="aeClose" aria-label="Chiudi">×</button>
+      </div>
+      <div id="aeList">Carico i voli…</div>
+      <div class="aeFoot">Orari non ufficiali del Marco Polo · si aggiornano da soli</div>
+    </div>
     <div id="routeBox" class="hidden">
       <div class="rb-row"><span class="rb-l">Da</span><button id="rbFrom" class="rb-f">📍 La mia posizione</button><button id="rbSwap" class="rb-sw" title="Inverti">⇅</button></div>
       <div class="rb-row"><span class="rb-l">A</span><button id="rbTo" class="rb-f">–</button></div>
@@ -1978,7 +2003,7 @@ function initMap(){
       if (fr && fr.properties.n) return kissAsk(fr.properties.n); }
     if (INST.water && appMode === "nautica"){
       const z = fondoAt(e.lngLat.lat, e.lngLat.lng), t = tideNow() ?? 30;
-      const ff = map.queryRenderedFeatures(e.point, { layers: ["partners", "battelli", "fermate", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
+      const ff = map.queryRenderedFeatures(e.point, { layers: ["aero", "partners", "battelli", "fermate", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
       if (!ff){
         const b = activeBoat(), dr = boatDraftCm(b), w = z === null ? null : z * 100 + t;
         new maplibregl.Popup({ maxWidth: "240px" }).setLngLat(e.lngLat).setHTML(z === null ? "Nessun dato di fondale qui" :
@@ -1988,12 +2013,12 @@ function initMap(){
         return;
       }
     }
-    const f = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["partners", "battelli", "fermate", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
+    const f = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["aero", "partners", "battelli", "fermate", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
     if (f) popupFor(f, e.lngLat);
   });
   loadShared(); setInterval(loadShared, 60000);
   map.on("idle", () => { try{ layerVis(); }catch(e){} });   // se un cambio è arrivato mentre la mappa caricava, lo rimette a posto
-  loadGraph(); loadPOI(); loadVelox(); loadChart(); loadPontili(); loadBricole(); loadBridges(); loadCantieri();
+  loadGraph(); loadPOI(); loadVelox(); loadChart(); loadPontili(); loadBricole(); loadBridges(); loadCantieri(); addAeroLayer();
   map.on("moveend", () => { if (map.getZoom() >= 15.3) drawBric3d(); });
 }
 function addManLayer(){
@@ -2202,6 +2227,7 @@ function drawDepths(){
 }
 function popupFor(f, ll){
   let html;
+  if (f.layer.id === "aero"){ openAero(); return; }
   if (f.layer.id === "partners"){ const p = PARTNERS.find(x => x.id === f.properties.id); if (p) openPartner(p); return; }
   if (f.layer.id === "cantieri"){ const c = CANT[f.properties.i]; if (c) openCantiere(c); return; }
   if (f.layer.id === "battelli"){ const b = BOATS_ACTV[f.properties.i]; if (!b) return;
@@ -4805,6 +4831,48 @@ document.querySelectorAll("#trPanel [data-tr]").forEach(b => b.onclick = () => {
 });
 /* orari ufficiali ACTV (dal server) */
 const ACTV = (q) => fetchT(CONFIG.SUPABASE_URL + "/functions/v1/actv?" + q, {}, 15000).then(r => r.json());
+/* ---------- aeroporto Marco Polo: partenze e arrivi (fonte non ufficiale) ---------- */
+const VOLI = () => fetchT(CONFIG.SUPABASE_URL + "/functions/v1/voli", {}, 15000).then(r => r.json());
+let voliData = null, voliTab = "dep", voliT = null;
+function statusIt(s){ return String(s)
+  .replace(/Cancelled/i, "Cancellato").replace(/Delayed/i, "In ritardo").replace(/Scheduled/i, "Previsto")
+  .replace(/Estimated/i, "Stimato").replace(/Boarding/i, "Imbarco").replace(/Gate Closed/i, "Gate chiuso")
+  .replace(/Departed/i, "Partito").replace(/Landed/i, "Atterrato").replace(/Arrived/i, "Atterrato").replace(/On Time/i, "In orario"); }
+function statusCls(s){ s = String(s).toLowerCase(); if (/cancel/.test(s)) return "ae-x"; if (/delay|ritard/.test(s)) return "ae-l"; if (/depart|land|arriv|atterr|partit/.test(s)) return "ae-d"; return ""; }
+function renderVoli(){
+  const box = $("#aeList"); if (!box) return;
+  if (!voliData){ box.textContent = "Carico i voli…"; return; }
+  if (voliData.error){ box.textContent = "Orari non disponibili adesso."; return; }
+  const rows = (voliTab === "dep" ? voliData.dep : voliData.arr) || [], pre = voliTab === "dep" ? "per" : "da";
+  if (!rows.length){ box.textContent = "Nessun volo al momento."; return; }
+  box.innerHTML = rows.map(r => `<div class="ae-row"><div class="ae-t">${esc(r.time)}</div><div class="ae-m"><b>${esc(r.flight)}</b> · ${esc(pre)} ${esc(r.place)}<br><span class="ae-a">${esc(r.airline)}</span></div><div class="ae-s ${statusCls(r.status)}">${esc(statusIt(r.status))}</div></div>`).join("");
+}
+async function loadVoli(){ try{ voliData = await VOLI(); }catch(e){ voliData = { error: 1 }; } renderVoli(); }
+function openAero(){ const b = $("#aeroBox"); if (!b) return; b.classList.remove("hidden"); renderVoli(); loadVoli();
+  if (!voliT) voliT = setInterval(() => { if (!document.hidden && !$("#aeroBox").classList.contains("hidden")) loadVoli(); }, 60000); }
+function closeAero(){ const b = $("#aeroBox"); if (b) b.classList.add("hidden"); }
+if ($("#aeClose")) $("#aeClose").onclick = closeAero;
+document.querySelectorAll("#aeroBox [data-vt]").forEach(b => b.onclick = () => { voliTab = b.dataset.vt;
+  document.querySelectorAll("#aeroBox [data-vt]").forEach(x => x.classList.toggle("on", x === b)); renderVoli(); });
+// icona aereo (vista dall'alto) su pastiglia bianca
+function aeroIcon(){
+  const S = 46, c = document.createElement("canvas"); c.width = c.height = S; const g = c.getContext("2d");
+  g.beginPath(); g.arc(S/2, S/2, 20, 0, 7); g.fillStyle = "#ffffff"; g.fill(); g.lineWidth = 3; g.strokeStyle = "#0c3851"; g.stroke();
+  g.save(); g.translate(S/2, S/2); g.rotate(-0.35); g.fillStyle = "#0c3851";
+  g.beginPath(); g.moveTo(0, -13); g.quadraticCurveTo(2.2, -11, 2.2, -4); g.lineTo(13, 3); g.lineTo(13, 6); g.lineTo(2.2, 2);
+  g.lineTo(2.2, 9); g.lineTo(5.5, 12); g.lineTo(5.5, 14); g.lineTo(0, 12.5); g.lineTo(-5.5, 14); g.lineTo(-5.5, 12); g.lineTo(-2.2, 9);
+  g.lineTo(-2.2, 2); g.lineTo(-13, 6); g.lineTo(-13, 3); g.lineTo(-2.2, -4); g.quadraticCurveTo(-2.2, -11, 0, -13); g.closePath(); g.fill(); g.restore();
+  return g.getImageData(0, 0, S, S);
+}
+function addAeroLayer(){
+  if (!map || map.getSource("aero")) return;
+  if (!map.hasImage("aereo")) map.addImage("aereo", aeroIcon(), { pixelRatio: 2 });
+  map.addSource("aero", { type: "geojson", data: { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [12.3519, 45.5053] } } });
+  map.addLayer({ id: "aero", type: "symbol", source: "aero", minzoom: 9, layout: { visibility: appMode === "nautica" ? "visible" : "none",
+    "icon-image": "aereo", "icon-size": ["interpolate", ["linear"], ["zoom"], 9, 0.5, 13, 0.85, 16, 1.05], "icon-allow-overlap": true, "icon-ignore-placement": true,
+    "text-field": "Marco Polo", "text-font": ["Noto Sans Bold", "Noto Sans Regular"], "text-size": 11, "text-offset": [0, 1.25], "text-optional": true },
+    paint: { "text-color": "#0c3851", "text-halo-color": "#ffffff", "text-halo-width": 1.4 } });
+}
 let PONTILI_ACTV = store.get("ln_actv_pontili", null), trStop = null, trPlan = null;
 async function loadPontiliActv(){
   if (PONTILI_ACTV && Date.now() - PONTILI_ACTV.t < 7 * 864e5) return;
@@ -5554,6 +5622,7 @@ function layerVis(){
     "poi": n && foodOn, "poi-label": n && foodOn,
     "sensi": n, "fermate": appMode === "trasporti" || (n && LY.actv), "fermate-lbl": appMode === "trasporti" || (n && LY.actv),
     "battelli": n && (LY.actv || LY.alilaguna), "battelli-lbl": n && (LY.actv || LY.alilaguna),
+    "aero": n,
     "partners": appMode === "market", "partners-lbl": appMode === "market"
   };
   Object.entries(want).forEach(([id, v]) => /^route/.test(id) ? (map.getLayer(id) && map.setLayoutProperty(id, "visibility", v ? "visible" : "none")) : fadeVis(id, v));
