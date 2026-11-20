@@ -3115,8 +3115,13 @@ function blockedNodes(){
 }
 // filtro facoltativo sui tratti (per i battelli di linea: solo i canali dove possono passare)
 let DIJ_EDGE_OK = null;
-const BIG_CANAL = /^(canal|canale|canalazzo|bacino|bocca|porto|darsena|laguna)\b/i;
-function bigEdge(e){ if (e[3] === 1) return true; if (e[3] !== 0 || e[2] < 0) return false; return BIG_CANAL.test(G.names[e[2]] || ""); }
+// Carta di sintesi ZTL del Comune (ord. 274/2015): i battelli di linea possono usare solo i canali rossi e l'acqua bianca.
+// In città: Canal Grande, Canale di Cannaregio, Canale di San Pietro, Rio del Ponte Longo (Giudecca) e i canali/bacini esterni.
+// Vietati tutti gli altri rii (marroni, gialli, verdi, viola, grigi, blu, neri) e il Bacino Orseolo.
+const BIG_CANAL = /^(canal|canale|canalazzo|bacino|bocca|porto|darsena|laguna)\b/i, BIG_EXTRA = /^rio del ponte longo$/i, BIG_NO = /^bacino orseolo$/i;
+const inCity = n => G.la[n] > 45.424 && G.la[n] < 45.450 && G.lo[n] > 12.305 && G.lo[n] < 12.368;
+function bigNamed(e){ if (e[3] !== 0 || e[2] < 0) return false; const nm = G.names[e[2]] || ""; return !BIG_NO.test(nm) && (BIG_CANAL.test(nm) || BIG_EXTRA.test(nm)); }
+function bigEdge(e){ if (e[3] === 1) return !inCity(e[0]) || G.adj[e[0]].some(bigNamed); return bigNamed(e); }
 function dijkstra(src, dst, bl, noRules){
   const N = G.la.length, d = new Float64Array(N).fill(Infinity), prev = new Int32Array(N).fill(-1), pe = new Array(N);
   const cx = noRules ? null : ruleCtx(), ends = cx ? new Set(nodesNear(src, 90).concat(nodesNear(dst, 90))) : null;
