@@ -1123,7 +1123,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">unClick · unClick · versione 3.48</p>
+      <p class="sub">unClick · unClick · versione 3.49</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa unClick</button>
@@ -2312,13 +2312,26 @@ function onWater(lat, lng){
 const MAN_U = 40 / 3 / 11.9, MAN_MINZ = 17;   // alto circa 13 metri sulla mappa (con la barca intorno)
 function manUnit(){ return MAN_U; }
 function manPx(){ if (!map || !lastPos) return 0; const mpp = 156543.03 * Math.cos(lastPos.lat * Math.PI / 180) / Math.pow(2, map.getZoom()); return MAN_U / mpp; }
+// posizione mostrata: la stessa per avatar, scritta e telecamera, così l'avatar non resta mai indietro.
+// Tra un punto GPS e l'altro avanza da sola con velocità e rotta (come i navigatori)
+let disp = null;
+function dispTick(){
+  if (!lastPos) return null;
+  let tla = lastPos.lat, tlo = lastPos.lng;
+  if (speedMs > 1.2 && courseHeading !== null && lastPos.t){ const dt = Math.min(1.5, Math.max(0, (Date.now() - lastPos.t) / 1000)), d = speedMs * dt, r = courseHeading * Math.PI / 180;
+    tla += d * Math.cos(r) / 111320; tlo += d * Math.sin(r) / (111320 * Math.cos(tla * Math.PI / 180)); }
+  if (!disp || hav(disp.lat, disp.lng, tla, tlo) > 150) disp = { lat: tla, lng: tlo };
+  else { disp.lat += (tla - disp.lat) * 0.3; disp.lng += (tlo - disp.lng) * 0.3; }
+  return disp;
+}
 function drawMan(force){
   if (!map || !lastPos || !map.getSource("meman")) return;
-  const key = [lastPos.lat.toFixed(6), lastPos.lng.toFixed(6), Math.round(heading / 4)].join();
+  const P = disp || lastPos;
+  const key = [P.lat.toFixed(6), P.lng.toFixed(6), Math.round(heading / 4)].join();
   if (!force && key === manKey) return; manKey = key;
-  if (map.getSource("medot")) map.getSource("medot").setData({ type: "Point", coordinates: [lastPos.lng, lastPos.lat] });
-  manWat = onWater(lastPos.lat, lastPos.lng);
-  manTiltLast = planeTilt(); map.getSource("meman").setData(manFeatures(lastPos.lat, lastPos.lng, heading, myAvatar(), null, manTiltLast));
+  if (map.getSource("medot")) map.getSource("medot").setData({ type: "Point", coordinates: [P.lng, P.lat] });
+  manWat = onWater(P.lat, P.lng);
+  manTiltLast = planeTilt(); map.getSource("meman").setData(manFeatures(P.lat, P.lng, heading, myAvatar(), null, manTiltLast));
 }
 // quando la mappa ha finito di caricare ricontrollo se sei sull'acqua (la barchetta compare o sparisce)
 let manWat = null, manWatHook = false, manTiltLast = 0;
@@ -2372,7 +2385,7 @@ function setFirstPerson(on){
   if (!map) return; const h = map.getContainer().clientHeight;
   const d3 = LY.d3 !== false;
   fpLock(on); if (on){ follow = true; camC = null; }
-  if (on) map.easeTo({ center: lastPos ? [lastPos.lng, lastPos.lat] : map.getCenter(), zoom: fpZoom, pitch: d3 ? 72 : 0, bearing: heading, padding: { top: h * (d3 ? 0.55 : 0.35), bottom: 0, left: 0, right: 0 }, duration: 900 });
+  if (on) map.easeTo({ center: lastPos ? [lastPos.lng, lastPos.lat] : map.getCenter(), zoom: fpZoom, pitch: d3 ? 72 : 0, bearing: heading, padding: { top: h / 3, bottom: 0, left: 0, right: 0 }, duration: 900 });
   else map.easeTo({ pitch: d3 ? 50 : 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 600 });
 }
 $("#fabVoice").onclick = () => { voiceOn = !voiceOn; store.set("ln_voice", voiceOn); paintVoice(); if (voiceOn) say("Voce attiva"); };
@@ -2442,7 +2455,7 @@ function onPos(pos){
   $("#kn").textContent = (speedMs * 1.94384).toFixed(1) + " nodi";
   if (map){
     if (!meMarker){ meMarker = makeArrow().setLngLat([p.lng, p.lat]).addTo(map); camera(true); }
-    else meMarker.setLngLat([p.lng, p.lat]);
+    else if (!disp) meMarker.setLngLat([p.lng, p.lat]);
     drawMan(); pushMyLoc(p);
   }
   checkZones(p, kmh); checkShallow(p); navTick(p); recPoint(p); updateDepth(p); veloxTick(p, kmh); bridgeTick(p);
@@ -2460,16 +2473,16 @@ function frame(){
   if (!map) return;
   const t = targetHeading();
   if (t !== null) heading = (heading + angDiff(heading, t) * 0.22 + 360) % 360;
-  rotMe(); if (!frame.n || ++frame.n % 10 === 0) { frame.n = frame.n || 1; if (!userBusy) drawMan(); }
-  else if (frame.n % 3 === 0 && ((manWat && speedMs * 3.6 > 10) || manTiltLast)) drawMan(true);   // in planata la barca si muove: ridisegno spesso
+  const D = dispTick(); if (D && meMarker) meMarker.setLngLat([D.lng, D.lat]);
+  frame.n = (frame.n || 0) + 1;
+  rotMe(); if (frame.n % 2 === 0) drawMan(manTiltLast || (manWat && speedMs * 3.6 > 10));   // avatar ridisegnato insieme alla mappa
   if ((userBusy && !view3d) || map.isEasing && map.isEasing()) return;
   const o = {};
   if (view3d && Math.abs(angDiff(map.getBearing(), heading)) > 0.4) o.bearing = heading;
   if ((follow || view3d) && lastPos){   // in prima persona la mappa segue sempre l'avatar
-    if (!camC) camC = { lat: lastPos.lat, lng: lastPos.lng };
-    const k = view3d ? 0.25 : 0.12; camC.lat += (lastPos.lat - camC.lat) * k; camC.lng += (lastPos.lng - camC.lng) * k;
+    const P = D || lastPos;   // telecamera esattamente sull'avatar
     const c = map.getCenter();
-    if (hav(c.lat, c.lng, camC.lat, camC.lng) > 0.3) o.center = [camC.lng, camC.lat];
+    if (hav(c.lat, c.lng, P.lat, P.lng) > 0.05) o.center = [P.lng, P.lat];
   }
   if (o.bearing !== undefined || o.center) map.jumpTo(o);
 }
@@ -2482,7 +2495,7 @@ function camera(force){
   camC = { lat: lastPos.lat, lng: lastPos.lng };
   map.easeTo({ center: [lastPos.lng, lastPos.lat], zoom: force ? (view3d ? fpZoom : Math.max(map.getZoom(), 17.3)) : map.getZoom(),
     bearing: view3d ? heading : map.getBearing(), pitch: view3d ? 72 : Math.max(map.getPitch(), force ? 50 : 0),
-    padding: { top: view3d ? h * 0.55 : 0, bottom: 0, left: 0, right: 0 }, duration: 700, essential: true });
+    padding: { top: view3d ? h / 3 : 0, bottom: 0, left: 0, right: 0 }, duration: 700, essential: true });
 }
 
 /* ---------- zone controllate e bassi fondali ---------- */
