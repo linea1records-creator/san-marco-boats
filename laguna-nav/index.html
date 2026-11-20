@@ -1351,6 +1351,26 @@ function openApp(){
   $("#app").classList.remove("hidden");
   if (!window._mapReady) initMap();
   renderProfile();
+  enablePush();
+}
+
+/* ---------- notifiche push (messaggi, emoji, richieste di amicizia) ---------- */
+const VAPID_PUBLIC = "BJitl13ygZXeTDuNQxnrYyMcRukhIPHs-exVowJsflnYNFsUcbbXUhG8xk0FqJBSUDI9cD3XVl-YLYwa7Aip3BE";
+function _b64ToU8(b){ const pad = "=".repeat((4 - b.length % 4) % 4); const s = (b + pad).replace(/-/g, "+").replace(/_/g, "/"); const raw = atob(s); const a = new Uint8Array(raw.length); for (let i = 0; i < raw.length; i++) a[i] = raw.charCodeAt(i); return a; }
+let _pushDone = false;
+async function enablePush(){
+  if (_pushDone) return;
+  if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return;
+  try{
+    const perm = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
+    if (perm !== "granted") return;
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: _b64ToU8(VAPID_PUBLIC) });
+    const j = sub.toJSON();
+    await api("rpc/push_subscribe", { method: "POST", ret: true, body: { p_token: TOKEN, p_endpoint: sub.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth, p_ua: navigator.userAgent.slice(0, 200) } });
+    _pushDone = true;
+  }catch(e){}
 }
 
 /* ---------- app installabile (Android: icona sulla schermata Home) ---------- */
