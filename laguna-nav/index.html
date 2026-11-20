@@ -706,7 +706,7 @@
   #fabSet svg{width:24px;height:24px;fill:none;stroke:var(--navy);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
   #fabSet.on{background:var(--navy)}
   #fabSet.on svg{stroke:#fff}
-  #setPanel{position:absolute;z-index:24;right:70px;bottom:16px;width:236px;background:#fff;color:#111;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.45);padding:6px 0;overflow:hidden}
+  #setPanel{position:absolute;z-index:24;right:70px;bottom:16px;width:236px;background:#fff;color:#111;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.45);padding:6px 0;overflow-x:hidden;overflow-y:auto;max-height:calc(100vh - 150px)}
   body.nav #setPanel{bottom:92px}
   #setPanel .sh{font-size:11px;font-weight:800;letter-spacing:.08em;color:#8a8f98;padding:8px 16px 4px}
   #setPanel .srow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 16px;text-align:left;font-size:15px;color:#111}
@@ -717,6 +717,11 @@
   #setPanel .sw::after{content:"";position:absolute;left:2px;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35);transition:transform .15s}
   #setPanel .srow.on .sw{background:var(--navy)}
   #setPanel .srow.on .sw::after{transform:translateX(16px)}
+  #setPanel .srng{display:block;padding:6px 16px 8px;font-size:14px;color:#111} #setPanel .srng span{display:flex;justify-content:space-between} #setPanel .srng b{font-weight:700;color:var(--navy)}
+  #setPanel .srng input{width:100%;accent-color:var(--navy);margin:4px 0 0}
+  #modeFlash{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:60;color:#fff;font-size:15px;font-weight:700;letter-spacing:.02em;text-shadow:0 1px 4px rgba(0,0,0,.85),0 0 12px rgba(0,0,0,.5);pointer-events:none;opacity:0;transition:opacity .12s;white-space:nowrap}
+  #modeFlash.on{opacity:1}
+  #fabGps{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   body.mode-trasporti #fabSet, body.mode-incontra #fabSet, body.mode-market #fabSet, body.mode-sport #fabSet,
   body.mode-trasporti #setPanel, body.mode-incontra #setPanel, body.mode-market #setPanel, body.mode-sport #setPanel{display:none!important}
   /* come ci vai: a piedi, barca, vaporetto, taxi */
@@ -925,6 +930,9 @@
       <button class="srow" data-set="d3"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>Vista 3D</span><i class="sw"></i></button>
       <button class="srow" data-set="sat"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.8 5.4 3.8 8.5s-1.3 5.9-3.8 8.5c-2.5-2.6-3.8-5.4-3.8-8.5S9.5 6.1 12 3.5z"/></svg><span>Satellitare</span><i class="sw"></i></button>
       <button class="srow" data-set="boat"><svg viewBox="0 0 24 24"><path d="M3 15.5h18l-2.6 4.5H5.6z"/><path d="M12 3v12.5M12 4.5l6 9h-6"/></svg><span>La tua barca</span><i class="sw"></i></button>
+      <div class="sh">DIMENSIONI</div>
+      <label class="srng"><span>Avatar <b id="szManV">100%</b></span><input type="range" id="szMan" min="0.4" max="3" step="0.1" value="1"></label>
+      <label class="srng"><span>Barca <b id="szBoatV">100%</b></span><input type="range" id="szBoat" min="0.4" max="3" step="0.1" value="1"></label>
     </div>
 
     <!-- tipo di mappa -->
@@ -1115,7 +1123,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">unClick · unClick · versione 3.47</p>
+      <p class="sub">unClick · unClick · versione 3.48</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa unClick</button>
@@ -2217,8 +2225,9 @@ function manFeatures(lat, lng, hdg, av, out, tilt){
     geometry: { type: "Polygon", coordinates: [P.concat([P[0]]).map(q => pt(q[0], q[1]))] } }); };
   // sull'acqua l'omino sta in piedi dentro una barchetta grande come lui (un po' verso poppa, sopra il pagliolo)
   const wat = onWater(lat, lng);
-  if (wat){ boatFeatures(poly); seatedMan(poly, C, girl); return { type: "FeatureCollection", features: out }; }
-  const box = (x0, x1, y0, y1, b, t, c) => poly([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], b, t, c);
+  const SZ = avSizes(), sm = SZ.man, sb = SZ.boat;
+  if (wat){ boatFeatures((P, b, t, c) => poly(P.map(q => [q[0] * sb, q[1] * sb]), b * sb, t * sb, c)); seatedMan(poly, C, girl, sm, sb); return { type: "FeatureCollection", features: out }; }
+  const box = (x0, x1, y0, y1, b, t, c) => poly([[x0 * sm, y0 * sm], [x1 * sm, y0 * sm], [x1 * sm, y1 * sm], [x0 * sm, y1 * sm]], b * sm, t * sm, c);
   // x = destra, y = avanti (verso dove guarda), altezze in blocchetti
   box(-1.4, -0.2, -0.6, 0.8, 0, 0.6, "shoe"); box(0.2, 1.4, -0.6, 0.8, 0, 0.6, "shoe");
   if (girl){ box(-1.2, -0.3, -0.45, 0.45, 0.6, 3, "skin"); box(0.3, 1.2, -0.45, 0.45, 0.6, 3, "skin"); box(-1.9, 1.9, -1.1, 1.1, 3, 4.6, "legs"); }
@@ -2261,11 +2270,16 @@ function clipBand(P, y0, y1){
     if (ka) o.push(a); if (ka !== kb){ const t = (edge - a[1]) / (b[1] - a[1]); o.push([a[0] + (b[0] - a[0]) * t, edge]); } } return o; };
   return cut(cut(P, q => q[1] >= y0, y0), q => q[1] <= y1, y1);
 }
+// dimensioni scelte nelle impostazioni della mappa (1 = normale)
+let AV_SIZE = Object.assign({ man: 1, boat: 1 }, store.get("ln_avsize", {}));
+function avSizes(){ return AV_SIZE; }
 // planata: sopra i 10 km/h la prua sale e scende una volta al secondo
 function planeTilt(){ if (speedMs * 3.6 <= 10 || !manWat) return 0; const a = (5 + 3 * Math.sin(Date.now() / 1000 * 2 * Math.PI)) * Math.PI / 180; return Math.tan(a); }
 // omino seduto sulla panca a dritta, guarda avanti e tiene la manetta con la mano sinistra
-function seatedMan(poly, C, girl){
-  const ox = 1.4, oy = -4.5, box = (x0, x1, y0, y1, b, t, c) => poly([[x0 + ox, y0 + oy], [x1 + ox, y0 + oy], [x1 + ox, y1 + oy], [x0 + ox, y1 + oy]], b, t, c);
+function seatedMan(poly, C, girl, sm, sb){
+  sm = sm || 1; sb = sb || 1;   // l'omino ha la sua misura, il punto dove si siede segue la barca
+  const ox = 1.4 * sb, oy = -4.5 * sb, hz = 3.2 * sb, X = x => ox + x * sm, Y = y => oy + y * sm, Z = z => hz + (z - 3.2) * sm;
+  const box = (x0, x1, y0, y1, b, t, c) => poly([[X(x0), Y(y0)], [X(x1), Y(y0)], [X(x1), Y(y1)], [X(x0), Y(y1)]], Z(b), Z(t), c);
   const leg = girl ? "skin" : "legs";
   box(-1.4, -0.2, 2.6, 4.0, 0.9, 1.5, "shoe"); box(0.2, 1.4, 2.6, 4.0, 0.9, 1.5, "shoe");          // scarpe sul pagliolo
   box(-1.3, -0.2, 2.7, 3.7, 1.5, 3.7, leg); box(0.2, 1.3, 2.7, 3.7, 1.5, 3.7, leg);                // gambe
@@ -2316,7 +2330,7 @@ let meOff = null;
 function rotMe(){ if (!meMarker || !map || !lastPos) return;
   let o = -12;
   if (map.getZoom() >= MAN_MINZ){   // altezza vera della testa sullo schermo: un palo di 40 m inclinato con la mappa
-    const p = Math.min(map.getPitch(), 78) * Math.PI / 180, d = 11.9 * MAN_U * 1.06 * Math.tan(p), b = map.getBearing() * Math.PI / 180;
+    const p = Math.min(map.getPitch(), 78) * Math.PI / 180, d = 11.9 * MAN_U * avSizes().man * 1.06 * Math.tan(p), b = map.getBearing() * Math.PI / 180;
     const a = map.project([lastPos.lng, lastPos.lat]), t = map.project([lastPos.lng + d * Math.sin(b) / (111320 * Math.cos(lastPos.lat * Math.PI / 180)), lastPos.lat + d * Math.cos(b) / 111320]);
     o = -Math.round(Math.max(14, a.y - t.y + (p < 0.3 ? 2.5 * manPx() : 0))) - 6;
   }
@@ -2325,21 +2339,40 @@ function rotMe(){ if (!meMarker || !map || !lastPos) return;
 /* ---------- GPS e bussola ---------- */
 // headingSrc: "phone" = la mappa gira dove punta il telefono (bussola); "course" = direzione di marcia del GPS
 let headingSrc = store.get("ln_hsrc", "phone"), courseHeading = null, compassAt = 0, userBusy = false, camC = null;
-$("#fabGps").onclick = () => {
+// tasto posizione: un tocco centra, il secondo entra in prima persona, in prima persona un tocco esce.
+// Tenendolo premuto 2 secondi e trascinando su o giù si allontana o si avvicina la visuale (resta incollata all'avatar)
+let fpZoom = store.get("ln_fpzoom", 19.4), gpsHold = null;
+function gpsTap(){
   askCompass();                       // su iPhone il permesso della bussola si chiede solo dentro il tocco
   if (watchId === null) startGps();
-  if (follow && lastPos && !view3d){ setFirstPerson(true); return; }   // già centrato: secondo tocco = navigatore in prima persona
-  if (follow && lastPos && view3d && !NAV){ setFirstPerson(false); map.easeTo({ bearing: 0, duration: 600 }); return; }   // terzo tocco: nord in alto
+  if (view3d){ setFirstPerson(false); map.easeTo({ bearing: 0, duration: 600 }); return; }
+  if (follow && lastPos){ setFirstPerson(true); return; }   // già centrato: secondo tocco = navigatore in prima persona
   setFollow(true); camera(true);
-};
+}
+function modeFlash(t){ let el = $("#modeFlash"); if (!el){ el = document.createElement("div"); el.id = "modeFlash"; document.body.appendChild(el); }
+  el.textContent = t; el.classList.add("on"); clearTimeout(modeFlash.t); modeFlash.t = setTimeout(() => el.classList.remove("on"), 500); }
+(() => { const b = $("#fabGps");
+  b.addEventListener("pointerdown", e => { e.preventDefault(); try{ b.setPointerCapture(e.pointerId); }catch(er){}
+    gpsHold = { y: e.clientY, adj: false, t: setTimeout(() => { gpsHold.adj = true; gpsHold.y0 = gpsHold.yNow || gpsHold.y; gpsHold.z0 = fpZoom; buzz(40);
+      if (!view3d){ askCompass(); if (watchId === null) startGps(); setFirstPerson(true); }
+      modeFlash("Trascina su o giù: distanza"); }, 2000) }; });
+  b.addEventListener("pointermove", e => { if (!gpsHold) return; gpsHold.yNow = e.clientY; if (!gpsHold.adj) return;
+    fpZoom = Math.max(16.5, Math.min(21, gpsHold.z0 + (e.clientY - gpsHold.y0) / 70));   // su = più lontano, giù = più vicino
+    if (map && view3d && !(map.isEasing && map.isEasing())) map.jumpTo({ zoom: fpZoom }); });
+  const end = e => { if (!gpsHold) return; clearTimeout(gpsHold.t); const adj = gpsHold.adj; gpsHold = null;
+    if (adj){ store.set("ln_fpzoom", fpZoom); if (map && view3d) map.easeTo({ zoom: fpZoom, duration: 200 }); return; }
+    if (e.type === "pointerup") gpsTap(); };
+  b.addEventListener("pointerup", end); b.addEventListener("pointercancel", end);
+  b.addEventListener("contextmenu", e => e.preventDefault()); })();
 $("#fabView").onclick = () => { setFirstPerson(!view3d); if (view3d) setFollow(true); };
 // prima persona: da vicino, la mappa gira con la bussola · altrimenti la mappa resta come la giri tu e vedi l'omino in 3D
 function setFirstPerson(on){
+  if (on !== view3d) modeFlash(on ? "Prima persona" : "Vista libera");
   view3d = on; $("#fabView").classList.toggle("on", on); document.body.classList.toggle("fp", on); $("#fabView").title = on ? "Esci dalla prima persona" : "Prima persona (la mappa gira con la bussola)";
   if (!map) return; const h = map.getContainer().clientHeight;
   const d3 = LY.d3 !== false;
   fpLock(on); if (on){ follow = true; camC = null; }
-  if (on) map.easeTo({ center: lastPos ? [lastPos.lng, lastPos.lat] : map.getCenter(), zoom: 19.4, pitch: d3 ? 72 : 0, bearing: heading, padding: { top: h * (d3 ? 0.55 : 0.35), bottom: 0, left: 0, right: 0 }, duration: 900 });
+  if (on) map.easeTo({ center: lastPos ? [lastPos.lng, lastPos.lat] : map.getCenter(), zoom: fpZoom, pitch: d3 ? 72 : 0, bearing: heading, padding: { top: h * (d3 ? 0.55 : 0.35), bottom: 0, left: 0, right: 0 }, duration: 900 });
   else map.easeTo({ pitch: d3 ? 50 : 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 600 });
 }
 $("#fabVoice").onclick = () => { voiceOn = !voiceOn; store.set("ln_voice", voiceOn); paintVoice(); if (voiceOn) say("Voce attiva"); };
@@ -2447,7 +2480,7 @@ function camera(force){
   if (!map || !lastPos) return;
   const h = map.getContainer().clientHeight;
   camC = { lat: lastPos.lat, lng: lastPos.lng };
-  map.easeTo({ center: [lastPos.lng, lastPos.lat], zoom: force ? (view3d ? 19.4 : Math.max(map.getZoom(), 17.3)) : map.getZoom(),
+  map.easeTo({ center: [lastPos.lng, lastPos.lat], zoom: force ? (view3d ? fpZoom : Math.max(map.getZoom(), 17.3)) : map.getZoom(),
     bearing: view3d ? heading : map.getBearing(), pitch: view3d ? 72 : Math.max(map.getPitch(), force ? 50 : 0),
     padding: { top: view3d ? h * 0.55 : 0, bottom: 0, left: 0, right: 0 }, duration: 700, essential: true });
 }
@@ -4243,6 +4276,10 @@ function applyMapMode(){
   paintSet();
 }
 /* ---------- impostazioni della mappa: tocca una voce per mostrarla o nasconderla ---------- */
+// dimensioni di avatar e barca (separate)
+[["szMan", "man"], ["szBoat", "boat"]].forEach(([id, k]) => { const el = $("#" + id); if (!el) return; el.value = AV_SIZE[k];
+  const show = () => { $("#" + id + "V").textContent = Math.round(AV_SIZE[k] * 100) + "%"; }; show();
+  el.oninput = () => { AV_SIZE[k] = +el.value; store.set("ln_avsize", AV_SIZE); show(); try{ manKey = ""; drawMan(true); drawFriends(); }catch(e){} }; });
 function setGet(k){ return k === "water" ? !!INST.water : k === "sat" ? mapMode === "sat" : LY[k] !== false; }
 function paintSet(){ document.querySelectorAll("#setPanel [data-set]").forEach(b => b.classList.toggle("on", setGet(b.dataset.set))); }
 // 2D: mappa piatta, niente rilievi (edifici, bricole 3D, omino) · 3D: mappa inclinabile con i rilievi
