@@ -733,6 +733,7 @@
   #setPanel .sw::after{content:"";position:absolute;left:2px;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35);transition:transform .15s}
   #setPanel .srow.on .sw{background:var(--navy)}
   #setPanel .srow.on .sw::after{transform:translateX(16px)}
+  #waterColRow input{width:34px;height:26px;padding:0;border:1px solid #d6dcdf;border-radius:6px;background:none} #waterColReset{width:26px;height:26px;border-radius:50%;background:#eef0f2;color:#555;font-size:14px}
   #setPanel .srng{display:block;padding:6px 16px 8px;font-size:14px;color:#111} #setPanel .srng span{display:flex;justify-content:space-between} #setPanel .srng b{font-weight:700;color:var(--navy)}
   #setPanel .srng input{width:100%;accent-color:var(--navy);margin:4px 0 0}
   #aeroBox{position:absolute;z-index:25;left:10px;right:10px;bottom:16px;max-height:60vh;display:flex;flex-direction:column;background:#fff;color:#111;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.45);overflow:hidden}
@@ -994,6 +995,7 @@
       <button class="srow" data-set="water"><svg viewBox="0 0 24 24"><path d="M12 3.5c3.5 4.3 6 7.6 6 10.5a6 6 0 0 1-12 0c0-2.9 2.5-6.2 6-10.5z"/><path d="M9 15a3 3 0 0 0 3 3"/></svg><span>Secca</span><i class="sw"></i></button>
       <button class="srow" data-set="d3"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>Vista 3D</span><i class="sw"></i></button>
       <button class="srow" data-set="sat"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.8 5.4 3.8 8.5s-1.3 5.9-3.8 8.5c-2.5-2.6-3.8-5.4-3.8-8.5S9.5 6.1 12 3.5z"/></svg><span>Satellitare</span><i class="sw"></i></button>
+      <label class="srow hidden" id="waterColRow"><svg viewBox="0 0 24 24"><path d="M3 15c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/><path d="M3 19c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/><path d="M12 3.5c2.4 3 4 5.2 4 7a4 4 0 0 1-8 0c0-1.8 1.6-4 4-7z"/></svg><span>Colore dell'acqua</span><input type="color" id="waterCol" value="#9ad1e8"><button type="button" id="waterColReset" title="Colore originale">↺</button></label>
       <button class="srow" data-set="boat"><svg viewBox="0 0 24 24"><path d="M3 15.5h18l-2.6 4.5H5.6z"/><path d="M12 3v12.5M12 4.5l6 9h-6"/></svg><span>La tua barca</span><i class="sw"></i></button>
       <div class="sh">DIMENSIONI</div>
       <label class="srng"><span>Avatar <b id="szManV">100%</b></span><input type="range" id="szMan" min="0.4" max="3" step="0.1" value="1"></label>
@@ -1437,6 +1439,11 @@ async function enablePush(){
   }catch(e){}
 }
 
+/* ---------- schermo intero: l'app usa anche la parte in alto dello schermo ---------- */
+(function(){ const full = () => matchMedia("(display-mode: fullscreen)").matches || document.fullscreenElement;
+  if (!document.fullscreenEnabled || !matchMedia("(pointer: coarse)").matches) return;
+  const go = () => { if (full()) return; try{ document.documentElement.requestFullscreen({ navigationUI: "hide" }).catch(() => {}); }catch(e){} };
+  window.addEventListener("pointerup", go, { once: true, capture: true }); })();
 /* ---------- app installabile (Android: icona sulla schermata Home) ---------- */
 let instEvt = null;
 if ("serviceWorker" in navigator) window.addEventListener("load", () => {
@@ -2169,6 +2176,7 @@ function kissSummary(rows){
 function addLayers(){
   setTimeout(drawOneWay, 300); setTimeout(addManLayer, 400);
   BASE_LAYERS = map.getStyle().layers.map(l => ({ id: l.id, type: l.type, vis: (l.layout && l.layout.visibility) || "visible" }));
+  setTimeout(() => { applyWaterColor(); loadWaterColor(); }, 0);
   // foto satellitare (sotto a tutti i nostri strati)
   map.addSource("sat", { type: "raster", tileSize: 256, maxzoom: 19, attribution: "Foto © Esri, Maxar, Earthstar Geographics",
     tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"] });
@@ -2435,7 +2443,7 @@ function dispTick(){
   let tla = lastPos.lat, tlo = lastPos.lng;
   if (speedMs > 1.2 && courseHeading !== null && lastPos.t){ const dt = Math.min(1.5, Math.max(0, (Date.now() - lastPos.t) / 1000)), d = speedMs * dt, r = courseHeading * Math.PI / 180;
     tla += d * Math.cos(r) / 111320; tlo += d * Math.sin(r) / (111320 * Math.cos(tla * Math.PI / 180)); }
-  if (typeof appMode !== "undefined" && appMode === "nautica" && typeof G !== "undefined" && G.done && !isWaterPt(tla, tlo)){
+  if (typeof appMode !== "undefined" && appMode === "nautica" && speedMs > 2.5 && typeof G !== "undefined" && G.done && !isWaterPt(tla, tlo)){   // solo in barca (oltre 9 km/h): a piedi l'omino resta dov'è
     const w = nearestWaterPt(tla, tlo, 120); if (w){ tla = w.lat; tlo = w.lng; }   // mai sopra la terra: aggancia al canale più vicino
   }
   if (!disp || hav(disp.lat, disp.lng, tla, tlo) > 150) disp = { lat: tla, lng: tlo };
@@ -4500,6 +4508,31 @@ function keepSimple(l){
   if (l.type === "symbol") return /place|water_name|waterway.*label|water.*label|label.*water/i.test(l.id);
   return false;
 }
+// colore dell'acqua della mappa (scelto da tropss, uguale per tutti)
+let WATER_COL = store.get("ln_water_col", null), WATER_ORIG = null;
+function applyWaterColor(){
+  if (!map || !BASE_LAYERS.length) return;
+  const L = BASE_LAYERS.filter(l => /water|river|canal|ocean|sea|lake/i.test(l.id) && (l.type === "fill" || l.type === "line"));
+  if (!WATER_ORIG){ WATER_ORIG = {}; L.forEach(l => { try{ WATER_ORIG[l.id] = map.getPaintProperty(l.id, l.type + "-color"); }catch(e){} }); }
+  L.forEach(l => { try{ map.setPaintProperty(l.id, l.type + "-color", WATER_COL || WATER_ORIG[l.id]); }catch(e){} });
+  const inp = $("#waterCol"); if (inp && WATER_COL) inp.value = WATER_COL;
+}
+async function loadWaterColor(){
+  try{ const r = await api("app_settings?key=eq.water_color&select=value"); const v = r && r[0] ? r[0].value : null;
+    if (v !== WATER_COL){ WATER_COL = v; store.set("ln_water_col", v); applyWaterColor(); } }catch(e){}
+}
+function paintWaterRow(){ const r = $("#waterColRow"); if (r) r.classList.toggle("hidden", !isTropss()); }
+async function saveWaterColor(v){
+  try{ const j = await rpc("app_setting_set", { p_key: "water_color", p_value: v });
+    if (!j || j.errore) return toast(j && j.errore === "non_autorizzato" ? "Solo tropss può cambiare il colore dell'acqua." : "Colore non salvato, riprova.");
+    toast(v ? "Colore dell'acqua salvato \u2713 \u00b7 vale per tutti" : "Colore originale ripristinato \u2713");
+  }catch(e){ toast("Colore non salvato: controlla la connessione."); }
+}
+if ($("#waterCol")){
+  $("#waterCol").oninput = e => { WATER_COL = e.target.value; applyWaterColor(); };
+  $("#waterCol").onchange = e => { WATER_COL = e.target.value; store.set("ln_water_col", WATER_COL); applyWaterColor(); saveWaterColor(WATER_COL); };
+  $("#waterColReset").onclick = e => { e.preventDefault(); e.stopPropagation(); WATER_COL = null; store.set("ln_water_col", null); applyWaterColor(); saveWaterColor(null); };
+}
 function applyMapMode(){
   if (!map || !map.getLayer("sat")) return;
   const sat = mapMode === "sat" && appMode === "nautica", dep = !!INST.water && appMode === "nautica", flat = LY.d3 === false && appMode === "nautica";
@@ -4531,7 +4564,7 @@ function apply3d(anim){
   ["medot", "frdot"].forEach(id => { if (map.getLayer(id)) map.setLayerZoomRange(id, 0, d3 ? MAN_MINZ : 24); });
   applyMapMode();
 }
-$("#fabSet").onclick = e => { e.stopPropagation(); $("#menu").classList.add("hidden"); paintSet();
+$("#fabSet").onclick = e => { e.stopPropagation(); $("#menu").classList.add("hidden"); paintSet(); try{ paintWaterRow(); }catch(e){}
   const hid = $("#setPanel").classList.toggle("hidden"); $("#fabSet").classList.toggle("on", !hid); };
 document.addEventListener("click", e => { if (!e.target.closest("#setPanel") && !e.target.closest("#fabSet")){ $("#setPanel").classList.add("hidden"); $("#fabSet").classList.remove("on"); } });
 document.querySelectorAll("#setPanel [data-set]").forEach(b => b.onclick = () => {
@@ -5218,7 +5251,7 @@ function drawStart(i){
   $("#dwUndo").onclick = () => { DRAW.pts = [[a.lat, a.lng]]; corsaPaint(); };
   $("#dwNo").onclick = () => { drawStop(); corsaList(); };
   $("#dwOk").onclick = drawSave;
-  try{ follow = false; const bb = new maplibregl.LngLatBounds(); bb.extend([a.lng, a.lat]); bb.extend([b.lng, b.lat]);
+  try{ setFollow(false); const bb = new maplibregl.LngLatBounds(); bb.extend([a.lng, a.lat]); bb.extend([b.lng, b.lat]);
     map.fitBounds(bb, { padding: { top: 90, left: 50, right: 50, bottom: Math.round(innerHeight * 0.45) + 30 }, maxZoom: 17, duration: 500 }); }catch(e){}
   const cv = map.getCanvas(), pt = e => { const r = cv.getBoundingClientRect(), ll = map.unproject([e.clientX - r.left, e.clientY - r.top]); return [ll.lat, ll.lng]; };
   const touches = new Set();
@@ -5256,7 +5289,10 @@ async function drawSave(){
   ACTV_PATH.set(d.key, mkPath(pts)); VP_CACHE[d.key] = pts; VP_MANUAL.add(d.key); vpSave();
   drawStop(); corsaList(); try{ actvPaint(); }catch(e){} toast("Tratto salvato \u2713 \u00b7 tutti i telefoni useranno questo percorso");
 }
-function closeCorsa(){ drawStop(true); corsaSeq++; const b = $("#corsaBox"); if (b) b.classList.add("hidden"); if (map && map.getSource("corsa")) map.getSource("corsa").setData({ type: "FeatureCollection", features: [] }); }
+function closeCorsa(){ drawStop(true); corsaSeq++;
+  // la mappa torna su di te
+  try{ if (lastPos && watchId !== null){ setFollow(true); map.easeTo({ center: [lastPos.lng, lastPos.lat], duration: 600 }); } }catch(e){}
+  const b = $("#corsaBox"); if (b) b.classList.add("hidden"); if (map && map.getSource("corsa")) map.getSource("corsa").setData({ type: "FeatureCollection", features: [] }); }
 async function openCorsa(o){
   const seq = ++corsaSeq, box = $("#corsaBox"), ali = o.az === "Alilaguna" || /^Alilaguna /.test(o.linea);
   const col = lineColor(o.linea, ali ? "Alilaguna" : "ACTV"), light = hexLight(col);
@@ -5276,7 +5312,7 @@ async function openCorsa(o){
   corsaList();
   const nf = F.length - 1; $("#cbNote").textContent = (nf === 1 ? "1 fermata" : nf + " fermate") + " fino al capolinea \u00b7 orari ufficiali, senza ritardi";
   if (!map) return; corsaLayers(); corsaPaint();
-  try{ follow = false; const bb = new maplibregl.LngLatBounds(); pts.forEach(p => bb.extend([p[1], p[0]]));
+  try{ setFollow(false); const bb = new maplibregl.LngLatBounds(); pts.forEach(p => bb.extend([p[1], p[0]]));
     map.fitBounds(bb, { padding: { top: 70, left: 40, right: 40, bottom: Math.round(innerHeight * 0.45) + 20 }, maxZoom: 16, duration: 700 }); }catch(e){}
 }
 function actvStart(){
@@ -6708,7 +6744,7 @@ function playIntro(){
     .onfinish = () => box.remove();
   setTimeout(() => { if (box.isConnected) box.remove(); }, 3000);
 }
-try{ playIntro(); }catch(e){ const b = $("#intro"); if (b) b.remove(); }
+{ const b = $("#intro"); if (b) b.remove(); }   // niente animazione iniziale: la mappa si apre subito
 
 /* ---------- icone: tutte le emoji dell'app diventano icone a linea sottile, come quelle della barra in basso ---------- */
 const ICO = {
