@@ -1,29 +1,346 @@
 {
-  "nota": "Cantieri nautici e squeri di Venezia. lavori: legno, vetroresina, gondole, motori, meccanica, rimessaggio, costruzione, restauro, tappezzeria, elettrico, superyacht. ~ = posizione indicativa.",
-  "cantieri": [
-    { "n": "Squero San Trovaso", "lat": 45.43065, "lng": 12.32655, "dove": "Dorsoduro 1097, rio San Trovaso", "tel": "041 5229146", "web": "https://www.squerosantrovaso.com",
-      "lavori": ["gondole", "legno", "restauro"], "marchi": [], "info": "Lo squero più antico ancora attivo: gondole e barche tipiche a remi in legno, costruzione e manutenzione." },
-    { "n": "Squero Tramontin", "lat": 45.42965, "lng": 12.32405, "dove": "Dorsoduro, rio de Ognissanti", "web": "https://www.tramontingondole.it",
-      "lavori": ["gondole", "legno", "costruzione"], "marchi": [], "info": "Gondole costruite quasi tutte a mano, dal 1884." },
-    { "n": "Squero San Giuseppe", "lat": 45.43150, "lng": 12.35560, "dove": "Castello, rio de San Isepo", "approx": true,
-      "lavori": ["gondole", "legno"], "marchi": [], "info": "Squero di Castello: gondole e barche a remi in legno." },
-    { "n": "Cantiere Crea", "lat": 45.42640, "lng": 12.33140, "dove": "Giudecca 212, fondamenta San Giacomo", "tel": "041 5231798", "web": "https://www.cantierenauticocrea.com",
-      "lavori": ["gondole", "legno", "motoscafi", "rimessaggio"], "marchi": [], "info": "Squero e cantiere: gondole in legno, motoscafi e rimessaggio barche." },
-    { "n": "Cantiere Dei Rossi", "lat": 45.42625, "lng": 12.33060, "dove": "Giudecca 866/A, area cantieristica minore", "tel": "041 5223614", "approx": true,
-      "lavori": ["gondole", "legno"], "marchi": [], "info": "Squero Costantini-Dei Rossi: gondole e barche tradizionali in legno." },
-    { "n": "Hydro Mirò", "lat": 45.42645, "lng": 12.33175, "dove": "Giudecca 211/B, consorzio cantieristica minore", "tel": "041 2770415", "web": "https://www.hydromiro.it",
-      "lavori": ["tappezzeria"], "marchi": [], "info": "Tappezzeria nautica per barche, taxi e gondole." },
-    { "n": "Cantiere Motonautico S&C", "lat": 45.42560, "lng": 12.32350, "dove": "Giudecca", "approx": true,
-      "lavori": ["motori", "meccanica", "soccorso"], "marchi": [], "info": "Officina motori marini: riparazioni, vendita motori e ricambi, soccorso in laguna. Aperto anche nei festivi." },
-    { "n": "Cantiere Tagliapietra", "lat": 45.42770, "lng": 12.33900, "dove": "Giudecca, davanti a San Marco", "approx": true,
-      "lavori": ["motoscafi", "legno", "restauro"], "marchi": [], "info": "Cantiere di famiglia dal 1976: motoscafi e taxi, restauri." },
-    { "n": "Cantiere Motonautico Serenella", "lat": 45.45230, "lng": 12.34620, "dove": "Murano, Sacca Serenella 9",
-      "lavori": ["costruzione", "motoscafi", "vetroresina", "elettrico", "rimessaggio"], "marchi": [], "info": "Costruisce e ripara taxi e motoscafi; ha costruito Lucietta, il taxi acqueo elettrico." },
-    { "n": "Marina Santelena", "lat": 45.42705, "lng": 12.36720, "dove": "Sant'Elena, Castello",
-      "lavori": ["rimessaggio", "superyacht", "motori"], "marchi": [], "info": "Marina con cantiere e rimessaggio, anche per grandi yacht." },
-    { "n": "Brube", "lat": 45.47020, "lng": 12.26330, "dove": "Via San Giuliano 14, Mestre (canale Osellino)", "tel": "041 5310761",
-      "lavori": ["costruzione", "restauro", "rimessaggio", "noleggio"], "marchi": ["Honda", "Mercury", "Yamaha", "Garmin"], "info": "Oltre 40 anni di esperienza: topette, cofani, patane, lancini; costruzione, restauro e manutenzione." },
-    { "n": "Cantieri Vizianello", "lat": 45.43760, "lng": 12.21540, "dove": "Via dei Cantieri 10, Malcontenta", "approx": true,
-      "lavori": ["costruzione", "motoscafi", "vetroresina"], "marchi": [], "info": "Taxi acquei e tender per yacht, da oltre cinquant'anni." }
-  ]
+ "nota": "Cantieri nautici e squeri di Venezia. lavori: legno, vetroresina, gondole, motori, meccanica, rimessaggio, costruzione, restauro, tappezzeria, elettrico, superyacht. ~ = posizione indicativa.",
+ "cantieri": [
+  {
+   "n": "Squero San Trovaso",
+   "lat": 45.43065,
+   "lng": 12.32655,
+   "dove": "Dorsoduro 1097, rio San Trovaso",
+   "tel": "041 5229146",
+   "web": "https://www.squerosantrovaso.com",
+   "lavori": [
+    "gondole",
+    "legno",
+    "restauro"
+   ],
+   "marchi": [],
+   "info": "Lo squero più antico ancora attivo: gondole e barche tipiche a remi in legno, costruzione e manutenzione."
+  },
+  {
+   "n": "Squero Tramontin",
+   "lat": 45.42965,
+   "lng": 12.32405,
+   "dove": "Dorsoduro, rio de Ognissanti",
+   "web": "https://www.tramontingondole.it",
+   "lavori": [
+    "gondole",
+    "legno",
+    "costruzione"
+   ],
+   "marchi": [],
+   "info": "Gondole costruite quasi tutte a mano, dal 1884."
+  },
+  {
+   "n": "Squero San Giuseppe",
+   "lat": 45.4315,
+   "lng": 12.3556,
+   "dove": "Castello, rio de San Isepo",
+   "approx": true,
+   "lavori": [
+    "gondole",
+    "legno"
+   ],
+   "marchi": [],
+   "info": "Squero di Castello: gondole e barche a remi in legno."
+  },
+  {
+   "n": "Cantiere Crea",
+   "lat": 45.4264,
+   "lng": 12.3314,
+   "dove": "Giudecca 212, fondamenta San Giacomo",
+   "tel": "041 5231798",
+   "web": "https://www.cantierenauticocrea.com",
+   "lavori": [
+    "gondole",
+    "legno",
+    "motoscafi",
+    "rimessaggio"
+   ],
+   "marchi": [],
+   "info": "Squero e cantiere: gondole in legno, motoscafi e rimessaggio barche."
+  },
+  {
+   "n": "Cantiere Dei Rossi",
+   "lat": 45.42625,
+   "lng": 12.3306,
+   "dove": "Giudecca 866/A, area cantieristica minore",
+   "tel": "041 5223614",
+   "approx": true,
+   "lavori": [
+    "gondole",
+    "legno"
+   ],
+   "marchi": [],
+   "info": "Squero Costantini-Dei Rossi: gondole e barche tradizionali in legno."
+  },
+  {
+   "n": "Hydro Mirò",
+   "lat": 45.42645,
+   "lng": 12.33175,
+   "dove": "Giudecca 211/B, consorzio cantieristica minore",
+   "tel": "041 2770415",
+   "web": "https://www.hydromiro.it",
+   "lavori": [
+    "tappezzeria"
+   ],
+   "marchi": [],
+   "info": "Tappezzeria nautica per barche, taxi e gondole."
+  },
+  {
+   "n": "Cantiere Motonautico S&C",
+   "lat": 45.4256,
+   "lng": 12.3235,
+   "dove": "Giudecca",
+   "approx": true,
+   "lavori": [
+    "motori",
+    "meccanica",
+    "soccorso"
+   ],
+   "marchi": [],
+   "info": "Officina motori marini: riparazioni, vendita motori e ricambi, soccorso in laguna. Aperto anche nei festivi."
+  },
+  {
+   "n": "Cantiere Tagliapietra",
+   "lat": 45.4277,
+   "lng": 12.339,
+   "dove": "Giudecca, davanti a San Marco",
+   "approx": true,
+   "lavori": [
+    "motoscafi",
+    "legno",
+    "restauro"
+   ],
+   "marchi": [],
+   "info": "Cantiere di famiglia dal 1976: motoscafi e taxi, restauri."
+  },
+  {
+   "n": "Cantiere Motonautico Serenella",
+   "lat": 45.4523,
+   "lng": 12.3462,
+   "dove": "Murano, Sacca Serenella 9",
+   "lavori": [
+    "costruzione",
+    "motoscafi",
+    "vetroresina",
+    "elettrico",
+    "rimessaggio"
+   ],
+   "marchi": [],
+   "info": "Costruisce e ripara taxi e motoscafi; ha costruito Lucietta, il taxi acqueo elettrico."
+  },
+  {
+   "n": "Marina Santelena",
+   "lat": 45.42705,
+   "lng": 12.3672,
+   "dove": "Sant'Elena, Castello",
+   "lavori": [
+    "rimessaggio",
+    "superyacht",
+    "motori"
+   ],
+   "marchi": [],
+   "info": "Marina con cantiere e rimessaggio, anche per grandi yacht."
+  },
+  {
+   "n": "Brube",
+   "lat": 45.4702,
+   "lng": 12.2633,
+   "dove": "Via San Giuliano 14, Mestre (canale Osellino)",
+   "tel": "041 5310761",
+   "lavori": [
+    "costruzione",
+    "restauro",
+    "rimessaggio",
+    "noleggio"
+   ],
+   "marchi": [
+    "Honda",
+    "Mercury",
+    "Yamaha",
+    "Garmin"
+   ],
+   "info": "Oltre 40 anni di esperienza: topette, cofani, patane, lancini; costruzione, restauro e manutenzione."
+  },
+  {
+   "n": "Cantieri Vizianello",
+   "lat": 45.4376,
+   "lng": 12.2154,
+   "dove": "Via dei Cantieri 10, Malcontenta",
+   "approx": true,
+   "lavori": [
+    "costruzione",
+    "motoscafi",
+    "vetroresina"
+   ],
+   "marchi": [],
+   "info": "Taxi acquei e tender per yacht, da oltre cinquant'anni."
+  },
+  {
+   "n": "Cantiere Motonautico Veneziano (Selva)",
+   "lat": 45.4447,
+   "lng": 12.3346,
+   "q": "Cannaregio 2542, Venezia",
+   "dove": "Cannaregio 2542",
+   "tel": "",
+   "web": "",
+   "lavori": [
+    "motori",
+    "meccanica",
+    "vendita"
+   ],
+   "marchi": [
+    "Selva",
+    "ePropulsion",
+    "Karnic"
+   ],
+   "info": "Concessionario Selva Marine a Venezia: barche, gommoni e fuoribordo, anche elettrici."
+  },
+  {
+   "n": "F.lli Vescovo",
+   "lat": 45.416,
+   "lng": 12.3688,
+   "q": "Via Sandro Gallo 23, Lido di Venezia",
+   "dove": "Via Sandro Gallo 23, Lido",
+   "tel": "041 5261821",
+   "web": "",
+   "lavori": [
+    "motori",
+    "meccanica",
+    "vendita"
+   ],
+   "marchi": [
+    "Suzuki"
+   ],
+   "info": "Concessionario e assistenza fuoribordo Suzuki al Lido."
+  },
+  {
+   "n": "Cantiere Donà",
+   "lat": 45.4573,
+   "lng": 12.3463,
+   "q": "Sacca Serenella, Murano",
+   "dove": "Sacca Serenella, Murano",
+   "tel": "041 5274419",
+   "web": "https://www.cantieredona.it",
+   "lavori": [
+    "motori",
+    "meccanica",
+    "vetroresina"
+   ],
+   "marchi": [
+    "Mercury",
+    "MerCruiser",
+    "Quicksilver"
+   ],
+   "info": "Officina autorizzata Mercury: fuoribordo, entrofuoribordo e entrobordo, carpenteria e impianti di bordo."
+  },
+  {
+   "n": "Campello Marine",
+   "lat": 45.431,
+   "lng": 12.247,
+   "q": "Via Colombara 125, Venezia",
+   "dove": "Via Colombara 125/B, Venezia",
+   "tel": "",
+   "web": "https://www.campellomarine.it",
+   "lavori": [
+    "vendita",
+    "noleggio",
+    "motori"
+   ],
+   "marchi": [],
+   "info": "Vendita e noleggio di barche."
+  },
+  {
+   "n": "Nautica Zabeo",
+   "lat": 45.431,
+   "lng": 12.2472,
+   "q": "Via Colombara 125, Venezia",
+   "dove": "Via Colombara 125/C, Venezia",
+   "tel": "",
+   "web": "",
+   "lavori": [
+    "motori",
+    "vendita"
+   ],
+   "marchi": [
+    "Suzuki"
+   ],
+   "info": "Concessionario fuoribordo Suzuki."
+  },
+  {
+   "n": "Motori Marini Merlo",
+   "lat": 45.4576,
+   "lng": 12.3458,
+   "q": "Sacca Serenella, Murano",
+   "dove": "Sacca Serenella 1, Murano",
+   "tel": "",
+   "web": "",
+   "lavori": [
+    "motori",
+    "meccanica"
+   ],
+   "marchi": [],
+   "info": "Officina motori marini a Murano."
+  },
+  {
+   "n": "Marina Serenella",
+   "lat": 45.457,
+   "lng": 12.3468,
+   "q": "Sacca Serenella, Murano",
+   "dove": "Sacca Serenella 9, Murano",
+   "tel": "",
+   "web": "",
+   "lavori": [
+    "rimessaggio",
+    "meccanica"
+   ],
+   "marchi": [],
+   "info": "Cantiere motonautico e rimessaggio a Murano."
+  },
+  {
+   "n": "Cantiere Nautico Venezia (Ca.Na.Ve.)",
+   "lat": 45.4336,
+   "lng": 12.3168,
+   "q": "Scomenzera, Venezia",
+   "dove": "Canale della Scomenzera 67",
+   "tel": "",
+   "web": "",
+   "lavori": [
+    "meccanica",
+    "rimessaggio"
+   ],
+   "marchi": [],
+   "info": "Riparazione e manutenzione, sul canale della Scomenzera."
+  },
+  {
+   "n": "Cantiere Motonautico Chia",
+   "lat": 45.4258,
+   "lng": 12.3208,
+   "q": "Calle Lunga dell'Accademia dei Nobili, Giudecca",
+   "dove": "Giudecca 604/m",
+   "tel": "041 5238379",
+   "web": "",
+   "lavori": [
+    "motori",
+    "meccanica"
+   ],
+   "marchi": [],
+   "info": "Assistenza fuoribordo e entrofuoribordo alla Giudecca."
+  },
+  {
+   "n": "Cantiere Motonautico San Pietro di Castello",
+   "lat": 45.4342,
+   "lng": 12.3598,
+   "q": "San Pietro di Castello, Venezia",
+   "dove": "Castello 71",
+   "tel": "",
+   "web": "",
+   "lavori": [
+    "carburante",
+    "meccanica"
+   ],
+   "marchi": [],
+   "info": "Cantiere con distributore di carburante per barche a San Pietro di Castello."
+  }
+ ]
 }

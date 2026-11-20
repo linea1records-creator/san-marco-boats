@@ -1115,7 +1115,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">unClick · unClick · versione 3.43</p>
+      <p class="sub">unClick · unClick · versione 3.44</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa unClick</button>
@@ -2635,8 +2635,64 @@ async function nominatim(q){
   return j.map(x => { const parts = (x.display_name || "").split(",").map(s => s.trim());
     return { name: x.name || parts[0], sub: parts.slice(1, 4).join(", "), lat: +x.lat, lng: +x.lon }; });
 }
+/* ---------- ricerca di Naviga: solo posti da raggiungere in barca (niente bar, negozi, alberghi) ---------- */
+const SMB_STOPS = { "Convitto": [45.4276, 12.3658], "Caritas": [45.4357, 12.3487], "Seminario": [45.4308, 12.3353], "Giustinian": [45.4360, 12.3182],
+  "Cristo Re": [45.4381, 12.3491], "Miracoli": [45.4394, 12.3392], "Ponte Storto": [45.4382, 12.3318], "Cavanis": [45.4302, 12.3282], "Sant'Alvise": [45.4348, 12.3579],
+  "Santa Marta": [45.4341, 12.3166], "Zattere": [45.4297, 12.3240], "Ca' Bernardo": [45.4335, 12.3253], "Santa Margherita": [45.4339, 12.3234],
+  "Rettorato Ca' Foscari": [45.4344, 12.3266], "Venini / Barovier": [45.4515439, 12.3497734], "Promovetro · F3 · YALOS": [45.4541898, 12.3556733],
+  "Nason Moretti": [45.4555415, 12.3489010], "Scalo fluviale": [45.4413, 12.3143], "Darsena Misericordia": [45.4452, 12.3356], "Panificio": [45.4370, 12.3192] };
+const ISOLE = [["Murano", 45.4580, 12.3530], ["Burano", 45.4853, 12.4170], ["Mazzorbo", 45.4870, 12.4100], ["Torcello", 45.4975, 12.4180], ["Lido", 45.4100, 12.3650],
+  ["Pellestrina", 45.2800, 12.3030], ["Giudecca", 45.4265, 12.3270], ["Sant'Erasmo", 45.4520, 12.4050], ["Le Vignole", 45.4440, 12.3800], ["La Certosa", 45.4374, 12.3749],
+  ["San Michele (cimitero)", 45.4475, 12.3470], ["San Giorgio Maggiore", 45.4290, 12.3430], ["San Lazzaro degli Armeni", 45.4120, 12.3610], ["San Servolo", 45.4225, 12.3570],
+  ["San Clemente", 45.4100, 12.3365], ["Sacca Sessola (Isola delle Rose)", 45.4060, 12.3200], ["Poveglia", 45.3820, 12.3310], ["Lazzaretto Vecchio", 45.3980, 12.3550],
+  ["Lazzaretto Nuovo", 45.4590, 12.3880], ["La Grazia", 45.4165, 12.3375], ["Santo Spirito", 45.4040, 12.3420], ["San Francesco del Deserto", 45.4760, 12.4150],
+  ["Sacca Fisola", 45.4265, 12.3110], ["Tronchetto", 45.4405, 12.3065], ["Sant'Elena", 45.4290, 12.3640], ["San Pietro di Castello", 45.4340, 12.3600],
+  ["Sant'Andrea", 45.4365, 12.3870], ["San Secondo", 45.4470, 12.3150], ["Sacca San Biagio", 45.4240, 12.3050], ["San Giacomo in Paludo", 45.4720, 12.3880],
+  ["Madonna del Monte", 45.4800, 12.4000], ["Mazzorbetto", 45.4880, 12.4030], ["Ca' Roman", 45.2430, 12.2980], ["Chioggia", 45.2190, 12.2790], ["Sottomarina", 45.2050, 12.2950],
+  ["Punta Sabbioni", 45.4420, 12.4200], ["Treporti", 45.4590, 12.4400], ["Isola della Sacca Serenella", 45.4573, 12.3463]];
+let NAV_IDX = null, NAV_IDX_T = 0;
+function navIndex(){
+  if (NAV_IDX && Date.now() - NAV_IDX_T < 60000) return NAV_IDX;
+  const L = [], add = (n, sub, lat, lng, k, extra) => L.push({ name: n, sub, lat, lng, k, s: norm(n + " " + (extra || "")) });
+  Object.entries(SMB_STOPS).forEach(([n, c]) => add(n, "Fermata San Marco Boat", c[0], c[1], 0, "san marco boat consegne"));
+  ISOLE.forEach(i => add(i[0], "Isola della laguna", i[1], i[2], 1, "isola"));
+  (CANT || []).forEach(c => add(c.n, "Cantiere" + ((c.marchi || []).length ? " · " + c.marchi.join(", ") : "") + (c.dove ? " · " + c.dove : ""), c.lat, c.lng, 2, "cantiere " + (c.marchi || []).join(" ") + " " + (c.lavori || []).join(" ")));
+  ((PONTILI_ACTV && PONTILI_ACTV.p) || []).forEach(p => add(p[0], "Imbarcadero ACTV", p[1], p[2], 3, "imbarcadero fermata vaporetto actv"));
+  try{ const c = store.get(CAN_KEY, null), seen = new Set();
+    if (c && c.w) c.w.forEach(w => { const nm = c.n[w[0]]; if (!nm || seen.has(nm)) return; seen.add(nm); const fl = w[2], m = Math.floor(fl.length / 4) * 2;
+      add(nm, /^rio|^ramo/i.test(nm) ? "Rio" : "Canale", fl[m] / 1e6, fl[m + 1] / 1e6, 4); }); }catch(e){}
+  NAV_IDX = L; NAV_IDX_T = Date.now(); return L;
+}
+function navLocal(q){
+  const w = norm(q).split(" ").filter(Boolean); if (!w.length) return [];
+  const ref = refPoint(), nq = norm(q);
+  return navIndex().filter(x => w.every(t => x.s.includes(t)))
+    .map(x => ({ ...x, sc: (norm(x.name).startsWith(nq) ? 0 : 1) * 10 + x.k + hav(ref.lat, ref.lng, x.lat, x.lng) / 20000 }))
+    .sort((a, b) => a.sc - b.sc).slice(0, 10)
+    .map(x => ({ name: x.name, sub: x.sub + " · " + fmtDist(hav(ref.lat, ref.lng, x.lat, x.lng)), lat: x.lat, lng: x.lng }));
+}
+// dai motori di ricerca tengo solo calli, fondamenta, campi, canali, isole e posti d'acqua
+const NAV_OK_KEY = /^(highway|place|waterway|natural|bridge)$/, NAV_OK_VAL = /^(marina|slipway|pier|ferry_terminal|boatyard|dock|shipyard)$/;
+const navKeep = (k, v) => (NAV_OK_KEY.test(k || "") && !/^(bus_stop|platform|motorway|trunk|primary|secondary|tertiary|traffic_signals|crossing|street_lamp)$/.test(v || "")) || NAV_OK_VAL.test(v || "");
+async function photonNav(q){
+  const ref = refPoint();
+  const r = await fetch(`https://photon.komoot.io/api/?limit=15&lat=${ref.lat}&lon=${ref.lng}&bbox=12.15,45.18,12.62,45.56&q=` + encodeURIComponent(q)); if (!r.ok) return [];
+  const j = await r.json();
+  return (j.features || []).filter(f => navKeep((f.properties || {}).osm_key, (f.properties || {}).osm_value)).map(f => {
+    const pr = f.properties || {}, [lo, la] = f.geometry.coordinates;
+    const kind = pr.osm_key === "place" ? (/island|islet/.test(pr.osm_value) ? "Isola" : "Luogo") : pr.osm_key === "waterway" ? "Canale" : pr.osm_key === "highway" ? "Calle" : "Approdo";
+    return { name: pr.name || pr.street || q, sub: [kind, pr.district || pr.locality || pr.city].filter(Boolean).join(" · ") + " · " + fmtDist(hav(ref.lat, ref.lng, la, lo)), lat: la, lng: lo };
+  });
+}
+async function nominatimNav(q){
+  const u = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=12&accept-language=it&countrycodes=it&bounded=1&viewbox=12.15,45.56,12.62,45.18&q=" + encodeURIComponent(q);
+  const r = await fetch(u, { headers: { "Accept": "application/json" } }); if (!r.ok) return [];
+  return (await r.json()).filter(x => navKeep(x.category, x.type)).map(x => { const parts = (x.display_name || "").split(",").map(s => s.trim());
+    return { name: x.name || parts[0], sub: parts.slice(1, 3).join(", "), lat: +x.lat, lng: +x.lon }; });
+}
 async function search(){
   const q = qIn.value.trim(); if (q.length < 2){ if (!q) showRecents(); return; }
+  if (appMode === "nautica") return searchNav(q);
   const my = ++qSeq;
   const local = localSearch(q).concat(pontiliSearch(q));
   if (local.length) renderResults(local);
@@ -2647,6 +2703,19 @@ async function search(){
   a.concat(b).forEach(r => { if (!seen.some(s => hav(s[0], s[1], r.lat, r.lng) < 40)){ all.push(r); seen.push([r.lat, r.lng]); } });
   if (!all.length){ resBox.innerHTML = `<div class="res info">Nessun risultato in laguna per “${esc(q)}”.</div>`; return; }
   renderResults(all.slice(0, 12));
+}
+async function searchNav(q){
+  const my = ++qSeq;
+  if (!PONTILI_ACTV) loadPontiliActv().then(() => { NAV_IDX = null; });
+  const local = navLocal(q).concat(pontiliSearch(q));
+  if (local.length) renderResults(local);
+  else { resBox.innerHTML = `<div class="res info">Cerco…</div>`; resBox.classList.remove("hidden"); }
+  const [a, b] = await Promise.all([photonNav(q).catch(() => []), nominatimNav(q).catch(() => [])]);
+  if (my !== qSeq) return;
+  const all = local.slice(), seen = all.filter(r => r.lat).map(r => [r.lat, r.lng, norm(r.name)]);
+  a.concat(b).forEach(r => { if (!seen.some(s => hav(s[0], s[1], r.lat, r.lng) < 40 || (s[2] === norm(r.name) && hav(s[0], s[1], r.lat, r.lng) < 400))){ all.push(r); seen.push([r.lat, r.lng, norm(r.name)]); } });
+  if (!all.length){ resBox.innerHTML = `<div class="res info">Nessun posto in laguna per “${esc(q)}”.</div>`; return; }
+  renderResults(all.slice(0, 14));
 }
 
 /* =========================================================
@@ -4217,7 +4286,7 @@ const WOOD = "#7a5230", WOOD_TOP = "#4e3420";
 let CANT = [];
 const CANT_L = { legno: "🪵 Legno", vetroresina: "🧪 Vetroresina", gondole: "🛶 Gondole", motori: "⚙️ Motori", meccanica: "🔧 Meccanica", rimessaggio: "🏗️ Rimessaggio",
   costruzione: "🔨 Costruzione", restauro: "🪚 Restauro", tappezzeria: "🧵 Tappezzeria", elettrico: "🔋 Elettrico", superyacht: "🛥️ Grandi yacht", motoscafi: "🚤 Motoscafi e taxi",
-  soccorso: "🆘 Soccorso", noleggio: "🔑 Noleggio", vendita: "🏷️ Vendita" };
+  soccorso: "🆘 Soccorso", noleggio: "🔑 Noleggio", vendita: "🏷️ Vendita", carburante: "⛽ Carburante" };
 function cantIcon(){
   const S = 64, c = document.createElement("canvas"); c.width = c.height = S; const g = c.getContext("2d");
   g.beginPath(); g.arc(32, 32, 28, 0, Math.PI * 2); g.fillStyle = "#111"; g.fill(); g.lineWidth = 5; g.strokeStyle = "#c9ccd1"; g.stroke();
@@ -4232,6 +4301,14 @@ async function loadCantieri(){
   let list = [];
   try{ const j = await fetch("cantieri.json", { cache: "no-cache" }).then(r => r.json()); list = j.cantieri.map(c => Object.assign({ src: "lista" }, c)); }catch(e){}
   CANT = list; drawCantieri();
+  // cantieri della lista con l'indirizzo da cercare: posizione precisa una volta sola, poi resta in memoria
+  const geo = store.get("ln_cant_geo", {}); let moved = false;
+  for (const c of CANT.filter(x => x.q)){
+    if (!geo[c.q]){ try{ const r = await fetchT("https://photon.komoot.io/api/?limit=1&lat=" + c.lat + "&lon=" + c.lng + "&bbox=12.10,45.18,12.65,45.62&q=" + encodeURIComponent(c.q), {}, 8000);
+      const f = ((await r.json()).features || [])[0]; if (f){ const [lo, la] = f.geometry.coordinates; geo[c.q] = hav(la, lo, c.lat, c.lng) < 2500 ? [la, lo] : [c.lat, c.lng]; } }catch(e){} }
+    if (geo[c.q]){ c.lat = geo[c.q][0]; c.lng = geo[c.q][1]; moved = true; }
+  }
+  store.set("ln_cant_geo", geo); if (moved) drawCantieri();
   // gli altri cantieri segnati su OpenStreetMap (si aggiornano una volta alla settimana)
   let o = store.get("ln_cant_osm", null);
   if (!(o && Date.now() - o.t < 7 * 864e5)){
