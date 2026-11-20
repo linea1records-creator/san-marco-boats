@@ -2370,6 +2370,9 @@ function dispTick(){
   let tla = lastPos.lat, tlo = lastPos.lng;
   if (speedMs > 1.2 && courseHeading !== null && lastPos.t){ const dt = Math.min(1.5, Math.max(0, (Date.now() - lastPos.t) / 1000)), d = speedMs * dt, r = courseHeading * Math.PI / 180;
     tla += d * Math.cos(r) / 111320; tlo += d * Math.sin(r) / (111320 * Math.cos(tla * Math.PI / 180)); }
+  if (typeof appMode !== "undefined" && appMode === "nautica" && typeof G !== "undefined" && G.done && !isWaterPt(tla, tlo)){
+    const w = nearestWaterPt(tla, tlo, 120); if (w){ tla = w.lat; tlo = w.lng; }   // mai sopra la terra: aggancia al canale più vicino
+  }
   if (!disp || hav(disp.lat, disp.lng, tla, tlo) > 150) disp = { lat: tla, lng: tlo };
   else { disp.lat += (tla - disp.lat) * 0.3; disp.lng += (tlo - disp.lng) * 0.3; }
   return disp;
@@ -3093,10 +3096,56 @@ function dijkstra(src, dst, bl, noRules){
   while (v !== -1){ path.push(v); segs.push(pe[v] || null); v = prev[v]; }
   return { path: path.reverse(), segs: segs.reverse() };
 }
+// --- acqua: tiene mezzi e rotte sempre sull'acqua (mai sopra la terra) ---
+function isWaterPt(lat, lng){
+  if (onWater(lat, lng)) return true;            // le tessere della mappa dicono acqua
+  return G.done && !!gNear(lat, lng, 22);        // oppure sei sopra la rete dei canali
+}
+function nearestWaterPt(lat, lng, maxM){
+  if (!G.done) return null;
+  const nb = gNear(lat, lng, maxM || 400);
+  return nb ? { lat: G.la[nb.n], lng: G.lo[nb.n], n: nb.n, d: nb.d } : null;
+}
+function segWater(aLat, aLng, bLat, bLng){       // il tratto dritto A→B resta tutto sull'acqua?
+  const d = hav(aLat, aLng, bLat, bLng), steps = Math.max(1, Math.min(80, Math.ceil(d / 12)));
+  for (let i = 0; i <= steps; i++){ const t = i / steps;
+    if (!isWaterPt(aLat + (bLat - aLat) * t, aLng + (bLng - aLng) * t)) return false; }
+  return true;
+}
+function nodesAround(lat, lng, maxM){             // indici dei nodi della rete entro maxM
+  const out = [], r = Math.ceil(maxM / 160) + 1, gy = Math.floor(lat / 0.0015), gx = Math.floor(lng / 0.0021);
+  for (let y = gy - r; y <= gy + r; y++) for (let x = gx - r; x <= gx + r; x++){ const c = G.grid.get(y + ":" + x); if (!c) continue;
+    for (const n of c) if (hav(lat, lng, G.la[n], G.lo[n]) <= maxM) out.push(n); }
+  return out;
+}
+// nodo d'ingresso/uscita raggiungibile dal punto SENZA passare sulla terra (altrimenti null)
+function waterEntryNode(lat, lng, maxM){
+  if (!G.done) return null;
+  const cand = nodesAround(lat, lng, maxM || 600).map(n => [hav(lat, lng, G.la[n], G.lo[n]), n]).sort((p, q) => p[0] - q[0]);
+  for (const [d, n] of cand){ if (segWater(lat, lng, G.la[n], G.lo[n])) return { n, d }; }
+  return null;
+}
+// ripara una polilinea: dove un tratto taglierebbe la terra prova a inserire un punto d'acqua in mezzo
+function repairWater(line){
+  if (!G.done) return line;
+  const out = [line[0]];
+  for (let i = 1; i < line.length; i++){
+    const A = out[out.length - 1], B = line[i];
+    if (segWater(A[0], A[1], B[0], B[1])){ out.push(B); continue; }
+    const mLat = (A[0] + B[0]) / 2, mLng = (A[1] + B[1]) / 2;
+    let best = null, bd = Infinity;
+    for (const n of nodesAround(mLat, mLng, 200)){ const la = G.la[n], lo = G.lo[n];
+      if (segWater(A[0], A[1], la, lo) && segWater(la, lo, B[0], B[1])){ const dd = hav(mLat, mLng, la, lo); if (dd < bd){ bd = dd; best = [la, lo]; } } }
+    if (best) out.push(best);
+    out.push(B);
+  }
+  return out;
+}
 function computeRoute(from, to){
-  const pts = [[from.lat, from.lng]], names = [""], kinds = [1];
+  let pts = [[from.lat, from.lng]], names = [""], kinds = [1];
   let src = "linea";
-  const a = gNear(from.lat, from.lng, 500), b = gNear(to.lat, to.lng, 700);
+  const a = waterEntryNode(from.lat, from.lng, 600) || gNear(from.lat, from.lng, 500),
+        b = waterEntryNode(to.lat, to.lng, 800) || gNear(to.lat, to.lng, 700);
   if (a && b){
     const bl = blockedNodes();
     let res = dijkstra(a.n, b.n, bl);
@@ -3115,6 +3164,15 @@ function computeRoute(from, to){
     }
   }
   pts.push([to.lat, to.lng]); names.push(""); kinds.push(1);
+  if (src !== "linea"){                       // la rotta deve restare sull'acqua: ripara i tratti che taglierebbero la terra
+    const fixed = repairWater(pts);
+    if (fixed.length >= pts.length){
+      const nn = [names[0]], kk = [kinds[0]];
+      for (let i = 1, j = 1; i < fixed.length; i++){ const same = j < pts.length && fixed[i][0] === pts[j][0] && fixed[i][1] === pts[j][1];
+        nn.push(same ? names[j] : ""); kk.push(same ? kinds[j] : 1); if (same) j++; }
+      pts = fixed; names = nn; kinds = kk;
+    }
+  }
   const R = { pts, names, kinds, src, to };
   const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i-1] + hav(pts[i-1][0], pts[i-1][1], pts[i][0], pts[i][1]));
   R.cum = cum; R.len = cum[cum.length - 1];
