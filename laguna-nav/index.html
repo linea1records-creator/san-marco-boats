@@ -833,7 +833,7 @@
     <div id="searchBox">
       <div class="sbar">
         <span class="sic">🔍</span>
-        <input id="q" type="search" placeholder="Dove vuoi andare?" autocomplete="off" enterkeyhint="search">
+        <input id="q" type="search" placeholder="Trova" autocomplete="off" enterkeyhint="search">
         <button id="qClear" class="hidden" aria-label="Cancella">✕</button>
       </div>
       <div id="results" class="hidden"></div>
@@ -1442,8 +1442,11 @@ async function enablePush(){
 /* ---------- schermo intero: l'app usa anche la parte in alto dello schermo ---------- */
 (function(){ const full = () => matchMedia("(display-mode: fullscreen)").matches || document.fullscreenElement;
   if (!document.fullscreenEnabled || !matchMedia("(pointer: coarse)").matches) return;
+  // il telefono chiede lo schermo intero solo dopo un tocco: al primo tocco, e di nuovo ogni volta che si torna nell'app
   const go = () => { if (full()) return; try{ document.documentElement.requestFullscreen({ navigationUI: "hide" }).catch(() => {}); }catch(e){} };
-  window.addEventListener("pointerup", go, { once: true, capture: true }); })();
+  const arm = () => { if (full()) return; ["pointerup", "touchend", "click"].forEach(t => window.addEventListener(t, go, { once: true, capture: true })); };
+  arm(); document.addEventListener("visibilitychange", () => { if (!document.hidden) arm(); });
+  document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement) arm(); }); })();
 /* ---------- app installabile (Android: icona sulla schermata Home) ---------- */
 let instEvt = null;
 if ("serviceWorker" in navigator) window.addEventListener("load", () => {
@@ -2773,7 +2776,7 @@ function setFood(on){
   foodOn = on;
   document.body.classList.toggle("food", on || !$("#v-order").classList.contains("hidden"));
   const ff = $("#fabFood"); if (ff) ff.classList.toggle("on", on);
-  qIn.placeholder = "Dove vuoi andare?";
+  qIn.placeholder = "Trova";
   layerVis();
 }
 if ($("#fabFood")) $("#fabFood").onclick = () => setFood(!foodOn);
@@ -3498,7 +3501,7 @@ function pickPlace(r){
   if (searchTarget === "from"){ endFromSearch(); qIn.value = ""; if (!PLAN) return; PLAN.from = p; showPlan(); return; }
   qIn.value = ""; $("#qClear").classList.add("hidden"); openPlan(p);
 }
-function endFromSearch(){ searchTarget = "to"; qIn.placeholder = "Dove vuoi andare?"; $("#qClear").classList.toggle("hidden", !qIn.value); }
+function endFromSearch(){ searchTarget = "to"; qIn.placeholder = "Trova"; $("#qClear").classList.toggle("hidden", !qIn.value); }
 function openPlan(to){
   if (NAV) stopNav();
   const bb = activeBoat(); if (bb && !bb.ztl && !store.get("ln_ztl_asked")){ store.set("ln_ztl_asked", 1); setTimeout(() => boatAsk("one", "ztl"), 400); }
