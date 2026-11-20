@@ -765,6 +765,10 @@
   .cbRow .cbDot{position:relative;z-index:1;flex:0 0 14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--ld);box-sizing:border-box}
   .cbRow .cbN{flex:1;line-height:1.2} .cbRow .cbN small{display:block;color:#8a8f98;font-size:11px}
   .cbRow.first .cbN,.cbRow.last .cbN{font-weight:800}
+  #cbEdit{flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:#eef0f2;font-size:15px;line-height:1} #cbEdit.on{background:#ff6446}
+  .cbFix{flex:0 0 auto;max-width:44%;padding:4px 8px;border-radius:8px;background:#fff1ec;color:#c2410c;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cbDraw{padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:14px} .cbDraw small{color:#8a8f98;line-height:1.35}
+  .cbDraw .cbBtns{display:flex;gap:8px;margin-top:4px} .cbDraw .cbBtns .btn{flex:1;padding:9px 6px}
   #corsaBox .cbNote{padding:6px 14px;font-size:11px;color:#9aa0a8;border-top:1px solid #eee}
   #aeroMk{display:flex;align-items:center;gap:5px;padding:5px 11px 5px 9px;background:#111;color:#fff;border-radius:999px;font-size:12px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.5);white-space:nowrap}
   #aeroMk svg{width:15px;height:15px;fill:#fff;stroke:none}
@@ -2028,6 +2032,7 @@ function initMap(){
   map.on("pitch", rotMe); map.on("zoom", rotMe);
   map.on("zoomend", e => { if (view3d && e.originalEvent && map.getZoom() < 14.5) setFirstPerson(false); });
   map.on("click", e => {
+    if (typeof DRAW !== "undefined" && DRAW) return;   // mentre tropss ridisegna un tratto i tocchi servono solo alla matita
     if (addMode === "wzpick"){ addMode = null; $("#modeHint").classList.add("hidden"); if (window._wzPick){ const f = window._wzPick; window._wzPick = null; f(e.lngLat); } return; }
     if (addMode === "picksport"){ addMode = null; $("#modeHint").classList.add("hidden"); SPF.pt = { lat: e.lngLat.lat, lng: e.lngLat.lng }; sportForm(); return; }
     if (addMode === "pickfrom"){ addMode = null; $("#modeHint").classList.add("hidden"); if (PLAN){ PLAN.from = { name: "Punto sulla mappa", lat: e.lngLat.lat, lng: e.lngLat.lng }; showPlan(); } return; }
@@ -5075,7 +5080,7 @@ function battelloIcon(){
 function romeMinNow(){ const p = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).formatToParts(new Date()).map(x => [x.type, x.value]));
   return (+p.hour % 24) * 60 + +p.minute + +p.second / 60; }
 async function actvFetch(){
-  try{ const j = await ACTV("azione=posizioni"); if (j && Array.isArray(j.battelli)){ actvRaw = j.battelli; actvAt = Date.now(); actvPaint(); } }catch(e){}
+  try{ const j = await ACTV("azione=posizioni"); if (j && Array.isArray(j.battelli)){ actvRaw = j.battelli; actvAt = Date.now(); actvPaint(); setTimeout(vpPrecompute, 1500); } }catch(e){}
 }
 function actvPaint(){
   if (!map || !map.getSource("battelli") || !actvRaw) return;
@@ -5103,8 +5108,40 @@ function actvPaint(){
 }
 // tragitto tra due imbarcaderi lungo la rete dei canali (calcolato una volta e tenuto in memoria; pochi per volta per non bloccare)
 const ACTV_PATH = new Map(); let actvBudget = 0, actvDeadline = 0;
+/* tragitti imparati: i percorsi dei battelli di linea non cambiano, quindi una volta calcolati (o disegnati da tropss)
+   si salvano nel database e tutti i telefoni li usano subito, senza ricalcolarli */
+const VP_KEY = "ln_vap_paths_v1", vpKey = (a, b, c, d) => a.toFixed(5) + "," + b.toFixed(5) + ">" + c.toFixed(5) + "," + d.toFixed(5);
+let VP_CACHE = store.get(VP_KEY, {}), VP_SYNC = store.get(VP_KEY + "_t", null), VP_MANUAL = new Set(store.get(VP_KEY + "_m", [])), VP_UP = new Set();
+function mkPath(pts){ const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + hav(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1])); return { pts, cum, len: cum[cum.length - 1], saved: true }; }
+function vpSave(){ try{ store.set(VP_KEY, VP_CACHE); store.set(VP_KEY + "_t", VP_SYNC); store.set(VP_KEY + "_m", [...VP_MANUAL]); }catch(e){} }
+Object.entries(VP_CACHE).forEach(([k, p]) => { if (Array.isArray(p) && p.length > 1) ACTV_PATH.set(k, mkPath(p)); });
+async function vpSync(){
+  try{ const rows = await api("vap_paths?select=key,pts,src,updated_at&order=updated_at.asc&limit=10000" + (VP_SYNC ? "&updated_at=gt." + encodeURIComponent(VP_SYNC) : ""));
+    if (!Array.isArray(rows) || !rows.length) return;
+    rows.forEach(r => { if (!Array.isArray(r.pts) || r.pts.length < 2){ ACTV_PATH.delete(r.key); delete VP_CACHE[r.key]; VP_MANUAL.delete(r.key); return; }
+      ACTV_PATH.set(r.key, mkPath(r.pts)); VP_CACHE[r.key] = r.pts; if (r.src === "manual") VP_MANUAL.add(r.key); else VP_MANUAL.delete(r.key); });
+    VP_SYNC = rows[rows.length - 1].updated_at; vpSave(); try{ actvPaint(); }catch(e){}
+  }catch(e){}
+}
+function vpUpload(k, pts){   // tragitto calcolato qui: lo condivido (il server lo tiene solo se il tratto non c'è ancora)
+  if (VP_UP.has(k)) return; VP_UP.add(k);
+  const p = pts.map(q => [+q[0].toFixed(5), +q[1].toFixed(5)]); VP_CACHE[k] = p; vpSave();
+  api("rpc/vap_path_auto", { method: "POST", body: { p_key: k, p_pts: p } }).catch(() => {});
+}
+// calcola in anticipo tutti i tratti che mancano, a piccoli pezzi, così i battelli non restano fermi ad aspettare
+let vpPreT = null;
+function vpPrecompute(){
+  if (vpPreT || !actvRaw || !G.done) return;
+  const todo = []; const seen = new Set();
+  actvRaw.forEach(b => { const st = b[4] || []; for (let i = 1; i < st.length; i++){ const k = vpKey(st[i - 1][0], st[i - 1][1], st[i][0], st[i][1]); if (!ACTV_PATH.has(k) && !seen.has(k)){ seen.add(k); todo.push(st[i - 1].concat(st[i])); } } });
+  if (!todo.length) return;
+  const step = () => { vpPreT = null; actvBudget = 40; actvDeadline = performance.now() + 30;
+    while (todo.length && actvBudget > 0 && performance.now() < actvDeadline){ const t = todo[todo.length - 1]; actvPath(t[0], t[1], t[4], t[5]); if (ACTV_PATH.has(vpKey(t[0], t[1], t[4], t[5]))) todo.pop(); }
+    if (todo.length) vpPreT = setTimeout(step, 60); else try{ actvPaint(); }catch(e){} };
+  vpPreT = setTimeout(step, 50);
+}
 function actvPath(la0, lo0, la1, lo1){
-  const k = la0.toFixed(5) + "," + lo0.toFixed(5) + ">" + la1.toFixed(5) + "," + lo1.toFixed(5);
+  const k = vpKey(la0, lo0, la1, lo1);
   if (ACTV_PATH.has(k)) return ACTV_PATH.get(k);
   if (!G.done || actvBudget <= 0 || performance.now() > actvDeadline) return null;
   actvBudget--;
@@ -5125,6 +5162,7 @@ function actvPath(la0, lo0, la1, lo1){
       const pts = [[la0, lo0]].concat(mid, [[la1, lo1]]), cum = [0];
       for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + hav(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]));
       P = { pts, cum, len: cum[cum.length - 1] };
+      vpUpload(k, pts);
     } }catch(e){}
   ACTV_PATH.set(k, P); return P;
 }
@@ -5143,42 +5181,107 @@ function corsaLayers(){
   map.addSource("corsa", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
   const L = ["==", ["geometry-type"], "LineString"], P = ["==", ["geometry-type"], "Point"];
   map.addLayer({ id: "corsa-case", type: "line", source: "corsa", filter: L, layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#111", "line-width": 8 } });
-  map.addLayer({ id: "corsa-line", type: "line", source: "corsa", filter: L, layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": ["get", "c"], "line-width": 5 } });
+  map.addLayer({ id: "corsa-line", type: "line", source: "corsa", filter: L, layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": ["get", "c"], "line-width": ["case", ["has", "d"], 6, 5] } });
   map.addLayer({ id: "corsa-pt", type: "circle", source: "corsa", filter: P, paint: { "circle-radius": ["case", ["get", "f"], 8, 6], "circle-color": "#ffffff", "circle-stroke-color": ["get", "s"], "circle-stroke-width": 3 } });
   if (map.getStyle().glyphs) map.addLayer({ id: "corsa-lbl", type: "symbol", source: "corsa", filter: P, layout: { "text-field": ["get", "t"], "text-font": ["Noto Sans Bold", "Noto Sans Regular"],
     "text-size": 12, "text-offset": [0, 1.2], "text-anchor": "top" }, paint: { "text-color": "#111", "text-halo-color": "#fff", "text-halo-width": 1.6 } });
 }
-function closeCorsa(){ corsaSeq++; const b = $("#corsaBox"); if (b) b.classList.add("hidden"); if (map && map.getSource("corsa")) map.getSource("corsa").setData({ type: "FeatureCollection", features: [] }); }
+let CORSA_ST = null, DRAW = null;
+const isTropss = () => !!(PROFILE && String(PROFILE.clickname || "").toLowerCase() === "tropss");
+function corsaList(){
+  const st = CORSA_ST; if (!st) return; const F = st.F, o = st.o;
+  $("#cbList").innerHTML = F.map((f, i) => `<div class="cbRow${i === 0 ? " first" : ""}${i === F.length - 1 ? " last" : ""}"><span class="cbT">${esc(f.arr)}</span><span class="cbDot"></span>
+    <span class="cbN">${esc(f.n)}${i === 0 ? `<small>${o.boat ? "prossima fermata" : "partenza"}</small>` : i === F.length - 1 ? "<small>capolinea</small>" : ""}</span>
+    ${st.edit && i < F.length - 1 ? `<button class="cbFix" data-seg="${i}">\u270f\ufe0f fino a ${esc(F[i + 1].n)}${VP_MANUAL.has(vpKey(f.lat, f.lng, F[i + 1].lat, F[i + 1].lng)) ? " \u00b7 a mano" : ""}</button>` : ""}</div>`).join("")
+    + (st.edit ? `<div class="cbMsg">Tocca \u270f\ufe0f su un tratto: il percorso tra le due fermate si cancella e lo ridisegni col dito sulla mappa.</div>` : "");
+  document.querySelectorAll("#cbList .cbFix").forEach(b => b.onclick = () => drawStart(+b.dataset.seg));
+}
+function corsaPaint(){
+  const st = CORSA_ST; if (!st || !map || !map.getSource("corsa")) return; const feats = [];
+  actvBudget = 400; actvDeadline = performance.now() + 2500;
+  for (let i = 1; i < st.pts.length; i++){ const a = st.pts[i - 1], b = st.pts[i], k = vpKey(a[0], a[1], b[0], b[1]); if (k === st.hide) continue;
+    const P = actvPath(a[0], a[1], b[0], b[1]);
+    if (P) feats.push({ type: "Feature", properties: { c: st.col }, geometry: { type: "LineString", coordinates: P.pts.map(p => [p[1], p[0]]) } }); }
+  st.F.forEach((f, i) => feats.push({ type: "Feature", properties: { s: st.light ? "#111" : st.col, f: i === 0 || i === st.F.length - 1, t: f.arr + " " + f.n }, geometry: { type: "Point", coordinates: [f.lng, f.lat] } }));
+  if (DRAW && DRAW.pts.length > 1) feats.push({ type: "Feature", properties: { c: "#ff6446", d: 1 }, geometry: { type: "LineString", coordinates: DRAW.pts.map(p => [p[1], p[0]]) } });
+  map.getSource("corsa").setData({ type: "FeatureCollection", features: feats });
+}
+// matita: il tratto vecchio sparisce, si ridisegna col dito (un dito disegna, due dita spostano e zoomano la mappa)
+function drawStart(i){
+  const st = CORSA_ST; if (!st || !map) return; const a = st.F[i], b = st.F[i + 1];
+  drawStop(true);
+  DRAW = { i, a, b, key: vpKey(a.lat, a.lng, b.lat, b.lng), pts: [[a.lat, a.lng]], down: false };
+  st.hide = DRAW.key; corsaPaint();
+  $("#cbList").innerHTML = `<div class="cbDraw"><b>\u270f\ufe0f Ridisegna il tratto</b><span>da <b>${esc(a.n)}</b> a <b>${esc(b.n)}</b></span>
+    <small>Col dito segui il canale dalla prima fermata alla seconda. Puoi staccare il dito e continuare. Con due dita sposti la mappa.</small>
+    <div class="cbBtns"><button class="btn ghost" id="dwUndo">Ricomincia</button><button class="btn ghost" id="dwNo">Annulla</button><button class="btn" id="dwOk">Salva</button></div></div>`;
+  $("#dwUndo").onclick = () => { DRAW.pts = [[a.lat, a.lng]]; corsaPaint(); };
+  $("#dwNo").onclick = () => { drawStop(); corsaList(); };
+  $("#dwOk").onclick = drawSave;
+  try{ follow = false; const bb = new maplibregl.LngLatBounds(); bb.extend([a.lng, a.lat]); bb.extend([b.lng, b.lat]);
+    map.fitBounds(bb, { padding: { top: 90, left: 50, right: 50, bottom: Math.round(innerHeight * 0.45) + 30 }, maxZoom: 17, duration: 500 }); }catch(e){}
+  const cv = map.getCanvas(), pt = e => { const r = cv.getBoundingClientRect(), ll = map.unproject([e.clientX - r.left, e.clientY - r.top]); return [ll.lat, ll.lng]; };
+  const touches = new Set();
+  DRAW.h = {
+    down: e => { touches.add(e.pointerId); if (touches.size > 1){ DRAW.down = false; map.dragPan.enable(); return; } map.dragPan.disable(); DRAW.down = true; DRAW.last = [e.clientX, e.clientY]; DRAW.pts.push(pt(e)); corsaPaint(); },
+    move: e => { if (!DRAW || !DRAW.down || touches.size > 1) return; if (Math.hypot(e.clientX - DRAW.last[0], e.clientY - DRAW.last[1]) < 5) return; DRAW.last = [e.clientX, e.clientY]; DRAW.pts.push(pt(e)); corsaPaint(); },
+    up: e => { touches.delete(e.pointerId); if (DRAW) DRAW.down = false; if (!touches.size) map.dragPan.disable(); }
+  };
+  map.dragPan.disable(); map.doubleClickZoom.disable(); try{ map.dragRotate.disable(); }catch(e){}
+  cv.addEventListener("pointerdown", DRAW.h.down); cv.addEventListener("pointermove", DRAW.h.move); window.addEventListener("pointerup", DRAW.h.up); window.addEventListener("pointercancel", DRAW.h.up);
+}
+function drawStop(silent){
+  if (DRAW && DRAW.h && map){ const cv = map.getCanvas(); cv.removeEventListener("pointerdown", DRAW.h.down); cv.removeEventListener("pointermove", DRAW.h.move);
+    window.removeEventListener("pointerup", DRAW.h.up); window.removeEventListener("pointercancel", DRAW.h.up); }
+  if (map && DRAW){ map.dragPan.enable(); map.doubleClickZoom.enable(); try{ map.dragRotate.enable(); }catch(e){} }
+  DRAW = null; if (CORSA_ST){ CORSA_ST.hide = null; if (!silent) corsaPaint(); }
+}
+// semplifica il tratto disegnato (toglie i punti superflui, tolleranza 3 m)
+function simplifyDraw(P, tol){
+  if (P.length < 3) return P; const keep = new Uint8Array(P.length); keep[0] = keep[P.length - 1] = 1; const stack = [[0, P.length - 1]];
+  const dSeg = (p, a, b) => { const x = (p[1] - a[1]) * 78300, y = (p[0] - a[0]) * 111000, bx = (b[1] - a[1]) * 78300, by = (b[0] - a[0]) * 111000, L = bx * bx + by * by;
+    const t = L ? Math.max(0, Math.min(1, (x * bx + y * by) / L)) : 0; return Math.hypot(x - t * bx, y - t * by); };
+  while (stack.length){ const [s0, e0] = stack.pop(); let md = 0, mi = -1; for (let i = s0 + 1; i < e0; i++){ const d = dSeg(P[i], P[s0], P[e0]); if (d > md){ md = d; mi = i; } }
+    if (md > tol){ keep[mi] = 1; stack.push([s0, mi], [mi, e0]); } }
+  return P.filter((_, i) => keep[i]);
+}
+async function drawSave(){
+  if (!DRAW) return; const d = DRAW;
+  if (d.pts.length < 3) return toast("Disegna il tratto col dito prima di salvare.");
+  const pts = simplifyDraw(d.pts.concat([[d.b.lat, d.b.lng]]), 3).map(p => [+p[0].toFixed(5), +p[1].toFixed(5)]);
+  pts[0] = [d.a.lat, d.a.lng]; pts[pts.length - 1] = [d.b.lat, d.b.lng];
+  try{ const r = await rpc("vap_path_set", { p_key: d.key, p_pts: pts });
+    if (!r || r.errore) return toast(r && r.errore === "non_autorizzato" ? "Solo tropss può correggere i percorsi." : "Non salvato, riprova.");
+  }catch(e){ return toast("Non salvato: controlla la connessione."); }
+  ACTV_PATH.set(d.key, mkPath(pts)); VP_CACHE[d.key] = pts; VP_MANUAL.add(d.key); vpSave();
+  drawStop(); corsaList(); try{ actvPaint(); }catch(e){} toast("Tratto salvato \u2713 \u00b7 tutti i telefoni useranno questo percorso");
+}
+function closeCorsa(){ drawStop(true); corsaSeq++; const b = $("#corsaBox"); if (b) b.classList.add("hidden"); if (map && map.getSource("corsa")) map.getSource("corsa").setData({ type: "FeatureCollection", features: [] }); }
 async function openCorsa(o){
   const seq = ++corsaSeq, box = $("#corsaBox"), ali = o.az === "Alilaguna" || /^Alilaguna /.test(o.linea);
   const col = lineColor(o.linea, ali ? "Alilaguna" : "ACTV"), light = hexLight(col);
   try{ closePopups(); }catch(e){}
   box.classList.remove("hidden"); box.style.setProperty("--lc", light ? "#9aa0a8" : col); box.style.setProperty("--ld", light ? "#111" : col);
-  $("#cbHead").innerHTML = `${lineBadge(o.linea)}<span class="cbDir">\u2192 ${esc(cleanDir(o.dir))}</span><button id="cbClose" aria-label="Chiudi">\u00d7</button>`;
-  $("#cbClose").onclick = closeCorsa; $("#cbNote").textContent = "";
+  $("#cbHead").innerHTML = `${lineBadge(o.linea)}<span class="cbDir">\u2192 ${esc(cleanDir(o.dir))}</span>${isTropss() ? `<button id="cbEdit" aria-label="Correggi i percorsi" title="Correggi i percorsi">\u270f\ufe0f</button>` : ""}<button id="cbClose" aria-label="Chiudi">\u00d7</button>`;
+  $("#cbClose").onclick = closeCorsa; $("#cbNote").textContent = ""; CORSA_ST = null; drawStop(true);
+  if ($("#cbEdit")) $("#cbEdit").onclick = () => { if (!CORSA_ST) return; CORSA_ST.edit = !CORSA_ST.edit; $("#cbEdit").classList.toggle("on", CORSA_ST.edit); corsaList(); };
   $("#cbList").innerHTML = `<div class="cbMsg">Carico le fermate\u2026</div>`;
   let j; try{ j = await CORSA(`linea=${encodeURIComponent(o.linea)}&dir=${encodeURIComponent(o.dir)}&la=${o.la}&lo=${o.lng}&t=${o.t}&tol=${o.tol || 60}`); }catch(e){ j = { errore: "rete" }; }
   if (seq !== corsaSeq) return;
   if (!j || !Array.isArray(j.fermate) || !j.fermate.length){ $("#cbList").innerHTML = `<div class="cbMsg">${j && j.errore === "corsa_non_trovata" ? "Non trovo questa corsa negli orari." : "Fermate non disponibili: controlla la connessione."}</div>`; return; }
   let F = j.fermate.slice();
   if (o.boat){ let t = romeMinNow(); const d0 = F[0].dep; if (t < d0 - 600) t += 1440; else if (t > d0 + 600) t -= 1440; if (F.length > 1 && t > d0 + 0.2) F = F.slice(1); }   // fermata già lasciata
-  $("#cbList").innerHTML = F.map((f, i) => `<div class="cbRow${i === 0 ? " first" : ""}${i === F.length - 1 ? " last" : ""}"><span class="cbT">${esc(f.arr)}</span><span class="cbDot"></span>
-    <span class="cbN">${esc(f.n)}${i === 0 ? `<small>${o.boat ? "prossima fermata" : "partenza"}</small>` : i === F.length - 1 ? "<small>capolinea</small>" : ""}</span></div>`).join("");
+  const pts = (o.boat ? [[o.la, o.lng]] : []).concat(F.map(f => [f.lat, f.lng]));
+  CORSA_ST = { o, F, pts, col, light, edit: false, hide: null };
+  corsaList();
   const nf = F.length - 1; $("#cbNote").textContent = (nf === 1 ? "1 fermata" : nf + " fermate") + " fino al capolinea \u00b7 orari ufficiali, senza ritardi";
-  if (!map) return; corsaLayers();
-  // tragitto lungo i canali consentiti (mai in linea retta) e fermate
-  const pts = (o.boat ? [[o.la, o.lng]] : []).concat(F.map(f => [f.lat, f.lng])), feats = [];
-  actvBudget = 400; actvDeadline = performance.now() + 2500;
-  for (let i = 1; i < pts.length; i++){ const P = actvPath(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]);
-    if (P) feats.push({ type: "Feature", properties: { c: col }, geometry: { type: "LineString", coordinates: P.pts.map(p => [p[1], p[0]]) } }); }
-  F.forEach((f, i) => feats.push({ type: "Feature", properties: { s: light ? "#111" : col, f: i === 0 || i === F.length - 1, t: f.arr + " " + f.n }, geometry: { type: "Point", coordinates: [f.lng, f.lat] } }));
-  map.getSource("corsa").setData({ type: "FeatureCollection", features: feats });
+  if (!map) return; corsaLayers(); corsaPaint();
   try{ follow = false; const bb = new maplibregl.LngLatBounds(); pts.forEach(p => bb.extend([p[1], p[0]]));
     map.fitBounds(bb, { padding: { top: 70, left: 40, right: 40, bottom: Math.round(innerHeight * 0.45) + 20 }, maxZoom: 16, duration: 700 }); }catch(e){}
 }
 function actvStart(){
   if (typeof loadGraph === "function") loadGraph();
-  if (!map) return; addBoatsLayer(); if (!actvFetchT){ actvFetch(); actvFetchT = setInterval(() => { if (!document.hidden) actvFetch(); }, 60000); }
+  if (!map) return; addBoatsLayer(); if (!actvFetchT){ vpSync(); setInterval(() => { if (!document.hidden) vpSync(); }, 5 * 60000); actvFetch(); actvFetchT = setInterval(() => { if (!document.hidden) actvFetch(); }, 60000); }
   if (!actvAnimT) actvAnimT = setInterval(() => { if (!document.hidden) actvPaint(); }, 2000);
 }
 function actvStop(){ clearInterval(actvFetchT); clearInterval(actvAnimT); actvFetchT = actvAnimT = null; }
