@@ -199,7 +199,7 @@
   .lg-r i{width:14px;height:10px;border-radius:3px;display:inline-block}
   .lg-s{color:#555;margin-top:4px;line-height:1.25}
   #depthLegend{max-width:190px}
-  .lg-bar{height:12px;border-radius:4px;margin:4px 0 2px;background:linear-gradient(90deg,#b71c1c 0%,#e53935 7%,#ff6d00 13%,#ff9800 20%,#b08c00 26%,#c7a000 29%,#deb600 32%,#f0cc00 35%,#ffe01e 38%,#ffee58 41%,#f4f782 44%,#daf08c 47%,#bee696 50%,#a0daa0 53%,#80deea 57%,#4fc3f7 68%,#29b6f6 78%,#0288d1 90%,#01579b 100%)}
+  .lg-bar{height:12px;border-radius:4px;margin:4px 0 2px;background:linear-gradient(90deg,#b71c1c 0%,#e53935 12%,#ff6d00 25%,#ff9800 37%,#b08c00 50%,#deb600 58%,#ffe01e 66%,#f4f782 75%,#daf08c 83%,#bee696 91%,#a0daa0 100%)}
   .lg-ticks{display:flex;justify-content:space-between;font-size:9px;color:#444}
   /* pianifica tragitto */
   #routeBox{position:absolute;z-index:21;left:10px;right:10px;top:calc(10px + var(--safe-t));background:#fff;color:#111;border-radius:16px;box-shadow:0 2px 14px rgba(0,0,0,.4);padding:10px 12px}
@@ -486,6 +486,10 @@
   #board .bdr .c-i b{display:inline-block;padding-left:100%;animation:bdscroll 14s linear infinite}
   @keyframes bdscroll{to{transform:translateX(-100%)}}
   #board .bdr.bus .c-tr{display:block;text-align:center;background:#141414;padding:0 3px}
+  #board .bdhead.aereo,#board .bdr.aereo{grid-template-columns:66px 1fr 44px 96px}
+  #board .bdr.aereo .c-tr{display:block;text-align:center;background:#141414;padding:0 3px;font-size:12px}
+  #board .bdr.aereo .c-d{font-size:11px}
+  @media (min-width:700px){ #board .bdhead.aereo,#board .bdr.aereo{grid-template-columns:110px 1.2fr 70px 180px 1.1fr} #board .bdr.aereo .c-tr{font-size:16px} #board .bdr.aereo .c-d{font-size:15px} }
   #board .bdmsg{padding:30px 14px;text-align:center;color:#ffad1f;text-shadow:0 0 5px rgba(255,150,0,.7);font-weight:700;letter-spacing:.05em}
   #board .bdnote{padding:6px 12px 0;font:11px Arial,sans-serif;color:#7a7a7a}
   .sdr{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
@@ -956,7 +960,7 @@
       <button class="srow" data-set="alilaguna"><svg viewBox="0 0 24 24"><path d="M4 16.5h16l-2.3 4H6.3z"/><path d="M12 3.5v8M12 3.5l4.5 1.6L12 6.7"/><path d="M8.5 11.5h7l-1 5h-5z"/></svg><span>Alilaguna</span><i class="sw"></i></button>
       <button class="srow" data-set="canali"><svg viewBox="0 0 24 24"><path d="M3 17c3-1 5-6 9-6s6 5 9 6"/><path d="M3 21c3-1 5-6 9-6s6 5 9 6" stroke-dasharray="2 2.5"/><path d="M7 4v6M17 4v6"/></svg><span>Canali lagunari</span><i class="sw"></i></button>
       <button class="srow" data-set="cantieri"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5l-5.6 5.6a1.6 1.6 0 0 0 2.3 2.3l5.6-5.6a4 4 0 0 0 5-5.4l-2.4 2.4-2.1-.4-.4-2.1z"/></svg><span>Cantieri nautici</span><i class="sw"></i></button>
-      <button class="srow" data-set="water"><svg viewBox="0 0 24 24"><path d="M12 3.5c3.5 4.3 6 7.6 6 10.5a6 6 0 0 1-12 0c0-2.9 2.5-6.2 6-10.5z"/><path d="M9 15a3 3 0 0 0 3 3"/></svg><span>Acqua</span><i class="sw"></i></button>
+      <button class="srow" data-set="water"><svg viewBox="0 0 24 24"><path d="M12 3.5c3.5 4.3 6 7.6 6 10.5a6 6 0 0 1-12 0c0-2.9 2.5-6.2 6-10.5z"/><path d="M9 15a3 3 0 0 0 3 3"/></svg><span>Secca</span><i class="sw"></i></button>
       <button class="srow" data-set="d3"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>Vista 3D</span><i class="sw"></i></button>
       <button class="srow" data-set="sat"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.8 5.4 3.8 8.5s-1.3 5.9-3.8 8.5c-2.5-2.6-3.8-5.4-3.8-8.5S9.5 6.1 12 3.5z"/></svg><span>Satellitare</span><i class="sw"></i></button>
       <button class="srow" data-set="boat"><svg viewBox="0 0 24 24"><path d="M3 15.5h18l-2.6 4.5H5.6z"/><path d="M12 3v12.5M12 4.5l6 9h-6"/></svg><span>La tua barca</span><i class="sw"></i></button>
@@ -971,10 +975,11 @@
       <button class="mi" data-mode="sat">🛰 Satellite</button>
     </div>
     <div id="depthLegend" class="hidden">
-      <div class="lg-t">ACQUA ADESSO</div>
+      <div class="lg-t">SECCA ADESSO</div>
       <div class="lg-bar"></div>
-      <div class="lg-ticks"><span>0</span><span>0,5</span><span>1</span><span>1,5</span><span>2</span><span>3</span><span>4+ m</span></div>
-      <div class="lg-r"><i style="background:#8d6e63"></i>asciutto / barena</div>
+      <div class="lg-ticks"><span>0</span><span>0,5</span><span>1</span><span>1,5</span><span>2 m</span></div>
+      <div class="lg-r"><i style="background:#780c0c"></i>asciutto / barena</div>
+      <div class="lg-s">Oltre 2 m d'acqua nessun colore.</div>
       <div class="lg-s">Da 1 a 2 m una tonalità ogni 10 cm, con le linee di livello.</div>
       <div class="lg-s" id="lgTide"></div>
       <div class="lg-s">Tocca la mappa per sapere quanta acqua c'è in un punto. Stima dalla carta del Comune (±200 m) e dalle misure degli utenti.</div>
@@ -2161,10 +2166,10 @@ function addLayers(){
   }
 
   map.addSource("carta", { type: "geojson", data: empty });
-  map.addLayer({ id: "carta", type: "circle", source: "carta", minzoom: 12, layout: { visibility: INST.depth ? "visible" : "none" }, paint: {
+  map.addLayer({ id: "carta", type: "circle", source: "carta", minzoom: 12, filter: [">", ["get", "d"], -2], layout: { visibility: INST.depth ? "visible" : "none" }, paint: {
     "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 1.5, 16, 4], "circle-opacity": 0.8,
     "circle-color": ["case", [">", ["get", "d"], 0], "#9e9d24", [">", ["get", "d"], -1], "#ff3b30", [">", ["get", "d"], -2], "#ff9f0a", [">", ["get", "d"], -4], "#4fc3f7", "#1565c0"] } });
-  if (map.getStyle().glyphs) map.addLayer({ id: "carta-num", type: "symbol", source: "carta", minzoom: 14.5, layout: { visibility: INST.depth ? "visible" : "none",
+  if (map.getStyle().glyphs) map.addLayer({ id: "carta-num", type: "symbol", source: "carta", minzoom: 14.5, filter: [">", ["get", "d"], -2], layout: { visibility: INST.depth ? "visible" : "none",
     "text-field": ["get", "t"], "text-size": ["interpolate", ["linear"], ["zoom"], 14, 10, 17, 13], "text-offset": [0, 0.9], "text-font": ["Noto Sans Regular"], "text-allow-overlap": false },
     paint: { "text-color": "#0d3b66", "text-halo-color": "#fff", "text-halo-width": 1.2 } });
   map.addSource("velox-tratte", { type: "geojson", data: empty });
@@ -3592,7 +3597,7 @@ document.querySelectorAll("#toggles button[data-inst]").forEach(b => b.onclick =
   INST[b.dataset.inst] = !INST[b.dataset.inst]; store.set("ln_inst", INST); paintInst();
   if (b.dataset.inst === "depth" && INST.depth){ if (!activeBoat()) toast("Imposta la tua barca (cruscotto → La mia barca) per sapere quanta acqua hai sotto il piede."); if (lastPos) updateDepth(lastPos); else toast("Tocca ➤ per attivare il GPS."); }
   if (b.dataset.inst === "tide" || b.dataset.inst === "depth") loadTide();
-  if (b.dataset.inst === "water"){ applyMapMode(); if (INST.water){ toast("💧 Acqua adesso: quanta acqua c'è con la marea di ora"); loadTide(); loadChart(); drawFondo(); } }
+  if (b.dataset.inst === "water"){ applyMapMode(); if (INST.water){ toast("Secca adesso: dove c'è poca acqua con la marea di ora"); loadTide(); loadChart(); drawFondo(); } }
 });
 paintInst();
 
@@ -3751,7 +3756,9 @@ function paintFondo(){
   const band = v => v <= 0 ? -1 : v < 100 ? Math.floor(v / 25) : v < 200 ? 4 + Math.floor((v - 100) / 10) : 14 + Math.floor((v - 200) / 50);
   for (let i = 0; i < Z.length; i++){
     const z = Z[i]; if (z !== z){ D[i * 4 + 3] = 0; continue; }
-    const cm = z * 100 + tide, c = rampColor(cm), o = i * 4;
+    const cm = z * 100 + tide, o = i * 4;
+    if (cm >= 200){ D[o + 3] = 0; continue; }                 // secca: oltre 2 m niente colore (via gli azzurri e i blu)
+    const c = cm <= 0 ? [120, 12, 12] : rampColor(cm);        // asciutto in rosso scuro invece del marrone
     // linea di livello: il pixel a destra o sotto cade in un'altra fascia
     const r = Z[i + 1], dn = Z[i + W];
     const edge = (r === r && band(r * 100 + tide) !== band(cm)) || (dn === dn && band(dn * 100 + tide) !== band(cm));
@@ -4869,7 +4876,7 @@ function aeroIcon(){
 let aeroMk = null;
 function updateAeroMk(){ if (aeroMk) aeroMk.getElement().style.display = (appMode === "nautica" || appMode === "trasporti") ? "flex" : "none"; }
 function addAeroLayer(){   // aeroporto Marco Polo: tasto nero sempre visibile che apre il tabellone voli
-  if (aeroMk || !map || typeof maplibregl === "undefined") return;
+  return;   // l'aeroporto ora è tra le stazioni (stesso pulsante e stesso tabellone)
   const el = document.createElement("button"); el.id = "aeroMk"; el.type = "button";
   el.innerHTML = '<svg viewBox="0 0 24 24"><path d="M2 16l20-6-20-6 4 6-4 6z"/></svg>Marco Polo';
   el.addEventListener("click", ev => { ev.stopPropagation(); openAero(); });
@@ -5644,6 +5651,8 @@ const STZ = [
     ic: '<rect x="4" y="3.5" width="16" height="15" rx="3"/><path d="M4 12h16M7 18.5v2M17 18.5v2M9 7h6"/><circle cx="8" cy="15.3" r="1"/><circle cx="16" cy="15.3" r="1"/>' },
   { k: "porto", n: "S. Basilio", full: "Terminal San Basilio", lat: 45.43060, lng: 12.31960,
     ic: '<path d="M3 15h18l-2.5 4.5h-13z"/><path d="M6 15v-4h12v4M9 11V8h6v3M12 8V5"/><path d="M2 21.5c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1 2-1 4-1"/>' },
+  { k: "aereo", n: "Aeroporto", full: "Aeroporto Marco Polo", lat: 45.50530, lng: 12.35190,
+    ic: '<path d="M12 2.5c.8 0 1.4.7 1.4 1.5v5.6l7.6 4.6v2l-7.6-2.3v4.7l2.2 1.6v1.5L12 20.8l-3.6.9v-1.5l2.2-1.6v-4.7L3 16.2v-2l7.6-4.6V4c0-.8.6-1.5 1.4-1.5z"/>' },
   { k: "stadio", n: "Stadio Penzo", full: "Stadio Pier Luigi Penzo", lat: 45.42860, lng: 12.36450,
     ic: '<ellipse cx="12" cy="12" rx="9" ry="6.5"/><ellipse cx="12" cy="12" rx="5" ry="3"/><path d="M12 5.5v13M3 12h4M17 12h4"/>' }
 ];
@@ -5666,11 +5675,21 @@ async function openStation(st, verso){
   $("#bdHead").innerHTML = tren ? `<span class="c-tr">treno<i>train</i></span><span class="c-to">${verso === "arrivi" ? "provenienza<i>from</i>" : "destinazione<i>destination</i>"}</span><span class="c-h">orario<i>time</i></span><span class="c-d">ritardo<i>delay</i></span><span class="c-b">bin.<i>plat.</i></span><span class="c-i">informazioni<i>information</i></span>`
     : `<span class="c-tr">linea<i>line</i></span><span class="c-to">${verso === "arrivi" ? "provenienza<i>from</i>" : "destinazione<i>destination</i>"}</span><span class="c-h">orario<i>time</i></span><span class="c-d">tra<i>in</i></span><span class="c-i">informazioni<i>information</i></span>`;
   if (st.k === "porto") $("#bdHead").innerHTML = `<span class="c-tr">nave<i>ship</i></span><span class="c-to">${verso === "arrivi" ? "provenienza<i>from</i>" : "destinazione<i>destination</i>"}</span><span class="c-h">orario<i>time</i></span><span class="c-d">giorno<i>day</i></span><span class="c-i">agenzia<i>agency</i></span>`;
-  $("#bdHead").classList.toggle("bus", !tren); $("#bdHead").classList.toggle("porto", st.k === "porto");
+  if (st.k === "aereo") $("#bdHead").innerHTML = `<span class="c-tr">volo<i>flight</i></span><span class="c-to">${verso === "arrivi" ? "provenienza<i>from</i>" : "destinazione<i>destination</i>"}</span><span class="c-h">orario<i>time</i></span><span class="c-d">stato<i>status</i></span><span class="c-i">compagnia<i>airline</i></span>`;
+  $("#bdHead").classList.toggle("bus", !tren && st.k !== "aereo"); $("#bdHead").classList.toggle("porto", st.k === "porto"); $("#bdHead").classList.toggle("aereo", st.k === "aereo");
   $("#bdGo").onclick = () => { closeBoard(); PLAN = null; openPlan({ name: st.full, lat: st.lat, lng: st.lng }); };
   if (B.dataset.v !== verso || !$("#bdRows").children.length) $("#bdRows").innerHTML = `<div class="bdmsg">CARICAMENTO…</div>`;
   B.dataset.v = verso;
   clearInterval(stzTimer); stzTimer = setInterval(() => { if (B.classList.contains("hidden")){ clearInterval(stzTimer); return; } openStation(st, verso); }, 30000);
+  if (st.k === "aereo"){   // voli del Marco Polo nello stesso tabellone delle stazioni
+    let v; try{ v = await VOLI(); }catch(e){ v = { error: 1 }; }
+    if (B.classList.contains("hidden") || B.dataset.k !== "aereo" || B.dataset.v !== verso) return;
+    const bx = $("#bdRows"), list = v && !v.error ? (verso === "arrivi" ? v.arr : v.dep) : null, U = t => esc(String(t || "").toUpperCase());
+    if (!list){ bx.innerHTML = `<div class="bdmsg">TABELLONE NON DISPONIBILE · CONTROLLA LA CONNESSIONE</div>`; return; }
+    if (!list.length){ bx.innerHTML = `<div class="bdmsg">NESSUN VOLO NELLE PROSSIME ORE</div>`; return; }
+    bx.innerHTML = list.map(c => `<div class="bdr aereo${/cancel/i.test(c.status) ? " sop" : ""}"><span class="c-tr">${U(c.flight)}</span><span class="c-to">${U(c.place)}</span><span class="c-h">${esc(c.time)}</span><span class="c-d">${U(statusIt(c.status))}</span><span class="c-i">${U(c.airline)}</span></div>`).join("");
+    $("#bdNote").textContent = "Voli del Marco Polo · fonte non ufficiale · si aggiorna ogni 30 secondi"; return;
+  }
   let j;
   try{ const r = await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/stazioni?tipo=" + st.k + (st.luogo ? "&luogo=" + st.luogo : "") + "&verso=" + verso, {}, 25000); j = await r.json(); }
   catch(e){ j = { errore: "rete" }; }
