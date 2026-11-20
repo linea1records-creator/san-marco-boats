@@ -1115,7 +1115,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">unClick · unClick · versione 3.44</p>
+      <p class="sub">unClick · unClick · versione 3.45</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa unClick</button>
@@ -1934,9 +1934,9 @@ function initMap(){
   const fallback = setTimeout(() => { if (!styled) map.setStyle(STYLE_RASTER); }, 9000);
   map.on("error", e => { if (!styled && e && e.error && /style|json/i.test(String(e.error.message || ""))) { clearTimeout(fallback); map.setStyle(STYLE_RASTER); } });
   map.on("style.load", () => { styled = true; clearTimeout(fallback); addLayers(); });
-  map.on("dragstart", e => { if (e.originalEvent) setFollow(false); });
+  map.on("dragstart", e => { if (e.originalEvent && !view3d) setFollow(false); });
   map.on("pitch", rotMe); map.on("zoom", rotMe);
-  map.on("zoomend", e => { if (view3d && e.originalEvent && map.getZoom() < 16) setFirstPerson(false); });
+  map.on("zoomend", e => { if (view3d && e.originalEvent && map.getZoom() < 14.5) setFirstPerson(false); });
   map.on("click", e => {
     if (addMode === "wzpick"){ addMode = null; $("#modeHint").classList.add("hidden"); if (window._wzPick){ const f = window._wzPick; window._wzPick = null; f(e.lngLat); } return; }
     if (addMode === "picksport"){ addMode = null; $("#modeHint").classList.add("hidden"); SPF.pt = { lat: e.lngLat.lat, lng: e.lngLat.lng }; sportForm(); return; }
@@ -2326,6 +2326,7 @@ function setFirstPerson(on){
   view3d = on; $("#fabView").classList.toggle("on", on); document.body.classList.toggle("fp", on); $("#fabView").title = on ? "Esci dalla prima persona" : "Prima persona (la mappa gira con la bussola)";
   if (!map) return; const h = map.getContainer().clientHeight;
   const d3 = LY.d3 !== false;
+  fpLock(on); if (on){ follow = true; camC = null; }
   if (on) map.easeTo({ center: lastPos ? [lastPos.lng, lastPos.lat] : map.getCenter(), zoom: 17.9, pitch: d3 ? 72 : 0, bearing: heading, padding: { top: h * (d3 ? 0.55 : 0.35), bottom: 0, left: 0, right: 0 }, duration: 900 });
   else map.easeTo({ pitch: d3 ? 50 : 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 600 });
 }
@@ -2334,7 +2335,11 @@ function paintVoice(){ $("#fabVoice").textContent = voiceOn ? "🔊 Voce attiva"
 paintVoice();
 function say(t){ if (!voiceOn || !window.speechSynthesis) return; try{ const u = new SpeechSynthesisUtterance(t); u.lang = "it-IT"; speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} }
 
-function setFollow(v){ follow = v; $("#fabGps").classList.toggle("follow", v && watchId !== null); if (!v) camC = null; }
+// prima persona: la visuale resta incollata all'avatar (niente trascinamento né rotazione col dito, solo lo zoom)
+function fpLock(on){ if (!map) return;
+  ["dragPan", "dragRotate", "touchPitch", "keyboard", "doubleClickZoom"].forEach(k => { try{ if (map[k]) on ? map[k].disable() : map[k].enable(); }catch(e){} });
+  try{ on ? map.touchZoomRotate.disableRotation() : map.touchZoomRotate.enableRotation(); }catch(e){} }
+function setFollow(v){ if (!v && view3d) setFirstPerson(false); follow = v; $("#fabGps").classList.toggle("follow", v && watchId !== null); if (!v) camC = null; }
 function screenAngle(){ try{ return (screen.orientation && typeof screen.orientation.angle === "number") ? screen.orientation.angle : (window.orientation || 0); }catch(e){ return 0; } }
 function onOrient(ev){
   let h = null;
@@ -2411,12 +2416,12 @@ function frame(){
   const t = targetHeading();
   if (t !== null) heading = (heading + angDiff(heading, t) * 0.22 + 360) % 360;
   rotMe(); if (!frame.n || ++frame.n % 10 === 0) { frame.n = frame.n || 1; if (!userBusy) drawMan(); }
-  if (userBusy || map.isEasing && map.isEasing()) return;
+  if ((userBusy && !view3d) || map.isEasing && map.isEasing()) return;
   const o = {};
   if (view3d && Math.abs(angDiff(map.getBearing(), heading)) > 0.4) o.bearing = heading;
-  if (follow && lastPos){
+  if ((follow || view3d) && lastPos){   // in prima persona la mappa segue sempre l'avatar
     if (!camC) camC = { lat: lastPos.lat, lng: lastPos.lng };
-    camC.lat += (lastPos.lat - camC.lat) * 0.12; camC.lng += (lastPos.lng - camC.lng) * 0.12;
+    const k = view3d ? 0.25 : 0.12; camC.lat += (lastPos.lat - camC.lat) * k; camC.lng += (lastPos.lng - camC.lng) * k;
     const c = map.getCenter();
     if (hav(c.lat, c.lng, camC.lat, camC.lng) > 0.3) o.center = [camC.lng, camC.lat];
   }
