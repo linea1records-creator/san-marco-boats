@@ -1115,7 +1115,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">unClick · unClick · versione 3.45</p>
+      <p class="sub">unClick · unClick · versione 3.46</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa unClick</button>
@@ -2282,8 +2282,8 @@ function onWater(lat, lng){
   if (res === null){ if (typeof G === "undefined" || !G.done) return false; res = !!gNear(lat, lng, 12); }   // tessere non pronte: non lo segno in memoria
   if (WATER_AT.size > 400) WATER_AT.clear(); WATER_AT.set(k, res); return res;
 }
-// l'omino è alto 40 metri veri (non cambia con lo zoom); da lontano, quando diventa troppo piccolo, resta il puntino blu
-const MAN_U = 40 / 11.9, MAN_MINZ = 15.6;
+// l'omino è alto 13 metri veri (non cambia con lo zoom); da lontano, quando diventa troppo piccolo, resta il puntino blu
+const MAN_U = 40 / 3 / 11.9, MAN_MINZ = 17;   // alto circa 13 metri sulla mappa (con la barca intorno)
 function manUnit(){ return MAN_U; }
 function manPx(){ if (!map || !lastPos) return 0; const mpp = 156543.03 * Math.cos(lastPos.lat * Math.PI / 180) / Math.pow(2, map.getZoom()); return MAN_U / mpp; }
 function drawMan(force){
@@ -2327,7 +2327,7 @@ function setFirstPerson(on){
   if (!map) return; const h = map.getContainer().clientHeight;
   const d3 = LY.d3 !== false;
   fpLock(on); if (on){ follow = true; camC = null; }
-  if (on) map.easeTo({ center: lastPos ? [lastPos.lng, lastPos.lat] : map.getCenter(), zoom: 17.9, pitch: d3 ? 72 : 0, bearing: heading, padding: { top: h * (d3 ? 0.55 : 0.35), bottom: 0, left: 0, right: 0 }, duration: 900 });
+  if (on) map.easeTo({ center: lastPos ? [lastPos.lng, lastPos.lat] : map.getCenter(), zoom: 19.4, pitch: d3 ? 72 : 0, bearing: heading, padding: { top: h * (d3 ? 0.55 : 0.35), bottom: 0, left: 0, right: 0 }, duration: 900 });
   else map.easeTo({ pitch: d3 ? 50 : 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 600 });
 }
 $("#fabVoice").onclick = () => { voiceOn = !voiceOn; store.set("ln_voice", voiceOn); paintVoice(); if (voiceOn) say("Voce attiva"); };
@@ -2434,7 +2434,7 @@ function camera(force){
   if (!map || !lastPos) return;
   const h = map.getContainer().clientHeight;
   camC = { lat: lastPos.lat, lng: lastPos.lng };
-  map.easeTo({ center: [lastPos.lng, lastPos.lat], zoom: force ? (view3d ? 17.9 : Math.max(map.getZoom(), 16.5)) : map.getZoom(),
+  map.easeTo({ center: [lastPos.lng, lastPos.lat], zoom: force ? (view3d ? 19.4 : Math.max(map.getZoom(), 17.3)) : map.getZoom(),
     bearing: view3d ? heading : map.getBearing(), pitch: view3d ? 72 : Math.max(map.getPitch(), force ? 50 : 0),
     padding: { top: view3d ? h * 0.55 : 0, bottom: 0, left: 0, right: 0 }, duration: 700, essential: true });
 }
