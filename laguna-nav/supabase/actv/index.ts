@@ -90,30 +90,53 @@ function findGroup(g: any, q: string) {
   const k = norm(q); return g.glist.find((x: any) => x.k === k) || g.glist.find((x: any) => x.k.startsWith(k)) || g.glist.find((x: any) => x.k.includes(k)) || null;
 }
 const hhmm = (m: number) => { const x = ((m % 1440) + 1440) % 1440; return String(Math.floor(x / 60)).padStart(2, '0') + ':' + String(x % 60).padStart(2, '0'); };
-function csa(g: any, conns: number[][], from: any, to: any, t0: number, maxCorse: number) {
+// pontili da cui partire / a cui arrivare: con un nome è quel pontile; con una posizione (lat,lng) tutti quelli raggiungibili a piedi
+// entro maxM, ognuno con i minuti di cammino (linea d'aria × 1,3 a 80 m al minuto). Così da Cannaregio si va a piedi
+// alle Fondamente Nove a prendere la linea diretta invece di salire al pontile più vicino e fare il giro.
+function places(g: any, q: string, maxM: number) {
+  if (!q) return [];
+  if (/^-?\d+\.\d+,-?\d+\.\d+$/.test(q)) {
+    const [la, lo] = q.split(',').map(Number);
+    const l = g.glist.map((x: any) => ({ x, d: hav(la, lo, x.lat, x.lng) })).sort((p: any, r: any) => p.d - r.d);
+    const near = l.filter((o: any, k: number) => k === 0 || o.d <= maxM).slice(0, 14);
+    return near.map((o: any) => ({ g: o.x, w: o.d < 40 ? 0 : Math.ceil(o.d * 1.3 / 80) }));
+  }
+  const x = findGroup(g, q); return x ? [{ g: x, w: 0 }] : [];
+}
+function csa(g: any, conns: number[][], from: any[], to: any[], t0: number, maxCorse: number) {
   const N = g.glist.length, best = new Array(N).fill(Infinity), inTrip = new Map<number, any>(), via: any[] = new Array(N).fill(null), rides = new Array(N).fill(99), wk = new Array(N).fill(0);
-  best[from.i] = t0; rides[from.i] = 0;
-  for (const [j, w] of g.walk[from.i]) if (t0 + w < best[j]) { best[j] = t0 + w; via[j] = { walk: true, from: from.i, dep: t0, arr: t0 + w }; rides[j] = 0; wk[j] = w; }
+  const tw = new Map<number, number>(); to.forEach((t) => tw.set(t.g.i, t.w));
+  const goal = () => { let m = Infinity; tw.forEach((w, i) => { if (best[i] + w < m) m = best[i] + w; }); return m; };
+  for (const s of from) if (t0 + s.w < best[s.g.i]) { best[s.g.i] = t0 + s.w; rides[s.g.i] = 0; wk[s.g.i] = s.w; via[s.g.i] = s.w ? { walk: true, from: -1, dep: t0, arr: t0 + s.w } : null; }
+  for (const s of from) for (const [j, w] of g.walk[s.g.i]) { const t = best[s.g.i] + w; if (t < best[j]) { best[j] = t; via[j] = { walk: true, from: s.g.i, dep: best[s.g.i], arr: t }; rides[j] = 0; wk[j] = wk[s.g.i] + w; } }
+  let lim = goal();
   for (const c of conns) {
     const [dep, arr, s1, s2, ti] = c, g1 = g.stopGroup[s1], g2 = g.stopGroup[s2];
+    if (dep > lim) break;
     const key = ti * 2 + (c[5] ? 1 : 0); let ride = inTrip.get(key);
     const ready = best[g1] + (via[g1] && !via[g1].walk ? 2 : 0), canBoard = ready <= dep && rides[g1] < maxCorse;
     if (!ride) {
-      if (canBoard) { ride = { board: g1, dep, ti, prev: via[g1], n: rides[g1] + 1, wk: wk[g1] }; inTrip.set(key, ride); }
+      if (canBoard) { ride = { board: g1, dep, ti, n: rides[g1] + 1, wk: wk[g1] }; inTrip.set(key, ride); }
     } else if (canBoard && g1 !== ride.board && (rides[g1] + 1 < ride.n || (rides[g1] + 1 === ride.n && wk[g1] < ride.wk))) {
       // stessa corsa, ma ci si può salire a una fermata raggiunta con meno cambi o camminando meno: sali lì
-      ride = { board: g1, dep, ti, prev: via[g1], n: rides[g1] + 1, wk: wk[g1] }; inTrip.set(key, ride);
+      ride = { board: g1, dep, ti, n: rides[g1] + 1, wk: wk[g1] }; inTrip.set(key, ride);
     }
     if (ride && (arr < best[g2] || (arr === best[g2] && (ride.n < rides[g2] || (ride.n === rides[g2] && ride.wk < wk[g2]))))) {
       best[g2] = arr; rides[g2] = ride.n; wk[g2] = ride.wk; via[g2] = { ti: ride.ti, from: ride.board, dep: ride.dep, arr, off: c[5] };
       for (const [j, w] of g.walk[g2]) if (arr + w < best[j]) { best[j] = arr + w; via[j] = { walk: true, from: g2, dep: arr, arr: arr + w }; rides[j] = ride.n; wk[j] = ride.wk + w; }
+      lim = goal();
     }
-    if (dep > best[to.i]) break;
   }
-  if (best[to.i] === Infinity) return null;
-  const legs: any[] = []; let cur = to.i, guard = 0;
-  while (cur !== from.i && via[cur] && guard++ < 20) { const v = via[cur]; legs.unshift({ ...v, to: cur }); cur = v.from; }
-  return { arrivo: best[to.i], legs: legs.map((l) => l.walk ? { tipo: 'piedi', da: g.glist[l.from].n, a: g.glist[l.to].n, min: l.arr - l.dep, parte: hhmm(l.dep) }
+  // arrivo: il pontile da cui si arriva prima a destinazione (contando il cammino finale); a pari tempo meno battelli e meno cammino
+  let end = -1, endT = Infinity;
+  tw.forEach((w, i) => { if (best[i] === Infinity || rides[i] === 0) return; const t = best[i] + w;
+    if (t < endT || (t === endT && end >= 0 && (rides[i] < rides[end] || (rides[i] === rides[end] && wk[i] + w < wk[end] + tw.get(end)!)))) { endT = t; end = i; } });
+  if (end < 0) return null;
+  const legs: any[] = []; let cur = end, guard = 0;
+  while (via[cur] && guard++ < 20) { const v = via[cur]; legs.unshift({ ...v, to: cur }); if (v.from < 0) break; cur = v.from; }
+  const nm = (i: number) => i < 0 ? 'partenza' : g.glist[i].n;
+  return { arrivo: best[end], fine: endT, fine_min: tw.get(end) || 0, da: nm(legs.find((l) => !l.walk)?.from ?? end), a: g.glist[end].n,
+    legs: legs.map((l) => l.walk ? { tipo: 'piedi', da: nm(l.from), a: g.glist[l.to].n, min: l.arr - l.dep, parte: hhmm(l.dep) }
     : { tipo: 'linea', linea: g.p.routes[g.p.trips[l.ti][0]][1], colore: g.p.routes[g.p.trips[l.ti][0]][2], azienda: g.p.routes[g.p.trips[l.ti][0]][3], direzione: g.p.heads[g.p.trips[l.ti][2]], da: g.glist[l.from].n, a: g.glist[l.to].n, parte: hhmm(l.dep), arriva: hhmm(l.arr), min: l.arr - l.dep }) };
 }
 Deno.serve(async (req) => {
@@ -156,16 +179,18 @@ Deno.serve(async (req) => {
       return json({ pontile: st.n, adesso: hhmm(now.min), partenze: out, orario_del: serviceDay(g, false).equivalente });
     }
     if (az === 'viaggio') {
-      const a = findGroup(g, q.get('da') || ''), b = findGroup(g, q.get('a') || '');
-      if (!a || !b) return json({ errore: 'pontile_non_trovato', da: a?.n, a: b?.n }, 404);
-      if (a.i === b.i) return json({ errore: 'stesso_pontile' }, 400);
+      const A = places(g, q.get('da') || '', 1000), B = places(g, q.get('a') || '', 700);
+      if (!A.length || !B.length) return json({ errore: 'pontile_non_trovato', da: A[0]?.g.n, a: B[0]?.g.n }, 404);
+      if (A.length === 1 && B.length === 1 && A[0].g.i === B[0].g.i) return json({ errore: 'stesso_pontile' }, 400);
       const t0 = now.min + Math.max(0, Math.min(180, +(q.get('fra') || 0)));
       const { conns } = connections(g, t0, t0 + 300);
-      const veloce = csa(g, conns, a, b, t0, 5), diretto = csa(g, conns, a, b, t0, 1);
-      // se senza cambi si arriva alla stessa ora, il percorso con i cambi non serve
-      const opz = (diretto && veloce && diretto.arrivo <= veloce.arrivo ? [diretto] : [veloce, diretto]).filter(Boolean)
-        .map((o: any) => ({ arrivo: hhmm(o.arrivo), durata_min: o.arrivo - now.min, cambi: Math.max(0, o.legs.filter((l: any) => l.tipo === 'linea').length - 1), tappe: o.legs }));
-      return json({ da: a.n, a: b.n, adesso: hhmm(now.min), opzioni: opz, orario_del: serviceDay(g, false).equivalente });
+      const veloce = csa(g, conns, A, B, t0, 5), diretto = csa(g, conns, A, B, t0, 1);
+      if (!veloce && !diretto && A.some((x) => B.some((y) => y.g.i === x.g.i))) return json({ errore: 'stesso_pontile' }, 400);
+      // senza cambi conviene se arriva al massimo 4 minuti dopo: il percorso con i cambi allora non serve
+      const opz = (diretto && veloce && diretto.fine <= veloce.fine + 4 ? [diretto] : [veloce, diretto]).filter(Boolean)
+        .map((o: any) => ({ arrivo: hhmm(o.arrivo), durata_min: o.arrivo - now.min, fine_min: o.fine_min, da: o.da, a: o.a, cambi: Math.max(0, o.legs.filter((l: any) => l.tipo === 'linea').length - 1), tappe: o.legs }));
+      const o0: any = opz[0];
+      return json({ da: o0 ? o0.da : A[0].g.n, a: o0 ? o0.a : B[0].g.n, fine_min: o0 ? o0.fine_min : 0, adesso: hhmm(now.min), opzioni: opz, orario_del: serviceDay(g, false).equivalente });
     }
     return json({ errore: 'azione_sconosciuta' }, 400);
   } catch (e) {

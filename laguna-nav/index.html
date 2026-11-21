@@ -3562,29 +3562,78 @@ function repairWater(line){
   }
   return out;
 }
+// case della mappa (tessere già caricate) in una griglia, per sapere se un tratto passa sopra un edificio
+let BLD = null; const EDGE_LAND = new Map();
+function bldIndex(){
+  const grid = new Map(), C = 0.001;
+  try{ map.querySourceFeatures("openmaptiles", { sourceLayer: "building" }).forEach(f => { const g = f.geometry, P = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : [];
+    P.forEach(rings => { const R = rings[0]; if (!R || R.length < 4) return; let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+      R.forEach(([x, y]) => { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; });
+      const it = { R, x0, y0, x1, y1 };
+      for (let gy = Math.floor(y0 / C); gy <= Math.floor(y1 / C); gy++) for (let gx = Math.floor(x0 / C); gx <= Math.floor(x1 / C); gx++){ const k = gy + ":" + gx; if (!grid.has(k)) grid.set(k, []); grid.get(k).push(it); } }); }); }catch(e){}
+  return grid;
+}
+function inBuilding(lat, lng){
+  const c = BLD && BLD.get(Math.floor(lat / 0.001) + ":" + Math.floor(lng / 0.001)); if (!c) return false;
+  return c.some(b => lng >= b.x0 && lng <= b.x1 && lat >= b.y0 && lat <= b.y1 && inRing(lng, lat, b.R));
+}
+function edgeLand(u, e){
+  const v = e[0], k = Math.min(u, v) * 4194304 + Math.max(u, v); if (EDGE_LAND.has(k)) return EDGE_LAND.get(k);
+  const d = hav(G.la[u], G.lo[u], G.la[v], G.lo[v]), n = Math.max(2, Math.ceil(d / 6)); let land = false;
+  for (let i = 1; i < n && !land; i++){ const t = i / n; land = inBuilding(G.la[u] + (G.la[v] - G.la[u]) * t, G.lo[u] + (G.lo[v] - G.lo[u]) * t); }
+  if (BLD && BLD.size) EDGE_LAND.set(k, land);   // si ricorda solo quando le case erano caricate
+  return land;
+}
+// punto d'acqua più vicino in linea d'aria: proiezione sul tratto di canale più vicino (la barca si ferma lì)
+function waterSnap(lat, lng, maxM){
+  if (!G.done) return null;
+  const kx = 78300, ky = 111000; let best = null;
+  for (const u of nodesAround(lat, lng, maxM + 150)){ for (const e of G.adj[u]){ const v = e[0]; if (v < u) continue;
+    const ax = (G.lo[u] - lng) * kx, ay = (G.la[u] - lat) * ky, bx = (G.lo[v] - lng) * kx, by = (G.la[v] - lat) * ky, dx = bx - ax, dy = by - ay, L = dx * dx + dy * dy;
+    const t = L ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / L)) : 0, px = ax + t * dx, py = ay + t * dy, d = Math.hypot(px, py);
+    if (d <= maxM && (!best || d < best.d)) best = { d, lat: lat + py / ky, lng: lng + px / kx, u, v, t }; } }
+  if (!best) return null;
+  best.n = best.t < 0.5 ? best.u : best.v; best.o = best.n === best.u ? best.v : best.u;   // nodo più vicino e l'altro capo del tratto
+  return best;
+}
 function computeRoute(from, to){
-  let pts = [[from.lat, from.lng]], names = [""], kinds = [1];
+  // partenza e arrivo sulla terra: la rotta parte e finisce nel punto d'acqua più vicino, mai sopra le case
+  const fromW = isWaterPt(from.lat, from.lng), toW = isWaterPt(to.lat, to.lng);
+  const sp = fromW ? null : waterSnap(from.lat, from.lng, 500), tp = toW ? null : waterSnap(to.lat, to.lng, 800);
+  const start = sp ? { lat: sp.lat, lng: sp.lng } : from, end = tp ? { lat: tp.lat, lng: tp.lng } : to;
+  let pts = [[start.lat, start.lng]], names = [""], kinds = [1];
   let src = "linea";
-  const a = waterEntryNode(from.lat, from.lng, 600) || gNear(from.lat, from.lng, 500),
-        b = waterEntryNode(to.lat, to.lng, 800) || gNear(to.lat, to.lng, 700);
+  const a = (sp && { n: sp.n }) || waterEntryNode(from.lat, from.lng, 600) || gNear(from.lat, from.lng, 500),
+        b = (tp && { n: tp.n }) || waterEntryNode(to.lat, to.lng, 800) || gNear(to.lat, to.lng, 700);
   if (a && b){
     const bl = blockedNodes();
-    let res = dijkstra(a.n, b.n, bl);
-    if (!res){   // con tutte le regole non si arriva: si calcola lo stesso e si avvisa
-      const cx = ruleCtx();
-      res = dijkstra(a.n, b.n, bl, true);
-      if (res && cx){ toast(cx.noZtl && inZtl(b.n) ? "⚠︎ La destinazione è nei rii di Venezia: con la barca da diporto possono entrare solo residenti e chi ha un posto barca del Comune."
-          : cx.cgBan ? "⚠︎ Adesso (feriali 8-12) parte del Canal Grande è vietata al diporto e non c'è un'altra strada: controlla prima di partire."
-          : "⚠︎ Non c'è un percorso che rispetti tutte le regole dei canali: controlla sensi unici e divieti."); }
-      if (!res && bl){ res = dijkstra(a.n, b.n, null, true); if (res) toast("Attenzione: con questa marea non c'è un percorso senza ponti bassi."); }
-    }
+    // i tratti di raccordo tra pezzi di rete (non canali veri) non possono attraversare le case
+    BLD = bldIndex(); const landOk = (u, e) => e[3] !== 1 || !edgeLand(u, e);
+    const run = () => {
+      let res = dijkstra(a.n, b.n, bl);
+      if (!res){   // con tutte le regole non si arriva: si calcola lo stesso e si avvisa
+        const cx = ruleCtx();
+        res = dijkstra(a.n, b.n, bl, true);
+        if (res && cx){ toast(cx.noZtl && inZtl(b.n) ? "⚠︎ La destinazione è nei rii di Venezia: con la barca da diporto possono entrare solo residenti e chi ha un posto barca del Comune."
+            : cx.cgBan ? "⚠︎ Adesso (feriali 8-12) parte del Canal Grande è vietata al diporto e non c'è un'altra strada: controlla prima di partire."
+            : "⚠︎ Non c'è un percorso che rispetti tutte le regole dei canali: controlla sensi unici e divieti."); }
+        if (!res && bl){ res = dijkstra(a.n, b.n, null, true); if (res) toast("Attenzione: con questa marea non c'è un percorso senza ponti bassi."); }
+      }
+      return res;
+    };
+    let res = null;
+    DIJ_EDGE_OK = landOk; try{ res = run(); } finally { DIJ_EDGE_OK = null; }
+    if (!res) res = run();   // solo se proprio non c'è altra strada
     if (res){
+      // il punto d'acqua sta sul tratto tra due nodi: se la rotta passa già dall'altro capo, non va fino in fondo e torna indietro
+      if (tp && res.path.length > 1 && res.path[res.path.length - 2] === tp.o){ res.path.pop(); res.segs.pop(); }
+      if (sp && res.path.length > 1 && res.path[1] === sp.o){ res.path.shift(); res.segs.shift(); }
       src = "rete";
       res.path.forEach((n, j) => { pts.push([G.la[n], G.lo[n]]); const e = res.segs[j]; names.push(e && e[2] >= 0 ? (G.names[e[2]] || "") : ""); kinds.push(e ? e[3] : 1); });
       if (res.segs.some(e => e && e[3] === 2)) src = "lavoro";
     }
   }
-  pts.push([to.lat, to.lng]); names.push(""); kinds.push(1);
+  pts.push([end.lat, end.lng]); names.push(""); kinds.push(1);
   if (src !== "linea"){                       // la rotta deve restare sull'acqua: ripara i tratti che taglierebbero la terra
     const fixed = repairWater(pts);
     if (fixed.length >= pts.length){
@@ -3594,7 +3643,7 @@ function computeRoute(from, to){
       pts = fixed; names = nn; kinds = kk;
     }
   }
-  const R = { pts, names, kinds, src, to };
+  const R = { pts, names, kinds, src, to, end };
   const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i-1] + hav(pts[i-1][0], pts[i-1][1], pts[i][0], pts[i][1]));
   R.cum = cum; R.len = cum[cum.length - 1];
   makeSteps(R); return R;
@@ -3721,7 +3770,7 @@ $("#stopNav").onclick = stopNav;
 function drawRoute(){
   if (!map || !map.getSource("route")) return;
   const R = NAV ? NAV.R : (PLAN && PLAN.R);
-  const coords = R ? R.pts.slice(NAV && !NAV.pending ? Math.max(0, NAV.idx || 0) : 0).map(p => [p[1], p[0]]) : [];
+  const coords = R && R.src !== "aria" ? R.pts.slice(NAV && !NAV.pending ? Math.max(0, NAV.idx || 0) : 0).map(p => [p[1], p[0]]) : [];
   if (NAV && !NAV.pending && R && lastPos && coords.length) coords.unshift([lastPos.lng, lastPos.lat]);
   map.getSource("route").setData({ type: "FeatureCollection", features: coords.length > 1 ? [{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: coords } }] : [] });
   const st = R && R.walk ? (mapMode === "sat" ? "ws" : "w") : "b";
@@ -3742,34 +3791,62 @@ function walkAir(from, to){
   for (let i = 0; i <= n; i++){ pts.push([from.lat + (to.lat - from.lat) * i / n, from.lng + (to.lng - from.lng) * i / n]); cum.push(d * 1.3 * i / n); }
   return { pts, cum, len: d * 1.3, steps: [], src: "aria", walk: true };
 }
+// percorso a piedi: solo calli, campi e ponti. Mai traghetti, gondole o vaporetti (le linee sull'acqua non valgono a piedi)
+function decodePoly6(str){
+  const out = []; let i = 0, la = 0, lo = 0;
+  while (i < str.length){
+    for (const k of [0, 1]){ let r = 0, sh = 0, b; do { b = str.charCodeAt(i++) - 63; r |= (b & 31) << sh; sh += 5; } while (b >= 32);
+      const d = r & 1 ? ~(r >> 1) : r >> 1; if (k === 0) la += d; else lo += d; }
+    out.push([la / 1e6, lo / 1e6]);
+  }
+  return out;
+}
+const VAL_TURN = { 8: "straight", 9: "slight right", 10: "right", 11: "sharp right", 12: "uturn", 13: "uturn", 14: "sharp left", 15: "left", 16: "slight left" };
+async function walkValhalla(from, to){
+  const q = { locations: [{ lat: from.lat, lon: from.lng }, { lat: to.lat, lon: to.lng }], costing: "pedestrian",
+    costing_options: { pedestrian: { use_ferry: 0, transit_start_end_max_distance: 0 } }, units: "kilometers", language: "it-IT" };
+  const j = await fetchT("https://valhalla1.openstreetmap.de/route?json=" + encodeURIComponent(JSON.stringify(q)), {}, 12000).then(r => r.json());
+  const lg = j && j.trip && j.trip.legs && j.trip.legs[0]; if (!lg || !lg.shape) return null;
+  const M = lg.maneuvers || [];
+  if (M.some(m => m.type === 28 || m.type === 29 || (m.travel_mode && m.travel_mode !== "pedestrian"))) return null;   // passerebbe sull'acqua
+  const pts = decodePoly6(lg.shape); if (pts.length < 2) return null;
+  const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + hav(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]));
+  const steps = [];
+  M.forEach(m => { const md = VAL_TURN[m.type]; if (!md || md === "straight") return; const t = WALK_TURN[md] || WALK_TURN.straight;
+    steps.push({ at: cum[Math.min(cum.length - 1, m.begin_shape_index || 0)], icon: t[0], turn: t[1], name: (m.street_names && m.street_names[0]) || "" }); });
+  return { pts, cum, len: cum[cum.length - 1], steps, src: "piedi", walk: true };
+}
+async function walkOsrm(from, to){
+  const u = `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${from.lng.toFixed(6)},${from.lat.toFixed(6)};${to.lng.toFixed(6)},${to.lat.toFixed(6)}?overview=full&geometries=geojson&steps=true`;
+  const j = await fetchT(u, {}, 12000).then(r => r.json()), rt = j && j.routes && j.routes[0];
+  if (!rt || !rt.geometry || rt.geometry.coordinates.length < 2) return null;
+  const S = (rt.legs && rt.legs[0] && rt.legs[0].steps) || [];
+  if (S.some(s => s.mode && s.mode !== "walking")) return null;   // traghetto o battello: a piedi non si passa sull'acqua
+  const pts = rt.geometry.coordinates.map(c => [c[1], c[0]]), cum = [0];
+  for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + hav(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]));
+  const steps = []; let at = 0;
+  S.forEach(s => { const mv = s.maneuver || {};
+    if (!/^(depart|arrive|new name)$/.test(mv.type || "") && !(mv.type === "continue" && (mv.modifier || "straight") === "straight")){
+      const t = WALK_TURN[mv.modifier] || WALK_TURN.straight; steps.push({ at, icon: t[0], turn: t[1], name: s.name || "" }); }
+    at += s.distance || 0; });
+  return { pts, cum, len: cum[cum.length - 1] || rt.distance, steps, src: "piedi", walk: true };
+}
 async function walkRoute(from, to){
-  try{
-    const u = `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${from.lng.toFixed(6)},${from.lat.toFixed(6)};${to.lng.toFixed(6)},${to.lat.toFixed(6)}?overview=full&geometries=geojson&steps=true`;
-    const j = await fetchT(u, {}, 12000).then(r => r.json()), rt = j && j.routes && j.routes[0];
-    if (!rt || !rt.geometry || rt.geometry.coordinates.length < 2) return walkAir(from, to);
-    const pts = rt.geometry.coordinates.map(c => [c[1], c[0]]), cum = [0];
-    for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + hav(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]));
-    const steps = []; let at = 0;
-    ((rt.legs && rt.legs[0] && rt.legs[0].steps) || []).forEach(s => { const mv = s.maneuver || {};
-      if (!/^(depart|arrive|new name)$/.test(mv.type || "") && !(mv.type === "continue" && (mv.modifier || "straight") === "straight")){
-        const t = WALK_TURN[mv.modifier] || WALK_TURN.straight; steps.push({ at, icon: t[0], turn: t[1], name: s.name || "" }); }
-      at += s.distance || 0; });
-    return { pts, cum, len: cum[cum.length - 1] || rt.distance, steps, src: "piedi", walk: true };
-  }catch(e){ return walkAir(from, to); }
+  try{ const r = await walkValhalla(from, to); if (r) return r; }catch(e){}
+  try{ const r = await walkOsrm(from, to); if (r) return r; }catch(e){}
+  return walkAir(from, to);
 }
 /* ---------- vaporetto: orari ACTV dalla posizione di partenza alla fermata più vicina all'arrivo ---------- */
 async function tripActv(from, to){
-  await loadPontiliActv();
-  const P = PONTILI_ACTV ? PONTILI_ACTV.p : [];
-  if (!P.length) return { err: "Orari dei vaporetti non disponibili adesso." };
-  const nearest = q => P.map(x => ({ x, d: hav(q.lat, q.lng, x[1], x[2]) })).sort((a, b) => a.d - b.d)[0];
-  const nt = nearest(to), nf = nearest(from);
-  if (nt.x[0] === nf.x[0]) return { err: "Partenza e arrivo sono vicini alla stessa fermata: conviene andare a piedi." };
+  // il server sceglie lui i pontili: tutti quelli raggiungibili a piedi dalla partenza e vicini all'arrivo, contando il cammino
+  const ll = p => encodeURIComponent(p.lat.toFixed(6) + "," + p.lng.toFixed(6));
   try{
-    const j = await ACTV("azione=viaggio&da=" + encodeURIComponent(from.lat.toFixed(6) + "," + from.lng.toFixed(6)) + "&a=" + encodeURIComponent(nt.x[0]));
-    if (j.errore) return { err: j.errore === "stesso_pontile" ? "Partenza e arrivo sono alla stessa fermata: conviene andare a piedi." : "Percorso in vaporetto non disponibile." };
+    const j = await ACTV("azione=viaggio&da=" + ll(from) + "&a=" + ll(to));
+    if (j.errore) return { err: j.errore === "stesso_pontile" ? "Partenza e arrivo sono vicini alla stessa fermata: conviene andare a piedi." : "Percorso in vaporetto non disponibile." };
     if (!j.opzioni || !j.opzioni.length) return { err: "Nessun battello utile nelle prossime ore." };
-    j.endWalk = nt.d > 60 ? Math.max(1, Math.round(nt.d * 1.3 / WALK_MS / 60)) : 0;
+    if (typeof j.fine_min === "number") j.endWalk = j.fine_min;
+    else { await loadPontiliActv(); const P = PONTILI_ACTV ? PONTILI_ACTV.p : [], n = P.map(x => hav(to.lat, to.lng, x[1], x[2])).sort((p, q) => p - q)[0];   // server vecchio: cammino dal pontile più vicino
+      j.endWalk = n > 60 ? Math.max(1, Math.round(n * 1.3 / WALK_MS / 60)) : 0; }
     const [hh, mm] = String(j.opzioni[0].arrivo || "").split(":").map(Number);
     if (!isNaN(hh)){ const a = new Date(); a.setHours(hh, mm, 0, 0); if (a < Date.now() - 36e5) a.setDate(a.getDate() + 1); j.totMin = Math.max(1, Math.round((a - Date.now()) / 60000) + j.endWalk); }
     return j;
@@ -3795,7 +3872,7 @@ function navTick(p){
   for (let i = from; i <= to; i++){ const d = hav(p.lat, p.lng, R.pts[i][0], R.pts[i][1]); if (d < bd){ bd = d; bi = i; } }
   if (bd > 60) for (let i = 0; i < R.pts.length; i++){ const d = hav(p.lat, p.lng, R.pts[i][0], R.pts[i][1]); if (d < bd){ bd = d; bi = i; } }
   NAV.idx = bi;
-  const toDest = hav(p.lat, p.lng, NAV.dest.lat, NAV.dest.lng);
+  const toDest = Math.min(hav(p.lat, p.lng, NAV.dest.lat, NAV.dest.lng), R.end ? hav(p.lat, p.lng, R.end.lat, R.end.lng) : Infinity);   // in barca si arriva al punto d'acqua più vicino
   if (toDest < 30){
     if (!NAV.arrived){ NAV.arrived = true; say("Sei arrivato"); buzz([200, 100, 200]); if (REC && REC.auto) stopRec(); }
     $("#mIcon").textContent = "⚑"; $("#mDist").textContent = "Sei arrivato"; $("#mText").textContent = NAV.dest.name;
@@ -3893,14 +3970,14 @@ function paintTravel(fit){
   } else if (m === "piedi"){
     const R = PLAN.R = PLAN.walk;
     if (!R){ info.textContent = "Calcolo il percorso a piedi…"; go.disabled = true; }
-    else { info.textContent = `${walkMin(R)} min · ${fmtDist(R.len)} · a piedi` + (R.src === "aria" ? " (linea d'aria)" : ""); go.textContent = "▶ Avvia a piedi"; }
+    else { info.textContent = `${walkMin(R)} min · ${fmtDist(R.len)} · a piedi` + (R.src === "aria" ? " (stima: percorso a piedi non disponibile adesso)" : ""); go.textContent = "▶ Avvia a piedi"; }
   } else if (m === "mezzi"){
     PLAN.R = null; const j = PLAN.trip;
     if (!j){ info.textContent = "Cerco i prossimi vaporetti…"; go.disabled = true; }
     else if (j.err){ info.textContent = j.err; go.disabled = true; }
     else {
       const o = j.opzioni[0]; info.textContent = `Arrivo ${o.arrivo}${j.endWalk ? " + " + j.endWalk + " min a piedi" : ""} · ${o.durata_min} min in vaporetto`;
-      more.innerHTML = `<p class="trnote" style="margin-top:0">Da <b>${esc(j.da)}</b> a <b>${esc(j.a)}</b></p>` + j.opzioni.map((op, k) => tripOptHtml(op, k) .replace(/<\/div>$/, (j.endWalk ? `<div class="leg">🚶 poi a piedi fino a ${esc(PLAN.to.name)} · ${j.endWalk} min</div>` : "") + "</div>")).join("") + orarioNote(j.orario_del);
+      more.innerHTML = `<p class="trnote" style="margin-top:0">Da <b>${esc(j.da)}</b> a <b>${esc(j.a)}</b></p>` + j.opzioni.map((op, k) => tripOptHtml(op, k) .replace(/<\/div>$/, ((op.fine_min ?? j.endWalk) ? `<div class="leg">🚶 poi a piedi fino a ${esc(PLAN.to.name)} · ${op.fine_min ?? j.endWalk} min</div>` : "") + "</div>")).join("") + orarioNote(j.orario_del);
       more.classList.remove("hidden");
       go.textContent = "🚶 Vai alla fermata";
     }
