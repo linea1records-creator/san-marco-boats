@@ -3829,7 +3829,7 @@ function decodePoly6(str){
 const VAL_TURN = { 8: "straight", 9: "slight right", 10: "right", 11: "sharp right", 12: "uturn", 13: "uturn", 14: "sharp left", 15: "left", 16: "slight left" };
 async function walkValhalla(from, to){
   const q = { locations: [{ lat: from.lat, lon: from.lng }, { lat: to.lat, lon: to.lng }], costing: "pedestrian",
-    costing_options: { pedestrian: { use_ferry: 0, transit_start_end_max_distance: 0 } }, units: "kilometers", language: "it-IT" };
+    costing_options: { pedestrian: { use_ferry: 0 } }, units: "kilometers", language: "it-IT" };
   const j = await fetchT("https://valhalla1.openstreetmap.de/route?json=" + encodeURIComponent(JSON.stringify(q)), {}, 12000).then(r => r.json());
   const lg = j && j.trip && j.trip.legs && j.trip.legs[0]; if (!lg || !lg.shape) return null;
   const M = lg.maneuvers || [];
@@ -3856,11 +3856,69 @@ async function walkOsrm(from, to){
     at += s.distance || 0; });
   return { pts, cum, len: cum[cum.length - 1] || rt.distance, steps, src: "piedi", walk: true };
 }
+/* rete pedonale di Venezia tutta sul telefono: calli, campi, fondamenta, sotoporteghi e ponti da OpenStreetMap
+   (scaricata una volta e tenuta 30 giorni). Le linee dei vaporetti e i traghetti non ci sono: a piedi si passa solo dai ponti. */
+const WG = { ready: null, la: [], lo: [], adj: [], names: [], grid: new Map() }, WG_BOX = [45.395, 12.285, 45.465, 12.395];
+const inWG = p => p.lat > WG_BOX[0] && p.lat < WG_BOX[2] && p.lng > WG_BOX[1] && p.lng < WG_BOX[3];
+function walkGraph(){
+  if (WG.ready) return WG.ready;
+  WG.ready = (async () => {
+    const KEY = location.origin + "/__walkgraph_v1"; let data = null;
+    try{ const c = await caches.open("ln-walk"), r = await c.match(KEY); if (r){ const j = await r.json(); if (j && j.w && Date.now() - j.t < 30 * 864e5) data = j; } }catch(e){}
+    if (!data){
+      const q = '[out:json][timeout:90];way["highway"~"^(footway|pedestrian|path|steps|living_street|residential|service|unclassified|corridor|track|tertiary|secondary|primary|platform)$"]["access"!~"^(private|no)$"]["foot"!="no"](' + WG_BOX.join(",") + ');out geom qt;';
+      for (const u of ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"]){
+        try{ const r = await fetchT(u, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "data=" + encodeURIComponent(q) }, 90000);
+          if (!r.ok) continue; const j = await r.json(), nm = [], ni = new Map(), w = [];
+          (j.elements || []).forEach(el => { if (!el.geometry || el.geometry.length < 2) return; const t = el.tags || {}, n = t.name || "";
+            let k = ni.get(n); if (k === undefined){ k = nm.length; nm.push(n); ni.set(n, k); }
+            const c = []; el.geometry.forEach(g => c.push(Math.round(g.lat * 1e6), Math.round(g.lon * 1e6))); w.push([k, t.highway === "steps" ? 1 : 0, c]); });
+          if (w.length > 500){ data = { t: Date.now(), n: nm, w }; break; }
+        }catch(e){}
+      }
+      if (!data) throw 0;
+      try{ const c = await caches.open("ln-walk"); await c.put(KEY, new Response(JSON.stringify(data), { headers: { "content-type": "application/json" } })); }catch(e){}
+    }
+    const key = new Map(), node = (a, b) => { const k = a * 1e9 + b; let i = key.get(k); if (i === undefined){ i = WG.la.length; key.set(k, i); WG.la.push(a / 1e6); WG.lo.push(b / 1e6); WG.adj.push([]);
+      const gk = Math.floor(a / 1e6 / 0.001) + ":" + Math.floor(b / 1e6 / 0.001); if (!WG.grid.has(gk)) WG.grid.set(gk, []); WG.grid.get(gk).push(i); } return i; };
+    WG.names = data.n;
+    data.w.forEach(([nk, st, c]) => { let prev = node(c[0], c[1]);
+      for (let i = 2; i < c.length; i += 2){ const cur = node(c[i], c[i + 1]); if (cur === prev) continue;
+        const d = hav(WG.la[prev], WG.lo[prev], WG.la[cur], WG.lo[cur]) * (st ? 1.15 : 1); WG.adj[prev].push([cur, d, nk]); WG.adj[cur].push([prev, d, nk]); prev = cur; } });
+    return true;
+  })().catch(() => { WG.ready = null; WG.la = []; WG.lo = []; WG.adj = []; WG.grid = new Map(); return false; });
+  return WG.ready;
+}
+function wgNear(lat, lng, maxM){
+  const gy = Math.floor(lat / 0.001), gx = Math.floor(lng / 0.001), r = Math.ceil(maxM / 80) + 1; let best = -1, bd = maxM;
+  for (let y = gy - r; y <= gy + r; y++) for (let x = gx - r; x <= gx + r; x++){ const c = WG.grid.get(y + ":" + x); if (!c) continue;
+    for (const n of c){ if (!WG.adj[n].length) continue; const d = hav(lat, lng, WG.la[n], WG.lo[n]); if (d < bd){ bd = d; best = n; } } }
+  return best < 0 ? null : best;
+}
+async function walkLocal(from, to){
+  if (!inWG(from) || !inWG(to)) return null;
+  const ok = await Promise.race([walkGraph(), new Promise(r => setTimeout(() => r(false), 45000))]); if (!ok) return null;
+  const a = wgNear(from.lat, from.lng, 250), b = wgNear(to.lat, to.lng, 250); if (a === null || b === null) return null;
+  const N = WG.la.length, d = new Float64Array(N).fill(Infinity), prev = new Int32Array(N).fill(-1), pn = new Int32Array(N).fill(-1);
+  const tla = WG.la[b], tlo = WG.lo[b], hh = n => hav(WG.la[n], WG.lo[n], tla, tlo), h = [[hh(a), a]]; d[a] = 0;
+  const push = x => { h.push(x); let i = h.length - 1; while (i > 0){ const q = (i - 1) >> 1; if (h[q][0] <= h[i][0]) break; [h[q], h[i]] = [h[i], h[q]]; i = q; } };
+  const pop = () => { const top = h[0], last = h.pop(); if (h.length){ h[0] = last; let i = 0; for (;;){ const l = 2 * i + 1, r = l + 1; let m = i;
+    if (l < h.length && h[l][0] < h[m][0]) m = l; if (r < h.length && h[r][0] < h[m][0]) m = r; if (m === i) break; [h[m], h[i]] = [h[i], h[m]]; i = m; } } return top; };
+  while (h.length){ const [f, u] = pop(); if (f - hh(u) > d[u] + 1e-6) continue; if (u === b) break;
+    for (const e of WG.adj[u]){ const nd = d[u] + e[1]; if (nd < d[e[0]]){ d[e[0]] = nd; prev[e[0]] = u; pn[e[0]] = e[2]; push([nd + hh(e[0]), e[0]]); } } }
+  if (d[b] === Infinity) return null;
+  const path = []; for (let v = b; v !== -1; v = prev[v]) path.push(v); path.reverse();
+  const pts = [[from.lat, from.lng]], names = [""]; path.forEach(n => { pts.push([WG.la[n], WG.lo[n]]); names.push(WG.names[pn[n]] || ""); }); pts.push([to.lat, to.lng]); names.push("");
+  const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + hav(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]));
+  const R = { pts, cum, len: cum[cum.length - 1], names, src: "piedi", walk: true }; makeSteps(R); return R;
+}
 async function walkRoute(from, to){
   try{ const r = await walkValhalla(from, to); if (r) return r; }catch(e){}
+  try{ const r = await walkLocal(from, to); if (r) return r; }catch(e){}   // rete delle calli sul telefono: solo ponti, niente vaporetti
   try{ const r = await walkOsrm(from, to); if (r) return r; }catch(e){}
   return walkAir(from, to);
 }
+setTimeout(() => { try{ if (!lastPos || inWG(lastPos)) walkGraph(); }catch(e){} }, 15000);   // la rete pedonale si prepara in anticipo
 /* ---------- vaporetto: orari ACTV dalla posizione di partenza alla fermata più vicina all'arrivo ---------- */
 async function tripActv(from, to){
   // il server sceglie lui i pontili: tutti quelli raggiungibili a piedi dalla partenza e vicini all'arrivo, contando il cammino
