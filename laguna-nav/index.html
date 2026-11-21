@@ -3612,6 +3612,11 @@ function edgeLand(u, e){
   return land;
 }
 function edgeLandUV(u, v){ return edgeLand(u, [v]); }
+/* rive pubbliche per la sosta a tempo del diporto (ordinanza 375/2014): non si vedono sulla mappa,
+   ma se una è vicina alla destinazione la rotta in barca o in taxi finisce lì */
+let RIVE = [];
+fetch("rive-diporto.json", { cache: "no-cache" }).then(r => r.json()).then(j => { RIVE = (j.rive || []).filter(x => x[4] && x[5]).map(x => ({ n: x[3], rio: x[1], lat: x[4], lng: x[5] })); }).catch(() => {});
+function nearestRiva(p, maxM){ let b = null, bd = maxM; RIVE.forEach(r => { const d = hav(p.lat, p.lng, r.lat, r.lng); if (d < bd){ bd = d; b = r; } }); return b; }
 // punto d'acqua più vicino in linea d'aria: proiezione sul tratto di canale più vicino (la barca si ferma lì)
 function waterSnap(lat, lng, maxM){
   if (!G.done) return null;
@@ -3628,7 +3633,8 @@ function computeRoute(from, to){
   // partenza e arrivo sulla terra: la rotta parte e finisce nel punto d'acqua più vicino, mai sopra le case
   try{ wmRefresh(); }catch(e){}
   const fromW = isWaterPt(from.lat, from.lng), toW = isWaterPt(to.lat, to.lng);
-  const sp = fromW ? null : waterSnap(from.lat, from.lng, 500), tp = toW ? null : waterSnap(to.lat, to.lng, 800);
+  const riva = toW ? null : nearestRiva(to, 350);   // riva per la sosta del diporto vicina alla destinazione: si arriva lì
+  const sp = fromW ? null : waterSnap(from.lat, from.lng, 500), tp = toW ? null : ((riva && waterSnap(riva.lat, riva.lng, 80)) || waterSnap(to.lat, to.lng, 800));
   const start = sp ? { lat: sp.lat, lng: sp.lng } : from, end = tp ? { lat: tp.lat, lng: tp.lng } : to;
   let pts = [[start.lat, start.lng]], names = [""], kinds = [1];
   let src = "linea";
@@ -3672,7 +3678,7 @@ function computeRoute(from, to){
       pts = fixed; names = nn; kinds = kk;
     }
   }
-  const R = { pts, names, kinds, src, to, end };
+  const R = { pts, names, kinds, src, to, end, riva: riva && tp ? riva : null };
   const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i-1] + hav(pts[i-1][0], pts[i-1][1], pts[i][0], pts[i][1]));
   R.cum = cum; R.len = cum[cum.length - 1];
   makeSteps(R); return R;
@@ -4105,6 +4111,7 @@ function paintTravel(fit){
     else if (m === "barca"){
       info.textContent = `${Math.max(1, Math.round(R.len / (12 / 3.6) / 60))} min · ${fmtDist(R.len)} · ` + (R.src === "lavoro" ? "tragitti abituali" : R.src === "rete" ? "rete dei canali" : "linea d'aria");
       go.textContent = "▶ Avvia in barca";
+      if (R.riva){ more.innerHTML = `<p class="trnote" style="margin-top:0">Arrivo alla riva per la sosta del diporto: <b>${esc(R.riva.n)}</b> (${esc(R.riva.rio)})</p>`; more.classList.remove("hidden"); }
       if (!activeBoat()){ more.innerHTML = `<p class="trnote" style="margin-top:0">Imposta la tua barca (cruscotto → La mia barca) per avere fondali e acqua sotto il piede.</p>`; more.classList.remove("hidden"); }
     } else {
       const t = PLAN.tx; info.textContent = `${t.lo}–${t.hi} € · circa ${t.min} min`; go.textContent = "🚕 Chiama un taxi";
