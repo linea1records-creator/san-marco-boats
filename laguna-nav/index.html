@@ -809,13 +809,13 @@
   #letRead.hidden{display:none}
   #letRead .lrBack{position:absolute;inset:0;background:rgba(5,7,6,.72)}
   #letRead .lrBox{position:relative;width:min(92vw,440px);display:flex;flex-direction:column;align-items:center}
-  .lrEnv{position:relative;width:min(84vw,360px);aspect-ratio:1.55;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.5);cursor:pointer;overflow:visible}
+  .lrEnv{position:relative;z-index:1;width:min(84vw,360px);aspect-ratio:1.55;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.5);cursor:pointer;overflow:visible}
   .lrEnv .flap{position:absolute;left:0;right:0;top:0;height:58%;clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;transition:transform .6s ease;filter:brightness(.93)}
   .lrEnv.open .flap{transform:rotateX(180deg)}
   .lrEnv .seal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:34px;transition:opacity .3s}
   .lrEnv.open .seal{opacity:0}
   .lrEnv .who{position:absolute;bottom:10px;left:0;right:0;text-align:center;font:600 14px Georgia,serif;opacity:.75}
-  .lrPaper{width:min(88vw,400px);max-height:62vh;overflow:auto;margin-top:-40px;padding:22px 20px 18px;border-radius:6px;box-shadow:0 12px 30px rgba(0,0,0,.5);
+  .lrPaper{position:relative;z-index:2;width:min(88vw,400px);max-height:62vh;overflow:auto;margin-top:-40px;padding:22px 20px 18px;border-radius:6px;box-shadow:0 12px 30px rgba(0,0,0,.5);
     font:17px/1.55 Georgia,"Times New Roman",serif;white-space:pre-wrap;word-wrap:break-word;transform:translateY(40px) scale(.9);opacity:0;transition:all .6s ease .35s}
   .lrPaper.show{transform:none;opacity:1}
   .lrPaper .lrFrom{display:block;margin-top:16px;text-align:right;font-style:italic;font-size:14px;opacity:.8}
