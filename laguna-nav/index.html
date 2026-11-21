@@ -1503,7 +1503,7 @@ function introThenOpen(){
   setTimeout(() => { c.remove(); $("#splash").classList.remove("leave"); openApp(); }, 1760);
 }
 function openApp(){
-  setTimeout(() => { try{ askCompass(); setCam("persona"); }catch(e){} }, 700);   // appena aperta: posizione accesa e prima persona sul tuo avatar
+  setTimeout(() => { try{ askCompass(); if (watchId === null) startGps(); setCam("alto"); }catch(e){} }, 700);   // appena aperta: Venezia dall'alto (la posizione si accende lo stesso)
   $("#splash").classList.add("hidden");
   $("#app").classList.remove("hidden");
   if (!window._mapReady) initMap();
@@ -2792,14 +2792,16 @@ let headingSrc = store.get("ln_hsrc", "phone"), courseHeading = null, compassAt 
 // Tenendolo premuto 2 secondi e trascinando su o giù si allontana o si avvicina la visuale (resta incollata all'avatar)
 let fpZoom = store.get("ln_fpzoom", 19.4), gpsHold = null;
 /* telecamera: prima persona (omino) → libera (due dita) → Venezia dall'alto (mappa) → di nuovo prima persona */
-let CAM = "persona";
+let CAM = "alto";
 const CAM_IC = {
   persona: '<circle cx="12" cy="5.3" r="2.6"/><path d="M12 8.4v6.4M7.8 11.2l4.2-1.6 4.2 1.6M9.3 21l2.7-6.2 2.7 6.2"/>',
   libera: '<path d="M8.6 20.6l-1.9-3.7a1.6 1.6 0 0 1 2.6-1.8l1.3 1.4V8.3a1.5 1.5 0 0 1 3 0V13l3.3.6a2 2 0 0 1 1.6 2.3l-.8 4.7"/><path d="M3.8 7.8L6.6 5M3.8 7.8h2.4M3.8 7.8V5.4M20.2 4.4L17.4 7.2M20.2 4.4h-2.4M20.2 4.4v2.4"/>',
   alto: '<path d="M3.5 6.6l5.5-2.4 6 2.4 5.5-2.4v13.4l-5.5 2.4-6-2.4-5.5 2.4z"/><path d="M9 4.2v13.4M15 6.6V20"/>'
 };
 const CAM_N = { persona: "Prima persona", libera: "Visuale libera", alto: "Venezia dall'alto" };
-function paintCam(){ const b = $("#fabGps"); if (!b) return; b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${CAM_IC[CAM]}</svg>`; b.title = CAM_N[CAM] + " · tocca per cambiare visuale"; b.dataset.cam = CAM; }
+// il tasto mostra la visuale in cui entri toccandolo (non quella in cui sei)
+const CAM_NEXT = { persona: "libera", libera: "alto", alto: "persona" };
+function paintCam(){ const b = $("#fabGps"); if (!b) return; const nx = CAM_NEXT[CAM] || "persona"; b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${CAM_IC[nx]}</svg>`; b.title = "Tocca per: " + CAM_N[nx]; b.dataset.cam = CAM; }
 function setCam(m){
   if (m === "persona"){ if (TRK && TRK.follow){ TRK.follow = false; paintTrkBtn(); } if (watchId === null) startGps(); setFirstPerson(true); setFollow(true); CAM = "persona"; if (lastPos) camera(true); }
   else if (m === "libera"){ setFirstPerson(false); setFollow(false); CAM = "libera"; }   // la mappa resta dov'è: la muovi tu con le dita
@@ -2809,7 +2811,7 @@ function setCam(m){
 }
 function gpsTap(){
   askCompass();                       // su iPhone il permesso della bussola si chiede solo dentro il tocco
-  setCam({ persona: "libera", libera: "alto", alto: "persona" }[CAM] || "persona");
+  setCam(CAM_NEXT[CAM] || "persona");
 }
 function modeFlash(t){ let el = $("#modeFlash"); if (!el){ el = document.createElement("div"); el.id = "modeFlash"; document.body.appendChild(el); }
   el.textContent = t; el.classList.add("on"); clearTimeout(modeFlash.t); modeFlash.t = setTimeout(() => el.classList.remove("on"), 500); }
@@ -2903,7 +2905,7 @@ function onPos(pos){
   $("#spd").textContent = kmh < 0.5 ? "0" : kmh.toFixed(kmh < 10 ? 1 : 0);
   $("#kn").textContent = (speedMs * 1.94384).toFixed(1) + " nodi";
   if (map){
-    if (!meMarker){ meMarker = makeArrow().setLngLat([p.lng, p.lat]).addTo(map); camera(true); }
+    if (!meMarker){ meMarker = makeArrow().setLngLat([p.lng, p.lat]).addTo(map); if (follow || view3d) camera(true); }   // dall'alto la visuale resta su Venezia
     else if (!disp) meMarker.setLngLat([p.lng, p.lat]);
     drawMan(); pushMyLoc(p);
   }
