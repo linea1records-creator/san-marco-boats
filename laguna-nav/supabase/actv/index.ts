@@ -93,8 +93,12 @@ const hhmm = (m: number) => { const x = ((m % 1440) + 1440) % 1440; return Strin
 // pontili da cui partire / a cui arrivare: con un nome è quel pontile; con una posizione (lat,lng) tutti quelli raggiungibili a piedi
 // entro maxM, ognuno con i minuti di cammino (linea d'aria × 1,3 a 80 m al minuto). Così da Cannaregio si va a piedi
 // alle Fondamente Nove a prendere la linea diretta invece di salire al pontile più vicino e fare il giro.
-function places(g: any, q: string, maxM: number) {
+function places(g: any, q: string, maxM: number, wl?: string | null) {
   if (!q) return [];
+  // minuti a piedi calcolati dal telefono sulla rete delle calli e dei ponti ("nome~minuti|nome~minuti"): più giusti della linea d'aria,
+  // che non sa che per passare il Canal Grande serve un ponte
+  if (wl) { const out: any[] = []; for (const it of wl.split('|')) { const [n, m] = it.split('~'); const k = norm(n || ''), x = g.glist.find((y: any) => y.k === k); if (x && isFinite(+m)) out.push({ g: x, w: Math.max(0, Math.round(+m)) }); }
+    if (out.length) return out; }
   if (/^-?\d+\.\d+,-?\d+\.\d+$/.test(q)) {
     const [la, lo] = q.split(',').map(Number);
     const l = g.glist.map((x: any) => ({ x, d: hav(la, lo, x.lat, x.lng) })).sort((p: any, r: any) => p.d - r.d);
@@ -103,13 +107,15 @@ function places(g: any, q: string, maxM: number) {
   }
   const x = findGroup(g, q); return x ? [{ g: x, w: 0 }] : [];
 }
+// orari a connessioni: best = quando posso essere a un pontile (anche a piedi, serve per salire), rb = quando ci arrivo in battello
 function csa(g: any, conns: number[][], from: any[], to: any[], t0: number, maxCorse: number) {
   const N = g.glist.length, best = new Array(N).fill(Infinity), inTrip = new Map<number, any>(), via: any[] = new Array(N).fill(null), rides = new Array(N).fill(99), wk = new Array(N).fill(0);
+  const rb = new Array(N).fill(Infinity), rv: any[] = new Array(N).fill(null), rn = new Array(N).fill(99), rw = new Array(N).fill(0);
   const tw = new Map<number, number>(); to.forEach((t) => tw.set(t.g.i, t.w));
-  const goal = () => { let m = Infinity; tw.forEach((w, i) => { if (best[i] + w < m) m = best[i] + w; }); return m; };
+  const goal = () => { let m = Infinity; tw.forEach((w, i) => { if (rb[i] + w < m) m = rb[i] + w; }); return m; };
   for (const s of from) if (t0 + s.w < best[s.g.i]) { best[s.g.i] = t0 + s.w; rides[s.g.i] = 0; wk[s.g.i] = s.w; via[s.g.i] = s.w ? { walk: true, from: -1, dep: t0, arr: t0 + s.w } : null; }
-  for (const s of from) for (const [j, w] of g.walk[s.g.i]) { const t = best[s.g.i] + w; if (t < best[j]) { best[j] = t; via[j] = { walk: true, from: s.g.i, dep: best[s.g.i], arr: t }; rides[j] = 0; wk[j] = wk[s.g.i] + w; } }
-  let lim = goal();
+  let lim = Infinity;
+  const better = (t: number, n: number, w: number, T: number, N2: number, W: number) => t < T || (t === T && (n < N2 || (n === N2 && w < W)));
   for (const c of conns) {
     const [dep, arr, s1, s2, ti] = c, g1 = g.stopGroup[s1], g2 = g.stopGroup[s2];
     if (dep > lim) break;
@@ -121,21 +127,29 @@ function csa(g: any, conns: number[][], from: any[], to: any[], t0: number, maxC
       // stessa corsa, ma ci si può salire a una fermata raggiunta con meno cambi o camminando meno: sali lì
       ride = { board: g1, dep, ti, n: rides[g1] + 1, wk: wk[g1] }; inTrip.set(key, ride);
     }
-    if (ride && (arr < best[g2] || (arr === best[g2] && (ride.n < rides[g2] || (ride.n === rides[g2] && ride.wk < wk[g2]))))) {
-      best[g2] = arr; rides[g2] = ride.n; wk[g2] = ride.wk; via[g2] = { ti: ride.ti, from: ride.board, dep: ride.dep, arr, off: c[5] };
-      for (const [j, w] of g.walk[g2]) if (arr + w < best[j]) { best[j] = arr + w; via[j] = { walk: true, from: g2, dep: arr, arr: arr + w }; rides[j] = ride.n; wk[j] = ride.wk + w; }
+    if (!ride) continue;
+    const leg = { ti: ride.ti, from: ride.board, dep: ride.dep, arr, off: c[5] };
+    if (better(arr, ride.n, ride.wk, rb[g2], rn[g2], rw[g2])) {
+      rb[g2] = arr; rn[g2] = ride.n; rw[g2] = ride.wk; rv[g2] = leg;
+      for (const [j, w] of g.walk[g2]) if (better(arr + w, ride.n, ride.wk + w, rb[j], rn[j], rw[j])) { rb[j] = arr + w; rn[j] = ride.n; rw[j] = ride.wk + w; rv[j] = { walk: true, from: g2, dep: arr, arr: arr + w }; }
       lim = goal();
+    }
+    if (better(arr, ride.n, ride.wk, best[g2], rides[g2], wk[g2])) {
+      best[g2] = arr; rides[g2] = ride.n; wk[g2] = ride.wk; via[g2] = leg;
+      for (const [j, w] of g.walk[g2]) if (better(arr + w, ride.n, ride.wk + w, best[j], rides[j], wk[j])) { best[j] = arr + w; via[j] = { walk: true, from: g2, dep: arr, arr: arr + w }; rides[j] = ride.n; wk[j] = ride.wk + w; }
     }
   }
   // arrivo: il pontile da cui si arriva prima a destinazione (contando il cammino finale); a pari tempo meno battelli e meno cammino
   let end = -1, endT = Infinity;
-  tw.forEach((w, i) => { if (best[i] === Infinity || rides[i] === 0) return; const t = best[i] + w;
-    if (t < endT || (t === endT && end >= 0 && (rides[i] < rides[end] || (rides[i] === rides[end] && wk[i] + w < wk[end] + tw.get(end)!)))) { endT = t; end = i; } });
+  tw.forEach((w, i) => { if (rb[i] === Infinity) return; const t = rb[i] + w;
+    if (t < endT || (t === endT && end >= 0 && (rn[i] < rn[end] || (rn[i] === rn[end] && rw[i] + w < rw[end] + tw.get(end)!)))) { endT = t; end = i; } });
   if (end < 0) return null;
-  const legs: any[] = []; let cur = end, guard = 0;
-  while (via[cur] && guard++ < 20) { const v = via[cur]; legs.unshift({ ...v, to: cur }); if (v.from < 0) break; cur = v.from; }
+  const legs: any[] = []; let cur = end, guard = 0, v = rv[end];
+  if (v && v.walk) { legs.unshift({ ...v, to: cur }); cur = v.from; v = rv[cur]; }
+  if (v) { legs.unshift({ ...v, to: cur }); cur = v.from; }
+  while (cur >= 0 && via[cur] && guard++ < 20) { const x = via[cur]; legs.unshift({ ...x, to: cur }); cur = x.from; }
   const nm = (i: number) => i < 0 ? 'partenza' : g.glist[i].n;
-  return { arrivo: best[end], fine: endT, fine_min: tw.get(end) || 0, da: nm(legs.find((l) => !l.walk)?.from ?? end), a: g.glist[end].n,
+  return { arrivo: rb[end], fine: endT, fine_min: tw.get(end) || 0, da: nm(legs.find((l) => !l.walk)?.from ?? end), a: g.glist[end].n,
     legs: legs.map((l) => l.walk ? { tipo: 'piedi', da: nm(l.from), a: g.glist[l.to].n, min: l.arr - l.dep, parte: hhmm(l.dep) }
     : { tipo: 'linea', linea: g.p.routes[g.p.trips[l.ti][0]][1], colore: g.p.routes[g.p.trips[l.ti][0]][2], azienda: g.p.routes[g.p.trips[l.ti][0]][3], direzione: g.p.heads[g.p.trips[l.ti][2]], da: g.glist[l.from].n, a: g.glist[l.to].n, parte: hhmm(l.dep), arriva: hhmm(l.arr), min: l.arr - l.dep }) };
 }
@@ -179,7 +193,7 @@ Deno.serve(async (req) => {
       return json({ pontile: st.n, adesso: hhmm(now.min), partenze: out, orario_del: serviceDay(g, false).equivalente });
     }
     if (az === 'viaggio') {
-      const A = places(g, q.get('da') || '', 1000), B = places(g, q.get('a') || '', 700);
+      const A = places(g, q.get('da') || '', 1000, q.get('dw')), B = places(g, q.get('a') || '', 700, q.get('aw'));
       if (!A.length || !B.length) return json({ errore: 'pontile_non_trovato', da: A[0]?.g.n, a: B[0]?.g.n }, 404);
       if (A.length === 1 && B.length === 1 && A[0].g.i === B[0].g.i) return json({ errore: 'stesso_pontile' }, 400);
       const t0 = now.min + Math.max(0, Math.min(180, +(q.get('fra') || 0)));

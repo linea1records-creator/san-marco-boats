@@ -3920,11 +3920,30 @@ async function walkRoute(from, to){
 }
 setTimeout(() => { try{ if (!lastPos || inWG(lastPos)) walkGraph(); }catch(e){} }, 15000);   // la rete pedonale si prepara in anticipo
 /* ---------- vaporetto: orari ACTV dalla posizione di partenza alla fermata più vicina all'arrivo ---------- */
+// minuti a piedi da un punto ai pontili vicini, sulla rete delle calli e dei ponti (per il Canal Grande serve un ponte: la linea d'aria sbaglia)
+async function walkMinsPontili(p, maxM){
+  try{
+    if (!inWG(p)) return null;
+    const ok = await Promise.race([walkGraph(), new Promise(r => setTimeout(() => r(false), 5000))]); if (!ok) return null;
+    await loadPontiliActv(); const P = (PONTILI_ACTV && PONTILI_ACTV.p || []).filter(x => hav(p.lat, p.lng, x[1], x[2]) <= maxM); if (!P.length) return null;
+    const a = wgNear(p.lat, p.lng, 200); if (a === null) return null;
+    const N = WG.la.length, d = new Float64Array(N).fill(Infinity), h = [[0, a]], CUT = maxM * 2; d[a] = 0;
+    const push = x => { h.push(x); let i = h.length - 1; while (i > 0){ const q = (i - 1) >> 1; if (h[q][0] <= h[i][0]) break; [h[q], h[i]] = [h[i], h[q]]; i = q; } };
+    const pop = () => { const top = h[0], last = h.pop(); if (h.length){ h[0] = last; let i = 0; for (;;){ const l = 2 * i + 1, r = l + 1; let m = i;
+      if (l < h.length && h[l][0] < h[m][0]) m = l; if (r < h.length && h[r][0] < h[m][0]) m = r; if (m === i) break; [h[m], h[i]] = [h[i], h[m]]; i = m; } } return top; };
+    while (h.length){ const [du, u] = pop(); if (du > d[u] || du > CUT) continue; for (const e of WG.adj[u]){ const nd = du + e[1]; if (nd < d[e[0]]){ d[e[0]] = nd; push([nd, e[0]]); } } }
+    const sa = hav(p.lat, p.lng, WG.la[a], WG.lo[a]), out = [];
+    P.forEach(x => { const n = wgNear(x[1], x[2], 120); if (n === null || d[n] === Infinity) return;
+      const m = (sa + d[n] + hav(x[1], x[2], WG.la[n], WG.lo[n])) / WALK_MS / 60; if (m <= 25) out.push([x[0], Math.max(0, Math.ceil(m))]); });
+    return out.length ? out.sort((q, r) => q[1] - r[1]).slice(0, 14).map(x => x[0] + "~" + x[1]).join("|") : null;
+  }catch(e){ return null; }
+}
 async function tripActv(from, to){
   // il server sceglie lui i pontili: tutti quelli raggiungibili a piedi dalla partenza e vicini all'arrivo, contando il cammino
   const ll = p => encodeURIComponent(p.lat.toFixed(6) + "," + p.lng.toFixed(6));
   try{
-    const j = await ACTV("azione=viaggio&da=" + ll(from) + "&a=" + ll(to));
+    const [dw, aw] = await Promise.all([walkMinsPontili(from, 1100), walkMinsPontili(to, 800)]);
+    const j = await ACTV("azione=viaggio&da=" + ll(from) + "&a=" + ll(to) + (dw ? "&dw=" + encodeURIComponent(dw) : "") + (aw ? "&aw=" + encodeURIComponent(aw) : ""));
     if (j.errore) return { err: j.errore === "stesso_pontile" ? "Partenza e arrivo sono vicini alla stessa fermata: conviene andare a piedi." : "Percorso in vaporetto non disponibile." };
     if (!j.opzioni || !j.opzioni.length) return { err: "Nessun battello utile nelle prossime ore." };
     if (typeof j.fine_min === "number") j.endWalk = j.fine_min;
