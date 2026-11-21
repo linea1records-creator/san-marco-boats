@@ -518,6 +518,31 @@
   .mcic .av{width:34px;height:34px;font-size:15px}
   .mcic i{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:#d32f2f;color:#fff;font-size:11px;font-style:normal;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px}
   .mcseg{margin-bottom:12px}
+  /* myClick e Marketplace chiari, stile Instagram: bianco, verde dell'acqua e marrone della terra */
+  .lightv{background:#fff;color:#111;--panel:#fff;--panel2:#f4f6f5;--line:#e6e9e7;--text:#111;--muted:#6f7a74;--accent:#3dc991}
+  .lightv .card{background:#fff;border:1px solid #e6e9e7;box-shadow:none;color:#111}
+  .lightv .btn{background:#3dc991;color:#fff;border:0} .lightv .btn.ghost{background:#f4f6f5;color:#111;border:1px solid #e6e9e7}
+  .lightv input,.lightv textarea,.lightv select{background:#f4f6f5!important;color:#111!important;border:1px solid #e6e9e7!important}
+  .lightv .muted,.lightv .sub{color:#6f7a74}
+  .lightv .pill{background:#f3e6e1;color:#b5533c}
+  .igh{display:flex;align-items:center;gap:6px;margin:0 0 12px} .igh h2{flex:1;margin:0;font-size:27px;font-weight:800;letter-spacing:-.02em;color:#111!important;background:none!important;-webkit-text-fill-color:#111}
+  .lightv .mcic{background:none;border:0;color:#111;width:40px;height:40px} .lightv .mcic svg{width:26px;height:26px;fill:none;stroke:#111;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .lightv .mcic i{background:#b5533c}
+  .igtools{display:flex;gap:14px;overflow-x:auto;padding:2px 2px 12px;margin:0 -4px 6px;scrollbar-width:none} .igtools::-webkit-scrollbar{display:none}
+  .igtools button{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;color:#111;font-size:11.5px;width:68px}
+  .igtools i{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:3px;background:conic-gradient(#3dc991,#b5533c,#3dc991)}
+  .igtools i svg{width:100%;height:100%;border-radius:50%;background:#fff;border:3px solid #fff;box-sizing:border-box;padding:12px;fill:none;stroke:#111;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .igtools i svg .f{fill:#111;stroke:none}
+  .igtools button:active i{transform:scale(.94)}
+  .igtabs{display:flex;border-top:1px solid #e6e9e7;border-bottom:1px solid #e6e9e7;margin:0 -18px 14px;position:sticky;top:-18px;background:#fff;z-index:2}
+  .igtabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 7px;background:none;border:0;border-bottom:2px solid transparent;color:#8a948e;font-size:11px;font-weight:600}
+  .igtabs button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .igtabs button .av{width:24px;height:24px;font-size:11px}
+  .igtabs button.on{color:#111;border-bottom-color:#3dc991}
+  .igchips{display:flex;gap:8px;margin-bottom:12px} .igchips button{padding:7px 14px;border-radius:999px;border:1px solid #e6e9e7;background:#fff;color:#111;font-weight:700;font-size:13px}
+  .igchips button.on{background:#b5533c;border-color:#b5533c;color:#fff}
+  #meetBack{display:none;align-self:flex-start;margin-bottom:6px;padding:7px 12px;border-radius:999px;background:#fff;color:#111;font-weight:800;font-size:13px;border:0;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+  body.meet-from-my #meetBack{display:inline-block}
   .compose{padding:12px} .cmrow{display:flex;gap:10px;align-items:flex-start}
   .compose textarea{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:18px;color:var(--text);padding:10px 14px;font-size:15px;resize:none;font-family:inherit;min-height:44px}
   #cmImg{width:100%;max-height:280px;object-fit:cover;border-radius:12px;margin-top:10px}
@@ -858,9 +883,9 @@
 </style>
 <style id="modeColors">
   /* colore di ogni modalità: tasto premuto, banner e tasti principali del suo pannello */
-  :root{ --c-market:#c8102e; --c-meet:#f7b928; --c-sport:#7c3aed; --c-my:#1877f2 }
+  :root{ --c-market:#c8102e; --c-meet:#f7b928; --c-shop:#b5533c; --c-water:#3dc991; --c-land:#b5533c; --c-sport:#7c3aed; --c-my:#1877f2 }
   #tabs [data-pm="market"].on{color:var(--c-market)!important}
-  #tabs [data-pm="meet"].on{color:var(--c-meet)!important}
+  #tabs [data-pm="shop"].on{color:var(--c-shop)!important}
   #tabs [data-pm="sport"].on{color:var(--c-sport)!important}
   #tabs [data-pm="my"].on{color:var(--c-my)!important}
   #tabs button.on .c{stroke:#fff!important}
@@ -960,6 +985,7 @@
 
     <!-- incontra -->
     <div id="meetTop">
+      <button id="meetBack">‹ myClick</button>
       <div id="meetModes"><button data-mm="map" class="on">🗺️ Stati</button><button data-mm="match">🔥 Click Match</button><button data-mm="video">🎥 Videochat</button></div>
       <button id="meetBanner"><span id="mbIcon">✨</span><span id="mbText"><b>Aggiorna il tuo stato</b><small>Fatti trovare da chi è in giro a Venezia</small></span><span>›</span></button>
       <button id="evBanner"><span class="evi">🎉</span><span class="evt"><b>Feste ed eventi della settimana</b><small id="evSub">Cosa succede a Venezia nei prossimi giorni</small></span><span>›</span></button>
@@ -979,12 +1005,12 @@
       <video id="vcLocal" autoplay playsinline muted></video>
       <div id="vcTop"><b id="vcWho">🎥 Videochat</b><span id="vcState">Pronto</span><button class="ovx" data-ovx>✕</button></div>
       <div id="vcStart" class="vcstart">
-        <div class="big">🎥</div><h3>Videochat casuale</h3>
+        <div class="big">🎲</div><h3>Roulette video</h3>
         <p>Parli a caso con chi sta usando unClick in questo momento, in tutte le città. Solo maggiorenni.</p>
         <ul><li>Se qualcuno ti mette a disagio tocca <b>⚑ Segnala</b>: lo blocchi subito e chi riceve più segnalazioni viene sospeso.</li><li>Non mostrare documenti, indirizzi o dati personali.</li><li>Il video passa direttamente tra i due telefoni e non viene registrato.</li></ul>
-        <button class="btn" id="vcGo">Inizia</button>
+        <button class="btn" id="vcGo">🎲 Lancia i dadi</button>
       </div>
-      <div id="vcBar"><button id="vcMute" title="Microfono">🎙️</button><button id="vcRep" title="Segnala">⚑</button><button id="vcNext" class="vcnext">⏭ Prossimo</button></div>
+      <div id="vcBar"><button id="vcMute" title="Microfono">🎙️</button><button id="vcRep" title="Segnala">⚑</button><button id="vcNext" class="vcnext">🎲 Prossimo</button></div>
     </div>
     <button class="fab" id="fabMatch" title="I tuoi match">💬<i id="matchBadge" class="hidden"></i></button>
 
@@ -1168,13 +1194,10 @@
   <!-- ORDINA -->
   <section class="view hidden" id="v-order">
     <div class="scroll">
-      <div class="backbar" data-back="market">‹ Ordina</div>
-      <h2>Ordina · Food</h2>
-      <div class="seg" id="mktSeg">
+      <div class="backbar" data-back="market">‹ Delivery</div>
+      <h2>Delivery</h2>
+      <div class="seg hidden" id="mktSeg">
         <button data-k="food" class="on">🍝 Food</button>
-        <button data-k="shop">🛍️ Shopping</button>
-        <button data-k="boats">⛵ Barche</button>
-        <button data-k="used">♻️ Usato</button>
       </div>
       <div id="mkt-other" class="hidden"></div>
       <div id="mkt-food">
@@ -1189,6 +1212,16 @@
     </div>
   </section>
 
+  <!-- MARKETPLACE: negozi, barche e usato (il cibo resta in Delivery) -->
+  <section class="view hidden" id="v-shop">
+    <div class="scroll lightv" id="shopScroll">
+      <div class="igh"><h2>Marketplace</h2></div>
+      <div class="field" style="margin-bottom:10px"><input id="shopQ" type="search" placeholder="Cerca negozi, barche, annunci…"></div>
+      <div class="igchips" id="shopSeg"><button data-sk="shop" class="on">Negozi</button><button data-sk="boats">Barche</button><button data-sk="used">Usato</button></div>
+      <div id="shopBody"></div>
+    </div>
+  </section>
+
   <!-- INCONTRA -->
   <section class="view hidden" id="v-meet">
     <div class="scroll" id="meetBox"></div>
@@ -1196,9 +1229,26 @@
 
   <!-- PROFILO -->
   <section class="view hidden" id="v-profile">
-    <div class="scroll" id="pfScroll">
-      <div class="mchead"><h2>myClick</h2><button id="pfFrBtn" class="mcic" title="Amici">👥<i id="frBadge" class="hidden"></i></button><button id="pfMeBtn" class="mcic" title="Il mio profilo"><span class="av" id="pfMini" data-noico>?</span></button></div>
-      <div class="seg mcseg" id="pfSeg"><button data-pt="home" class="on">🏠 Home</button><button data-pt="friends">👥 Amici</button><button data-pt="work">💼 Lavoro</button><button data-pt="me">👤 Profilo</button></div>
+    <div class="scroll lightv" id="pfScroll">
+      <div class="mchead igh"><h2>myClick</h2>
+        <button id="pfLetBtn" class="mcic" title="Lettere"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg><i id="pfLetBadge" class="hidden"></i></button>
+        <button id="pfChatBtn" class="mcic" title="Match e chat"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9.5L4 20z"/></svg><i id="pfChatBadge" class="hidden"></i></button>
+        <button id="pfFrBtn" class="mcic" title="Amici"><svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3 19c.6-3.4 3-5.2 6-5.2s5.4 1.8 6 5.2"/><circle cx="17" cy="9.5" r="2.4"/><path d="M16.5 14c2.3.2 4 1.7 4.5 4.4"/></svg><i id="frBadge" class="hidden"></i></button></div>
+      <!-- strumenti, come le storie di Instagram -->
+      <div class="igtools" id="pfTools">
+        <button data-tool="stati"><i class="t-w"><svg viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></i><span>Stati</span></button>
+        <button data-tool="match"><i class="t-l"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></i><span>Click Match</span></button>
+        <button data-tool="roulette"><i class="t-w"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.3" cy="8.3" r="1.2" class="f"/><circle cx="15.7" cy="15.7" r="1.2" class="f"/><circle cx="12" cy="12" r="1.2" class="f"/><circle cx="15.7" cy="8.3" r="1.2" class="f"/><circle cx="8.3" cy="15.7" r="1.2" class="f"/></svg></i><span>Roulette</span></button>
+        <button data-tool="lettere"><i class="t-l"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg></i><span>Lettere</span></button>
+        <button data-tool="eventi"><i class="t-w"><svg viewBox="0 0 24 24"><path d="M4 20l5-14 9 9z"/><path d="M14 4l1 2M19 6l-2 1M20 11l-2-.5"/></svg></i><span>Eventi</span></button>
+        <button data-tool="disco"><i class="t-l"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="7"/><path d="M12 3v3M5 13h14M12 6c2 2 2.8 4.4 2.8 7S14 18 12 20M12 6c-2 2-2.8 4.4-2.8 7S10 18 12 20"/></svg></i><span>Discoteche</span></button>
+      </div>
+      <div class="igtabs" id="pfSeg">
+        <button data-pt="home" class="on" title="Home"><svg viewBox="0 0 24 24"><path d="M3.5 11L12 4l8.5 7v9h-5.5v-5.5h-6V20H3.5z"/></svg><span>Home</span></button>
+        <button data-pt="friends" title="Amici"><svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3 19c.6-3.4 3-5.2 6-5.2s5.4 1.8 6 5.2"/><circle cx="17" cy="9.5" r="2.4"/><path d="M16.5 14c2.3.2 4 1.7 4.5 4.4"/></svg><span>Amici</span></button>
+        <button data-pt="work" title="Lavoro"><svg viewBox="0 0 24 24"><rect x="3.5" y="7.5" width="17" height="12" rx="2"/><path d="M9 7.5V5.5h6v2M3.5 12.5h17"/></svg><span>Lavoro</span></button>
+        <button data-pt="me" title="Profilo" id="pfMeBtn"><span class="av" id="pfMini" data-noico>?</span><span>Profilo</span></button>
+      </div>
 
       <div id="pt-home">
         <div class="card compose">
@@ -1562,7 +1612,7 @@ document.addEventListener("click", async e => {
 });
 
 /* ---------- un solo tasto centrale a scorrimento per cambiare modalità ---------- */
-const VIEWS = ["map", "boat", "order", "rider", "info", "meet", "profile"];
+const VIEWS = ["map", "boat", "order", "rider", "info", "meet", "profile", "shop"];
 function showView(v){
   VIEWS.forEach(x => $("#v-" + x).classList.toggle("hidden", x !== v));
   if (v === "map" && map) setTimeout(() => map.resize(), 50);
@@ -1571,11 +1621,12 @@ function showView(v){
   if (v === "info") renderInfo();
   if (v === "meet") renderMeet();
   if (v === "profile") renderProfile();
+  if (v === "shop") renderShop();
   if (v === "boat") setTimeout(() => { renderBoat(); paintEngChips(); }, 0);
 }
 const MODES = [
   { k: "market", ic: "🛥️", n: "Delivery", v: "map", am: "market" },
-  { k: "meet", ic: "💬", n: "Amici", v: "map", am: "incontra" },
+  { k: "shop", ic: "🛍️", n: "Marketplace", v: "shop" },
   { k: "nautica", ic: "⚓", n: "Naviga", v: "map", am: "nautica" },
   { k: "sport", ic: "🎲", n: "Gioca", v: "map", am: "sport" },
   { k: "my", ic: "👤", n: "myClick", v: "profile" }
@@ -1592,7 +1643,7 @@ function haptic(){
 const TAB_IC = {   // linea sottile · .s si riempie quando la scheda è selezionata, .c resta come dettaglio
   nautica: '<path class="s" d="M3 14.5h18l-2.6 5H5.6z"/><path d="M12 3.5v11"/><path class="s" d="M12 4.5l6 8h-6z"/>',
   market: '<path class="s" d="M2.5 13.5h16l-2 5H5.3z"/><path d="M8.5 13.5l1.7-3.6h4.2l1.3 3.6"/><path class="s" d="M18.8 9.6h2.6v4.6h-2.6z"/><path d="M20.1 14.2v3.6"/>',   // barchino a motore
-  meet: '<path class="s" d="M4 5h16v11H9.5L4 20z"/>',
+  shop: '<path class="s" d="M5 8h14l-1.2 12H6.2z"/><path d="M9 10.5V6.8a3 3 0 0 1 6 0v3.7"/>',   // borsa della spesa
   sport: '<rect class="s" x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle class="c" cx="8.3" cy="8.3" r="1.2"/><circle class="c" cx="15.7" cy="15.7" r="1.2"/><circle class="c" cx="12" cy="12" r="1.2"/>',
   my: '<path class="s" d="M9.5 8.5l10 4.3-4.4 1.3-1.3 4.4z"/><path d="M6 4l1 2.1M3.3 7.6l2.2.8M10 3l-.2 2.3M4.3 12l1.9-1.1"/>'   // un clic
 };
@@ -1612,12 +1663,13 @@ function setMode(k){
   const m = MODES[i];
   if (m.am === "incontra" && !store.get("ln_adult", false)){ paintDial(); showView("map"); setAppMode("incontra"); return; }   // prima chiede i 18 anni
   modeIdx = i; paintDial();
+  if (!m.am && appMode === "incontra") setAppMode("nautica");   // lasciando gli amici sulla mappa
   showView(m.v);
   if (m.am) setAppMode(m.am);
 }
 function stepMode(d){ haptic(); setMode(MODES[(modeIdx + d + MODES.length) % MODES.length].k); }
 $("#tabs").addEventListener("click", e => { const b = e.target.closest("[data-pm]"); if (b){ if (b.dataset.pm !== MODES[modeIdx].k) haptic(); setMode(b.dataset.pm);
-  if (b.dataset.pm === "nautica"){ try{ askCompass(); setCam("persona"); }catch(er){} } } });   // Naviga: la tua posizione in tempo reale, in prima persona
+  if (b.dataset.pm === "nautica"){ try{ askCompass(); setCam("alto"); }catch(er){} } } });   // Naviga: si entra con Venezia dall'alto
 buildDial(); paintDial();
 // dal profilo si entra in Barca, Rider e Info; "‹ Profilo" torna indietro
 document.addEventListener("click", e => {
@@ -1693,6 +1745,21 @@ function setPfTab(t){ pfTab = t; document.querySelectorAll("#pfSeg [data-pt]").f
 document.querySelectorAll("#pfSeg [data-pt]").forEach(b => b.onclick = () => setPfTab(b.dataset.pt));
 $("#pfFrBtn").onclick = () => setPfTab("friends");
 $("#pfMeBtn").onclick = () => setPfTab("me");
+$("#pfLetBtn").onclick = () => openLetters(letUnread() ? "ricevute" : "scrivi");
+$("#pfChatBtn").onclick = () => { if (!store.get("ln_adult", false)){ MEET_NEXT = "chat"; adultGate(); return; } loadMatches(false); };
+/* gli strumenti degli amici ora stanno in myClick: stati sulla mappa, Click Match, roulette video, lettere, eventi */
+let MEET_NEXT = null;
+function openMeet(sub){
+  if (!store.get("ln_adult", false)){ MEET_NEXT = sub; adultGate(); return; }
+  if (sub === "chat"){ loadMatches(false); return; }
+  showView("map"); setAppMode("incontra"); document.body.classList.add("meet-from-my");
+  meetMode(sub === "match" ? "match" : sub === "roulette" ? "video" : "map");
+}
+document.querySelectorAll("#pfTools [data-tool]").forEach(b => b.onclick = () => { const t = b.dataset.tool;
+  if (t === "lettere") return openLetters(letUnread() ? "ricevute" : "scrivi");
+  if (t === "eventi") return openEvents();
+  if (t === "disco") return openDiscos();
+  openMeet(t); });
 
 /* ---------- myClick: la home con gli aggiornamenti degli amici ---------- */
 let FEED = [], feedEnd = false, cmPhoto = null;
@@ -2040,6 +2107,14 @@ document.querySelectorAll("#mktSeg [data-k]").forEach(b => b.onclick = () => {
     $("#mkt-other").innerHTML = `<div class="card soonbox"><div class="big">${ic}</div><h3>${t}</h3><p class="muted" style="line-height:1.45">${d}</p><span class="pill">In arrivo</span></div>`; }
 });
 
+/* ---------- Marketplace ---------- */
+let shopTab = "shop";
+function renderShop(){
+  document.querySelectorAll("#shopSeg [data-sk]").forEach(b => b.classList.toggle("on", b.dataset.sk === shopTab));
+  const [ic, t, d] = MKT_SOON[shopTab];
+  $("#shopBody").innerHTML = `<div class="card soonbox"><div class="big">${ic}</div><h3>${t}</h3><p class="muted" style="line-height:1.45">${d}</p><span class="pill">In arrivo</span></div>`;
+}
+document.querySelectorAll("#shopSeg [data-sk]").forEach(b => b.onclick = () => { shopTab = b.dataset.sk; renderShop(); });
 /* ---------- Incontra (solo maggiorenni) ---------- */
 function renderMeet(){
   const box = $("#meetBox");
@@ -2425,6 +2500,7 @@ const letLeft = l => { const s = Math.max(0, Math.round((Date.parse(l.arrivo) - 
 const letUnread = () => LET_IN.filter(l => letArrived(l) && !l.aperta).length;
 function paintLetters(){
   const n = letUnread(), b = $("#letBadge"); if (b){ b.textContent = n; b.classList.toggle("hidden", !n); }
+  const b2 = $("#pfLetBadge"); if (b2){ b2.textContent = n; b2.classList.toggle("hidden", !n); }
   const box = $("#letArrive"), l = LET_IN.find(x => letArrived(x) && !x.aperta && !LET_SEEN.has("c" + x.id));
   if (!box) return;
   if (!l){ box.classList.add("hidden"); box.dataset.id = ""; return; }
@@ -6442,13 +6518,13 @@ const MEET_ZONES = { "Cannaregio": [45.4445, 12.3285], "Castello": [45.4350, 12.
 let STATI = [], meetFilter = "", meetMarkers = [], meetTimer = null, chatTimer = null;
 const rpc = (fn, body) => api("rpc/" + fn, { method: "POST", ret: true, body: { p_token: TOKEN, ...body } });
 function adultGate(){
-  openSheet(`<h3>🔞 Amici è solo per maggiorenni</h3><p class="muted" style="line-height:1.45">Per entrare devi avere almeno 18 anni.</p>
+  openSheet(`<h3>🔞 Solo per maggiorenni</h3><p class="muted" style="line-height:1.45">Per entrare devi avere almeno 18 anni.</p>
     <button class="btn" id="agYes">Ho almeno 18 anni</button><button class="btn ghost" id="agNo" style="margin-top:10px">Non ho ancora 18 anni</button>`);
   $("#agYes").onclick = async () => {
     await syncAdult();
-    store.set("ln_adult", true); closeSheet(); setMode("meet", 1);
+    store.set("ln_adult", true); closeSheet(); const nx = MEET_NEXT; MEET_NEXT = null; if (nx) openMeet(nx);
   };
-  $("#agNo").onclick = () => { closeSheet(); setMode("nautica"); toast("Amici è riservato ai maggiorenni. Il resto di unClick puoi usarlo."); };
+  $("#agNo").onclick = () => { closeSheet(); MEET_NEXT = null; toast("Questa parte di myClick è riservata ai maggiorenni. Il resto di unClick puoi usarlo."); };
 }
 // la conferma dei 18 anni deve arrivare anche al server (prima restava solo sul telefono)
 async function syncAdult(){
@@ -6562,6 +6638,7 @@ async function loadMatches(quiet){
   try{ MATCHES = await rpc("my_matches", {}) || []; }catch(e){ return; }
   const unseen = MATCHES.filter(m => !seenMatches.includes(m.nome)).length;
   $("#matchBadge").classList.toggle("hidden", !unseen); $("#matchBadge").textContent = unseen || "";
+  const pc = $("#pfChatBadge"); if (pc){ pc.classList.toggle("hidden", !unseen); pc.textContent = unseen || ""; }
   if (!quiet) renderMatches();
 }
 function renderMatches(){
@@ -6950,6 +7027,7 @@ function meetMode(m){
   if (m === "video"){ $("#vcStart").classList.remove("hidden"); $("#vcState").textContent = ""; $("#vcWho").textContent = "🎥 Videochat"; }
 }
 document.querySelectorAll("#meetModes [data-mm]").forEach(b => b.onclick = () => meetMode(b.dataset.mm));
+$("#meetBack").onclick = () => { meetMode("map"); setAppMode("nautica"); document.body.classList.remove("meet-from-my"); setMode("my"); };
 document.querySelectorAll("[data-ovx]").forEach(b => b.onclick = () => meetMode("map"));
 
 /* ---------- Click Match ---------- */
