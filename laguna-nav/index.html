@@ -789,6 +789,29 @@
   #rbMore{max-height:36vh;overflow-y:auto;margin:0 0 8px}
   #rbGo:disabled{opacity:.45}
 </style>
+<style id="modeColors">
+  /* colore di ogni modalità: tasto premuto, banner e tasti principali del suo pannello */
+  :root{ --c-market:#c8102e; --c-meet:#f7b928; --c-sport:#7c3aed; --c-my:#1877f2 }
+  #tabs [data-pm="market"].on{color:var(--c-market)!important}
+  #tabs [data-pm="meet"].on{color:var(--c-meet)!important}
+  #tabs [data-pm="sport"].on{color:var(--c-sport)!important}
+  #tabs [data-pm="my"].on{color:var(--c-my)!important}
+  #tabs button.on .c{stroke:#fff!important}
+  /* Naviga: grigio quando non è premuto, nero quando è premuto */
+  #tabs button.mid .arw{fill:#9aa0a6!important} #tabs button.mid .arl{stroke:#e3e6e8!important}
+  #tabs button.mid.on .arw{fill:#050706!important} #tabs button.mid.on .arl{stroke:#9aa0a6!important}
+  /* Amici: banner gialli caldi */
+  #meetBanner{background:linear-gradient(135deg,#f7b928,#ffcf4a)!important;color:#2b1d00!important}
+  #evBanner{background:linear-gradient(135deg,#f0a21b,#f7b928)!important;color:#2b1d00!important}
+  #discoBanner{background:linear-gradient(135deg,#e08a12,#f2ac22)!important;color:#2b1d00!important}
+  #meetBanner small,#evBanner small,#discoBanner small{opacity:.8}
+  /* Delivery: rosso */
+  #mkPanel .mkh b{color:var(--c-market)!important} #mkPanel .mkcats button.on{background:var(--c-market)!important;color:#fff!important}
+  #mkOrder{background:var(--c-market)!important;color:#fff!important}
+  /* Gioca: viola */
+  #spPanel .mkh b{color:var(--c-sport)!important} #spPanel .mkcats button.on{background:var(--c-sport)!important;color:#fff!important}
+  #spNew{background:var(--c-sport)!important;color:#fff!important}
+</style>
 </head>
 <body>
 
@@ -916,7 +939,7 @@
 
     <!-- Shopping: attività convenzionate sulla mappa -->
     <div id="mkPanel">
-      <div class="mkh"><b>🛒 Ordina</b><span id="mkCount"></span></div>
+      <div class="mkh"><b>Delivery</b><span id="mkCount"></span></div>
       <div class="mkcats" id="mkCats"><button data-c="" class="on">Tutto</button><button data-c="food">🍝 Food</button><button data-c="shop">🛍️ Shopping</button><button data-c="boats">⛵ Barche</button><button data-c="used">♻️ Usato</button></div>
       <div id="mkList"></div>
       <button class="btn small" id="mkOrder">🍝 Ordina cibo in barca o a casa</button>
@@ -1483,8 +1506,8 @@ function showView(v){
   if (v === "boat") setTimeout(() => { renderBoat(); paintEngChips(); }, 0);
 }
 const MODES = [
-  { k: "market", ic: "🛒", n: "Ordina", v: "map", am: "market" },
-  { k: "meet", ic: "💬", n: "Socializza", v: "map", am: "incontra" },
+  { k: "market", ic: "🛥️", n: "Delivery", v: "map", am: "market" },
+  { k: "meet", ic: "💬", n: "Amici", v: "map", am: "incontra" },
   { k: "nautica", ic: "⚓", n: "Naviga", v: "map", am: "nautica" },
   { k: "sport", ic: "🎲", n: "Gioca", v: "map", am: "sport" },
   { k: "my", ic: "👤", n: "myClick", v: "profile" }
@@ -1500,10 +1523,10 @@ function haptic(){
 }
 const TAB_IC = {   // linea sottile · .s si riempie quando la scheda è selezionata, .c resta come dettaglio
   nautica: '<path class="s" d="M3 14.5h18l-2.6 5H5.6z"/><path d="M12 3.5v11"/><path class="s" d="M12 4.5l6 8h-6z"/>',
-  market: '<path class="s" d="M5.5 8h13l-1 12.5h-11z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>',
+  market: '<path class="s" d="M2.5 13.5h16l-2 5H5.3z"/><path d="M8.5 13.5l1.7-3.6h4.2l1.3 3.6"/><path class="s" d="M18.8 9.6h2.6v4.6h-2.6z"/><path d="M20.1 14.2v3.6"/>',   // barchino a motore
   meet: '<path class="s" d="M4 5h16v11H9.5L4 20z"/>',
   sport: '<rect class="s" x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle class="c" cx="8.3" cy="8.3" r="1.2"/><circle class="c" cx="15.7" cy="15.7" r="1.2"/><circle class="c" cx="12" cy="12" r="1.2"/>',
-  my: '<circle class="s" cx="12" cy="8" r="3.9"/><path class="s" d="M4.3 20.5a7.7 7.7 0 0 1 15.4 0z"/>'
+  my: '<path class="s" d="M9.5 8.5l10 4.3-4.4 1.3-1.3 4.4z"/><path d="M6 4l1 2.1M3.3 7.6l2.2.8M10 3l-.2 2.3M4.3 12l1.9-1.1"/>'   // un clic
 };
 function buildDial(){
   $("#tabs").innerHTML = MODES.map(x => x.k === "nautica"
@@ -5742,13 +5765,13 @@ const MEET_ZONES = { "Cannaregio": [45.4445, 12.3285], "Castello": [45.4350, 12.
 let STATI = [], meetFilter = "", meetMarkers = [], meetTimer = null, chatTimer = null;
 const rpc = (fn, body) => api("rpc/" + fn, { method: "POST", ret: true, body: { p_token: TOKEN, ...body } });
 function adultGate(){
-  openSheet(`<h3>🔞 Socializza è solo per maggiorenni</h3><p class="muted" style="line-height:1.45">Per entrare devi avere almeno 18 anni.</p>
+  openSheet(`<h3>🔞 Amici è solo per maggiorenni</h3><p class="muted" style="line-height:1.45">Per entrare devi avere almeno 18 anni.</p>
     <button class="btn" id="agYes">Ho almeno 18 anni</button><button class="btn ghost" id="agNo" style="margin-top:10px">Non ho ancora 18 anni</button>`);
   $("#agYes").onclick = async () => {
     await syncAdult();
     store.set("ln_adult", true); closeSheet(); setMode("meet", 1);
   };
-  $("#agNo").onclick = () => { closeSheet(); setMode("nautica"); toast("Socializza è riservato ai maggiorenni. Il resto di unClick puoi usarlo."); };
+  $("#agNo").onclick = () => { closeSheet(); setMode("nautica"); toast("Amici è riservato ai maggiorenni. Il resto di unClick puoi usarlo."); };
 }
 // la conferma dei 18 anni deve arrivare anche al server (prima restava solo sul telefono)
 async function syncAdult(){
