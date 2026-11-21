@@ -549,6 +549,20 @@
   .igstories i{width:60px;height:60px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2.5px #3dc991;background:#b5533c center/cover;color:#fff;font-style:normal;font-weight:800;font-size:22px;display:flex;align-items:center;justify-content:center}
   .igstories span{max-width:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .igstories b{position:absolute;top:40px;right:2px;font-size:15px}
+  .mpadd{padding:7px 12px;border-radius:999px;background:#3dc991;color:#fff;font-weight:800;font-size:13px;border:0}
+  .mpbar{display:flex;gap:8px} .mpcat{padding:8px 12px;border-radius:10px;background:#f4f6f5;border:1px solid #e6e9e7;color:#111;font-weight:700;font-size:13px}
+  .mpcat:first-child{flex:1;text-align:left} .mpcat.on{background:#b5533c;border-color:#b5533c;color:#fff}
+  .mpmenu{margin-top:6px;border:1px solid #e6e9e7;border-radius:12px;overflow:hidden;background:#fff}
+  .mpmenu button{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;background:#fff;border:0;border-bottom:1px solid #f0f2f1;color:#111;font-size:14px;text-align:left}
+  .mpmenu button:last-child{border-bottom:0} .mpmenu button.on{color:#b5533c;font-weight:800}
+  .mpmenu svg,.mpit .ph svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .mpgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .mpit{display:flex;flex-direction:column;gap:2px;padding:0;background:#fff;border:0;color:#111;text-align:left}
+  .mpit .ph{position:relative;aspect-ratio:1;border-radius:12px;background:#f4f6f5 center/cover;display:flex;align-items:center;justify-content:center;color:#9aa59f;margin-bottom:4px}
+  .mpit .ph svg{width:38px;height:38px}
+  .mpit .ph em{position:absolute;left:6px;top:6px;background:#111;color:#fff;font-style:normal;font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px}
+  .mpit.sold{opacity:.55} .mpit b{font-size:15px} .mpit .t{font-size:13px;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical} .mpit small{font-size:11px;color:#6f7a74}
+  #dlvCats button{border:1px solid #ddd}
   .igchips{display:flex;gap:8px;margin-bottom:12px} .igchips button{padding:7px 14px;border-radius:999px;border:1px solid #e6e9e7;background:#fff;color:#111;font-weight:700;font-size:13px}
   .igchips button.on{background:#b5533c;border-color:#b5533c;color:#fff}
   #meetBack{display:none;align-self:flex-start;margin-bottom:6px;padding:7px 12px;border-radius:999px;background:#fff;color:#111;font-weight:800;font-size:13px;border:0;box-shadow:0 2px 8px rgba(0,0,0,.25)}
@@ -1046,7 +1060,7 @@
     <!-- Shopping: attività convenzionate sulla mappa -->
     <div id="mkPanel">
       <div class="mkh"><b>Delivery</b><span id="mkCount"></span></div>
-      <div class="mkcats" id="mkCats"><button data-c="" class="on">Tutto</button><button data-c="food">🍝 Food</button><button data-c="shop">🛍️ Shopping</button><button data-c="boats">⛵ Barche</button><button data-c="used">♻️ Usato</button></div>
+      <div class="mkcats" id="dlvCats"><button data-dc="food">Food</button><button data-dc="negozi">Negozi</button><button data-dc="tabacchi">Tabaccherie</button><button data-dc="farmacie">Farmacie</button></div>
       <div id="mkList"></div>
       <button class="btn small" id="mkOrder">🍝 Ordina cibo in barca o a casa</button>
     </div>
@@ -1226,10 +1240,12 @@
   <!-- MARKETPLACE: negozi, barche e usato (il cibo resta in Delivery) -->
   <section class="view hidden" id="v-shop">
     <div class="scroll lightv" id="shopScroll">
-      <div class="igh"><h2>Marketplace</h2></div>
-      <div class="field" style="margin-bottom:10px"><input id="shopQ" type="search" placeholder="Cerca negozi, barche, annunci…"></div>
-      <div class="igchips" id="shopSeg"><button data-sk="shop" class="on">Negozi</button><button data-sk="boats">Barche</button><button data-sk="used">Usato</button></div>
-      <div id="shopBody"></div>
+      <div class="igh"><h2>Marketplace</h2><button class="mpadd" id="mpAdd">+ Aggiungi articolo</button></div>
+      <div class="mpbar"><button id="mpCatBtn" class="mpcat">☰ <span id="mpCatName">Tutte le categorie</span></button><button id="mpMine" class="mpcat">I miei</button></div>
+      <div id="mpCatMenu" class="mpmenu hidden"></div>
+      <div class="field" style="margin:8px 0 10px"><input id="shopQ" type="search" placeholder="Cerca negli annunci…"></div>
+      <div id="shopBody" class="mpgrid"></div>
+      <button class="btn ghost hidden" id="mpMore" style="margin-top:12px">Altri annunci</button>
     </div>
   </section>
 
@@ -1244,6 +1260,7 @@
       <div class="mchead igh"><h2>myClick</h2>
         <button id="pfRouBtn" class="mcic" title="Roulette video"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.3" cy="8.3" r="1.1" class="f"/><circle cx="15.7" cy="15.7" r="1.1" class="f"/><circle cx="12" cy="12" r="1.1" class="f"/><circle cx="15.7" cy="8.3" r="1.1" class="f"/><circle cx="8.3" cy="15.7" r="1.1" class="f"/></svg></button>
         <button id="pfCmBtn" class="mcic" title="Click Match"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><i id="pfChatBadge" class="hidden"></i></button>
+        <button id="pfAmBtn" class="mcic" title="Amici"><svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3 19c.6-3.4 3-5.2 6-5.2s5.4 1.8 6 5.2"/><circle cx="17" cy="9.5" r="2.4"/><path d="M16.5 14c2.3.2 4 1.7 4.5 4.4"/></svg><i id="pfAmBadge" class="hidden"></i></button>
         <button id="pfLetBtn" class="mcic" title="Lettere"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg><i id="pfLetBadge" class="hidden"></i></button>
       </div>
       <div class="igtabs" id="pfSeg">
@@ -1710,6 +1727,7 @@ function paintFriends(){
   const am = MY.amici || [], rq = MY.ricevute || [], se = MY.inviate || [];
   $("#frCount").textContent = am.length ? "· " + am.length : "";
   $("#frBadge").textContent = rq.length; $("#frBadge").classList.toggle("hidden", !rq.length);
+  { const ab = $("#pfAmBadge"); if (ab){ ab.textContent = rq.length; ab.classList.toggle("hidden", !rq.length); } }
   $("#frReq").innerHTML = rq.length ? `<div class="frh">Richieste ricevute</div>` + rq.map(p => `<div class="fr"><span data-prof="${esc(p.nome)}">${avatarHtml(p)}</span><b data-prof="${esc(p.nome)}">@${esc(p.nome)}</b>
     <button class="btn small" data-fok="${esc(p.nome)}">Accetta</button><button class="btn small ghost" data-fno="${esc(p.nome)}">✕</button></div>`).join("") : "";
   $("#frList").innerHTML = am.length ? am.map(p => `<div class="fr" data-fv="${esc(p.nome)}">${avatarHtml(p)}<span class="frt"><b>@${esc(p.nome)}</b><small>${esc(p.bio || "")}</small></span><span class="muted">›</span></div>`).join("")
@@ -1753,11 +1771,12 @@ $("#pfCustom").onclick = () => {
 let pfTab = "home";
 function setPfTab(t){ pfTab = t; document.querySelectorAll("#pfSeg [data-pt]").forEach(b => b.classList.toggle("on", b.dataset.pt === t));
   ["home", "friends", "work", "me"].forEach(x => $("#pt-" + x).classList.toggle("hidden", !(x === t || (t === "me" && x === "friends")))); $("#pfScroll").scrollTop = 0;
-  $("#pfSeg").classList.toggle("hidden", t === "me");   // il profilo si apre tenendo premuto myClick in basso
+  $("#pfSeg").classList.toggle("hidden", t === "me" || t === "friends");   // il profilo si apre tenendo premuto myClick in basso
   if (t === "home"){ loadFeed(); loadPfStati(); } if (t === "work") loadJobs(); }
 document.querySelectorAll("#pfSeg [data-pt]").forEach(b => b.onclick = () => setPfTab(b.dataset.pt));
 $("#pfLetBtn").onclick = () => openLetters(letUnread() ? "ricevute" : "scrivi");
 $("#pfRouBtn").onclick = () => openMeet("roulette");
+$("#pfAmBtn").onclick = () => setPfTab("friends");
 $("#pfCmBtn").onclick = () => openMeet("match");
 $("#pfMatches").onclick = () => openMeet("chat");
 /* gli strumenti degli amici ora stanno in myClick: stati sulla mappa, Click Match, roulette video, lettere, eventi */
@@ -2110,29 +2129,95 @@ $("#pfLogout").onclick = () => {
   store.set("ln_token", newToken()); store.set("ln_mine", { zones: [], depths: [] }); location.reload();
 };
 
-/* ---------- Marketplace ---------- */
-const MKT_SOON = {
-  shop: ["🛍️", "Shopping", "Negozi di Venezia, con consegna in barca o a piedi e ritiro al pontile."],
-  boats: ["⛵", "Barche", "Compra, vendi e noleggia barche, motori e posti barca. Il catalogo dei modelli è già pronto nella pagina «La mia barca»."],
-  used: ["♻️", "Usato", "Annunci tra veneziani: attrezzatura nautica, cose di casa, bici e tutto il resto."]
-};
-document.querySelectorAll("#mktSeg [data-k]").forEach(b => b.onclick = () => {
-  document.querySelectorAll("#mktSeg [data-k]").forEach(x => x.classList.toggle("on", x === b));
-  const k = b.dataset.k, food = k === "food";
-  $("#mkt-food").classList.toggle("hidden", !food); $("#mkt-other").classList.toggle("hidden", food);
-  document.body.classList.toggle("food", food);
-  if (!food){ const [ic, t, d] = MKT_SOON[k];
-    $("#mkt-other").innerHTML = `<div class="card soonbox"><div class="big">${ic}</div><h3>${t}</h3><p class="muted" style="line-height:1.45">${d}</p><span class="pill">In arrivo</span></div>`; }
-});
-
-/* ---------- Marketplace ---------- */
-let shopTab = "shop";
-function renderShop(){
-  document.querySelectorAll("#shopSeg [data-sk]").forEach(b => b.classList.toggle("on", b.dataset.sk === shopTab));
-  const [ic, t, d] = MKT_SOON[shopTab];
-  $("#shopBody").innerHTML = `<div class="card soonbox"><div class="big">${ic}</div><h3>${t}</h3><p class="muted" style="line-height:1.45">${d}</p><span class="pill">In arrivo</span></div>`;
+/* ---------- Marketplace: compra e vendi usato tra utenti ---------- */
+const MP_CATS = { elettronica: "Elettronica", nautica: "Nautica", mobili: "Mobili", abbigliamento: "Abbigliamento", casa: "Casa e cucina", sport: "Sport e tempo libero", libri: "Libri, musica e hobby", bambini: "Bambini", altro: "Altro" };
+const MP_IC = { elettronica: '<rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2.5 19h19"/>', nautica: '<path d="M3 15h18l-2.5 4h-13z"/><path d="M12 3v12M12 4l6 9h-6"/>', mobili: '<path d="M5 11V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4"/><path d="M3 11h18v5H3zM5 16v3M19 16v3"/>',
+  abbigliamento: '<path d="M8 4l4 2 4-2 4 4-3 2v10H7V10L4 8z"/>', casa: '<path d="M3.5 11L12 4l8.5 7v9h-17z"/>', sport: '<circle cx="12" cy="12" r="8"/><path d="M4.5 9.5c4 1 11 1 15 0M4.5 14.5c4-1 11-1 15 0"/>', libri: '<path d="M5 4h6v16H5zM13 4h6v16h-6z"/>',
+  bambini: '<circle cx="12" cy="9" r="4"/><path d="M5 20c1-4 3.5-6 7-6s6 2 7 6"/>', altro: '<circle cx="6" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="18" cy="12" r="1.4"/>' };
+let MP = { cat: null, mine: false, list: [], end: false, q: "" };
+const mpEur = v => (Math.round(v * 100) / 100).toLocaleString("it-IT", { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 }) + " €";
+function renderShop(){ paintMpMenu(); loadMp(); }
+function paintMpMenu(){
+  $("#mpCatName").textContent = MP.cat ? MP_CATS[MP.cat] : "Tutte le categorie"; $("#mpMine").classList.toggle("on", MP.mine);
+  $("#mpCatMenu").innerHTML = `<button data-mc="">Tutte le categorie</button>` + Object.entries(MP_CATS).map(([k, n]) => `<button data-mc="${k}" class="${MP.cat === k ? "on" : ""}"><svg viewBox="0 0 24 24">${MP_IC[k]}</svg>${n}</button>`).join("");
+  document.querySelectorAll("#mpCatMenu [data-mc]").forEach(b => b.onclick = () => { MP.cat = b.dataset.mc || null; MP.mine = false; $("#mpCatMenu").classList.add("hidden"); paintMpMenu(); loadMp(); });
 }
-document.querySelectorAll("#shopSeg [data-sk]").forEach(b => b.onclick = () => { shopTab = b.dataset.sk; renderShop(); });
+async function loadMp(more){
+  if (!TOKEN){ $("#shopBody").innerHTML = `<p class="muted">Per il Marketplace serve l'account.</p>`; return; }
+  if (!more) $("#shopBody").innerHTML = `<p class="muted">Carico gli annunci…</p>`;
+  let L; try{ L = await rpc("market_list", { p_cat: MP.cat, p_mine: MP.mine, p_before: more && MP.list.length ? MP.list[MP.list.length - 1].id : null }); }catch(e){ $("#shopBody").innerHTML = `<p class="muted">Annunci non disponibili: controlla la connessione.</p>`; return; }
+  if (!Array.isArray(L)){ $("#shopBody").innerHTML = `<p class="muted">Per il Marketplace serve l'account: esci e rientra.</p>`; return; }
+  MP.list = more ? MP.list.concat(L) : L; MP.end = L.length < 40; paintMp();
+}
+function paintMp(){
+  const q = norm(MP.q), L = MP.list.filter(x => !q || norm(x.titolo + " " + (x.descrizione || "")).includes(q));
+  $("#mpMore").classList.toggle("hidden", MP.end || !!q);
+  $("#shopBody").innerHTML = L.length ? L.map((x, i) => `<button class="mpit${x.venduto ? " sold" : ""}" data-mi="${MP.list.indexOf(x)}"><span class="ph" style="${x.foto ? `background-image:url('${esc(x.foto)}')` : ""}">${x.foto ? "" : `<svg viewBox="0 0 24 24">${MP_IC[x.categoria] || MP_IC.altro}</svg>`}${x.venduto ? "<em>Venduto</em>" : ""}</span>
+    <b>${mpEur(+x.prezzo)}</b><span class="t">${esc(x.titolo)}</span><small>${esc(MP_CATS[x.categoria] || "")}${x.mio ? " · tuo" : ""}</small></button>`).join("")
+    : `<div class="card soonbox" style="grid-column:1/-1"><h3>${MP.mine ? "Non hai ancora articoli in vendita" : "Nessun annuncio qui"}</h3><p class="muted">Tocca «+ Aggiungi articolo» per vendere qualcosa.</p></div>`;
+  document.querySelectorAll("#shopBody [data-mi]").forEach(b => b.onclick = () => openMpItem(MP.list[+b.dataset.mi]));
+}
+function openMpItem(x){
+  openSheet(`${x.foto ? `<img src="${esc(x.foto)}" style="width:100%;max-height:300px;object-fit:cover;border-radius:12px;margin-bottom:10px">` : ""}<h3 style="margin:0">${esc(x.titolo)}</h3>
+    <p style="font-size:22px;font-weight:800;margin:4px 0">${mpEur(+x.prezzo)}</p><p class="muted" style="margin:0 0 8px">${esc(MP_CATS[x.categoria] || "")} · @${esc(x.nome)} · ${agoLong(x.quando)}${x.venduto ? " · venduto" : ""}</p>
+    ${x.descrizione ? `<p style="line-height:1.45;white-space:pre-wrap">${esc(x.descrizione)}</p>` : ""}
+    ${x.mio ? `<button class="btn" id="mpChats">Messaggi ricevuti</button><button class="btn ghost" id="mpSold" style="margin-top:10px">${x.venduto ? "Rimetti in vendita" : "Segna come venduto"}</button><button class="btn ghost" id="mpDel" style="margin-top:10px;color:#c0392b">Elimina annuncio</button>`
+      : `<button class="btn" id="mpWrite">Scrivi al venditore</button>`}
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
+  if (x.mio){
+    $("#mpChats").onclick = () => mpThreads(x);
+    $("#mpSold").onclick = async () => { await rpc("market_update", { p_id: x.id, p_azione: x.venduto ? "disponibile" : "venduto" }).catch(() => {}); closeSheet(); loadMp(); };
+    $("#mpDel").onclick = async () => { if (!confirm("Eliminare l'annuncio?")) return; await rpc("market_update", { p_id: x.id, p_azione: "elimina" }).catch(() => {}); closeSheet(); loadMp(); };
+  } else $("#mpWrite").onclick = () => mpChat(x, null);
+}
+async function mpThreads(x){
+  let j; try{ j = await rpc("market_chat", { p_item: x.id }); }catch(e){ return toast("Controlla la connessione."); }
+  const T = (j && j.thread) || [];
+  openSheet(`<h3>Messaggi su «${esc(x.titolo)}»</h3>` + (T.length ? T.map(t => `<button class="card rowbtn" data-mt="${esc(t.nome)}"><span style="text-align:left"><b>@${esc(t.nome)}</b><br><small class="muted">${esc(t.ultimo)}</small></span><span>›</span></button>`).join("") : `<p class="muted">Ancora nessun messaggio.</p>`)
+    + `<button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
+  document.querySelectorAll("[data-mt]").forEach(b => b.onclick = () => mpChat(x, b.dataset.mt));
+}
+let mpTimer = null;
+async function mpChat(x, con){
+  clearInterval(mpTimer);
+  openSheet(`<h3>${con ? "@" + esc(con) : "@" + esc(x.nome)} · ${esc(x.titolo)}</h3><div id="mpMsgs" style="max-height:45vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px"><p class="muted">Carico…</p></div>
+    <div class="row" style="gap:8px;margin-top:10px"><div class="field" style="flex:1;margin:0"><input id="mpIn" maxlength="1000" placeholder="Scrivi un messaggio…"></div><button class="btn small" id="mpSend" style="flex:0 0 auto">Invia</button></div>
+    <button class="btn ghost" style="margin-top:10px" id="mpX">Chiudi</button>`);
+  const load = async () => { let j; try{ j = await rpc("market_chat", { p_item: x.id, p_con: con }); }catch(e){ return; } const box = $("#mpMsgs"); if (!box) return clearInterval(mpTimer);
+    const M = (j && j.messaggi) || []; box.innerHTML = M.length ? M.map(m => `<div class="msg${m.mio ? " me" : ""}">${esc(m.testo)}</div>`).join("") : `<p class="muted">${con ? "" : "Scrivi al venditore: per esempio chiedi se è ancora disponibile."}</p>`; box.scrollTop = box.scrollHeight; };
+  const send = async () => { const t = $("#mpIn").value.trim(); if (!t) return; $("#mpIn").value = "";
+    try{ const r = await rpc("market_send", { p_item: x.id, p_testo: t, p_con: con }); if (r && r.errore) toast(r.errore === "troppi" ? "Piano, riprova tra un minuto." : "Messaggio non inviato."); }catch(e){ toast("Controlla la connessione."); } load(); };
+  $("#mpSend").onclick = send; $("#mpIn").onkeydown = e => { if (e.key === "Enter") send(); };
+  $("#mpX").onclick = () => { clearInterval(mpTimer); closeSheet(); };
+  load(); mpTimer = setInterval(load, 8000);
+}
+// nuovo annuncio: una domanda alla volta (foto, titolo, prezzo, categoria)
+function mpNew(){
+  const A = { foto: null, titolo: "", prezzo: "", categoria: null };
+  const stepFoto = () => { openSheet(`<h3>Aggiungi articolo · 1/4</h3><p class="muted">Metti una foto dell'articolo</p>
+      <label class="btn" style="display:block;text-align:center">Scatta o scegli una foto<input type="file" accept="image/*" id="mpF" hidden></label><button class="btn ghost" id="mpNoF" style="margin-top:10px">Senza foto</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
+    $("#mpF").onchange = async e => { const f = e.target.files[0]; if (!f) return; try{ A.foto = await shrinkPhoto(f); stepTitolo(); }catch(_){ toast("Foto non valida, provane un'altra."); } };
+    $("#mpNoF").onclick = stepTitolo; };
+  const stepTitolo = () => { openSheet(`<h3>Aggiungi articolo · 2/4</h3>${A.foto ? `<img src="${A.foto}" style="width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-bottom:8px">` : ""}<div class="field"><label>Titolo</label><input id="mpT" maxlength="80" placeholder="es. Motore Yamaha 25 cv" value="${esc(A.titolo)}"></div><button class="btn" id="mpNx">Avanti</button>`);
+    setTimeout(() => $("#mpT").focus(), 60); const nx = () => { A.titolo = $("#mpT").value.trim(); if (A.titolo.length < 2) return toast("Scrivi un titolo."); stepPrezzo(); };
+    $("#mpNx").onclick = nx; $("#mpT").onkeydown = e => { if (e.key === "Enter") nx(); }; };
+  const stepPrezzo = () => { openSheet(`<h3>Aggiungi articolo · 3/4</h3><div class="field"><label>Prezzo in euro</label><input id="mpP" inputmode="decimal" placeholder="es. 150" value="${esc(A.prezzo)}"></div><button class="btn" id="mpNx">Avanti</button>`);
+    setTimeout(() => $("#mpP").focus(), 60); const nx = () => { const v = Number($("#mpP").value.replace(",", ".")); if (!isFinite(v) || v < 0 || $("#mpP").value.trim() === "") return toast("Scrivi il prezzo (0 se lo regali)."); A.prezzo = v; stepCat(); };
+    $("#mpNx").onclick = nx; $("#mpP").onkeydown = e => { if (e.key === "Enter") nx(); }; };
+  const stepCat = () => { openSheet(`<h3>Aggiungi articolo · 4/4</h3><p class="muted">In che categoria?</p><div class="mpmenu" style="display:block">${Object.entries(MP_CATS).map(([k, n]) => `<button data-nc="${k}"><svg viewBox="0 0 24 24">${MP_IC[k]}</svg>${n}</button>`).join("")}</div>`);
+    document.querySelectorAll("[data-nc]").forEach(b => b.onclick = async () => { A.categoria = b.dataset.nc; b.disabled = true; b.textContent = "Pubblico…";
+      try{ const r = await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/articolo", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: TOKEN, ...A }) }, 30000), j = await r.json();
+        if (j.ok){ closeSheet(); toast("Articolo in vendita ✓"); MP.cat = A.categoria; MP.mine = false; paintMpMenu(); loadMp(); }
+        else { toast(j.errore === "troppi" ? "Hai messo tanti annunci nell'ultima ora: riprova più tardi." : j.errore === "non_autorizzato" ? "Esci e rientra con il tuo account." : "Non pubblicato, riprova."); stepCat(); } }
+      catch(e){ toast("Non pubblicato: controlla la connessione."); stepCat(); } }); };
+  if (!TOKEN) return toast("Per vendere serve l'account.");
+  stepFoto();
+}
+$("#mpAdd").onclick = mpNew;
+$("#mpCatBtn").onclick = () => $("#mpCatMenu").classList.toggle("hidden");
+$("#mpMine").onclick = () => { MP.mine = !MP.mine; MP.cat = null; paintMpMenu(); loadMp(); };
+$("#mpMore").onclick = () => loadMp(true);
+$("#shopQ").oninput = e => { MP.q = e.target.value; paintMp(); };
 /* ---------- Incontra (solo maggiorenni) ---------- */
 function renderMeet(){
   const box = $("#meetBox");
@@ -2229,6 +2314,7 @@ function initMap(){
   map.on("click", e => {
     if (typeof DRAW !== "undefined" && DRAW) return;   // mentre tropss ridisegna un tratto i tocchi servono solo alla matita
     if ($("#sheet") && !$("#sheet").classList.contains("hidden")) return;   // appena dopo il tocco lungo si apre la scheda: il rilascio non conta
+    if (appMode === "market" && map.getLayer("dlv")){ const d = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["dlv"] })[0]; if (d) return openDlv(d.properties.i); }
     { const mp = map.getLayer("myplaces") && map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["myplaces"] })[0];
       if (mp) return openMyPlace(mp.properties.i); }
     if (addMode === "wzpick"){ addMode = null; $("#modeHint").classList.add("hidden"); if (window._wzPick){ const f = window._wzPick; window._wzPick = null; f(e.lngLat); } return; }
@@ -3230,7 +3316,7 @@ async function loadPOI(){
       }catch(e){}
     }
   }
-  if (c && c.p){ POI = c.p.map(a => ({ n: a[0], k: a[1], lat: a[2], lng: a[3], b: a[4], c: a[5], s: norm(a[0] + " " + a[4] + " " + a[5]) })); drawPOI(); }
+  if (c && c.p){ POI = c.p.map(a => ({ n: a[0], k: a[1], lat: a[2], lng: a[3], b: a[4], c: a[5], s: norm(a[0] + " " + a[4] + " " + a[5]) })); drawPOI(); drawDlv(); }
 }
 let foodOn = false;
 function setFood(on){
@@ -5470,6 +5556,7 @@ function setAppMode(m){
   document.body.classList.toggle("mode-trasporti", m === "trasporti");
   document.body.classList.toggle("mode-incontra", m === "incontra");
   document.body.classList.toggle("mode-market", m === "market");
+  if (m === "market") loadNegozi();
   document.body.classList.toggle("mode-sport", m === "sport");
   if (m === "sport") sportStart(); else sportStop();
   if (m === "incontra") meetStart(); else meetStop();
@@ -6354,6 +6441,42 @@ document.querySelectorAll("#mkCats [data-c]").forEach(b => b.onclick = () => {
 $("#mkList").addEventListener("click", e => { const r = e.target.closest("[data-mk]"); if (!r) return; const p = PARTNERS.find(x => x.id === +r.dataset.mk); if (!p) return;
   setFollow(false); if (map) map.easeTo({ center: [p.lng, p.lat], zoom: 16.5, pitch: 0, bearing: 0, duration: 600 }); openPartner(p); });
 $("#mkOrder").onclick = () => { showView("order"); };
+/* Delivery: tasti che mostrano o nascondono food, negozi, tabaccherie e farmacie sulla mappa */
+const DLV_C = { food: ["Food", "#e23b2e"], negozi: ["Negozi", "#b5533c"], tabacchi: ["Tabaccheria", "#1d4e9e"], farmacie: ["Farmacia", "#15a34a"] };
+let DLV = Object.assign({ food: true, negozi: true, tabacchi: true, farmacie: true }, store.get("ln_dlv", {})), NEGOZI = store.get("ln_negozi", null);
+async function loadNegozi(){
+  if (NEGOZI && Date.now() - (NEGOZI.t || 0) < 3 * 864e5) return drawDlv();
+  try{ const r = await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/negozi", {}, 60000), j = await r.json(); if (j && j.p){ NEGOZI = { t: Date.now(), p: j.p }; store.set("ln_negozi", NEGOZI); } }catch(e){}
+  drawDlv();
+}
+function dlvItems(){
+  const L = [];
+  if (DLV.food) (POI || []).forEach(x => L.push({ n: x.n, k: "food", lat: x.lat, lng: x.lng, s: x.k }));
+  ((NEGOZI && NEGOZI.p) || []).forEach(a => { if (DLV[a[1]] && a[0]) L.push({ n: a[0], k: a[1], lat: a[2], lng: a[3], s: a[4] }); });
+  return L;
+}
+let DLV_L = [];
+function drawDlv(){
+  document.querySelectorAll("#dlvCats [data-dc]").forEach(b => { const on = DLV[b.dataset.dc]; b.classList.toggle("on", !!on); b.style.background = on ? DLV_C[b.dataset.dc][1] : ""; b.style.color = on ? "#fff" : ""; });
+  if (!map) return;
+  try{
+    if (!map.getSource("dlv")){
+      map.addSource("dlv", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+      map.addLayer({ id: "dlv", type: "circle", source: "dlv", minzoom: 12, layout: { visibility: appMode === "market" ? "visible" : "none" },
+        paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 2.5, 16, 6.5], "circle-color": ["match", ["get", "k"], "food", DLV_C.food[1], "negozi", DLV_C.negozi[1], "tabacchi", DLV_C.tabacchi[1], DLV_C.farmacie[1]], "circle-stroke-color": "#fff", "circle-stroke-width": 1.5 } });
+      if (map.getStyle().glyphs) map.addLayer({ id: "dlv-lbl", type: "symbol", source: "dlv", minzoom: 16.5, layout: { visibility: appMode === "market" ? "visible" : "none", "text-field": ["get", "n"], "text-size": 11, "text-offset": [0, 1], "text-anchor": "top", "text-font": ["Noto Sans Regular"], "text-optional": true },
+        paint: { "text-color": "#2b0a0a", "text-halo-color": "#fff", "text-halo-width": 1.5 } });
+    }
+    DLV_L = dlvItems();
+    map.getSource("dlv").setData({ type: "FeatureCollection", features: DLV_L.map((x, i) => ({ type: "Feature", properties: { i, n: x.n, k: x.k }, geometry: { type: "Point", coordinates: [x.lng, x.lat] } })) });
+    layerVis();
+  }catch(e){}
+}
+function openDlv(i){
+  const x = DLV_L[i]; if (!x) return;
+  new maplibregl.Popup({ maxWidth: "240px" }).setLngLat([x.lng, x.lat]).setHTML(`<b>${esc(x.n)}</b><br><span style="color:#888">${DLV_C[x.k][0]}</span><br><a href="#" data-goto="${x.lat},${x.lng}" data-name="${esc(x.n)}" style="color:#7fc1ff">Portami qui</a>`).addTo(map);
+}
+document.querySelectorAll("#dlvCats [data-dc]").forEach(b => b.onclick = () => { DLV[b.dataset.dc] = !DLV[b.dataset.dc]; store.set("ln_dlv", DLV); drawDlv(); });
 
 /* =========================================================
    EMERGENZA: assistente per i problemi a bordo + SOS alle barche vicine
@@ -6756,7 +6879,7 @@ function layerVis(){
     "sensi": n, "fermate": appMode === "trasporti" || (n && LY.actv), "fermate-lbl": appMode === "trasporti" || (n && LY.actv),
     "battelli": n && (LY.actv || LY.alilaguna), "battelli-lbl": n && (LY.actv || LY.alilaguna),
     "aero": n,
-    "partners": appMode === "market", "partners-lbl": appMode === "market"
+    "partners": appMode === "market", "partners-lbl": appMode === "market", "dlv": appMode === "market", "dlv-lbl": appMode === "market"
   };
   Object.entries(want).forEach(([id, v]) => /^route/.test(id) ? (map.getLayer(id) && map.setLayoutProperty(id, "visibility", v ? "visible" : "none")) : fadeVis(id, v));
   if (destMarker) fadeEl(destMarker.getElement(), n);
