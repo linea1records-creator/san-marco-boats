@@ -122,13 +122,13 @@ function csa(g: any, conns: number[][], from: any[], to: any[], t0: number, maxC
     const key = ti * 2 + (c[5] ? 1 : 0); let ride = inTrip.get(key);
     const ready = best[g1] + (via[g1] && !via[g1].walk ? 2 : 0), canBoard = ready <= dep && rides[g1] < maxCorse;
     if (!ride) {
-      if (canBoard) { ride = { board: g1, dep, ti, n: rides[g1] + 1, wk: wk[g1] }; inTrip.set(key, ride); }
+      if (canBoard) { ride = { board: g1, dep, ti, n: rides[g1] + 1, wk: wk[g1], nx: s2 }; inTrip.set(key, ride); }
     } else if (canBoard && g1 !== ride.board && (rides[g1] + 1 < ride.n || (rides[g1] + 1 === ride.n && wk[g1] < ride.wk))) {
       // stessa corsa, ma ci si può salire a una fermata raggiunta con meno cambi o camminando meno: sali lì
-      ride = { board: g1, dep, ti, n: rides[g1] + 1, wk: wk[g1] }; inTrip.set(key, ride);
+      ride = { board: g1, dep, ti, n: rides[g1] + 1, wk: wk[g1], nx: s2 }; inTrip.set(key, ride);
     }
     if (!ride) continue;
-    const leg = { ti: ride.ti, from: ride.board, dep: ride.dep, arr, off: c[5] };
+    const leg = { ti: ride.ti, from: ride.board, dep: ride.dep, arr, off: c[5], nx: ride.nx };
     if (better(arr, ride.n, ride.wk, rb[g2], rn[g2], rw[g2])) {
       rb[g2] = arr; rn[g2] = ride.n; rw[g2] = ride.wk; rv[g2] = leg;
       for (const [j, w] of g.walk[g2]) if (better(arr + w, ride.n, ride.wk + w, rb[j], rn[j], rw[j])) { rb[j] = arr + w; rn[j] = ride.n; rw[j] = ride.wk + w; rv[j] = { walk: true, from: g2, dep: arr, arr: arr + w }; }
@@ -151,7 +151,7 @@ function csa(g: any, conns: number[][], from: any[], to: any[], t0: number, maxC
   const nm = (i: number) => i < 0 ? 'partenza' : g.glist[i].n;
   return { arrivo: rb[end], fine: endT, fine_min: tw.get(end) || 0, da: nm(legs.find((l) => !l.walk)?.from ?? end), a: g.glist[end].n,
     legs: legs.map((l) => l.walk ? { tipo: 'piedi', da: nm(l.from), a: g.glist[l.to].n, min: l.arr - l.dep, parte: hhmm(l.dep) }
-    : { tipo: 'linea', linea: g.p.routes[g.p.trips[l.ti][0]][1], colore: g.p.routes[g.p.trips[l.ti][0]][2], azienda: g.p.routes[g.p.trips[l.ti][0]][3], direzione: g.p.heads[g.p.trips[l.ti][2]], da: g.glist[l.from].n, a: g.glist[l.to].n, parte: hhmm(l.dep), arriva: hhmm(l.arr), min: l.arr - l.dep }) };
+    : { tipo: 'linea', linea: g.p.routes[g.p.trips[l.ti][0]][1], colore: g.p.routes[g.p.trips[l.ti][0]][2], azienda: g.p.routes[g.p.trips[l.ti][0]][3], direzione: g.p.heads[g.p.trips[l.ti][2]], prossima: g.p.stops[l.nx] ? base(String(g.p.stops[l.nx][1])) : '', da: g.glist[l.from].n, a: g.glist[l.to].n, parte: hhmm(l.dep), arriva: hhmm(l.arr), min: l.arr - l.dep }) };
 }
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -187,7 +187,8 @@ Deno.serve(async (req) => {
       for (const c of conns) {
         if (g.stopGroup[c[2]] !== st.i) continue;
         const t = g.p.trips[c[4]], k = c[4] + ':' + c[5]; if (seen.has(k)) continue; seen.add(k);
-        out.push({ linea: g.p.routes[t[0]][1], colore: g.p.routes[t[0]][2], azienda: g.p.routes[t[0]][3], direzione: g.p.heads[t[2]], ora: hhmm(c[0]), tra_min: c[0] - now.min, banchina: (g.p.stops[c[2]][1].match(/"([^"]+)"\s*$/) || [])[1] || '' });
+        // le linee circolari (4.1, 4.2, 5.1, 5.2…) hanno la stessa destinazione nei due passaggi: si distinguono dalla fermata successiva
+        out.push({ linea: g.p.routes[t[0]][1], colore: g.p.routes[t[0]][2], azienda: g.p.routes[t[0]][3], direzione: g.p.heads[t[2]], prossima: base(g.p.stops[c[3]][1]), ora: hhmm(c[0]), tra_min: c[0] - now.min, banchina: (g.p.stops[c[2]][1].match(/"([^"]+)"\s*$/) || [])[1] || '' });
         if (out.length >= n) break;
       }
       return json({ pontile: st.n, adesso: hhmm(now.min), partenze: out, orario_del: serviceDay(g, false).equivalente });

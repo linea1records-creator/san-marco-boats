@@ -5524,13 +5524,13 @@ async function renderDepartures(){
   try{
     const j = await ACTV("azione=partenze&n=10&pontile=" + encodeURIComponent(s.lat.toFixed(6) + "," + s.lng.toFixed(6)));
     if (trStop !== s) return;
-    const list = (j.partenze || []).map((p, k) => `<div class="dep" data-k="${k}" style="cursor:pointer">${lineBadge(p.linea, p.colore)}<span class="dd">${esc(cleanDir(p.direzione))}</span>
+    const list = (j.partenze || []).map((p, k) => `<div class="dep" data-k="${k}" style="cursor:pointer">${lineBadge(p.linea, p.colore)}<span class="dd">${esc(cleanDir(p.direzione))}${p.prossima && norm(p.prossima) !== norm(cleanDir(p.direzione)) ? `<small style="display:block;opacity:.7;font-size:11px">via ${esc(p.prossima)}</small>` : ""}</span>
       <span class="dt"><b>${p.tra_min <= 0 ? "ora" : p.tra_min < 60 ? p.tra_min + " min" : p.ora}</b><small>${p.ora}</small></span></div>`).join("");
     box.innerHTML = `<div class="trback" id="trBack">‹ Fermate</div><h4>🚤 ${esc(j.pontile || s.n)}</h4>` + (list || `<p class="trnote">Nessuna partenza nelle prossime 4 ore.</p>`) +
       `<button class="btn small" id="trGoPlan" style="margin-top:8px">Calcola un percorso da qui</button>` + orarioNote(j.orario_del);
     $("#trBack").onclick = () => { trStop = null; $("#trBody").innerHTML = ""; renderTr(); };
     box.querySelectorAll(".dep[data-k]").forEach(el => el.onclick = () => { const p = j.partenze[+el.dataset.k], hm = String(p.ora || "").split(":");
-      openCorsa({ linea: p.linea, dir: p.direzione, la: s.lat, lng: s.lng, t: +hm[0] * 60 + +hm[1], tol: 400, az: p.azienda }); });
+      openCorsa({ linea: p.linea, dir: p.direzione, la: s.lat, lng: s.lng, t: +hm[0] * 60 + +hm[1], tol: 400, az: p.azienda, nx: p.prossima }); });
     $("#trGoPlan").onclick = () => { trPlan = { da: j.pontile || s.n, a: "" }; trStop = null; $("#trBody").innerHTML = ""; renderTr(); setTimeout(() => { const b = $("#trAsk"); if (b) b.click(); }, 50); };
   }catch(e){ box.innerHTML = `<div class="trback" id="trBack">‹ Fermate</div><p class="trnote">Orari non disponibili: controlla la connessione.</p>`; $("#trBack").onclick = () => { trStop = null; $("#trBody").innerHTML = ""; renderTr(); }; }
 }
@@ -5553,7 +5553,7 @@ function tripOptHtml(o, k){
   return `<div class="opt">
         <div class="oh"><b>${k === 0 ? "Più veloce" : "Senza cambi"}</b><span>arrivo <b>${o.arrivo}</b> · ${o.durata_min} min${o.cambi ? " · " + o.cambi + (o.cambi === 1 ? " cambio" : " cambi") : ""}</span></div>` +
         o.tappe.map(t => t.tipo === "piedi" ? `<div class="leg">🚶 a piedi fino a ${esc(t.a)} · ${t.min} min</div>`
-          : `<div class="leg">${lineBadge(t.linea, t.colore)} <b>${t.parte}</b> da ${esc(t.da)}, direzione ${esc(cleanDir(t.direzione))}<br><span class="trnote">scendi a ${esc(t.a)} alle ${t.arriva} (${t.min} min)</span></div>`).join("") + `</div>`;
+          : `<div class="leg">${lineBadge(t.linea, t.colore)} <b>${t.parte}</b> da ${esc(t.da)}, direzione ${esc(cleanDir(t.direzione))}${t.prossima && norm(t.prossima) !== norm(cleanDir(t.direzione)) ? " via " + esc(t.prossima) : ""}<br><span class="trnote">scendi a ${esc(t.a)} alle ${t.arriva} (${t.min} min)</span></div>`).join("") + `</div>`;
 }
 async function doPlan(){
   const lb = $("#trList"); if (!lb) return;
@@ -5840,7 +5840,7 @@ async function openCorsa(o){
   $("#cbClose").onclick = closeCorsa; $("#cbNote").textContent = ""; CORSA_ST = null; drawStop(true); paintTrkBtn();
   if ($("#cbEdit")) $("#cbEdit").onclick = () => { if (!CORSA_ST) return; CORSA_ST.edit = !CORSA_ST.edit; $("#cbEdit").classList.toggle("on", CORSA_ST.edit); corsaList(); };
   $("#cbList").innerHTML = `<div class="cbMsg">Carico le fermate\u2026</div>`;
-  let j; try{ j = await CORSA(`linea=${encodeURIComponent(o.linea)}&dir=${encodeURIComponent(o.dir)}&la=${o.la}&lo=${o.lng}&t=${o.t}&tol=${o.tol || 60}`); }catch(e){ j = { errore: "rete" }; }
+  let j; try{ j = await CORSA(`linea=${encodeURIComponent(o.linea)}&dir=${encodeURIComponent(o.dir)}&la=${o.la}&lo=${o.lng}&t=${o.t}&tol=${o.tol || 60}${o.nx ? "&nx=" + encodeURIComponent(o.nx) : ""}`); }catch(e){ j = { errore: "rete" }; }
   if (seq !== corsaSeq) return;
   if (!j || !Array.isArray(j.fermate) || !j.fermate.length){ $("#cbList").innerHTML = `<div class="cbMsg">${j && j.errore === "corsa_non_trovata" ? "Non trovo questa corsa negli orari." : "Fermate non disponibili: controlla la connessione."}</div>`; return; }
   let F = j.fermate.slice();
