@@ -789,6 +789,9 @@
   #rbMore{max-height:36vh;overflow-y:auto;margin:0 0 8px}
   #rbGo:disabled{opacity:.45}
 </style>
+<style id="camBtn">
+  #fabGps svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+</style>
 <style id="letters">
   /* lettere portate dall'angelo */
   #letBtn{position:fixed;z-index:30;right:14px;bottom:calc(96px + var(--safe-b, 0px));display:none;align-items:center;gap:6px;padding:10px 16px 10px 12px;border-radius:999px;
@@ -1064,7 +1067,7 @@
       <button class="fab" id="fabView" title="Prima persona / nord in alto" style="display:none">3D</button>
       <button class="fab" id="fabSet" title="Impostazioni della mappa"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
       <button class="fab" id="fabMenu" title="Cruscotto"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 17a9 9 0 1 1 17 0"/><path d="M12 17l4.2-5.2"/><circle cx="12" cy="17" r="1.6"/><path d="M6.2 12.4l1 .6M12 7.5V8.7M17.8 12.4l-1 .6"/></svg></button>
-      <button class="fab big" id="fabGps" title="Dove sono">➤</button>
+      <button class="fab big" id="fabGps" title="Prima persona · tocca per cambiare visuale" data-noico><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.3" r="2.6"/><path d="M12 8.4v6.4M7.8 11.2l4.2-1.6 4.2 1.6M9.3 21l2.7-6.2 2.7 6.2"/></svg></button>
     </div>
 
     <!-- impostazioni della mappa: tocca una voce per mostrarla o nasconderla -->
@@ -1497,6 +1500,7 @@ function introThenOpen(){
   setTimeout(() => { c.remove(); $("#splash").classList.remove("leave"); openApp(); }, 1760);
 }
 function openApp(){
+  setTimeout(() => { try{ askCompass(); setCam("persona"); }catch(e){} }, 700);   // appena aperta: posizione accesa e prima persona sul tuo avatar
   $("#splash").classList.add("hidden");
   $("#app").classList.remove("hidden");
   if (!window._mapReady) initMap();
@@ -1609,7 +1613,8 @@ function setMode(k){
   if (m.am) setAppMode(m.am);
 }
 function stepMode(d){ haptic(); setMode(MODES[(modeIdx + d + MODES.length) % MODES.length].k); }
-$("#tabs").addEventListener("click", e => { const b = e.target.closest("[data-pm]"); if (b){ if (b.dataset.pm !== MODES[modeIdx].k) haptic(); setMode(b.dataset.pm); } });
+$("#tabs").addEventListener("click", e => { const b = e.target.closest("[data-pm]"); if (b){ if (b.dataset.pm !== MODES[modeIdx].k) haptic(); setMode(b.dataset.pm);
+  if (b.dataset.pm === "nautica"){ try{ askCompass(); setCam("persona"); }catch(er){} } } });   // Naviga: la tua posizione in tempo reale, in prima persona
 buildDial(); paintDial();
 // dal profilo si entra in Barca, Rider e Info; "‹ Profilo" torna indietro
 document.addEventListener("click", e => {
@@ -2777,12 +2782,25 @@ let headingSrc = store.get("ln_hsrc", "phone"), courseHeading = null, compassAt 
 // tasto posizione: un tocco centra, il secondo entra in prima persona, in prima persona un tocco esce.
 // Tenendolo premuto 2 secondi e trascinando su o giù si allontana o si avvicina la visuale (resta incollata all'avatar)
 let fpZoom = store.get("ln_fpzoom", 19.4), gpsHold = null;
+/* telecamera: prima persona (omino) → libera (due dita) → Venezia dall'alto (mappa) → di nuovo prima persona */
+let CAM = "persona";
+const CAM_IC = {
+  persona: '<circle cx="12" cy="5.3" r="2.6"/><path d="M12 8.4v6.4M7.8 11.2l4.2-1.6 4.2 1.6M9.3 21l2.7-6.2 2.7 6.2"/>',
+  libera: '<path d="M8.6 20.6l-1.9-3.7a1.6 1.6 0 0 1 2.6-1.8l1.3 1.4V8.3a1.5 1.5 0 0 1 3 0V13l3.3.6a2 2 0 0 1 1.6 2.3l-.8 4.7"/><path d="M3.8 7.8L6.6 5M3.8 7.8h2.4M3.8 7.8V5.4M20.2 4.4L17.4 7.2M20.2 4.4h-2.4M20.2 4.4v2.4"/>',
+  alto: '<path d="M3.5 6.6l5.5-2.4 6 2.4 5.5-2.4v13.4l-5.5 2.4-6-2.4-5.5 2.4z"/><path d="M9 4.2v13.4M15 6.6V20"/>'
+};
+const CAM_N = { persona: "Prima persona", libera: "Visuale libera", alto: "Venezia dall'alto" };
+function paintCam(){ const b = $("#fabGps"); if (!b) return; b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${CAM_IC[CAM]}</svg>`; b.title = CAM_N[CAM] + " · tocca per cambiare visuale"; b.dataset.cam = CAM; }
+function setCam(m){
+  if (m === "persona"){ if (watchId === null) startGps(); setFirstPerson(true); setFollow(true); CAM = "persona"; if (lastPos) camera(true); }
+  else if (m === "libera"){ setFirstPerson(false); setFollow(false); CAM = "libera"; }   // la mappa resta dov'è: la muovi tu con le dita
+  else { setFirstPerson(false); setFollow(false); CAM = "alto";
+    if (map) map.easeTo({ center: [12.3326, 45.4371], zoom: 13.3, pitch: 0, bearing: 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 900 }); }
+  paintCam(); modeFlash(CAM_N[CAM]);
+}
 function gpsTap(){
   askCompass();                       // su iPhone il permesso della bussola si chiede solo dentro il tocco
-  if (watchId === null) startGps();
-  if (view3d){ setFirstPerson(false); map.easeTo({ bearing: 0, duration: 600 }); return; }
-  if (follow && lastPos){ setFirstPerson(true); return; }   // già centrato: secondo tocco = navigatore in prima persona
-  setFollow(true); camera(true);
+  setCam({ persona: "libera", libera: "alto", alto: "persona" }[CAM] || "persona");
 }
 function modeFlash(t){ let el = $("#modeFlash"); if (!el){ el = document.createElement("div"); el.id = "modeFlash"; document.body.appendChild(el); }
   el.textContent = t; el.classList.add("on"); clearTimeout(modeFlash.t); modeFlash.t = setTimeout(() => el.classList.remove("on"), 500); }
@@ -2802,8 +2820,7 @@ function modeFlash(t){ let el = $("#modeFlash"); if (!el){ el = document.createE
 $("#fabView").onclick = () => { setFirstPerson(!view3d); if (view3d) setFollow(true); };
 // prima persona: da vicino, la mappa gira con la bussola · altrimenti la mappa resta come la giri tu e vedi l'omino in 3D
 function setFirstPerson(on){
-  if (on !== view3d) modeFlash(on ? "Prima persona" : "Vista libera");
-  view3d = on; $("#fabView").classList.toggle("on", on); document.body.classList.toggle("fp", on); $("#fabView").title = on ? "Esci dalla prima persona" : "Prima persona (la mappa gira con la bussola)";
+  view3d = on; if (on) CAM = "persona"; else if (CAM === "persona") CAM = "libera"; try{ paintCam(); }catch(e){} $("#fabView").classList.toggle("on", on); document.body.classList.toggle("fp", on); $("#fabView").title = on ? "Esci dalla prima persona" : "Prima persona (la mappa gira con la bussola)";
   if (!map) return; const h = map.getContainer().clientHeight;
   const d3 = LY.d3 !== false;
   fpLock(on); if (on){ follow = true; camC = null; }
