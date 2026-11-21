@@ -4811,7 +4811,7 @@ if (mapMode === "depth"){ mapMode = "simple"; store.set("ln_mapmode", mapMode); 
 // nella mappa semplice restano: acqua, terra, edifici 3D, nomi dei luoghi e dei canali
 function keepSimple(l){
   if (l.type === "background" || l.type === "fill-extrusion") return true;
-  if (l.type === "fill") return !/landuse|park|wood|grass|aeroway|pitch|cemetery|hospital|school|industrial/i.test(l.id) || /water/i.test(l.id);
+  if (l.type === "fill") return !/landuse|park|wood|grass|aeroway|pitch|cemetery|hospital|school|industrial/i.test(l.id) || /water|landuse_residential/i.test(l.id);
   if (l.type === "line") return /water|river|canal/i.test(l.id);
   if (l.type === "symbol") return /place|water_name|waterway.*label|water.*label|label.*water/i.test(l.id);
   return false;
@@ -4827,7 +4827,9 @@ function applyLandColors(){
     try{
       if (l.type === "background") map.setPaintProperty(id, "background-color", LAND_COL);
       else if (l.type === "fill-extrusion" && /building/i.test(id)) map.setPaintProperty(id, "fill-extrusion-color", BRICK);
-      else if (l.type === "fill" && /building/i.test(id)){ map.setPaintProperty(id, "fill-color", BRICK); try{ map.setPaintProperty(id, "fill-outline-color", "#8f3f2c"); }catch(e){} }
+      else if (l.type === "fill" && /building/i.test(id)){ map.setPaintProperty(id, "fill-color", BRICK); try{ map.setPaintProperty(id, "fill-outline-color", "#8f3f2c"); }catch(e){}
+        try{ map.setLayerZoomRange(id, 13, 24); }catch(e){} }   // case piatte a ogni zoom: restano mattone anche col 3D nascosto (2D o Secca)
+      else if (l.type === "fill" && /landuse_residential/i.test(id)){ map.setPaintProperty(id, "fill-color", "#d39a86"); try{ map.setPaintProperty(id, "fill-opacity", 1); map.setLayerZoomRange(id, 0, 13.6); }catch(e){} }   // da lontano: zone abitate mattone chiaro
       else if (l.type === "fill" && !water) map.setPaintProperty(id, "fill-color", LAND_COL);
     }catch(e){} });
 }
