@@ -2202,7 +2202,7 @@ function kissSummary(rows){
 function addLayers(){
   setTimeout(drawOneWay, 300); setTimeout(addManLayer, 400);
   BASE_LAYERS = map.getStyle().layers.map(l => ({ id: l.id, type: l.type, vis: (l.layout && l.layout.visibility) || "visible" }));
-  setTimeout(() => { applyWaterColor(); loadWaterColor(); }, 0);
+  setTimeout(() => { applyLandColors(); applyWaterColor(); loadWaterColor(); }, 0);
   // foto satellitare (sotto a tutti i nostri strati)
   map.addSource("sat", { type: "raster", tileSize: 256, maxzoom: 19, attribution: "Foto © Esri, Maxar, Earthstar Geographics",
     tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"] });
@@ -4538,6 +4538,18 @@ function keepSimple(l){
 // colore dell'acqua della mappa (scelto da tropss, uguale per tutti)
 const WATER_DEFAULT = "#3dc991";   // acqua verde di default (tropss può cambiarla per tutti)
 let WATER_COL = store.get("ln_water_col", null), WATER_ORIG = null;
+// terra bianca (fondamenta, campi, pavimenti) e case color mattone
+const LAND_COL = "#ffffff", BRICK = "#b5533c";
+function applyLandColors(){
+  if (!map || !BASE_LAYERS.length) return; const base = new Set(BASE_LAYERS.map(l => l.id));
+  BASE_LAYERS.forEach(l => { const id = l.id, water = /water|river|canal|ocean|sea|lake/i.test(id); if (!map.getLayer(id)) return;
+    try{
+      if (l.type === "background") map.setPaintProperty(id, "background-color", LAND_COL);
+      else if (l.type === "fill-extrusion" && /building/i.test(id)) map.setPaintProperty(id, "fill-extrusion-color", BRICK);
+      else if (l.type === "fill" && /building/i.test(id)){ map.setPaintProperty(id, "fill-color", BRICK); try{ map.setPaintProperty(id, "fill-outline-color", "#8f3f2c"); }catch(e){} }
+      else if (l.type === "fill" && !water) map.setPaintProperty(id, "fill-color", LAND_COL);
+    }catch(e){} });
+}
 function applyWaterColor(){
   if (!map || !BASE_LAYERS.length) return;
   const L = BASE_LAYERS.filter(l => /water|river|canal|ocean|sea|lake/i.test(l.id) && (l.type === "fill" || l.type === "line"));
@@ -4563,12 +4575,13 @@ if ($("#waterCol")){
 }
 function applyMapMode(){
   if (!map || !map.getLayer("sat")) return;
-  const sat = mapMode === "sat" && appMode === "nautica", dep = !!INST.water && appMode === "nautica", flat = LY.d3 === false && appMode === "nautica";
+  // la mappa di base resta uguale in tutte le sezioni; cambia (con dissolvenza) solo quello che sta sopra
+  const sat = mapMode === "sat", dep = !!INST.water && appMode === "nautica", flat = LY.d3 === false;
   $("#depthLegend").classList.toggle("hidden", !dep);
   layerVis();
   if (dep){ loadTide(); drawChart(); }
   BASE_LAYERS.forEach(l => { if (!map.getLayer(l.id)) return;
-    const show = sat ? (l.type === "symbol" && /place/i.test(l.id)) : keepSimple(l) && !((dep || flat) && l.type === "fill-extrusion");
+    const show = sat ? (l.type === "symbol" && /place/i.test(l.id)) : keepSimple(l) && !((INST.water || flat) && l.type === "fill-extrusion");
     map.setLayoutProperty(l.id, "visibility", show ? "visible" : "none"); });
   fadeVis("sat", sat);
   $("#fabSat").textContent = sat ? "🛰" : "🗺️";
@@ -4585,7 +4598,7 @@ function setGet(k){ return k === "water" ? !!INST.water : k === "sat" ? mapMode 
 function paintSet(){ document.querySelectorAll("#setPanel [data-set]").forEach(b => b.classList.toggle("on", setGet(b.dataset.set))); }
 // 2D: mappa piatta, niente rilievi (edifici, bricole 3D, omino) · 3D: mappa inclinabile con i rilievi
 function apply3d(anim){
-  if (!map) return; const d3 = LY.d3 !== false || appMode !== "nautica";
+  if (!map) return; const d3 = LY.d3 !== false;
   try{ map.setMaxPitch(d3 ? 80 : 0); }catch(e){}
   if (!d3 && map.getPitch() > 0) map.easeTo({ pitch: 0, duration: anim ? 500 : 0 });
   else if (d3 && anim && map.getPitch() < 5) map.easeTo({ pitch: view3d ? 72 : 50, duration: 500 });
@@ -4762,7 +4775,7 @@ function setAppMode(m){
   if (m === "sport") sportStart(); else sportStop();
   if (m === "incontra") meetStart(); else meetStop();
   if (m === "incontra") loadEvents();
-  try{ paintSos(); }catch(e){} try{ apply3d(false); }catch(e){}
+  try{ paintSos(); }catch(e){} try{ applyMapMode(); }catch(e){}   // niente movimenti di telecamera al cambio sezione
   if (m !== "nautica" && PLAN) closePlan();
   if (m === "market"){ loadPartners(); renderMk(); }
   layerVis();
@@ -5780,7 +5793,6 @@ async function syncAdult(){
 async function meetStart(){
   if (!store.get("ln_adult_sync", false)) await syncAdult();
   loadStati(); clearInterval(meetTimer); meetTimer = setInterval(loadStati, 30000);
-  if (map) map.easeTo({ pitch: 0, bearing: 0, zoom: Math.min(map.getZoom(), 14), duration: 600 });
 }
 function meetStop(){ meetMode("map"); clearInterval(meetTimer); meetMarkers.forEach(m => m.remove()); meetMarkers = []; }
 const ago = t => { const m = Math.round((Date.now() - Date.parse(t)) / 60000); return m < 60 ? m + " min fa" : Math.round(m / 60) + " h fa"; };
