@@ -104,6 +104,7 @@
   .me,.dest,.startpin{transition:opacity .5s}
   body.fp .me:not(.fr) .meTag{display:none}
   .me.fr .meTag{background:#ff6446}
+  .me .meTag.on,.me:not(.fr) .meTag{background:#1fae5b}   /* online: banner verde */
   .meTag small{font-weight:500;opacity:.8}
   .meTag{position:absolute;left:50%;bottom:0;transform:translateX(-50%);white-space:nowrap;background:#111;color:#fff;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.35)}
   .dest{width:22px;height:22px;border-radius:50%;background:#d32f2f;border:4px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5)}
@@ -2175,7 +2176,7 @@ function drawFriends(){
   map.getSource("frman").setData({ type: "FeatureCollection", features: feats });
   map.getSource("frdot").setData({ type: "FeatureCollection", features: list.map(f => ({ type: "Feature", properties: { c: (f.avatar && f.avatar.shirt) || "#ff6446", n: f.nome }, geometry: { type: "Point", coordinates: [f.lng, f.lat] } })) });
   FR_MK.forEach(m => m.remove()); FR_MK = list.map(f => { const el = document.createElement("div"); el.className = "me fr";
-    el.innerHTML = `<div class="meTag">${esc(f.nome)}${f.minuti >= 2 ? ` <small>${agoMin(f.minuti)}</small>` : ""}</div>`;
+    el.innerHTML = `<div class="meTag${f.minuti < 3 ? " on" : ""}">${esc(f.nome)}${f.minuti >= 2 ? ` <small>${agoMin(f.minuti)}</small>` : ""}</div>`;
     el.querySelector(".meTag").onclick = ev => { ev.stopPropagation(); trackFriend(f.nome); };
     return new maplibregl.Marker({ element: el, anchor: "bottom", offset: [0, meOff || -12] }).setLngLat([f.lng, f.lat]).addTo(map); });
 }
@@ -3050,6 +3051,7 @@ function renderResults(list, title){
   resBox.querySelectorAll("[data-r]").forEach(el => el.onclick = () => {
     const r = list[+el.dataset.r]; resBox.classList.add("hidden"); qIn.blur(); qIn.value = r.name;
     if (r.geo && !r.lat){ toast("Cerco il pontile…"); geocodeVenice(r.geo).then(p => { if (!p) return toast("Non trovo la posizione di questo pontile: prova a cercare la fondamenta."); pickPlace({ ...r, lat: p.lat, lng: p.lng }); }); return; }
+    if (r.person){ const f = (FR_LOC || []).find(x => x.nome === r.person); if (f){ r.lat = f.lat; r.lng = f.lng; } pickPlace(r); return; }   // una persona si muove: niente ricerche recenti, posizione aggiornata
     const rec = store.get("ln_recent", []).filter(x => x.name !== r.name); rec.unshift(r); store.set("ln_recent", rec.slice(0, 8));
     pickPlace(r);
   });
@@ -3118,6 +3120,24 @@ async function geocodeVenice(text){
   try{ const r = await fetch("https://photon.komoot.io/api/?limit=1&lat=45.437&lon=12.333&bbox=12.25,45.38,12.45,45.50&q=" + encodeURIComponent(t + " Venezia"));
     const j = await r.json(); const f = (j.features || [])[0]; if (f) return { lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] }; }catch(e){}
   return null;
+}
+// amici che condividono la posizione: si cercano per clickname e si ottengono le indicazioni per raggiungerli
+function peopleSearch(q){
+  const nq = norm(q).replace(/^@/, ""); if (!nq) return [];
+  const ref = refPoint();
+  return (FR_LOC || []).filter(f => norm(f.nome).includes(nq))
+    .map(f => ({ name: f.nome, sub: "Amico · " + (f.minuti < 3 ? "online adesso" : "visto " + agoMin(f.minuti)) + " · " + fmtDist(hav(ref.lat, ref.lng, f.lat, f.lng)), lat: f.lat, lng: f.lng, person: f.nome,
+      sc: (norm(f.nome).startsWith(nq) ? 0 : 1) }))
+    .sort((a, b) => a.sc - b.sc).slice(0, 5);
+}
+// oggetti sulla mappa: velox e ponti con il nome (i vaporetti no)
+function objectSearch(q){
+  const w = norm(q).split(" ").filter(Boolean); if (!w.length) return [];
+  const ref = refPoint(), L = [];
+  (VELOX.list || []).forEach(v => { if (v.name && w.every(t => norm("velox autovelox " + v.name).includes(t))) L.push({ name: "Velox · " + v.name, lat: v.lat, lng: v.lng, k: "Velox" }); });
+  (BRIDGES.list || []).forEach(b => { if (b.name && w.every(t => norm("ponte " + b.name).includes(t))) L.push({ name: b.name, lat: b.lat, lng: b.lng, k: "Ponte" }); });
+  return L.map(x => ({ ...x, m: hav(ref.lat, ref.lng, x.lat, x.lng) })).sort((a, b) => a.m - b.m).slice(0, 5)
+    .map(x => ({ name: x.name, sub: x.k + " · " + fmtDist(x.m), lat: x.lat, lng: x.lng }));
 }
 function localSearch(q){
   const words = norm(q).split(" ").filter(Boolean); if (!words.length) return [];
@@ -3206,7 +3226,7 @@ async function search(){
   const q = qIn.value.trim(); if (q.length < 2){ if (!q) showRecents(); return; }
   if (appMode === "nautica") return searchNav(q);
   const my = ++qSeq;
-  const local = localSearch(q).concat(pontiliSearch(q));
+  const local = peopleSearch(q).concat(localSearch(q), objectSearch(q), pontiliSearch(q));
   if (local.length) renderResults(local);
   else { resBox.innerHTML = `<div class="res info">Cerco…</div>`; resBox.classList.remove("hidden"); }
   const [a, b, cv] = await Promise.all([photon(q).catch(() => []), nominatim(q).catch(() => []), civicoSearch(q).catch(() => [])]);
@@ -3249,7 +3269,7 @@ async function civicoSearch(q){
 async function searchNav(q){
   const my = ++qSeq;
   if (!PONTILI_ACTV) loadPontiliActv().then(() => { NAV_IDX = null; });
-  const local = navLocal(q).concat(pontiliSearch(q));
+  const local = peopleSearch(q).concat(navLocal(q), objectSearch(q), pontiliSearch(q));
   if (local.length) renderResults(local);
   else { resBox.innerHTML = `<div class="res info">Cerco…</div>`; resBox.classList.remove("hidden"); }
   const civ = parseCivico(q);
