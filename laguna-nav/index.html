@@ -771,6 +771,8 @@
   .cbFix{flex:0 0 auto;max-width:44%;padding:4px 8px;border-radius:8px;background:#fff1ec;color:#c2410c;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .cbDraw{padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:14px} .cbDraw small{color:#8a8f98;line-height:1.35}
   .cbDraw .cbBtns{display:flex;gap:8px;margin-top:4px} .cbDraw .cbBtns .btn{flex:1;padding:9px 6px}
+  #cbPin{flex:0 0 auto;width:34px;height:30px;border-radius:999px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center}
+  #corsaBox .fmRow{padding:8px 14px;cursor:pointer} #corsaBox .fmRow:first-child{border-top:0}
   #cbFollow{flex:0 0 auto;height:30px;padding:0 12px;border-radius:999px;background:#eef0f2;color:#111;font-size:13px;font-weight:800}
   #cbFollow.on{background:#111;color:#fff}
   #corsaBox .cbEmo{padding:4px 12px 10px;margin-top:6px} #corsaBox .cbEmo button{background:#f2f3f5;border-color:#e3e5e8;font-size:26px}
@@ -2581,10 +2583,7 @@ function popupFor(f, ll){
   if (f.layer.id === "cantieri"){ const c = CANT[f.properties.i]; if (c) openCantiere(c); return; }
   if (f.layer.id === "battelli"){ const b = BOATS_ACTV[f.properties.i]; if (!b) return;   // percorso e fermate che mancano al capolinea
     trackBoat(b); openCorsa({ linea: b.L, dir: b.d, la: b.s0[0], lng: b.s0[1], t: b.s0[3], tol: 60, az: b.az, boat: true, k: b.k }); return; }
-  if (f.layer.id === "fermate" && appMode === "nautica"){ const nm = f.properties.n, c = f.geometry.coordinates;
-    html = `<b>${esc(nm)}</b><br><a href="#" id="fmDep" style="color:#ff6446">Prossime partenze</a> · <a href="#" data-goto="${c[1]},${c[0]}" data-name="${esc(nm)}" style="color:#7fc1ff">Portami qui</a>`;
-    new maplibregl.Popup({ closeButton: true, maxWidth: "240px" }).setLngLat(ll).setHTML(html).addTo(map);
-    setTimeout(() => { const a = document.getElementById("fmDep"); if (a) a.onclick = ev => { ev.preventDefault(); closePopups(); setAppMode("trasporti"); trTab = "bus"; trStop = { n: nm, lat: c[1], lng: c[0] }; renderDepartures(); }; }, 0); return; }
+  if (f.layer.id === "fermate" && appMode === "nautica"){ const c = f.geometry.coordinates; openFermata(f.properties.n, c[1], c[0]); return; }
   if (f.layer.id === "velox"){
     const v = VELOX.byId[f.properties.id]; if (!v) return;
     const tr = VELOX.tratte.filter(t => t.A.includes(v.id) || t.B.includes(v.id));
@@ -5876,6 +5875,32 @@ function closeCorsa(){ drawStop(true); corsaSeq++; const was = !!TRK; trkStop();
   try{ if (lastPos && watchId !== null){ setFollow(true); map.easeTo({ center: [lastPos.lng, lastPos.lat], padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 600 }); }
     else if (was) map.easeTo({ padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 400 }); }catch(e){}
   const b = $("#corsaBox"); if (b) b.classList.add("hidden"); if (map && map.getSource("corsa")) map.getSource("corsa").setData({ type: "FeatureCollection", features: [] }); }
+/* scheda dell'imbarcadero: subito le prossime partenze, col tasto per arrivarci (niente taxi qui) */
+let fmTimer = null;
+const PIN_IC = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg>`;
+async function openFermata(nm, lat, lng){
+  try{ closePopups(); trkStop(); }catch(e){} drawStop(true); corsaSeq++; CORSA_ST = null;
+  if (map && map.getSource("corsa")) map.getSource("corsa").setData({ type: "FeatureCollection", features: [] });
+  const seq = corsaSeq, box = $("#corsaBox"); box.classList.remove("hidden"); box.style.setProperty("--lc", "#9aa0a8"); box.style.setProperty("--ld", "#111");
+  $("#cbHead").innerHTML = `<span class="cbDir">${esc(nm)}</span><button id="cbPin" aria-label="Portami qui" title="Portami qui">${PIN_IC}</button><button id="cbClose" aria-label="Chiudi">\u00d7</button>`;
+  $("#cbClose").onclick = () => { clearInterval(fmTimer); closeCorsa(); };
+  $("#cbPin").onclick = () => { clearInterval(fmTimer); closeCorsa(); openPlan({ name: nm, lat, lng }); };
+  $("#cbNote").textContent = "Orari ufficiali ACTV e Alilaguna, senza ritardi";
+  $("#cbList").innerHTML = `<div class="cbMsg">Carico le partenze\u2026</div>`;
+  const load = async () => {
+    let j; try{ j = await ACTV("azione=partenze&n=12&pontile=" + encodeURIComponent(lat.toFixed(6) + "," + lng.toFixed(6))); }catch(e){ j = null; }
+    if (seq !== corsaSeq) return clearInterval(fmTimer);
+    const L = (j && j.partenze) || [];
+    if (!j){ $("#cbList").innerHTML = `<div class="cbMsg">Orari non disponibili: controlla la connessione.</div>`; return; }
+    if (j.pontile) $("#cbHead .cbDir").textContent = j.pontile;
+    $("#cbList").innerHTML = L.length ? L.map((p, k) => `<div class="dep fmRow" data-k="${k}">${lineBadge(p.linea, p.colore)}<span class="dd">${esc(cleanDir(p.direzione))}${p.prossima && norm(p.prossima) !== norm(cleanDir(p.direzione)) ? `<small style="display:block;opacity:.7;font-size:11px">via ${esc(p.prossima)}</small>` : ""}</span>
+      <span class="dt"><b>${p.tra_min <= 0 ? "ora" : p.tra_min < 60 ? p.tra_min + " min" : p.ora}</b><small>${p.ora}</small></span></div>`).join("")
+      : `<div class="cbMsg">Nessuna partenza nelle prossime 4 ore.</div>`;
+    document.querySelectorAll("#cbList .fmRow").forEach(el => el.onclick = () => { const p = L[+el.dataset.k], hm = String(p.ora || "").split(":"); clearInterval(fmTimer);
+      openCorsa({ linea: p.linea, dir: p.direzione, la: lat, lng, t: +hm[0] * 60 + +hm[1], tol: 400, az: p.azienda, nx: p.prossima }); });
+  };
+  clearInterval(fmTimer); load(); fmTimer = setInterval(() => { if (!document.hidden) load(); }, 30000);
+}
 async function openCorsa(o){
   const seq = ++corsaSeq, box = $("#corsaBox"), ali = o.az === "Alilaguna" || /^Alilaguna /.test(o.linea);
   const col = lineColor(o.linea, ali ? "Alilaguna" : "ACTV"), light = hexLight(col);
