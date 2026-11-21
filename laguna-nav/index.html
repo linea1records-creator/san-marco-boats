@@ -1084,6 +1084,7 @@
       <button class="srow" data-set="actv"><svg viewBox="0 0 24 24"><path d="M3 16h18l-2.2 4H5.2z"/><rect x="6" y="9" width="12" height="7" rx="1.5"/><path d="M9.5 9V6.5h5V9M9 12.5h1.5M13.5 12.5H15"/></svg><span>ACTV</span><i class="sw"></i></button>
       <button class="srow" data-set="alilaguna"><svg viewBox="0 0 24 24"><path d="M4 16.5h16l-2.3 4H6.3z"/><path d="M12 3.5v8M12 3.5l4.5 1.6L12 6.7"/><path d="M8.5 11.5h7l-1 5h-5z"/></svg><span>Alilaguna</span><i class="sw"></i></button>
       <button class="srow" data-set="canali"><svg viewBox="0 0 24 24"><path d="M3 17c3-1 5-6 9-6s6 5 9 6"/><path d="M3 21c3-1 5-6 9-6s6 5 9 6" stroke-dasharray="2 2.5"/><path d="M7 4v6M17 4v6"/></svg><span>Canali lagunari</span><i class="sw"></i></button>
+      <button class="srow" data-set="rive"><svg viewBox="0 0 24 24"><path d="M4 18h16M6 18V9M18 18V9"/><path d="M12 3.5v9M12 12.5a3 3 0 0 1-3-3M12 12.5a3 3 0 0 0 3-3M10 5.5h4"/></svg><span>Rive sosta diporto</span><i class="sw"></i></button>
       <button class="srow" data-set="cantieri"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5l-5.6 5.6a1.6 1.6 0 0 0 2.3 2.3l5.6-5.6a4 4 0 0 0 5-5.4l-2.4 2.4-2.1-.4-.4-2.1z"/></svg><span>Cantieri nautici</span><i class="sw"></i></button>
       <button class="srow" data-set="water"><svg viewBox="0 0 24 24"><path d="M12 3.5c3.5 4.3 6 7.6 6 10.5a6 6 0 0 1-12 0c0-2.9 2.5-6.2 6-10.5z"/><path d="M9 15a3 3 0 0 0 3 3"/></svg><span>Secca</span><i class="sw"></i></button>
       <button class="srow" data-set="d3"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>Vista 3D</span><i class="sw"></i></button>
@@ -2139,6 +2140,8 @@ function initMap(){
     if (addMode === "pickfrom"){ addMode = null; $("#modeHint").classList.add("hidden"); if (PLAN){ PLAN.from = { name: "Punto sulla mappa", lat: e.lngLat.lat, lng: e.lngLat.lng }; showPlan(); } return; }
     if (addMode === "zone") return zoneForm(e.lngLat);
     if (addMode === "depth") return depthForm(e.lngLat);
+    { const rv = map.getLayer("rive") && map.getLayoutProperty("rive", "visibility") === "visible" && map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["rive"] })[0];
+      if (rv){ const r = RIVE[rv.properties.i]; if (r){ new maplibregl.Popup({ maxWidth: "250px" }).setLngLat([r.lng, r.lat]).setHTML(`<b>Riva per la sosta del diporto</b><br>${esc(r.n)}<br><span style="color:#888">${esc(r.rio)} · sosta max 1 ora con disco orario (ord. 375/2014)</span><br><a href="#" data-goto="${r.lat},${r.lng}" data-name="${esc(r.n)}" style="color:#7fc1ff">Portami qui</a>`).addTo(map); return; } } }
     { const fr = map.queryRenderedFeatures([[e.point.x - 14, e.point.y - 14], [e.point.x + 14, e.point.y + 14]], { layers: ["frman", "frdot"].filter(l => map.getLayer(l)) })[0];
       if (fr && fr.properties.n) return trackFriend(fr.properties.n); }
     if (INST.water && appMode === "nautica"){
@@ -2158,7 +2161,7 @@ function initMap(){
   });
   loadShared(); setInterval(loadShared, 60000);
   map.on("idle", () => { try{ layerVis(); }catch(e){} });   // se un cambio è arrivato mentre la mappa caricava, lo rimette a posto
-  loadGraph(); loadPOI(); loadVelox(); loadChart(); loadPontili(); loadBricole(); loadBridges(); loadCantieri(); addAeroLayer(); addDiscos();
+  loadGraph(); loadPOI(); loadVelox(); loadChart(); loadPontili(); loadBricole(); loadBridges(); loadCantieri(); addAeroLayer(); addDiscos(); drawRive();
   map.on("moveend", () => { if (map.getZoom() >= 15.3) drawBric3d(); });
 }
 function addManLayer(){
@@ -3615,7 +3618,21 @@ function edgeLandUV(u, v){ return edgeLand(u, [v]); }
 /* rive pubbliche per la sosta a tempo del diporto (ordinanza 375/2014): non si vedono sulla mappa,
    ma se una è vicina alla destinazione la rotta in barca o in taxi finisce lì */
 let RIVE = [];
-fetch("rive-diporto.json", { cache: "no-cache" }).then(r => r.json()).then(j => { RIVE = (j.rive || []).filter(x => x[4] && x[5]).map(x => ({ n: x[3], rio: x[1], lat: x[4], lng: x[5] })); }).catch(() => {});
+fetch("rive-diporto.json", { cache: "no-cache" }).then(r => r.json()).then(j => { RIVE = (j.rive || []).filter(x => x[4] && x[5]).map(x => ({ id: x[0], n: x[3], rio: x[1], lat: x[4], lng: x[5] })); drawRive(); }).catch(() => {});
+// sulla mappa solo se accese nelle impostazioni (spente di default)
+function drawRive(){
+  if (!map || !map.isStyleLoaded || !RIVE.length) return;
+  try{
+    if (!map.getSource("rive")){
+      map.addSource("rive", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+      map.addLayer({ id: "rive", type: "circle", source: "rive", minzoom: 12, layout: { visibility: "none" }, paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 3, 16, 7], "circle-color": "#1f6feb", "circle-stroke-color": "#ffffff", "circle-stroke-width": 2 } });
+      if (map.getStyle().glyphs) map.addLayer({ id: "rive-lbl", type: "symbol", source: "rive", minzoom: 15.5, layout: { visibility: "none", "text-field": ["get", "t"], "text-size": 11, "text-offset": [0, 1.1], "text-anchor": "top", "text-font": ["Noto Sans Regular"], "text-optional": true },
+        paint: { "text-color": "#1f4fa8", "text-halo-color": "#fff", "text-halo-width": 1.5 } });
+    }
+    map.getSource("rive").setData({ type: "FeatureCollection", features: RIVE.map((r, i) => ({ type: "Feature", properties: { i, t: "Sosta diporto · " + r.n }, geometry: { type: "Point", coordinates: [r.lng, r.lat] } })) });
+    layerVis();
+  }catch(e){}
+}
 function nearestRiva(p, maxM){ let b = null, bd = maxM; RIVE.forEach(r => { const d = hav(p.lat, p.lng, r.lat, r.lng); if (d < bd){ bd = d; b = r; } }); return b; }
 // punto d'acqua più vicino in linea d'aria: proiezione sul tratto di canale più vicino (la barca si ferma lì)
 function waterSnap(lat, lng, maxM){
@@ -4199,7 +4216,7 @@ let INST = Object.assign({ speed: true, depth: false, tide: false, head: false, 
 // velocità, velox, marea ed ecoscandaglio ora lavorano sempre e si vedono tutti insieme nel mini widget
 Object.assign(INST, { speed: true, velox: true, tide: true, depth: true }); INST.bridge = false; INST.head = false;
 // cosa si vede sulla mappa in Nautica (finestrella delle impostazioni)
-let LY = Object.assign({ bricole: true, velox: true, boat: true, d3: true, cantieri: true, canali: true, actv: true, alilaguna: true }, store.get("ln_layers", {}));
+let LY = Object.assign({ bricole: true, velox: true, boat: true, d3: true, cantieri: true, canali: true, actv: true, alilaguna: true, rive: false }, store.get("ln_layers", {}));
 function paintInst(){
   document.querySelectorAll("#toggles button[data-inst]").forEach(b => b.classList.toggle("on", !!INST[b.dataset.inst]));
   $("#i-speed").classList.toggle("hidden", !INST.speed);
@@ -6586,6 +6603,7 @@ function layerVis(){
     "velox": n && LY.velox, "velox-tratte": n && LY.velox,
     "meman": me && d3, "medot": me, "frman": d3,
     "cantieri": n && LY.cantieri, "cantieri-lbl": n && LY.cantieri,
+    "rive": n && LY.rive === true, "rive-lbl": n && LY.rive === true,
     "canali": n && LY.canali, "canali-lbl": n && LY.canali,
     "ponti": false,
     "carta": false, "carta-num": false, "depths": false,   // in Secca solo le zone colorate, senza puntini
