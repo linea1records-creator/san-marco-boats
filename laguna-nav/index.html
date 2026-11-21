@@ -789,6 +789,64 @@
   #rbMore{max-height:36vh;overflow-y:auto;margin:0 0 8px}
   #rbGo:disabled{opacity:.45}
 </style>
+<style id="letters">
+  /* lettere portate dall'angelo */
+  #letBtn{position:fixed;z-index:30;right:14px;bottom:calc(96px + var(--safe-b, 0px));display:none;align-items:center;gap:6px;padding:10px 16px 10px 12px;border-radius:999px;
+    background:linear-gradient(135deg,#f7b928,#ffcf4a);color:#2b1d00;font-size:15px;box-shadow:0 4px 14px rgba(0,0,0,.35);border:0}
+  body.mode-incontra #letBtn{display:flex}
+  #letBtn .lbI{font-size:20px;line-height:1}
+  #letBadge{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#c8102e;color:#fff;font:700 12px/20px system-ui,sans-serif;font-style:normal;text-align:center}
+  #letArrive{position:fixed;z-index:3300;left:50%;transform:translateX(-50%);top:calc(var(--safe-t, 0px) + 12px);display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:16px;
+    background:#fff;color:#111;box-shadow:0 6px 20px rgba(0,0,0,.4);font-size:14px;max-width:92vw;animation:laIn .5s ease-out}
+  #letArrive .laEnv{font-size:26px;animation:laWig 1.4s ease-in-out infinite}
+  #letArrive button{padding:7px 14px;border-radius:10px;background:#050706;color:#fff;font-weight:700}
+  @keyframes laIn{from{transform:translate(-50%,-30px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+  @keyframes laWig{0%,100%{transform:rotate(0)}25%{transform:rotate(-10deg)}75%{transform:rotate(10deg)}}
+  #letRead{position:fixed;inset:0;z-index:3600;display:flex;align-items:center;justify-content:center}
+  #letRead.hidden{display:none}
+  #letRead .lrBack{position:absolute;inset:0;background:rgba(5,7,6,.72)}
+  #letRead .lrBox{position:relative;width:min(92vw,440px);display:flex;flex-direction:column;align-items:center}
+  .lrEnv{position:relative;width:min(84vw,360px);aspect-ratio:1.55;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.5);cursor:pointer;overflow:visible}
+  .lrEnv .flap{position:absolute;left:0;right:0;top:0;height:58%;clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;transition:transform .6s ease;filter:brightness(.93)}
+  .lrEnv.open .flap{transform:rotateX(180deg)}
+  .lrEnv .seal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:34px;transition:opacity .3s}
+  .lrEnv.open .seal{opacity:0}
+  .lrEnv .who{position:absolute;bottom:10px;left:0;right:0;text-align:center;font:600 14px Georgia,serif;opacity:.75}
+  .lrPaper{width:min(88vw,400px);max-height:62vh;overflow:auto;margin-top:-40px;padding:22px 20px 18px;border-radius:6px;box-shadow:0 12px 30px rgba(0,0,0,.5);
+    font:17px/1.55 Georgia,"Times New Roman",serif;white-space:pre-wrap;word-wrap:break-word;transform:translateY(40px) scale(.9);opacity:0;transition:all .6s ease .35s}
+  .lrPaper.show{transform:none;opacity:1}
+  .lrPaper .lrFrom{display:block;margin-top:16px;text-align:right;font-style:italic;font-size:14px;opacity:.8}
+  #lrClose{margin-top:14px;padding:10px 26px;border-radius:12px;background:#fff;color:#111;font-weight:700}
+  .ltTabs{display:flex;gap:4px;background:#eef0f2;border-radius:10px;padding:3px;margin:4px 0 12px}
+  .ltTabs button{flex:1;padding:7px 4px;border-radius:8px;font-size:13px;font-weight:700;color:#555}
+  .ltTabs button.on{background:#050706;color:#fff}
+  .ltLbl{display:block;font-size:12px;font-weight:700;color:#6b7280;margin:10px 0 6px;text-transform:uppercase;letter-spacing:.04em}
+  .ltKinds{display:flex;gap:8px} .ltKinds button{padding:8px 14px;border-radius:12px;background:#eef0f2;font-weight:700} .ltKinds button.on{background:#f7b928;color:#2b1d00}
+  .ltSel{width:100%;padding:10px;border-radius:10px;border:1px solid #d6dcdf;font-size:15px;background:#fff;color:#111}
+  .ltCols{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .ltCols button{width:32px;height:32px;border-radius:50%;border:2px solid rgba(0,0,0,.15)} .ltCols button.on{outline:3px solid #f7b928;outline-offset:2px}
+  .ltCols input{width:36px;height:32px;padding:0;border:0;background:none}
+  .ltPaper{width:100%;min-height:170px;margin-top:10px;padding:16px;border-radius:6px;border:1px solid rgba(0,0,0,.12);box-shadow:0 4px 14px rgba(0,0,0,.15);
+    font:17px/1.5 Georgia,"Times New Roman",serif;resize:vertical;box-sizing:border-box}
+  .ltCount{text-align:right;font-size:11px;color:#8a8f98;margin-top:4px}
+  .ltRow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #eee}
+  .ltRow .ltEnvS{width:44px;height:30px;border-radius:4px;flex:0 0 auto;box-shadow:0 1px 4px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;font-size:15px}
+  .ltRow .ltT{flex:1;line-height:1.3} .ltRow .ltT small{display:block;color:#8a8f98}
+  .ltRow button{padding:6px 12px;border-radius:10px;background:#050706;color:#fff;font-weight:700;font-size:13px}
+  /* l'angelo in viaggio */
+  .angel{pointer-events:none;position:relative;width:46px;height:52px}
+  .angel .anB{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);display:flex;align-items:flex-end;filter:drop-shadow(0 3px 4px rgba(0,0,0,.4))}
+  .angel .anA{font-size:28px;line-height:1}
+  .angel .anL{width:16px;height:11px;border-radius:2px;margin-left:-8px;margin-bottom:4px;border:1px solid rgba(0,0,0,.35);position:relative}
+  .angel .anL::after{content:"";position:absolute;inset:0;clip-path:polygon(0 0,100% 0,50% 60%);background:rgba(0,0,0,.18)}
+  .angel .anBt{position:absolute;left:50%;bottom:0;transform:translateX(-50%);font-size:26px;line-height:1;opacity:0;transition:opacity .4s}
+  .angel.walk .anB{animation:anWalk .5s ease-in-out infinite}
+  .angel.boat .anBt{opacity:1} .angel.boat .anB{bottom:16px;animation:anBob 1.2s ease-in-out infinite}
+  .angel.fly .anB{animation:anFly 1s ease-in-out infinite}
+  @keyframes anWalk{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,-4px)}}
+  @keyframes anBob{0%,100%{transform:translate(-50%,0) rotate(-3deg)}50%{transform:translate(-50%,-2px) rotate(3deg)}}
+  @keyframes anFly{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,-8px)}}
+</style>
 <style id="modeColors">
   /* colore di ogni modalità: tasto premuto, banner e tasti principali del suo pannello */
   :root{ --c-market:#c8102e; --c-meet:#f7b928; --c-sport:#7c3aed; --c-my:#1877f2 }
@@ -863,6 +921,9 @@
     </div>
 
     <!-- pianifica il tragitto: partenza e arrivo -->
+    <button id="letBtn" aria-label="Invia"><span class="lbI" data-noico>💌</span><b>Invia</b><i id="letBadge" class="hidden"></i></button>
+    <div id="letArrive" class="hidden" data-noico></div>
+    <div id="letRead" class="hidden" data-noico><div class="lrBack"></div><div class="lrBox" id="lrBox"></div></div>
     <div id="corsaBox" class="hidden"><div class="cbHead" id="cbHead"></div><div id="cbList"></div><div class="cbNote" id="cbNote"></div></div>
     <div id="aeroBox" class="hidden">
       <div class="aeHead">
@@ -2193,6 +2254,160 @@ async function kissPoll(){
     if (lastPos && k.lat && appMode === "nautica" && $("#v-map") && !$("#v-map").classList.contains("hidden")) kissFly([k.lng, k.lat], [lastPos.lng, lastPos.lat], () => { haptic(); }, emo);
   }, i * 1500));
 }
+/* ---------- lettere: le scrivi, un angelo le porta a piedi e in barca, l'amico le apre ---------- */
+const LT_PAPER = ["#fff6d6", "#ffffff", "#ffd9e2", "#d8efff", "#e2fbd7", "#efe1ff", "#1f2a44", "#050706"];
+const LT_INK = ["#2b2b2b", "#c8102e", "#1877f2", "#7c3aed", "#0f766e", "#b5533c", "#ffffff"];
+let LT = { tab: "scrivi", to: "", paper: store.get("ln_lt_paper", "#fff6d6"), ink: store.get("ln_lt_ink", "#2b2b2b"), body: "" };
+let LET_IN = [], LET_SKEW = 0, LET_SEEN = new Set(store.get("ln_let_seen", [])), LET_ANIM = new Set();
+// percorso dell'angelo: a piedi fino al canale, in barca lungo i canali (anche nei rii), a piedi fino all'amico
+function angelRoute(from, to){
+  if (!to) return null;
+  if (!G.done) return null;
+  const a = waterEntryNode(from.lat, from.lng, 600) || gNear(from.lat, from.lng, 500), b = waterEntryNode(to.lat, to.lng, 800) || gNear(to.lat, to.lng, 700);
+  if (!a || !b) return null;
+  let res = null; try{ res = dijkstra(a.n, b.n, null, true); }catch(e){}
+  if (!res) return null;
+  const pts = [[from.lat, from.lng]].concat(res.path.map(n => [G.la[n], G.lo[n]]), [[to.lat, to.lng]]);
+  return { pts, walkEnd: 1, walkStart: pts.length - 2 };
+}
+function angelSecs(R, from, to){
+  if (!R) return to ? Math.max(25, Math.min(120, Math.round(hav(from.lat, from.lng, to.lat, to.lng) / 60))) : 40;
+  let L = 0; for (let i = 1; i < R.pts.length; i++) L += hav(R.pts[i - 1][0], R.pts[i - 1][1], R.pts[i][0], R.pts[i][1]);
+  return Math.max(25, Math.min(150, Math.round(L / 35)));
+}
+// animazione: R = percorso (o null = vola), dur in ms, startFrac = da che punto parte (per chi riceve a viaggio iniziato)
+function angelTrip(R, from, to, dur, paper, startFrac, done){
+  if (!map || typeof maplibregl === "undefined") return done && done();
+  const el = document.createElement("div"); el.className = "angel walk"; el.setAttribute("data-noico", "");
+  el.innerHTML = `<span class="anBt">🚤</span><span class="anB"><span class="anA">👼</span><span class="anL" style="background:${esc(paper)}"></span></span>`;
+  const mk = new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([from.lng, from.lat]).addTo(map);
+  // tappe con il loro "peso" di tempo: a piedi si va più piano che in barca
+  const seg = []; let W = 0;
+  if (R){ for (let i = 1; i < R.pts.length; i++){ const a = R.pts[i - 1], b = R.pts[i], d = hav(a[0], a[1], b[0], b[1]), walk = i <= R.walkEnd || i > R.walkStart;
+      const w = Math.max(1, d * (walk ? 3 : 1)); seg.push({ a, b, w, walk }); W += w; } }
+  const t0 = performance.now() - (startFrac || 0) * dur;
+  const step = now => {
+    const t = Math.min(1, (now - t0) / dur);
+    if (R && seg.length){ let x = t * W, k = 0; while (k < seg.length - 1 && x > seg[k].w){ x -= seg[k].w; k++; }
+      const sg = seg[k], f = Math.min(1, x / sg.w); mk.setLngLat([sg.a[1] + (sg.b[1] - sg.a[1]) * f, sg.a[0] + (sg.b[0] - sg.a[0]) * f]);
+      el.classList.toggle("walk", sg.walk); el.classList.toggle("boat", !sg.walk); el.classList.remove("fly"); mk.setOffset([0, 0]);
+    } else if (to){ const e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;   // nessun canale utile: l'angelo vola
+      mk.setLngLat([from.lng + (to.lng - from.lng) * e, from.lat + (to.lat - from.lat) * e]); mk.setOffset([0, -Math.sin(t * Math.PI) * 120]);
+      el.className = "angel fly";
+    } else { el.className = "angel fly"; mk.setOffset([t * 40, -t * 260]); el.style.opacity = String(1 - t); }   // destinazione sconosciuta: vola via
+    if (t < 1) requestAnimationFrame(step); else { el.style.transition = "opacity .5s"; el.style.opacity = "0"; setTimeout(() => mk.remove(), 550); done && done(); }
+  };
+  requestAnimationFrame(step);
+}
+function letterFriends(){ return ((MY && MY.amici) || []).map(a => a.nome); }
+function openLetters(tab){
+  if (!PROFILE) return toast("Per mandare lettere serve l'account.");
+  if (tab) LT.tab = tab;
+  if (!MY) loadFriends().then(() => { if (!$("#sheet").classList.contains("hidden")) openLetters(); }).catch(() => {});
+  const tabs = `<div class="ltTabs">${[["scrivi", "Scrivi"], ["ricevute", "Ricevute"], ["inviate", "Inviate"]].map(([k, n]) => `<button data-lt="${k}" class="${LT.tab === k ? "on" : ""}">${n}${k === "ricevute" && letUnread() ? " · " + letUnread() : ""}</button>`).join("")}</div>`;
+  let body = "";
+  if (LT.tab === "scrivi"){
+    const fr = letterFriends();
+    body = `<span class="ltLbl">Cosa mandi</span><div class="ltKinds"><button class="on">💌 Lettera</button></div>
+      <span class="ltLbl">A chi</span>${fr.length ? `<select class="ltSel" id="ltTo"><option value="">Scegli un amico…</option>${fr.map(n => `<option ${n === LT.to ? "selected" : ""}>${esc(n)}</option>`).join("")}</select>` : `<p class="muted">Aggiungi prima qualche amico da myClick.</p>`}
+      <span class="ltLbl">Colore della lettera</span><div class="ltCols" id="ltPap">${LT_PAPER.map(c => `<button data-c="${c}" style="background:${c}" class="${c === LT.paper ? "on" : ""}"></button>`).join("")}<input type="color" id="ltPapC" value="${LT.paper}"></div>
+      <span class="ltLbl">Colore del testo</span><div class="ltCols" id="ltInk">${LT_INK.map(c => `<button data-c="${c}" style="background:${c}" class="${c === LT.ink ? "on" : ""}"></button>`).join("")}<input type="color" id="ltInkC" value="${LT.ink}"></div>
+      <textarea class="ltPaper" id="ltBody" maxlength="1500" placeholder="Scrivi qui la tua lettera…" style="background:${LT.paper};color:${LT.ink}">${esc(LT.body)}</textarea>
+      <div class="ltCount" id="ltCount">${LT.body.length}/1500</div>
+      <button class="btn" id="ltSend" style="margin-top:10px">👼 Affida all'angelo</button>`;
+  } else if (LT.tab === "ricevute"){
+    body = LET_IN.length ? LET_IN.map(l => { const arrived = letArrived(l);
+      return `<div class="ltRow"><span class="ltEnvS" style="background:${esc(l.paper)};color:${esc(l.ink)}">${l.aperta ? "✉️" : "💌"}</span><span class="ltT"><b>da @${esc(l.nome)}</b><small>${arrived ? (l.aperta ? "Letta" : "Arrivata, da aprire") : "👼 L'angelo è in viaggio · arriva tra " + letLeft(l)}</small></span>${arrived ? `<button data-lo="${l.id}">${l.aperta ? "Rileggi" : "Apri"}</button>` : ""}</div>`; }).join("")
+      : `<p class="muted">Non hai ancora ricevuto lettere.</p>`;
+  } else {
+    body = `<div id="ltSentL"><p class="muted">Carico…</p></div>`;
+  }
+  openSheet(`<h3>💌 Invia</h3>${tabs}${body}<button class="btn ghost" style="margin-top:12px" onclick="closeSheet()">Chiudi</button>`);
+  document.querySelectorAll("[data-lt]").forEach(b => b.onclick = () => openLetters(b.dataset.lt));
+  if (LT.tab === "scrivi"){
+    const ta = $("#ltBody"), paint = () => { if (!ta) return; ta.style.background = LT.paper; ta.style.color = LT.ink; };
+    if ($("#ltTo")) $("#ltTo").onchange = e => { LT.to = e.target.value; };
+    if (ta) ta.oninput = () => { LT.body = ta.value; $("#ltCount").textContent = ta.value.length + "/1500"; };
+    const pick = (box, key, inp) => { document.querySelectorAll(`#${box} button`).forEach(b => b.onclick = () => { LT[key] = b.dataset.c; store.set("ln_lt_" + key, LT[key]);
+        document.querySelectorAll(`#${box} button`).forEach(x => x.classList.toggle("on", x === b)); $("#" + inp).value = LT[key]; paint(); });
+      $("#" + inp).oninput = e => { LT[key] = e.target.value; store.set("ln_lt_" + key, LT[key]); document.querySelectorAll(`#${box} button`).forEach(x => x.classList.remove("on")); paint(); }; };
+    pick("ltPap", "paper", "ltPapC"); pick("ltInk", "ink", "ltInkC");
+    if ($("#ltSend")) $("#ltSend").onclick = sendLetter;
+  }
+  document.querySelectorAll("[data-lo]").forEach(b => b.onclick = () => { const l = LET_IN.find(x => String(x.id) === b.dataset.lo); if (l){ closeSheet(); readLetter(l); } });
+  if (LT.tab === "inviate") loadSent();
+}
+async function loadSent(){
+  let r; try{ r = await rpc("letter_sent", {}); }catch(e){ r = null; }
+  const box = $("#ltSentL"); if (!box) return;
+  if (!Array.isArray(r)){ box.innerHTML = `<p class="muted">Lettere non disponibili: controlla la connessione.</p>`; return; }
+  box.innerHTML = r.length ? r.map(l => `<div class="ltRow"><span class="ltEnvS" style="background:${esc(l.paper)};color:${esc(l.ink)}">💌</span><span class="ltT"><b>a @${esc(l.nome)}</b><small>${l.letta ? "Letta ✓✓" : l.arrivata ? "Consegnata ✓" : "👼 In viaggio"} · ${esc(String(l.testo).slice(0, 40))}${String(l.testo).length > 40 ? "…" : ""}</small></span></div>`).join("")
+    : `<p class="muted">Non hai ancora mandato lettere.</p>`;
+}
+async function sendLetter(){
+  const to = LT.to || ($("#ltTo") && $("#ltTo").value), body = (LT.body || "").trim();
+  if (!to) return toast("Scegli a chi mandarla.");
+  if (!body) return toast("Scrivi qualcosa nella lettera.");
+  const me = lastPos ? { lat: lastPos.lat, lng: lastPos.lng } : (map ? { lat: map.getCenter().lat, lng: map.getCenter().lng } : null);
+  if (!me) return toast("Serve la tua posizione: tocca ➤");
+  const f = (typeof FR_LOC !== "undefined" ? FR_LOC : []).find(x => x.nome === to), dest = f ? { lat: f.lat, lng: f.lng } : null;
+  const R = angelRoute(me, dest), secs = angelSecs(R, me, dest);
+  let r; try{ r = await rpc("letter_send", { p_nome: to, p_paper: LT.paper, p_ink: LT.ink, p_body: body, p_lat: me.lat, p_lng: me.lng, p_secs: secs }); }catch(e){ return toast("Non partita: controlla la connessione."); }
+  if (!r || r.errore) return toast(r && r.errore === "non_amici" ? "Puoi scrivere solo ai tuoi amici." : r && r.errore === "troppe" ? "Hai scritto tante lettere: riprova tra un po'." : "Non partita, riprova.");
+  closeSheet(); haptic(); LT.body = "";
+  toastEmo(`👼 L'angelo è partito con la tua lettera per ${to}: arriva tra ${secs < 60 ? secs + " secondi" : Math.round(secs / 60) + " minuti"}`);
+  angelTrip(R, me, dest, secs * 1000, LT.paper, 0, () => toastEmo(`💌 Lettera consegnata a ${to}`));
+}
+const letNow = () => Date.now() - LET_SKEW;
+const letArrived = l => l.arrivata || Date.parse(l.arrivo) <= letNow();
+const letLeft = l => { const s = Math.max(0, Math.round((Date.parse(l.arrivo) - letNow()) / 1000)); return s < 60 ? s + " s" : Math.ceil(s / 60) + " min"; };
+const letUnread = () => LET_IN.filter(l => letArrived(l) && !l.aperta).length;
+function paintLetters(){
+  const n = letUnread(), b = $("#letBadge"); if (b){ b.textContent = n; b.classList.toggle("hidden", !n); }
+  const box = $("#letArrive"), l = LET_IN.find(x => letArrived(x) && !x.aperta && !LET_SEEN.has("c" + x.id));
+  if (!box) return;
+  if (!l){ box.classList.add("hidden"); box.dataset.id = ""; return; }
+  if (box.dataset.id === String(l.id) && !box.classList.contains("hidden")) return;   // già mostrata: non ridisegnare
+  box.dataset.id = l.id;
+  box.innerHTML = `<span class="laEnv">💌</span><span><b>Lettera da @${esc(l.nome)}</b><br><small style="color:#8a8f98">L'angelo te l'ha appena portata</small></span><button id="laOpen">Apri</button><button id="laLater" style="background:#eef0f2;color:#555">Dopo</button>`;
+  box.classList.remove("hidden");
+  $("#laOpen").onclick = () => { box.classList.add("hidden"); readLetter(l); };
+  $("#laLater").onclick = () => { LET_SEEN.add("c" + l.id); store.set("ln_let_seen", [...LET_SEEN].slice(-300)); paintLetters(); };
+}
+async function letterPoll(){
+  if (typeof PROFILE === "undefined" || !PROFILE || document.hidden) return;
+  let r; try{ r = await rpc("letter_inbox", {}); }catch(e){ return; }
+  if (!r || r.errore || !Array.isArray(r.lettere)) return;
+  LET_SKEW = Date.now() - Date.parse(r.adesso); LET_IN = r.lettere;
+  LET_IN.forEach(l => {
+    if (letArrived(l) || LET_SEEN.has("v" + l.id)) return;
+    LET_SEEN.add("v" + l.id); store.set("ln_let_seen", [...LET_SEEN].slice(-300));
+    haptic(); toastEmo(`👼 Un angelo ti sta portando una lettera da ${l.nome}`);
+    // se hai la mappa davanti, lo vedi arrivare
+    if (!LET_ANIM.has(l.id) && lastPos && l.lat != null && $("#v-map") && !$("#v-map").classList.contains("hidden")){
+      LET_ANIM.add(l.id); const from = { lat: l.lat, lng: l.lng }, me = { lat: lastPos.lat, lng: lastPos.lng };
+      const dur = Date.parse(l.arrivo) - Date.parse(l.partita), frac = Math.max(0, Math.min(.98, (letNow() - Date.parse(l.partita)) / dur));
+      angelTrip(angelRoute(from, me), from, me, dur, l.paper, frac, () => { setTimeout(letterPoll, 1200); });
+    }
+  });
+  paintLetters();
+}
+function readLetter(l){
+  const R = $("#letRead"), box = $("#lrBox");
+  const when = new Date(Date.parse(l.partita)).toLocaleString("it-IT", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+  box.innerHTML = `<div class="lrEnv" id="lrEnv" style="background:${esc(l.paper)}"><div class="flap" style="background:${esc(l.paper)}"></div><span class="seal">💌</span><span class="who" style="color:${esc(l.ink)}">da @${esc(l.nome)}</span></div>
+    <div class="lrPaper" id="lrPaper" style="background:${esc(l.paper)};color:${esc(l.ink)}">${esc(l.testo || "")}<span class="lrFrom">— @${esc(l.nome)} · ${esc(when)}</span></div>
+    <button id="lrClose">Chiudi</button>`;
+  R.classList.remove("hidden"); haptic();
+  const open = () => { $("#lrEnv").classList.add("open"); setTimeout(() => $("#lrPaper").classList.add("show"), 50); };
+  $("#lrEnv").onclick = open; setTimeout(open, 700);
+  const close = () => R.classList.add("hidden");
+  $("#lrClose").onclick = close; R.querySelector(".lrBack").onclick = close;
+  if (!l.aperta){ l.aperta = true; rpc("letter_open", { p_id: l.id }).catch(() => {}); }
+  paintLetters();
+}
+$("#letBtn").onclick = () => openLetters(letUnread() ? "ricevute" : "scrivi");
+setTimeout(() => { letterPoll(); setInterval(letterPoll, 8000); setInterval(paintLetters, 1000); }, 4500);
 function kissSummary(rows){
   const by = {}; rows.forEach(x => { (by[x.nome] = by[x.nome] || []).push(x); });
   const html = Object.entries(by).map(([n, l]) => `<div class="kssum"><b>@${esc(n)}</b> ti ha mandato ${l.map(x => `<span class="ksn">${x.n} ${x.emoji}</span>`).join(" ")}</div>`).join("");
