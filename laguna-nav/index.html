@@ -539,6 +539,13 @@
   .igtabs button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
   .igtabs button .av{width:24px;height:24px;font-size:11px}
   .igtabs button.on{color:#111;border-bottom-color:#3dc991}
+  .lightv .mcic svg .f{fill:#111;stroke:none}
+  #tabs [data-pm="my"]{-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+  .igstories{display:flex;gap:14px;overflow-x:auto;padding:2px 2px 12px;margin-bottom:6px;scrollbar-width:none} .igstories::-webkit-scrollbar{display:none}
+  .igstories button{position:relative;flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:5px;width:66px;background:none;border:0;color:#111;font-size:11px}
+  .igstories i{width:60px;height:60px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2.5px #3dc991;background:#b5533c center/cover;color:#fff;font-style:normal;font-weight:800;font-size:22px;display:flex;align-items:center;justify-content:center}
+  .igstories span{max-width:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .igstories b{position:absolute;top:40px;right:2px;font-size:15px}
   .igchips{display:flex;gap:8px;margin-bottom:12px} .igchips button{padding:7px 14px;border-radius:999px;border:1px solid #e6e9e7;background:#fff;color:#111;font-weight:700;font-size:13px}
   .igchips button.on{background:#b5533c;border-color:#b5533c;color:#fff}
   #meetBack{display:none;align-self:flex-start;margin-bottom:6px;padding:7px 12px;border-radius:999px;background:#fff;color:#111;font-weight:800;font-size:13px;border:0;box-shadow:0 2px 8px rgba(0,0,0,.25)}
@@ -1231,26 +1238,18 @@
   <section class="view hidden" id="v-profile">
     <div class="scroll lightv" id="pfScroll">
       <div class="mchead igh"><h2>myClick</h2>
+        <button id="pfRouBtn" class="mcic" title="Roulette video"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.3" cy="8.3" r="1.1" class="f"/><circle cx="15.7" cy="15.7" r="1.1" class="f"/><circle cx="12" cy="12" r="1.1" class="f"/><circle cx="15.7" cy="8.3" r="1.1" class="f"/><circle cx="8.3" cy="15.7" r="1.1" class="f"/></svg></button>
+        <button id="pfCmBtn" class="mcic" title="Click Match"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><i id="pfChatBadge" class="hidden"></i></button>
         <button id="pfLetBtn" class="mcic" title="Lettere"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg><i id="pfLetBadge" class="hidden"></i></button>
-        <button id="pfChatBtn" class="mcic" title="Match e chat"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9.5L4 20z"/></svg><i id="pfChatBadge" class="hidden"></i></button>
-        <button id="pfFrBtn" class="mcic" title="Amici"><svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3 19c.6-3.4 3-5.2 6-5.2s5.4 1.8 6 5.2"/><circle cx="17" cy="9.5" r="2.4"/><path d="M16.5 14c2.3.2 4 1.7 4.5 4.4"/></svg><i id="frBadge" class="hidden"></i></button></div>
-      <!-- strumenti, come le storie di Instagram -->
-      <div class="igtools" id="pfTools">
-        <button data-tool="stati"><i class="t-w"><svg viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></i><span>Stati</span></button>
-        <button data-tool="match"><i class="t-l"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></i><span>Click Match</span></button>
-        <button data-tool="roulette"><i class="t-w"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.3" cy="8.3" r="1.2" class="f"/><circle cx="15.7" cy="15.7" r="1.2" class="f"/><circle cx="12" cy="12" r="1.2" class="f"/><circle cx="15.7" cy="8.3" r="1.2" class="f"/><circle cx="8.3" cy="15.7" r="1.2" class="f"/></svg></i><span>Roulette</span></button>
-        <button data-tool="lettere"><i class="t-l"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg></i><span>Lettere</span></button>
-        <button data-tool="eventi"><i class="t-w"><svg viewBox="0 0 24 24"><path d="M4 20l5-14 9 9z"/><path d="M14 4l1 2M19 6l-2 1M20 11l-2-.5"/></svg></i><span>Eventi</span></button>
-        <button data-tool="disco"><i class="t-l"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="7"/><path d="M12 3v3M5 13h14M12 6c2 2 2.8 4.4 2.8 7S14 18 12 20M12 6c-2 2-2.8 4.4-2.8 7S10 18 12 20"/></svg></i><span>Discoteche</span></button>
       </div>
       <div class="igtabs" id="pfSeg">
         <button data-pt="home" class="on" title="Home"><svg viewBox="0 0 24 24"><path d="M3.5 11L12 4l8.5 7v9h-5.5v-5.5h-6V20H3.5z"/></svg><span>Home</span></button>
-        <button data-pt="friends" title="Amici"><svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3 19c.6-3.4 3-5.2 6-5.2s5.4 1.8 6 5.2"/><circle cx="17" cy="9.5" r="2.4"/><path d="M16.5 14c2.3.2 4 1.7 4.5 4.4"/></svg><span>Amici</span></button>
         <button data-pt="work" title="Lavoro"><svg viewBox="0 0 24 24"><rect x="3.5" y="7.5" width="17" height="12" rx="2"/><path d="M9 7.5V5.5h6v2M3.5 12.5h17"/></svg><span>Lavoro</span></button>
-        <button data-pt="me" title="Profilo" id="pfMeBtn"><span class="av" id="pfMini" data-noico>?</span><span>Profilo</span></button>
       </div>
+      <span id="pfMini" class="hidden" data-noico></span><i id="frBadge" class="hidden"></i>
 
       <div id="pt-home">
+        <div class="igstories hidden" id="pfStati"></div>
         <div class="card compose">
           <div class="cmrow"><span class="av" id="cmAv" data-noico>?</span><textarea id="cmText" maxlength="1000" rows="2" placeholder="A cosa stai pensando?"></textarea></div>
           <img id="cmImg" class="hidden" alt="">
@@ -1291,6 +1290,7 @@
           <h3 style="margin:0 0 10px">Avatar</h3>
           <div class="avwrap"><canvas id="avPrev" width="150" height="230"></canvas><div id="avOpts" class="avopts"></div></div>
         </div>
+        <button class="card rowbtn" id="pfMatches">💬 I tuoi match <span>›</span></button>
         <button class="card rowbtn" id="pfShare">📍 Posizione agli amici <span id="pfShareSub">No ›</span></button>
         <button class="card rowbtn" data-go="boat">⛵ La mia barca <span>›</span></button>
         <button class="card rowbtn" data-go="rider">🚶 Rider <span>›</span></button>
@@ -1668,6 +1668,13 @@ function setMode(k){
   if (m.am) setAppMode(m.am);
 }
 function stepMode(d){ haptic(); setMode(MODES[(modeIdx + d + MODES.length) % MODES.length].k); }
+// myClick: un tocco apre la home, tenendo premuto 2 secondi si apre il tuo profilo
+let myHold = null, myHeld = false;
+$("#tabs").addEventListener("pointerdown", e => { const b = e.target.closest('[data-pm="my"]'); if (!b) return; myHeld = false; clearTimeout(myHold);
+  myHold = setTimeout(() => { myHeld = true; haptic(); setMode("my"); setPfTab("me"); }, 2000); });
+["pointerup", "pointercancel", "pointerleave"].forEach(ev => $("#tabs").addEventListener(ev, () => clearTimeout(myHold)));
+$("#tabs").addEventListener("contextmenu", e => { if (e.target.closest('[data-pm="my"]')) e.preventDefault(); });
+$("#tabs").addEventListener("click", e => { const b0 = e.target.closest("[data-pm]"); if (b0 && b0.dataset.pm === "my"){ if (myHeld){ myHeld = false; e.stopImmediatePropagation(); return; } if (typeof setPfTab === "function" && pfTab === "me") setPfTab("home"); } }, true);
 $("#tabs").addEventListener("click", e => { const b = e.target.closest("[data-pm]"); if (b){ if (b.dataset.pm !== MODES[modeIdx].k) haptic(); setMode(b.dataset.pm);
   if (b.dataset.pm === "nautica"){ try{ askCompass(); setCam("alto"); }catch(er){} } } });   // Naviga: si entra con Venezia dall'alto
 buildDial(); paintDial();
@@ -1741,12 +1748,14 @@ $("#pfCustom").onclick = () => {
 };
 let pfTab = "home";
 function setPfTab(t){ pfTab = t; document.querySelectorAll("#pfSeg [data-pt]").forEach(b => b.classList.toggle("on", b.dataset.pt === t));
-  ["home", "friends", "work", "me"].forEach(x => $("#pt-" + x).classList.toggle("hidden", x !== t)); $("#pfScroll").scrollTop = 0; if (t === "home") loadFeed(); if (t === "work") loadJobs(); }
+  ["home", "friends", "work", "me"].forEach(x => $("#pt-" + x).classList.toggle("hidden", !(x === t || (t === "me" && x === "friends")))); $("#pfScroll").scrollTop = 0;
+  $("#pfSeg").classList.toggle("hidden", t === "me");   // il profilo si apre tenendo premuto myClick in basso
+  if (t === "home"){ loadFeed(); loadPfStati(); } if (t === "work") loadJobs(); }
 document.querySelectorAll("#pfSeg [data-pt]").forEach(b => b.onclick = () => setPfTab(b.dataset.pt));
-$("#pfFrBtn").onclick = () => setPfTab("friends");
-$("#pfMeBtn").onclick = () => setPfTab("me");
 $("#pfLetBtn").onclick = () => openLetters(letUnread() ? "ricevute" : "scrivi");
-$("#pfChatBtn").onclick = () => { if (!store.get("ln_adult", false)){ MEET_NEXT = "chat"; adultGate(); return; } loadMatches(false); };
+$("#pfRouBtn").onclick = () => openMeet("roulette");
+$("#pfCmBtn").onclick = () => openMeet("match");
+$("#pfMatches").onclick = () => openMeet("chat");
 /* gli strumenti degli amici ora stanno in myClick: stati sulla mappa, Click Match, roulette video, lettere, eventi */
 let MEET_NEXT = null;
 function openMeet(sub){
@@ -1755,11 +1764,16 @@ function openMeet(sub){
   showView("map"); setAppMode("incontra"); document.body.classList.add("meet-from-my");
   meetMode(sub === "match" ? "match" : sub === "roulette" ? "video" : "map");
 }
-document.querySelectorAll("#pfTools [data-tool]").forEach(b => b.onclick = () => { const t = b.dataset.tool;
-  if (t === "lettere") return openLetters(letUnread() ? "ricevute" : "scrivi");
-  if (t === "eventi") return openEvents();
-  if (t === "disco") return openDiscos();
-  openMeet(t); });
+/* stati degli amici direttamente nella home, come le storie (solo se qualcuno ne ha pubblicato uno) */
+async function loadPfStati(){
+  const box = $("#pfStati"); if (!box || !store.get("ln_adult", false)) return;
+  let L; try{ L = await rpc("status_list", {}) || []; }catch(e){ return; }
+  const fr = new Set(((MY && MY.amici) || []).map(a => a.nome));
+  L = L.filter(x => x.mio || fr.has(x.nome)); STATI = STATI.length ? STATI : L;
+  box.classList.toggle("hidden", !L.length);
+  box.innerHTML = L.map((x, i) => `<button data-st="${i}"><i style="${x.foto ? `background-image:url('${x.foto}')` : ""}">${x.foto ? "" : esc(x.nome[0].toUpperCase())}</i><span>${x.mio ? "Tu" : "@" + esc(x.nome)}</span><b data-noico>${(MEET_KINDS[x.tipo] || [""])[0]}</b></button>`).join("");
+  box.querySelectorAll("[data-st]").forEach(b => b.onclick = () => openStato(L[+b.dataset.st]));
+}
 
 /* ---------- myClick: la home con gli aggiornamenti degli amici ---------- */
 let FEED = [], feedEnd = false, cmPhoto = null;
