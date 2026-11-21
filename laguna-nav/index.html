@@ -549,6 +549,10 @@
   .igstories i{width:60px;height:60px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2.5px #3dc991;background:#b5533c center/cover;color:#fff;font-style:normal;font-weight:800;font-size:22px;display:flex;align-items:center;justify-content:center}
   .igstories span{max-width:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .igstories b{position:absolute;top:40px;right:2px;font-size:15px}
+  .stars{color:#cfd5d2;letter-spacing:1px;font-size:14px} .stars .on{color:#f5a623} .stars.big{font-size:30px;letter-spacing:4px;cursor:pointer}
+  .revbtn{display:flex;align-items:center;gap:6px;width:100%;padding:9px 10px;border-radius:10px;background:rgba(127,127,127,.12);border:0;color:inherit;font-size:13px;text-align:left}
+  .revbtn span:last-of-type{flex:1;opacity:.8} .revrow{padding:8px 0;border-top:1px solid rgba(127,127,127,.25);font-size:14px;line-height:1.35}
+  .pickgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px} .pickgrid button{padding:12px 6px;border-radius:10px;border:1px solid rgba(127,127,127,.35);background:rgba(127,127,127,.12);color:inherit;font-weight:700;font-size:14px}
   .mpadd{padding:7px 12px;border-radius:999px;background:#3dc991;color:#fff;font-weight:800;font-size:13px;border:0}
   .mpbar{display:flex;gap:8px} .mpcat{padding:8px 12px;border-radius:10px;background:#f4f6f5;border:1px solid #e6e9e7;color:#111;font-weight:700;font-size:13px}
   .mpcat:first-child{flex:1;text-align:left} .mpcat.on{background:#b5533c;border-color:#b5533c;color:#fff}
@@ -6464,7 +6468,7 @@ async function loadNegozi(){
 function dlvItems(){
   const L = [];
   if (DLV.food) (POI || []).forEach(x => L.push({ n: x.n, k: "food", lat: x.lat, lng: x.lng, s: x.k }));
-  ((NEGOZI && NEGOZI.p) || []).forEach(a => { if (DLV[a[1]] && a[0]) L.push({ n: a[0], k: a[1], lat: a[2], lng: a[3], s: a[4] }); });
+  ((NEGOZI && NEGOZI.p) || []).forEach(a => { const k = DLV_FOODSHOP.has(a[4]) ? "food" : a[1]; if (DLV[k] && a[0]) L.push({ n: a[0], k, lat: a[2], lng: a[3], s: a[4] }); });
   return L;
 }
 let DLV_L = [];
@@ -6484,9 +6488,70 @@ function drawDlv(){
     layerVis();
   }catch(e){}
 }
-function openDlv(i){
-  const x = DLV_L[i]; if (!x) return;
-  new maplibregl.Popup({ maxWidth: "240px" }).setLngLat([x.lng, x.lat]).setHTML(`<b>${esc(x.n)}</b><br><span style="color:#888">${DLV_C[x.k][0]}</span><br><a href="#" data-goto="${x.lat},${x.lng}" data-name="${esc(x.n)}" style="color:#7fc1ff">Portami qui</a>`).addTo(map);
+// panifici, pasticcerie, gastronomie… sono negozi per OpenStreetMap ma stanno nel food
+const DLV_FOODSHOP = new Set(["bakery", "pastry", "confectionery", "deli", "cheese", "chocolate", "butcher", "seafood", "greengrocer", "wine", "beverages", "coffee", "tea", "ice_cream", "pasta", "frozen_food", "alcohol"]);
+const DLV_TYPE = { restaurant: "Ristorante", fast_food: "Fast food", cafe: "Bar · caffetteria", bar: "Bar", pub: "Pub", ice_cream: "Gelateria", food_court: "Food court", biergarten: "Birreria",
+  bakery: "Panificio", pastry: "Pasticceria", confectionery: "Dolciumi", deli: "Gastronomia", cheese: "Formaggi", chocolate: "Cioccolateria", butcher: "Macelleria", seafood: "Pescheria", greengrocer: "Frutta e verdura",
+  wine: "Enoteca", beverages: "Bevande", coffee: "Torrefazione", tea: "Tè", pasta: "Pasta fresca", frozen_food: "Surgelati", alcohol: "Alcolici",
+  supermarket: "Supermercato", convenience: "Alimentari", clothes: "Abbigliamento", shoes: "Scarpe", jewelry: "Gioielleria", gift: "Souvenir e regali", glass: "Vetro di Murano", art: "Arte", books: "Libreria",
+  stationery: "Cartoleria", newsagent: "Edicola", hairdresser: "Parrucchiere", beauty: "Estetista", optician: "Ottica", hardware: "Ferramenta", doityourself: "Fai da te", electronics: "Elettronica", mobile_phone: "Telefonia",
+  bag: "Borse", leather: "Pelletteria", mask: "Maschere", florist: "Fiorista", chemist: "Profumeria e cura", cosmetics: "Cosmetici", boutique: "Boutique", fashion: "Moda", toys: "Giocattoli", sports: "Sport",
+  furniture: "Arredamento", interior_decoration: "Arredamento", laundry: "Lavanderia", dry_cleaning: "Lavanderia", tobacco: "Tabaccheria", "e-cigarette": "Sigarette elettroniche", pharmacy: "Farmacia", marine: "Nautica", boat: "Nautica", frame: "Cornici", antiques: "Antiquariato", photo: "Foto", copyshop: "Copisteria" };
+const dlvType = x => DLV_TYPE[x.s] || (x.k === "food" ? "Locale" : x.k === "negozi" ? "Negozio" : DLV_C[x.k][0]);
+const placeKey = x => norm(x.n).slice(0, 80) + "|" + x.lat.toFixed(4) + "|" + x.lng.toFixed(4);
+const starsHtml = (v, big) => { let h = ""; for (let i = 1; i <= 5; i++) h += `<span class="${i <= Math.round(v || 0) ? "on" : ""}"${big ? ` data-star="${i}"` : ""}>★</span>`; return `<span class="stars${big ? " big" : ""}">${h}</span>`; };
+// scheda dell'attività: tipo, recensioni e, per il food, ordina delivery o prenota
+async function openDlv(i){
+  const x = DLV_L[i]; if (!x) return; closePopups();
+  const food = x.k === "food", key = placeKey(x), partner = (PARTNERS || []).find(p => norm(p.name) === norm(x.n) && hav(p.lat, p.lng, x.lat, x.lng) < 120);
+  openSheet(`<h3 style="margin-bottom:2px">${esc(x.n)}</h3><p class="muted" style="margin:0 0 6px">${esc(dlvType(x))}</p>
+    <div id="dlvRev" class="muted" style="margin-bottom:10px">Carico le recensioni…</div>
+    ${food ? `<div class="row" style="gap:8px"><button class="btn" id="dlvOrd" style="flex:1">Ordina delivery</button><button class="btn" id="dlvBook" style="flex:1;background:#b5533c;color:#fff">Prenota</button></div>` : ""}
+    <button class="btn ghost" id="dlvGo" style="margin-top:10px">Portami qui</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
+  $("#dlvGo").onclick = () => { closeSheet(); setMode("nautica"); openPlan({ name: x.n, lat: x.lat, lng: x.lng }); };
+  if (food){
+    $("#dlvOrd").onclick = () => { if (partner && partner.order_rest && CONFIG.RISTORANTI.some(r => r.id === partner.order_rest)){ closeSheet(); showView("order"); openMenu(partner.order_rest); }
+      else toast("Questo locale non fa ancora consegne con unClick."); };
+    $("#dlvBook").onclick = () => bookPlace(x, key);
+  }
+  let R; try{ R = await rpc("review_list", { p_key: key }); }catch(e){ R = null; }
+  const box = $("#dlvRev"); if (!box) return;
+  if (!R){ box.textContent = "Recensioni non disponibili adesso."; return; }
+  box.innerHTML = `<button class="revbtn" id="revOpen">${starsHtml(R.media)} <b>${R.n ? String(R.media).replace(".", ",") : "–"}</b> <span>${R.n ? R.n + (R.n === 1 ? " recensione" : " recensioni") : "Nessuna recensione: scrivi la prima"}</span> ›</button>`;
+  $("#revOpen").onclick = () => openReviews(x, key, R);
+}
+function openReviews(x, key, R){
+  let st = (R.mia && R.mia.stelle) || 0;
+  openSheet(`<h3>Recensioni · ${esc(x.n)}</h3><p class="muted" style="margin:0 0 8px">${R.n ? `${starsHtml(R.media)} ${String(R.media).replace(".", ",")} su 5 · ${R.n} ${R.n === 1 ? "recensione" : "recensioni"}` : "Ancora nessuna recensione."}</p>
+    <div class="card" style="padding:12px"><b>${R.mia ? "La tua recensione" : "Lascia una recensione"}</b><div id="revStars" style="margin:6px 0">${starsHtml(st, true)}</div>
+      <div class="field" style="margin:0 0 8px"><textarea id="revTx" maxlength="600" rows="2" placeholder="Com'è andata? (facoltativo)">${esc((R.mia && R.mia.testo) || "")}</textarea></div><button class="btn small" id="revSave">Pubblica</button></div>
+    <div style="margin-top:10px">${(R.lista || []).map(r => `<div class="revrow"><b>@${esc(r.nome)}</b> ${starsHtml(r.stelle)} <small class="muted">${agoLong(r.quando)}</small>${r.testo ? `<div>${esc(r.testo)}</div>` : ""}</div>`).join("")}</div>
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
+  const paint = () => document.querySelectorAll("#revStars [data-star]").forEach(e => e.classList.toggle("on", +e.dataset.star <= st));
+  document.querySelectorAll("#revStars [data-star]").forEach(e => e.onclick = () => { st = +e.dataset.star; paint(); });
+  $("#revSave").onclick = async () => { if (!st) return toast("Scegli da 1 a 5 stelle.");
+    try{ const r = await rpc("review_set", { p_key: key, p_nome: x.n, p_stelle: st, p_testo: $("#revTx").value });
+      if (r && r.ok){ toast("Recensione pubblicata ✓"); const R2 = await rpc("review_list", { p_key: key }); openReviews(x, key, R2); }
+      else toast(r && r.errore === "non_autorizzato" ? "Per recensire serve l'account." : "Non pubblicata, riprova."); }catch(e){ toast("Controlla la connessione."); } };
+}
+// prenotazione: una domanda alla volta (giorno, ora, persone)
+function bookPlace(x, key){
+  const B = {};
+  const days = [...Array(7)].map((_, i) => { const d = new Date(); d.setDate(d.getDate() + i); return d; });
+  const fmtD = d => d.toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" });
+  const isoD = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  const step = (t, opts, cb) => { openSheet(`<h3>Prenota · ${esc(x.n)}</h3><p class="muted">${t}</p>${opts.length ? `<div class="pickgrid">${opts.map((o, i) => `<button data-pk="${i}">${o[0]}</button>`).join("")}</div>` : `<p>Per oggi non ci sono più orari: scegli un altro giorno.</p>`}<button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
+    document.querySelectorAll("[data-pk]").forEach(b => b.onclick = () => cb(opts[+b.dataset.pk][1])); };
+  const hours = ["12:00", "12:30", "13:00", "13:30", "14:00", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00"];
+  step("Che giorno?", days.map((d, i) => [i === 0 ? "Oggi" : i === 1 ? "Domani" : fmtD(d), isoD(d)]), g => { B.g = g;
+    const now = new Date(), today = g === isoD(now);
+    step("A che ora?", hours.filter(h => !today || +h.slice(0, 2) * 60 + +h.slice(3) > now.getHours() * 60 + now.getMinutes() + 30).map(h => [h, h]), o => { B.o = o;
+      step("Quante persone?", [1, 2, 3, 4, 5, 6, 7, 8, 10, 12].map(n => [n === 12 ? "12+" : String(n), n]), async n => { B.n = n;
+        try{ const r = await rpc("booking_request", { p_key: key, p_nome: x.n, p_giorno: B.g, p_ora: B.o, p_persone: B.n });
+          if (r && r.ok){ closeSheet(); openSheet(`<h3>Richiesta inviata</h3><p style="line-height:1.45">${esc(x.n)} · ${B.g.split("-").reverse().join("/")} alle ${B.o} · ${B.n} ${B.n === 1 ? "persona" : "persone"}</p>
+            <p class="muted" style="line-height:1.45">Il locale riceve la richiesta se è iscritto a unClick. Finché non conferma, la prenotazione non è sicura.</p><button class="btn" onclick="closeSheet()">Ok</button>`); }
+          else toast(r && r.errore === "non_autorizzato" ? "Per prenotare serve l'account." : r && r.errore === "troppi" ? "Troppe richieste, riprova più tardi." : "Richiesta non inviata, riprova."); }
+        catch(e){ toast("Controlla la connessione."); } }); }); });
 }
 document.querySelectorAll("#dlvCats [data-dc]").forEach(b => b.onclick = () => { DLV[b.dataset.dc] = !DLV[b.dataset.dc]; store.set("ln_dlv", DLV); drawDlv(); });
 
