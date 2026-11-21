@@ -1102,10 +1102,6 @@
       <div class="lg-bar"></div>
       <div class="lg-ticks"><span>0</span><span>0,5</span><span>1</span><span>1,5</span><span>2 m</span></div>
       <div class="lg-r"><i style="background:#780c0c"></i>asciutto / barena</div>
-      <div class="lg-s">Oltre 2 m d'acqua nessun colore.</div>
-      <div class="lg-s">Da 1 a 2 m una tonalità ogni 10 cm, con le linee di livello.</div>
-      <div class="lg-s" id="lgTide"></div>
-      <div class="lg-s">Tocca la mappa per sapere quanta acqua c'è in un punto. Stima dalla carta del Comune (±200 m) e dalle misure degli utenti.</div>
     </div>
 
     <!-- menu "altro" -->
@@ -3968,7 +3964,7 @@ document.querySelectorAll("#toggles button[data-inst]").forEach(b => b.onclick =
   INST[b.dataset.inst] = !INST[b.dataset.inst]; store.set("ln_inst", INST); paintInst();
   if (b.dataset.inst === "depth" && INST.depth){ if (!activeBoat()) toast("Imposta la tua barca (cruscotto → La mia barca) per sapere quanta acqua hai sotto il piede."); if (lastPos) updateDepth(lastPos); else toast("Tocca ➤ per attivare il GPS."); }
   if (b.dataset.inst === "tide" || b.dataset.inst === "depth") loadTide();
-  if (b.dataset.inst === "water"){ applyMapMode(); if (INST.water){ toast("Secca adesso: dove c'è poca acqua con la marea di ora"); loadTide(); loadChart(); drawFondo(); } }
+  if (b.dataset.inst === "water"){ applyMapMode(); if (INST.water){ loadTide(); loadChart(); drawFondo(); } }
 });
 paintInst();
 
@@ -4147,7 +4143,7 @@ function fondoAt(la, lo){
 function drawFondo(){
   if (!map || !map.getSource("fondo")) return;
   const tide = tideNow() ?? 30;
-  $("#lgTide").textContent = "Con la marea di adesso: " + (tide > 0 ? "+" : "") + tide + " cm";
+  if ($("#lgTide")) $("#lgTide").textContent = "Con la marea di adesso: " + (tide > 0 ? "+" : "") + tide + " cm";
   if (!INST.water) return;
   if (!FG.ready){ if (!FG.busy){ toast("Preparo la mappa dei fondali…"); buildFondoGrid(paintFondo); } return; }
   if (FG.tide !== tide) paintFondo();
@@ -6316,7 +6312,7 @@ function layerVis(){
     "cantieri": n && LY.cantieri, "cantieri-lbl": n && LY.cantieri,
     "canali": n && LY.canali, "canali-lbl": n && LY.canali,
     "ponti": false,
-    "carta": n && dep, "carta-num": n && dep, "depths": n && dep,
+    "carta": false, "carta-num": false, "depths": false,   // in Secca solo le zone colorate, senza puntini
     "fondo": n && dep,
     "route": n, "route-case": n,
     "poi": n && foodOn, "poi-label": n && foodOn,
