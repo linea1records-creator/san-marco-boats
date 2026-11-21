@@ -6447,6 +6447,18 @@ let DLV = Object.assign({ food: true, negozi: true, tabacchi: true, farmacie: tr
 async function loadNegozi(){
   if (NEGOZI && Date.now() - (NEGOZI.t || 0) < 3 * 864e5) return drawDlv();
   try{ const r = await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/negozi", {}, 60000), j = await r.json(); if (j && j.p){ NEGOZI = { t: Date.now(), p: j.p }; store.set("ln_negozi", NEGOZI); } }catch(e){}
+  if (!NEGOZI || !NEGOZI.p || !NEGOZI.p.length){   // il server non arriva a OpenStreetMap: scarica il telefono e lo passa al server per tutti
+    const q = '[out:json][timeout:30];(nwr["shop"]["name"](45.395,12.29,45.47,12.39);nwr["amenity"="pharmacy"](45.395,12.29,45.47,12.39););out center tags;';
+    for (const u of ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"]){
+      try{ const r = await fetchT(u, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "data=" + encodeURIComponent(q) }, 45000); if (!r.ok) continue;
+        const j = await r.json(), P = [];
+        (j.elements || []).forEach(el => { const t = el.tags || {}, la = el.lat ?? (el.center && el.center.lat), lo = el.lon ?? (el.center && el.center.lon); if (!la || t.shop === "vacant") return;
+          const k = t.amenity === "pharmacy" ? "farmacie" : t.shop === "tobacco" || t.shop === "e-cigarette" ? "tabacchi" : "negozi"; P.push([t.name || (k === "farmacie" ? "Farmacia" : ""), k, +la.toFixed(6), +lo.toFixed(6), t.shop || t.amenity || ""]); });
+        if (P.length > 50){ NEGOZI = { t: Date.now(), p: P }; store.set("ln_negozi", NEGOZI);
+          fetchT(CONFIG.SUPABASE_URL + "/functions/v1/negozi", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ p: P }) }, 30000).catch(() => {}); break; }
+      }catch(e){}
+    }
+  }
   drawDlv();
 }
 function dlvItems(){
