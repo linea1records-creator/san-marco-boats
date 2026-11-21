@@ -986,7 +986,7 @@
     <div id="trPanel">
       <div class="trh"><b>🚤 Trasporti</b><button id="trClose" aria-label="Chiudi">✕</button></div>
       <div class="seg"><button data-tr="bus" class="on">🚤 Mezzi pubblici</button><button data-tr="taxi">🚕 Taxi</button></div>
-      <div id="trBody">Tocca ➤ per trovare le fermate vicine.</div>
+      <div id="trBody">Tocca il tasto della visuale (in basso a destra) per trovare le fermate vicine.</div>
     </div>
 
     <!-- Sport: partite ed eventi creati dagli utenti -->
@@ -2206,7 +2206,7 @@ function kissAsk(nome){
     <button class="btn ghost" id="kissX" style="margin-top:12px">Chiudi</button>`);
   $("#kissX").onclick = closeSheet;
   document.querySelectorAll("[data-emo]").forEach(bt => bt.onclick = async () => {
-    const emo = bt.dataset.emo; closeSheet(); if (!lastPos){ toast("Serve la tua posizione: tocca ➤"); return; }
+    const emo = bt.dataset.emo; closeSheet(); if (!lastPos){ toast("Serve la tua posizione: accendi il GPS dal tasto della visuale"); return; }
     let r;
     try{ r = await rpc("kiss_send2", { p_nome: nome, p_lat: lastPos.lat, p_lng: lastPos.lng, p_emoji: emo }); }catch(e){ r = null; }
     if (!r || (r.errore === undefined && r.ok === undefined)){   // server non ancora aggiornato: parte come bacio
@@ -2402,7 +2402,7 @@ async function sendLetter(){
   if (!to) return toast("Scegli a chi mandarla.");
   if (!body) return toast("Scrivi qualcosa nella lettera.");
   const me = lastPos ? { lat: lastPos.lat, lng: lastPos.lng } : (map ? { lat: map.getCenter().lat, lng: map.getCenter().lng } : null);
-  if (!me) return toast("Serve la tua posizione: tocca ➤");
+  if (!me) return toast("Serve la tua posizione: accendi il GPS dal tasto della visuale");
   const f = (typeof FR_LOC !== "undefined" ? FR_LOC : []).find(x => x.nome === to), dest = f ? { lat: f.lat, lng: f.lng } : null;
   const R = angelRoute(me, dest), secs = angelSecs(R, me, dest);
   let r; try{ r = await rpc("letter_send", { p_nome: to, p_paper: LT.paper, p_ink: LT.ink, p_body: body, p_lat: me.lat, p_lng: me.lng, p_secs: secs }); }catch(e){ return toast("Non partita: controlla la connessione."); }
@@ -2853,7 +2853,7 @@ function askCompass(){
     if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === "function"){
       DeviceOrientationEvent.requestPermission().then(s => {
         if (s === "granted"){ compassOk = true; window.addEventListener("deviceorientation", onOrient, true); }
-        else toast("Bussola negata: la mappa girerà solo quando ti muovi. Per attivarla chiudi e riapri Safari e tocca di nuovo ➤.");
+        else toast("Bussola negata: la mappa girerà solo quando ti muovi. Per attivarla chiudi e riapri Safari e tocca di nuovo il tasto della visuale.");
       }).catch(() => {});
     } else if (!compassAsked){
       window.addEventListener("deviceorientationabsolute", onOrient, true);
@@ -2973,7 +2973,7 @@ function setAddMode(m){
   h.innerHTML = addMode === "zone" ? "Tocca la mappa al centro della zona controllata"
     : 'Tocca la mappa dove hai misurato, oppure <u id="useGpsDepth">usa la mia posizione</u>';
   const u = $("#useGpsDepth");
-  if (u) u.onclick = ev => { ev.stopPropagation(); if (lastPos) depthForm({ lat: lastPos.lat, lng: lastPos.lng }); else toast("Attiva prima il GPS (➤)."); };
+  if (u) u.onclick = ev => { ev.stopPropagation(); if (lastPos) depthForm({ lat: lastPos.lat, lng: lastPos.lng }); else toast("Attiva prima il GPS (tasto della visuale)."); };
 }
 if ($("#fabZone")) $("#fabZone").onclick = () => setAddMode("zone");
 $("#fabDepth").onclick = () => setAddMode("depth");
@@ -3912,7 +3912,7 @@ $("#rbSwap").onclick = () => {
 };
 $("#rbGo").onclick = () => {
   if (!PLAN) return;
-  const p = PLAN, m = p.mode || "barca"; if (!p.from && !lastPos){ toast("Aspetto il GPS: tocca ➤ oppure scegli un punto di partenza."); return; }
+  const p = PLAN, m = p.mode || "barca"; if (!p.from && !lastPos){ toast("Aspetto il GPS: un attimo, oppure scegli un punto di partenza."); return; }
   if (m === "taxi"){
     const f = planFrom();
     taxiAsk({ da: { name: p.from ? p.from.name : "La mia posizione", lat: f.lat, lng: f.lng }, a: { name: p.to.name, lat: p.to.lat, lng: p.to.lng } });
@@ -5895,7 +5895,7 @@ function sosForm(kind){
           <div class="wzopts"><button class="wzo" id="wzSosGo" style="background:#d32f2f;border-color:#d32f2f;text-align:center;font-size:18px">🆘 Manda SOS adesso</button>
           <a class="wzo" href="tel:1530" style="text-align:center;text-decoration:none">📞 Chiama il 1530 Guardia Costiera</a><a class="wzo" href="tel:112" style="text-align:center;text-decoration:none">📞 Chiama il 112</a></div>`,
         bind: v => { const t = setInterval(() => { const p = $("#wzSosPos"); if (!p){ clearInterval(t); return; } if (lastPos){ p.textContent = "📍 Posizione GPS pronta"; clearInterval(t); } }, 1000);
-          $("#wzSosGo").onclick = async () => { if (!lastPos) return toast("Aspetto il GPS: tocca ➤ e resta all'aperto."); $("#wzSosGo").disabled = true;
+          $("#wzSosGo").onclick = async () => { if (!lastPos) return toast("Aspetto il GPS: resta all'aperto un attimo."); $("#wzSosGo").disabled = true;
             try{ const r = await rpc("sos_send", { p_kind: v.kind, p_note: v.note || "", p_lat: lastPos.lat, p_lng: lastPos.lng });
               if (r && r.errore){ $("#wzSosGo").disabled = false; return toast(r.errore === "troppi" ? "Hai mandato troppi SOS oggi: chiama il 1530." : "Esci e rientra con il tuo account. Intanto chiama il 1530."); }
               wzClose(); buzz([200, 100, 200]); toast("SOS mandato alle barche vicine ✓"); sosPoll();
