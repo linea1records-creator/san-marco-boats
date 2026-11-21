@@ -2482,10 +2482,15 @@ function addLayers(){
   map.addSource("zones", { type: "geojson", data: empty });
   // le zone controllate non si disegnano più (i limiti veri arrivano dalle tratte dei velox)
   map.addSource("route", { type: "geojson", data: empty });
+  map.addSource("tripv", { type: "geojson", data: empty });   // anteprima del viaggio in vaporetto: tratti a piedi e tratti in battello
   map.addSource("meman", { type: "geojson", data: empty, maxzoom: 15, tolerance: 0, buffer: 32 });   // pochi pezzi da ricalcolare: l'avatar si aggiorna subito
   map.addSource("medot", { type: "geojson", data: empty });
   map.addSource("frman", { type: "geojson", data: empty, maxzoom: 15, tolerance: 0, buffer: 32 }); map.addSource("frdot", { type: "geojson", data: empty });
   map.addLayer({ id: "route-case", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#050706", "line-width": 13 } });
+  map.addLayer({ id: "tripv-case", type: "line", source: "tripv", filter: ["==", ["get", "k"], "b"], layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#050706", "line-width": 9 } });
+  map.addLayer({ id: "tripv-boat", type: "line", source: "tripv", filter: ["==", ["get", "k"], "b"], layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": ["get", "c"], "line-width": 6 } });
+  map.addLayer({ id: "tripv-walk", type: "line", source: "tripv", filter: ["==", ["get", "k"], "w"], layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#111111", "line-width": 6, "line-dasharray": [0.1, 1.8] } });
+  map.addLayer({ id: "tripv-stop", type: "circle", source: "tripv", filter: ["==", ["get", "k"], "s"], paint: { "circle-radius": 6, "circle-color": "#ffffff", "circle-stroke-color": "#050706", "circle-stroke-width": 3 } });
   map.addLayer({ id: "route", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#ff6446", "line-width": 8 } });
   map.addSource("depths", { type: "geojson", data: empty });
   map.addLayer({ id: "depths", type: "circle", source: "depths", layout: { visibility: "none" }, paint: {
@@ -3794,6 +3799,8 @@ function stopNav(){
 $("#stopNav").onclick = stopNav;
 function drawRoute(){
   if (!map || !map.getSource("route")) return;
+  if (map.getSource("tripv")){ const tg = (PLAN && PLAN.mode === "mezzi" && PLAN.tripGeo) || (NAV && NAV.tripGeo) || null;
+    map.getSource("tripv").setData({ type: "FeatureCollection", features: tg || [] }); }
   const R = NAV ? NAV.R : (PLAN && PLAN.R);
   const coords = R && R.src !== "aria" ? R.pts.slice(NAV && !NAV.pending ? Math.max(0, NAV.idx || 0) : 0).map(p => [p[1], p[0]]) : [];
   if (NAV && !NAV.pending && R && lastPos && coords.length) coords.unshift([lastPos.lng, lastPos.lat]);
@@ -4033,7 +4040,7 @@ async function showPlan(){
   if (startMarker){ startMarker.remove(); startMarker = null; }
   if (PLAN.from){ const s = document.createElement("div"); s.className = "startpin"; startMarker = new maplibregl.Marker({ element: s }).setLngLat([PLAN.from.lng, PLAN.from.lat]).addTo(map); }
   const seq = ++planSeq, from = planFrom();
-  PLAN.R = null; PLAN.Rb = null; PLAN.walk = null; PLAN.trip = null; PLAN.tx = null; drawRoute();
+  PLAN.R = null; PLAN.Rb = null; PLAN.walk = null; PLAN.trip = null; PLAN.tx = null; PLAN.tripGeo = null; PLAN.tripGeoFor = null; drawRoute();
   PLAN.mode = PLAN.mode || store.get("ln_travel", null) || (activeBoat() ? "barca" : "piedi");
   ["tmPiedi", "tmBarca", "tmMezzi", "tmTaxi"].forEach(id => $("#" + id).textContent = "…");
   document.querySelectorAll("#rbModes [data-tm]").forEach(b => b.classList.toggle("on", b.dataset.tm === PLAN.mode));
@@ -4052,6 +4059,41 @@ async function showPlan(){
 function fitPlan(R){
   if (!R || !map) return; const b = new maplibregl.LngLatBounds(); R.pts.forEach(p => b.extend([p[1], p[0]]));
   setFollow(false); map.fitBounds(b, { padding: { top: 290, bottom: 120, left: 50, right: 50 }, duration: 700, bearing: 0, pitch: 0 });
+}
+/* anteprima del viaggio in vaporetto: a piedi fino alla fermata, le fermate del battello lungo i canali, a piedi fino all'arrivo */
+async function tripPreview(j, from, to){
+  const o = j && j.opzioni && j.opzioni[0]; if (!o || !from) return [];
+  await loadPontiliActv(); const P = (PONTILI_ACTV && PONTILI_ACTV.p) || [];
+  const pt = n => { const x = P.find(y => y[0] === n); return x ? { lat: x[1], lng: x[2] } : null; };
+  const F = [], line = (pts, props) => { if (pts.length > 1) F.push({ type: "Feature", properties: props, geometry: { type: "LineString", coordinates: pts.map(q => [q[1], q[0]]) } }); };
+  const walkLeg = async (a, b, last) => { if (!a || !b || hav(a.lat, a.lng, b.lat, b.lng) < 15) return; let W = null; try{ W = await walkRoute(a, b); }catch(e){}
+    if (W && W.src !== "aria") line(W.pts, { k: "w", last: !!last }); };
+  let cur = from;
+  for (const t of o.tappe){
+    if (t.tipo === "piedi"){ const b = pt(t.a); await walkLeg(cur, b); cur = b || cur; continue; }
+    const a = pt(t.da), b = pt(t.a); if (!a) continue;
+    if (cur !== a) await walkLeg(cur, a);
+    const ali = t.azienda === "Alilaguna" || /^Alilaguna /.test(t.linea), col = lineColor(t.linea, ali ? "Alilaguna" : "ACTV"), hm = String(t.parte || "").split(":");
+    let S = null;
+    try{ const r = await CORSA(`linea=${encodeURIComponent(t.linea)}&dir=${encodeURIComponent(t.direzione)}&la=${a.lat}&lo=${a.lng}&t=${+hm[0] * 60 + +hm[1]}&tol=400${t.prossima ? "&nx=" + encodeURIComponent(t.prossima) : ""}`);
+      if (r && Array.isArray(r.fermate)){ const k = r.fermate.findIndex((f, i) => i > 0 && norm(f.n) === norm(t.a)); S = k > 0 ? r.fermate.slice(0, k + 1) : null; } }catch(e){}
+    if (!S && b) S = [{ lat: a.lat, lng: a.lng }, { lat: b.lat, lng: b.lng }];
+    if (S){
+      actvBudget = 400; actvDeadline = performance.now() + 2500;
+      const pts = []; for (let i = 1; i < S.length; i++){ const A = S[i - 1], B = S[i], Q = actvPath(A.lat, A.lng, B.lat, B.lng);
+        (Q ? Q.pts : [[A.lat, A.lng], [B.lat, B.lng]]).forEach((q, m) => { if (m || !pts.length) pts.push(q); }); }
+      line(pts, { k: "b", c: hexLight(col) ? "#9aa0a8" : col });
+      S.forEach(f => F.push({ type: "Feature", properties: { k: "s" }, geometry: { type: "Point", coordinates: [f.lng, f.lat] } }));
+    }
+    cur = b || cur;
+  }
+  await walkLeg(cur, to, true);
+  return F;
+}
+function fitFeats(F){
+  if (!map || !F || !F.length) return; const b = new maplibregl.LngLatBounds();
+  F.forEach(f => { const c = f.geometry.coordinates; if (f.geometry.type === "Point") b.extend(c); else c.forEach(x => b.extend(x)); });
+  setFollow(false); map.fitBounds(b, { padding: { top: 290, bottom: 120, left: 50, right: 50 }, duration: 700, bearing: 0, pitch: 0, maxZoom: 17 });
 }
 // scelta del mezzo: a piedi, la tua barca, vaporetto o taxi
 function paintTravel(fit){
@@ -4082,6 +4124,8 @@ function paintTravel(fit){
       more.innerHTML = `<p class="trnote" style="margin-top:0">Da <b>${esc(j.da)}</b> a <b>${esc(j.a)}</b></p>` + j.opzioni.map((op, k) => tripOptHtml(op, k) .replace(/<\/div>$/, ((op.fine_min ?? j.endWalk) ? `<div class="leg">🚶 poi a piedi fino a ${esc(PLAN.to.name)} · ${op.fine_min ?? j.endWalk} min</div>` : "") + "</div>")).join("") + orarioNote(j.orario_del);
       more.classList.remove("hidden");
       go.textContent = "🚶 Vai alla fermata";
+      if (!PLAN.tripGeo && PLAN.tripGeoFor !== j){ PLAN.tripGeoFor = j; const pl = PLAN; tripPreview(j, planFrom(), PLAN.to).then(F => { if (PLAN !== pl || pl.trip !== j) return; pl.tripGeo = F; drawRoute(); if (pl.mode === "mezzi") fitFeats(F); }); }
+      else if (fit && PLAN.tripGeo) fitFeats(PLAN.tripGeo);
     }
   }
   drawRoute();
@@ -4130,6 +4174,7 @@ $("#rbGo").onclick = () => {
     if (!st){ toast("Non trovo la fermata sulla mappa: guarda gli orari qui sopra."); return; }
     if (startMarker){ startMarker.remove(); startMarker = null; }
     PLAN = null; startNav({ name: `Fermata ${st[0]} · ${t.linea} alle ${t.parte}`, lat: st[1], lng: st[2] }, { travel: "piedi", from: p.from || null });
+    if (NAV && p.tripGeo) NAV.tripGeo = p.tripGeo.filter(f => f.properties.k !== "w" || f.properties.last);   // resta il tragitto in battello e l'ultimo pezzo a piedi
     return;
   }
   if (startMarker){ startMarker.remove(); startMarker = null; }
