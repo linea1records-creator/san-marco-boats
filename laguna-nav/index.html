@@ -770,6 +770,9 @@
   .cbFix{flex:0 0 auto;max-width:44%;padding:4px 8px;border-radius:8px;background:#fff1ec;color:#c2410c;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .cbDraw{padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:14px} .cbDraw small{color:#8a8f98;line-height:1.35}
   .cbDraw .cbBtns{display:flex;gap:8px;margin-top:4px} .cbDraw .cbBtns .btn{flex:1;padding:9px 6px}
+  #cbFollow{flex:0 0 auto;height:30px;padding:0 12px;border-radius:999px;background:#eef0f2;color:#111;font-size:13px;font-weight:800}
+  #cbFollow.on{background:#111;color:#fff}
+  #corsaBox .cbEmo{padding:4px 12px 10px;margin-top:6px} #corsaBox .cbEmo button{background:#f2f3f5;border-color:#e3e5e8;font-size:26px}
   #corsaBox .cbNote{padding:6px 14px;font-size:11px;color:#9aa0a8;border-top:1px solid #eee}
   #aeroMk{display:flex;align-items:center;gap:5px;padding:5px 11px 5px 9px;background:#111;color:#fff;border-radius:999px;font-size:12px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.5);white-space:nowrap}
   #aeroMk svg{width:15px;height:15px;fill:#fff;stroke:none}
@@ -2127,7 +2130,7 @@ function initMap(){
   const fallback = setTimeout(() => { if (!styled) map.setStyle(STYLE_RASTER); }, 9000);
   map.on("error", e => { if (!styled && e && e.error && /style|json/i.test(String(e.error.message || ""))) { clearTimeout(fallback); map.setStyle(STYLE_RASTER); } });
   map.on("style.load", () => { styled = true; clearTimeout(fallback); addLayers(); });
-  map.on("dragstart", e => { if (e.originalEvent && !view3d) setFollow(false); });
+  map.on("dragstart", e => { if (e.originalEvent && !view3d) setFollow(false); if (e.originalEvent && TRK && TRK.follow){ TRK.follow = false; paintTrkBtn(); } });
   map.on("pitch", rotMe); map.on("zoom", rotMe);
   map.on("zoomend", e => { if (view3d && e.originalEvent && map.getZoom() < 14.5) setFirstPerson(false); });
   map.on("click", e => {
@@ -2138,7 +2141,7 @@ function initMap(){
     if (addMode === "zone") return zoneForm(e.lngLat);
     if (addMode === "depth") return depthForm(e.lngLat);
     { const fr = map.queryRenderedFeatures([[e.point.x - 14, e.point.y - 14], [e.point.x + 14, e.point.y + 14]], { layers: ["frman", "frdot"].filter(l => map.getLayer(l)) })[0];
-      if (fr && fr.properties.n) return kissAsk(fr.properties.n); }
+      if (fr && fr.properties.n) return trackFriend(fr.properties.n); }
     if (INST.water && appMode === "nautica"){
       const z = fondoAt(e.lngLat.lat, e.lngLat.lng), t = tideNow() ?? 30;
       const ff = map.queryRenderedFeatures(e.point, { layers: ["aero", "partners", "battelli", "fermate", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
@@ -2177,7 +2180,7 @@ function drawFriends(){
   map.getSource("frdot").setData({ type: "FeatureCollection", features: list.map(f => ({ type: "Feature", properties: { c: (f.avatar && f.avatar.shirt) || "#ff6446", n: f.nome }, geometry: { type: "Point", coordinates: [f.lng, f.lat] } })) });
   FR_MK.forEach(m => m.remove()); FR_MK = list.map(f => { const el = document.createElement("div"); el.className = "me fr";
     el.innerHTML = `<div class="meTag">${esc(f.nome)}${f.minuti >= 2 ? ` <small>${agoMin(f.minuti)}</small>` : ""}</div>`;
-    el.querySelector(".meTag").onclick = ev => { ev.stopPropagation(); kissAsk(f.nome); };
+    el.querySelector(".meTag").onclick = ev => { ev.stopPropagation(); trackFriend(f.nome); };
     return new maplibregl.Marker({ element: el, anchor: "bottom", offset: [0, meOff || -12] }).setLngLat([f.lng, f.lat]).addTo(map); });
 }
 async function loadFriendsLoc(){
@@ -2205,15 +2208,17 @@ function kissAsk(nome){
     <div class="emogrid" data-noico>${EMOJI_AMICI.map(e => `<button data-emo="${e[0]}" title="${esc(e[1])}">${e[0]}</button>`).join("")}</div>
     <button class="btn ghost" id="kissX" style="margin-top:12px">Chiudi</button>`);
   $("#kissX").onclick = closeSheet;
-  document.querySelectorAll("[data-emo]").forEach(bt => bt.onclick = async () => {
-    const emo = bt.dataset.emo; closeSheet(); if (!lastPos){ toast("Serve la tua posizione: accendi il GPS dal tasto della visuale"); return; }
-    let r;
-    try{ r = await rpc("kiss_send2", { p_nome: nome, p_lat: lastPos.lat, p_lng: lastPos.lng, p_emoji: emo }); }catch(e){ r = null; }
-    if (!r || (r.errore === undefined && r.ok === undefined)){   // server non ancora aggiornato: parte come bacio
-      try{ r = await rpc("kiss_send", { p_nome: nome, p_lat: lastPos.lat, p_lng: lastPos.lng }); }catch(e){ toast("Non partito: controlla la connessione."); return; } }
-    if (r && r.errore){ toast(r.errore === "troppi" ? "Piano! Riprova tra un minuto" : r.errore === "non_amici" ? "Puoi mandarli solo ai tuoi amici." : "Non partito."); return; }
-    haptic(); kissFly([lastPos.lng, lastPos.lat], [f.lng, f.lat], () => toastEmo(`${emo} ${emoName1(emo).replace(/^un[a']? ?/, "").replace(/^./, c => c.toUpperCase())} arrivato a ${nome}`), emo);
-  });
+  document.querySelectorAll("#sheetIn [data-emo]").forEach(bt => bt.onclick = () => { closeSheet(); kissSend(nome, bt.dataset.emo); });
+}
+async function kissSend(nome, emo){
+  const f = FR_LOC.find(x => x.nome === nome); if (!f) return;
+  if (!lastPos){ toast("Serve la tua posizione: accendi il GPS dal tasto della visuale"); return; }
+  let r;
+  try{ r = await rpc("kiss_send2", { p_nome: nome, p_lat: lastPos.lat, p_lng: lastPos.lng, p_emoji: emo }); }catch(e){ r = null; }
+  if (!r || (r.errore === undefined && r.ok === undefined)){   // server non ancora aggiornato: parte come bacio
+    try{ r = await rpc("kiss_send", { p_nome: nome, p_lat: lastPos.lat, p_lng: lastPos.lng }); }catch(e){ toast("Non partito: controlla la connessione."); return; } }
+  if (r && r.errore){ toast(r.errore === "troppi" ? "Piano! Riprova tra un minuto" : r.errore === "non_amici" ? "Puoi mandarli solo ai tuoi amici." : "Non partito."); return; }
+  haptic(); kissFly([lastPos.lng, lastPos.lat], [f.lng, f.lat], () => toastEmo(`${emo} ${emoName1(emo).replace(/^un[a']? ?/, "").replace(/^./, c => c.toUpperCase())} arrivato a ${nome}`), emo);
 }
 // i messaggi con le emoji tengono i loro colori (non diventano icone)
 function toastEmo(t){ toast(t, true); }
@@ -2573,7 +2578,7 @@ function popupFor(f, ll){
   if (f.layer.id === "partners"){ const p = PARTNERS.find(x => x.id === f.properties.id); if (p) openPartner(p); return; }
   if (f.layer.id === "cantieri"){ const c = CANT[f.properties.i]; if (c) openCantiere(c); return; }
   if (f.layer.id === "battelli"){ const b = BOATS_ACTV[f.properties.i]; if (!b) return;   // percorso e fermate che mancano al capolinea
-    openCorsa({ linea: b.L, dir: b.d, la: b.s0[0], lng: b.s0[1], t: b.s0[3], tol: 60, az: b.az, boat: true }); return; }
+    trackBoat(b); openCorsa({ linea: b.L, dir: b.d, la: b.s0[0], lng: b.s0[1], t: b.s0[3], tol: 60, az: b.az, boat: true, k: b.k }); return; }
   if (f.layer.id === "fermate" && appMode === "nautica"){ const nm = f.properties.n, c = f.geometry.coordinates;
     html = `<b>${esc(nm)}</b><br><a href="#" id="fmDep" style="color:#ff6446">Prossime partenze</a> · <a href="#" data-goto="${c[1]},${c[0]}" data-name="${esc(nm)}" style="color:#7fc1ff">Portami qui</a>`;
     new maplibregl.Popup({ closeButton: true, maxWidth: "240px" }).setLngLat(ll).setHTML(html).addTo(map);
@@ -2792,7 +2797,7 @@ const CAM_IC = {
 const CAM_N = { persona: "Prima persona", libera: "Visuale libera", alto: "Venezia dall'alto" };
 function paintCam(){ const b = $("#fabGps"); if (!b) return; b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${CAM_IC[CAM]}</svg>`; b.title = CAM_N[CAM] + " · tocca per cambiare visuale"; b.dataset.cam = CAM; }
 function setCam(m){
-  if (m === "persona"){ if (watchId === null) startGps(); setFirstPerson(true); setFollow(true); CAM = "persona"; if (lastPos) camera(true); }
+  if (m === "persona"){ if (TRK && TRK.follow){ TRK.follow = false; paintTrkBtn(); } if (watchId === null) startGps(); setFirstPerson(true); setFollow(true); CAM = "persona"; if (lastPos) camera(true); }
   else if (m === "libera"){ setFirstPerson(false); setFollow(false); CAM = "libera"; }   // la mappa resta dov'è: la muovi tu con le dita
   else { setFirstPerson(false); setFollow(false); CAM = "alto";
     if (map) map.easeTo({ center: [12.3326, 45.4371], zoom: 13.3, pitch: 0, bearing: 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 900 }); }
@@ -2917,7 +2922,13 @@ function frame(){
   const D = (map.getZoom() >= MAN_MINZ && manShown) || disp; if (D && meMarker) meMarker.setLngLat([D.lng, D.lat]);
   frame.n = (frame.n || 0) + 1;
   rotMe(); if (frame.n % 2 === 0) drawMan(manTiltLast || (manWat && speedMs * 3.6 > 10));   // avatar ridisegnato insieme alla mappa
+  const TP = trkTick();   // battello o amico seguito: dove si trova adesso
   if ((userBusy && !view3d) || map.isEasing && map.isEasing()) return;
+  if (TP && TRK.follow && !follow && !view3d){   // la visuale resta sull'oggetto seguito
+    const c = map.getCenter(), k = TRK.kind === "boat" ? 1 : 0.08;   // il battello si calcola a ogni fotogramma, l'amico arriva ogni 20 secondi: ci si scivola sopra
+    if (hav(c.lat, c.lng, TP[1], TP[0]) > 0.05) map.jumpTo({ center: [c.lng + (TP[0] - c.lng) * k, c.lat + (TP[1] - c.lat) * k] });
+    return;
+  }
   const o = {};
   if (view3d && Math.abs(angDiff(map.getBearing(), heading)) > 0.4) o.bearing = heading;
   if ((follow || view3d) && lastPos){   // in prima persona la mappa segue sempre l'avatar
@@ -5394,7 +5405,8 @@ function boatImgName(color, ali){ return "boat|" + (ali ? "a" : "v") + "|" + col
 function ensureBoatImage(color, ali){ const n = boatImgName(color, ali); if (map && !map.hasImage(n)) map.addImage(n, boatImg(color, ali), { pixelRatio: 2 }); return n; }
 function setBattelliFilter(){
   if (!map || !map.getLayer("battelli")) return;
-  const fil = ["match", ["get", "al"], 1, LY.alilaguna !== false, LY.actv !== false];
+  let fil = ["match", ["get", "al"], 1, LY.alilaguna !== false, LY.actv !== false];
+  if (TRK && TRK.kind === "boat") fil = ["all", fil, ["!=", ["get", "k"], TRK.k]];   // il battello seguito si disegna a parte, fluido a ogni fotogramma
   map.setFilter("battelli", fil); if (map.getLayer("battelli-lbl")) map.setFilter("battelli-lbl", fil);
 }
 function addBoatsLayer(){
@@ -5439,27 +5451,33 @@ function romeMinNow(){ const p = Object.fromEntries(new Intl.DateTimeFormat("en-
 async function actvFetch(){
   try{ const j = await ACTV("azione=posizioni"); if (j && Array.isArray(j.battelli)){ actvRaw = j.battelli; actvAt = Date.now(); actvPaint(); setTimeout(vpPrecompute, 1500); } }catch(e){}
 }
+// una corsa si riconosce da linea, direzione e ora di partenza dal capolinea
+const boatKey = b => b[0] + "|" + b[2] + "|" + (b[4] && b[4][0] ? b[4][0][3] : "");
+// posizione stimata di una corsa al minuto t (orario di Roma): ferma all'imbarcadero o lungo il tragitto tra due fermate
+function boatPos(b, t0){
+  const st = b[4]; if (!st || !st.length) return null;
+  let t = t0; if (t < st[0][2] - 600) t += 1440; else if (t > st[0][2] + 600) t -= 1440;   // a cavallo della mezzanotte
+  for (let k = 0; k < st.length; k++){
+    const [la, lo, ar, dp] = st[k];
+    if (t >= ar && t <= dp + 0.999) return { pos: [lo, la], ang: k + 1 < st.length ? Math.atan2((st[k + 1][1] - lo) * 0.703, st[k + 1][0] - la) * 180 / Math.PI : 0, at: k };   // fermo all'imbarcadero
+    const nx = st[k + 1]; if (!nx) break;
+    if (t > dp && t < nx[2] + 0.999){ const f = Math.max(0, Math.min(1, (t - dp - 0.5) / Math.max(0.5, nx[2] - dp)));
+      const P = actvPath(la, lo, nx[0], nx[1]);
+      if (P){ const q = pathAt(P, f); return { pos: [q[1], q[0]], ang: q[2], at: k + 0.5 }; }
+      return { pos: [lo, la], ang: Math.atan2((nx[1] - lo) * 0.703, nx[0] - la) * 180 / Math.PI, at: k };   // tragitto non ancora pronto: resta all'imbarcadero, mai in linea retta sopra le case
+    }
+  }
+  return null;
+}
 function actvPaint(){
   if (!map || !map.getSource("battelli") || !actvRaw) return;
   actvBudget = 6; actvDeadline = performance.now() + 25;   // pochi calcoli per volta: la mappa e la tua posizione restano fluide
   const t0 = romeMinNow(), feats = []; BOATS_ACTV = [];
   actvRaw.forEach(b => { const st = b[4]; if (!st || !st.length) return;
-    let t = t0; if (t < st[0][2] - 600) t += 1440; else if (t > st[0][2] + 600) t -= 1440;   // a cavallo della mezzanotte
-    let pos = null, ang = 0;
-    for (let k = 0; k < st.length; k++){
-      const [la, lo, ar, dp] = st[k];
-      if (t >= ar && t <= dp + 0.999){ pos = [lo, la]; break; }             // fermo all'imbarcadero
-      const nx = st[k + 1]; if (!nx) break;
-      if (t > dp && t < nx[2] + 0.999){ const f = Math.max(0, Math.min(1, (t - dp - 0.5) / Math.max(0.5, nx[2] - dp)));
-        const P = actvPath(la, lo, nx[0], nx[1]);
-        if (P){ const q = pathAt(P, f); pos = [q[1], q[0]]; ang = q[2]; }
-        else { pos = [lo, la]; ang = Math.atan2((nx[1] - lo) * 0.703, nx[0] - la) * 180 / Math.PI; }   // tragitto non ancora pronto: resta all'imbarcadero, mai in linea retta sopra le case
-        break; }
-    }
-    if (!pos) return;
+    const q = boatPos(b, t0); if (!q) return; const pos = q.pos, ang = q.ang;
     const ali = b[3] === "Alilaguna", col = lineColor(b[0], b[3]), img = ensureBoatImage(col, ali);
-    const i = BOATS_ACTV.length; BOATS_ACTV.push({ l: b[0].replace(/^Alilaguna\s+/, ""), h: cleanDir(b[2]), az: b[3], next: b[5], L: b[0], d: b[2], s0: st[0] });
-    feats.push({ type: "Feature", properties: { i, l: ali ? "AL" : b[0], a: ang, img, col, al: ali ? 1 : 0 }, geometry: { type: "Point", coordinates: pos } });
+    const i = BOATS_ACTV.length; BOATS_ACTV.push({ l: b[0].replace(/^Alilaguna\s+/, ""), h: cleanDir(b[2]), az: b[3], next: b[5], L: b[0], d: b[2], s0: st[0], k: boatKey(b), raw: b, img });
+    feats.push({ type: "Feature", properties: { i, k: boatKey(b), l: ali ? "AL" : b[0], a: ang, img, col, al: ali ? 1 : 0 }, geometry: { type: "Point", coordinates: pos } });
   });
   map.getSource("battelli").setData({ type: "FeatureCollection", features: feats });
 }
@@ -5613,17 +5631,18 @@ async function drawSave(){
   ACTV_PATH.set(d.key, mkPath(pts)); VP_CACHE[d.key] = pts; VP_MANUAL.add(d.key); vpSave();
   drawStop(); corsaList(); try{ actvPaint(); }catch(e){} toast("Tratto salvato \u2713 \u00b7 tutti i telefoni useranno questo percorso");
 }
-function closeCorsa(){ drawStop(true); corsaSeq++;
+function closeCorsa(){ drawStop(true); corsaSeq++; const was = !!TRK; trkStop();
   // la mappa torna su di te
-  try{ if (lastPos && watchId !== null){ setFollow(true); map.easeTo({ center: [lastPos.lng, lastPos.lat], duration: 600 }); } }catch(e){}
+  try{ if (lastPos && watchId !== null){ setFollow(true); map.easeTo({ center: [lastPos.lng, lastPos.lat], padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 600 }); }
+    else if (was) map.easeTo({ padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 400 }); }catch(e){}
   const b = $("#corsaBox"); if (b) b.classList.add("hidden"); if (map && map.getSource("corsa")) map.getSource("corsa").setData({ type: "FeatureCollection", features: [] }); }
 async function openCorsa(o){
   const seq = ++corsaSeq, box = $("#corsaBox"), ali = o.az === "Alilaguna" || /^Alilaguna /.test(o.linea);
   const col = lineColor(o.linea, ali ? "Alilaguna" : "ACTV"), light = hexLight(col);
   try{ closePopups(); }catch(e){}
   box.classList.remove("hidden"); box.style.setProperty("--lc", light ? "#9aa0a8" : col); box.style.setProperty("--ld", light ? "#111" : col);
-  $("#cbHead").innerHTML = `${lineBadge(o.linea)}<span class="cbDir">\u2192 ${esc(cleanDir(o.dir))}</span>${isTropss() ? `<button id="cbEdit" aria-label="Correggi i percorsi" title="Correggi i percorsi">\u270f\ufe0f</button>` : ""}<button id="cbClose" aria-label="Chiudi">\u00d7</button>`;
-  $("#cbClose").onclick = closeCorsa; $("#cbNote").textContent = ""; CORSA_ST = null; drawStop(true);
+  $("#cbHead").innerHTML = `${lineBadge(o.linea)}<span class="cbDir">\u2192 ${esc(cleanDir(o.dir))}</span>${o.k ? TRK_BTN : ""}${isTropss() ? `<button id="cbEdit" aria-label="Correggi i percorsi" title="Correggi i percorsi">\u270f\ufe0f</button>` : ""}<button id="cbClose" aria-label="Chiudi">\u00d7</button>`;
+  $("#cbClose").onclick = closeCorsa; $("#cbNote").textContent = ""; CORSA_ST = null; drawStop(true); paintTrkBtn();
   if ($("#cbEdit")) $("#cbEdit").onclick = () => { if (!CORSA_ST) return; CORSA_ST.edit = !CORSA_ST.edit; $("#cbEdit").classList.toggle("on", CORSA_ST.edit); corsaList(); };
   $("#cbList").innerHTML = `<div class="cbMsg">Carico le fermate\u2026</div>`;
   let j; try{ j = await CORSA(`linea=${encodeURIComponent(o.linea)}&dir=${encodeURIComponent(o.dir)}&la=${o.la}&lo=${o.lng}&t=${o.t}&tol=${o.tol || 60}`); }catch(e){ j = { errore: "rete" }; }
@@ -5636,8 +5655,79 @@ async function openCorsa(o){
   corsaList();
   const nf = F.length - 1; $("#cbNote").textContent = (nf === 1 ? "1 fermata" : nf + " fermate") + " fino al capolinea \u00b7 orari ufficiali, senza ritardi";
   if (!map) return; corsaLayers(); corsaPaint();
+  if (o.k && TRK && TRK.k === o.k){ trkList(); return; }   // battello seguito: la visuale resta su di lui, l'elenco si aggiorna da solo
   try{ setFollow(false); const bb = new maplibregl.LngLatBounds(); pts.forEach(p => bb.extend([p[1], p[0]]));
     map.fitBounds(bb, { padding: { top: 70, left: 40, right: 40, bottom: Math.round(innerHeight * 0.45) + 20 }, maxZoom: 16, duration: 700 }); }catch(e){}
+}
+/* ---------- segui un battello o un amico: la visuale si avvicina e gli resta sopra mentre si muove ---------- */
+var TRK = null, trkT = null;   // var: lo leggono anche funzioni chiamate prima di questa riga
+const TRK_BTN = `<button id="cbFollow" aria-label="Segui">Segui</button>`;
+function paintTrkBtn(){ const b = $("#cbFollow"); if (b){ b.classList.toggle("on", !!(TRK && TRK.follow)); b.textContent = TRK && TRK.follow ? "Seguo" : "Segui";
+  b.onclick = () => { if (!TRK) return; TRK.follow = !TRK.follow; if (TRK.follow) trkFocus(false); paintTrkBtn(); }; } }
+function trkLayer(){
+  if (!map || map.getSource("trkboat")) return;
+  map.addSource("trkboat", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+  map.addLayer({ id: "trkboat", type: "symbol", source: "trkboat", layout: { "icon-image": ["get", "img"], "icon-size": ["interpolate", ["linear"], ["zoom"], 11, 0.5, 14, 0.9, 17, 1.3],
+    "icon-rotate": ["get", "a"], "icon-rotation-alignment": "map", "icon-pitch-alignment": "map", "icon-allow-overlap": true, "icon-ignore-placement": true } });
+}
+// avvicina la visuale all'oggetto, lasciandolo sopra la tabella in basso
+function trkFocus(first){
+  const P = trkTick(true); if (!P || !map) return;
+  setFirstPerson(false); setFollow(false);
+  const pb = Math.round(innerHeight * (TRK.kind === "boat" ? 0.45 : 0.3)) + 20;
+  map.easeTo({ center: P, zoom: first ? Math.max(map.getZoom(), TRK.kind === "boat" ? 17 : 18) : map.getZoom(), pitch: LY.d3 !== false ? 50 : 0,
+    padding: { top: 60, bottom: pb, left: 0, right: 0 }, duration: first ? 900 : 500 });
+}
+// posizione attuale dell'oggetto seguito ([lng, lat]); per il battello ridisegna anche l'icona
+function trkTick(force){
+  if (!TRK || !map) return null;
+  if (TRK.kind === "boat"){
+    if (!map.getSource("trkboat")) return null;
+    actvBudget = Math.max(actvBudget, 2); actvDeadline = Math.max(actvDeadline, performance.now() + 30);
+    const q = boatPos(TRK.raw, romeMinNow());
+    if (!q){ if (!TRK.ended){ TRK.ended = true; map.getSource("trkboat").setData({ type: "FeatureCollection", features: [] }); toast("Corsa arrivata al capolinea"); } return null; }
+    TRK.n = (TRK.n || 0) + 1;
+    if (force || TRK.n % 2 === 0) map.getSource("trkboat").setData({ type: "FeatureCollection", features: [{ type: "Feature", properties: { img: TRK.img, a: q.ang }, geometry: { type: "Point", coordinates: q.pos } }] });
+    return q.pos;
+  }
+  const f = FR_LOC.find(x => x.nome === TRK.nome); return f ? [f.lng, f.lat] : null;
+}
+function trackBoat(b){
+  if (!map || !b || !b.raw) return;
+  trkStop(true); trkLayer(); TRK = { kind: "boat", k: b.k, raw: b.raw, img: b.img, follow: true };
+  setBattelliFilter(); trkTick(true); trkFocus(true);
+  trkT = setInterval(() => { if (!TRK || TRK.kind !== "boat") return;   // i dati delle corse si aggiornano ogni minuto: tiene la stessa corsa
+    const nb = BOATS_ACTV.find(x => x.k === TRK.k); if (nb) TRK.raw = nb.raw; trkList(); }, 15000);
+}
+// tabella delle prossime fermate: toglie quelle già passate e dice tra quanti minuti arriva alla prossima
+function trkList(){
+  const st = CORSA_ST; if (!st || !TRK || TRK.kind !== "boat" || st.edit || DRAW) return;
+  let t = romeMinNow(); const hm = s => { const m = /^(\d{1,2}):(\d{2})/.exec(s || ""); return m ? +m[1] * 60 + +m[2] : null; };
+  const a0 = hm(st.F[0] && st.F[0].arr); if (a0 !== null){ if (t < a0 - 600) t += 1440; else if (t > a0 + 600) t -= 1440; }
+  let cut = 0; while (cut < st.F.length - 1){ const a = hm(st.F[cut].arr); if (a === null || a + 0.5 > t) break; cut++; }
+  if (cut){ st.F = st.F.slice(cut); st.pts = st.pts.slice(cut); corsaPaint(); }
+  corsaList();
+  const a = hm(st.F[0] && st.F[0].arr), sm = document.querySelector("#cbList .cbRow.first .cbN small");
+  if (sm && a !== null){ const d = Math.round(a - t); sm.textContent = d <= 0 ? "in arrivo adesso" : "prossima fermata · tra " + d + " min"; }
+  const nf = st.F.length - 1; $("#cbNote").textContent = (nf <= 0 ? "Ultima fermata" : nf === 1 ? "1 fermata" : nf + " fermate") + " fino al capolinea \u00b7 orari ufficiali, senza ritardi";
+}
+function trackFriend(nome){
+  const f = FR_LOC.find(x => x.nome === nome); if (!f || !map) return;
+  drawStop(true); corsaSeq++; trkStop(); CORSA_ST = null; closePopups();   // chiude un'eventuale corsa aperta senza riportare la visuale su di te
+  if (map.getSource("corsa")) map.getSource("corsa").setData({ type: "FeatureCollection", features: [] });
+  TRK = { kind: "friend", nome, follow: true };
+  const box = $("#corsaBox"); box.classList.remove("hidden"); box.style.setProperty("--lc", "#F7B928"); box.style.setProperty("--ld", "#111");
+  $("#cbHead").innerHTML = `<span class="cbDir">${esc(nome)}</span>${TRK_BTN}<button id="cbClose" aria-label="Chiudi">\u00d7</button>`;
+  $("#cbClose").onclick = closeCorsa; paintTrkBtn();
+  const paint = () => { const g = FR_LOC.find(x => x.nome === nome);
+    $("#cbNote").textContent = !g ? "Posizione non più condivisa" : g.minuti >= 2 ? "Ultima posizione " + agoMin(g.minuti) : "È qui adesso"; };
+  $("#cbList").innerHTML = `<div class="emogrid cbEmo" data-noico>${EMOJI_AMICI.map(e => `<button data-emo="${e[0]}" title="${esc(e[1])}">${e[0]}</button>`).join("")}</div>`;
+  document.querySelectorAll("#cbList [data-emo]").forEach(bt => bt.onclick = () => kissSend(nome, bt.dataset.emo));
+  paint(); trkT = setInterval(paint, 20000); trkFocus(true);
+}
+function trkStop(keepBox){
+  clearInterval(trkT); trkT = null; const was = TRK && TRK.kind === "boat"; TRK = null;
+  if (was){ if (map && map.getSource("trkboat")) map.getSource("trkboat").setData({ type: "FeatureCollection", features: [] }); setBattelliFilter(); }
 }
 function actvStart(){
   if (typeof loadGraph === "function") loadGraph();
