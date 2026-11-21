@@ -242,6 +242,9 @@
   .mwc b{font-size:13.5px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .mwc small{font-size:8.5px;color:#9ab;letter-spacing:.02em;line-height:1;white-space:nowrap}
   .mwc.warn b{color:#fbbf24} .mwc.alarm{background:#b3261e} .mwc.alarm b{color:#fff}
+  .mwc.orange{background:#e8710a} .mwc.orange b,.mwc.orange small{color:#fff}
+  #miniW:not(.land) [data-mw="meteo"]{display:none}
+  #miniW.land{grid-template-columns:1fr;width:110px} #miniW.land [data-mw="spd"], #miniW.land [data-mw="vx"], #miniW.land [data-mw="dep"]{display:none}
   body.sat .mwc{background:rgba(0,0,0,.75)}
   /* sport */
   .spm{cursor:pointer;display:flex;flex-direction:column;align-items:center}
@@ -1068,13 +1071,14 @@
     <div id="miniW">
       <div class="mwc" data-mw="spd"><i>⚡</i><b id="mwSpd">–</b><small>km/h</small></div>
       <div class="mwc" data-mw="vx"><i>📷</i><b id="mwVx">–</b><small id="mwVxL">velox</small></div>
+      <div class="mwc" data-mw="meteo"><i id="mwMetI">☁️</i><b id="mwMet">–</b><small id="mwMetL">meteo</small></div>
       <div class="mwc" data-mw="tide"><i>🌊</i><b id="mwTide">–</b><small>marea</small></div>
-      <div class="mwc" data-mw="dep"><i>〰</i><b id="mwDep">–</b><small>sotto il piede</small></div>
+      <div class="mwc" data-mw="dep"><i>〰</i><b id="mwDep">–</b><small>scandaglio</small></div>
     </div>
     <!-- strumenti -->
     <div id="inst">
       <div class="ic-card" id="i-depth">
-        <div class="ic-h">ECOSCANDAGLIO <span id="dSrc"></span></div>
+        <div class="ic-h">SCANDAGLIO <span id="dSrc"></span></div>
         <div class="ic-row"><div class="ic-big" id="dUnder">–</div><div class="ic-u">sotto il piede</div></div>
         <canvas id="sonar" width="320" height="76"></canvas>
         <div class="ic-s" id="dInfo">Imposta la tua barca per il calcolo</div>
@@ -2224,6 +2228,9 @@ function initMap(){
   map.on("zoomend", e => { if (view3d && e.originalEvent && map.getZoom() < 14.5) setFirstPerson(false); });
   map.on("click", e => {
     if (typeof DRAW !== "undefined" && DRAW) return;   // mentre tropss ridisegna un tratto i tocchi servono solo alla matita
+    if ($("#sheet") && !$("#sheet").classList.contains("hidden")) return;   // appena dopo il tocco lungo si apre la scheda: il rilascio non conta
+    { const mp = map.getLayer("myplaces") && map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["myplaces"] })[0];
+      if (mp) return openMyPlace(mp.properties.i); }
     if (addMode === "wzpick"){ addMode = null; $("#modeHint").classList.add("hidden"); if (window._wzPick){ const f = window._wzPick; window._wzPick = null; f(e.lngLat); } return; }
     if (addMode === "picksport"){ addMode = null; $("#modeHint").classList.add("hidden"); SPF.pt = { lat: e.lngLat.lat, lng: e.lngLat.lng }; sportForm(); return; }
     if (addMode === "pickfrom"){ addMode = null; $("#modeHint").classList.add("hidden"); if (PLAN){ PLAN.from = { name: "Punto sulla mappa", lat: e.lngLat.lat, lng: e.lngLat.lng }; showPlan(); } return; }
@@ -2233,7 +2240,7 @@ function initMap(){
       if (rv){ const r = RIVE[rv.properties.i]; if (r){ new maplibregl.Popup({ maxWidth: "250px" }).setLngLat([r.lng, r.lat]).setHTML(`<b>Riva per la sosta del diporto</b><br>${esc(r.n)}<br><span style="color:#888">${esc(r.rio)} · sosta max 1 ora con disco orario (ord. 375/2014)</span><br><a href="#" data-goto="${r.lat},${r.lng}" data-name="${esc(r.n)}" style="color:#7fc1ff">Portami qui</a>`).addTo(map); return; } } }
     { const fr = map.queryRenderedFeatures([[e.point.x - 14, e.point.y - 14], [e.point.x + 14, e.point.y + 14]], { layers: ["frman", "frdot"].filter(l => map.getLayer(l)) })[0];
       if (fr && fr.properties.n) return trackFriend(fr.properties.n); }
-    if (INST.water && appMode === "nautica"){
+    if (false && INST.water && appMode === "nautica"){   // tocco sulla mappa: niente più profondità (tolta su richiesta)
       const z = fondoAt(e.lngLat.lat, e.lngLat.lng), t = tideNow() ?? 30;
       const ff = map.queryRenderedFeatures(e.point, { layers: ["aero", "partners", "battelli", "fermate", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
       if (!ff){
@@ -2250,7 +2257,7 @@ function initMap(){
   });
   loadShared(); setInterval(loadShared, 60000);
   map.on("idle", () => { try{ layerVis(); }catch(e){} });   // se un cambio è arrivato mentre la mappa caricava, lo rimette a posto
-  loadGraph(); loadPOI(); loadVelox(); loadChart(); loadPontili(); loadBricole(); loadBridges(); loadCantieri(); addAeroLayer(); addDiscos(); drawRive();
+  loadGraph(); loadPOI(); loadVelox(); loadChart(); loadPontili(); loadBricole(); loadBridges(); loadCantieri(); addAeroLayer(); addDiscos(); drawRive(); drawMyPlaces(); hookLongPress();
   map.on("moveend", () => { if (map.getZoom() >= 15.3) drawBric3d(); });
 }
 function addManLayer(){
@@ -2668,6 +2675,47 @@ function drawDepths(){
   if (!map || !map.getSource("depths")) return;
   map.getSource("depths").setData({ type: "FeatureCollection", features: depths.map((p, i) => ({
     type: "Feature", properties: { i, d: p.d }, geometry: { type: "Point", coordinates: [p.lng, p.lat] } })) });
+}
+/* ---------- la tua mappa: tieni premuto 2 secondi sulla mappa per salvare un luogo (resta sul telefono) ---------- */
+let MYPL = store.get("ln_myplaces", []);
+function drawMyPlaces(){
+  if (!map) return;
+  try{
+    if (!map.getSource("myplaces")){
+      map.addSource("myplaces", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+      map.addLayer({ id: "myplaces", type: "circle", source: "myplaces", paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 11, 4, 16, 8], "circle-color": "#b5533c", "circle-stroke-color": "#ffffff", "circle-stroke-width": 2.5 } });
+      if (map.getStyle().glyphs) map.addLayer({ id: "myplaces-lbl", type: "symbol", source: "myplaces", minzoom: 13.5, layout: { "text-field": ["get", "n"], "text-size": 12, "text-offset": [0, 1.1], "text-anchor": "top", "text-font": ["Noto Sans Bold", "Noto Sans Regular"], "text-optional": true },
+        paint: { "text-color": "#7a2f1f", "text-halo-color": "#fff", "text-halo-width": 1.6 } });
+    }
+    map.getSource("myplaces").setData({ type: "FeatureCollection", features: MYPL.map((x, i) => ({ type: "Feature", properties: { i, n: x.n }, geometry: { type: "Point", coordinates: [x.lng, x.lat] } })) });
+  }catch(e){}
+}
+function addMyPlace(ll){
+  haptic();
+  openSheet(`<h3>Aggiungi alla tua mappa</h3><div class="field"><label>Come lo chiami?</label><input id="mpN" maxlength="60" placeholder="es. Posto barca, Casa di Marco"></div>
+    <button class="btn" id="mpOk">Salva</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
+  setTimeout(() => { const i = $("#mpN"); if (i) i.focus(); }, 80);
+  const save = () => { const n = ($("#mpN").value || "").trim() || "Il mio luogo"; MYPL.push({ n, lat: +ll.lat.toFixed(6), lng: +ll.lng.toFixed(6), t: Date.now() });
+    store.set("ln_myplaces", MYPL); closeSheet(); drawMyPlaces(); NAV_IDX = null; toast("Salvato nella tua mappa ✓"); };
+  $("#mpOk").onclick = save; $("#mpN").onkeydown = e => { if (e.key === "Enter") save(); };
+}
+function openMyPlace(i){
+  const x = MYPL[i]; if (!x) return;
+  new maplibregl.Popup({ maxWidth: "240px" }).setLngLat([x.lng, x.lat]).setHTML(`<b>${esc(x.n)}</b><br><span style="color:#888">Nella tua mappa</span><br><a href="#" data-goto="${x.lat},${x.lng}" data-name="${esc(x.n)}" style="color:#7fc1ff">Portami qui</a> · <a href="#" id="mpDel" style="color:#ff6b60">Elimina</a>`).addTo(map);
+  setTimeout(() => { const d = document.getElementById("mpDel"); if (d) d.onclick = ev => { ev.preventDefault(); MYPL.splice(i, 1); store.set("ln_myplaces", MYPL); closePopups(); drawMyPlaces(); NAV_IDX = null; }; }, 0);
+}
+function hookLongPress(){
+  if (!map || hookLongPress.done) return; hookLongPress.done = true;
+  const cv = map.getCanvasContainer(); let t = null, p0 = null, fired = false;
+  const cancel = () => { clearTimeout(t); t = null; };
+  cv.addEventListener("pointerdown", e => { if (e.isPrimary === false || (typeof DRAW !== "undefined" && DRAW) || addMode) return cancel();
+    fired = false; p0 = [e.clientX, e.clientY]; cancel();
+    t = setTimeout(() => { t = null; fired = true; const r = map.getCanvas().getBoundingClientRect(); addMyPlace(map.unproject([p0[0] - r.left, p0[1] - r.top])); }, 2000); });
+  cv.addEventListener("pointermove", e => { if (t && p0 && Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) > 10) cancel(); });
+  ["pointerup", "pointercancel", "pointerleave"].forEach(ev => cv.addEventListener(ev, cancel));
+  cv.addEventListener("touchstart", e => { if (e.touches.length > 1) cancel(); }, { passive: true });
+  map.on("movestart", e => { if (e.originalEvent) cancel(); });
+  cv.addEventListener("contextmenu", e => e.preventDefault());
 }
 function popupFor(f, ll){
   let html;
@@ -3233,6 +3281,7 @@ function peopleSearch(q){
 function objectSearch(q){
   const w = norm(q).split(" ").filter(Boolean); if (!w.length) return [];
   const ref = refPoint(), L = [];
+  MYPL.forEach(x => { if (w.every(t => norm("mio miei " + x.n).includes(t))) L.push({ name: x.n, lat: x.lat, lng: x.lng, k: "La tua mappa" }); });
   (VELOX.list || []).forEach(v => { if (v.name && w.every(t => norm("velox autovelox " + v.name).includes(t))) L.push({ name: "Velox · " + v.name, lat: v.lat, lng: v.lng, k: "Velox" }); });
   (BRIDGES.list || []).forEach(b => { if (b.name && w.every(t => norm("ponte " + b.name).includes(t))) L.push({ name: b.name, lat: b.lat, lng: b.lng, k: "Ponte" }); });
   return L.map(x => ({ ...x, m: hav(ref.lat, ref.lng, x.lat, x.lng) })).sort((a, b) => a.m - b.m).slice(0, 5)
@@ -4525,24 +4574,25 @@ function paintEngChips(){
   box.querySelectorAll("button").forEach(x => x.onclick = () => { engState = x.dataset.eng; store.set("ln_eng", engState); paintEngChips(); if (lastPos) updateDepth(lastPos); });
   });
 }
+let SCAND_CM = null;   // acqua sotto il piede in cm (o acqua stimata se manca il pescaggio)
 function updateDepth(p){
   if (!instOn("depth")) return;
   const card = $("#i-depth"), b = activeBoat(), draft = boatDraftCm(b), tide = tideNow(), f = fondaleAt(p.lat, p.lng);
   card.classList.remove("ok", "warn", "alarm");
   $("#dSrc").textContent = !f ? "" : f.src === "carta" ? "· STIMA DALLA CARTA (±200 m)" : "· " + f.n + (f.n === 1 ? " misura" : " misure") + " a " + Math.round(f.near) + " m";
   if (!f){
-    $("#dUnder").textContent = "–";
+    SCAND_CM = null; $("#dUnder").textContent = "–";
     $("#dInfo").textContent = "Nessun dato di fondale qui. Puoi segnalarlo tu (cruscotto → Segnala fondale misurato).";
     SONAR.push({ t: Date.now(), w: null, k: draft }); drawSonar(); return;
   }
   const water = f.z * 100 + (tide === null ? 30 : tide);         // cm d'acqua adesso
   SONAR.push({ t: Date.now(), w: water, k: draft });
   if (draft === null){
-    $("#dUnder").textContent = (water / 100).toFixed(2).replace(".", ",") + " m";
+    SCAND_CM = water; $("#dUnder").textContent = (water / 100).toFixed(2).replace(".", ",") + " m";
     $("#dInfo").textContent = "Acqua stimata. Imposta il pescaggio in «La mia barca» per sapere quanto resta sotto il piede.";
     drawSonar(); return;
   }
-  const under = water - draft, margin = Number((b && b.margin) || 30);
+  const under = water - draft, margin = Number((b && b.margin) || 30); SCAND_CM = under;
   $("#dUnder").textContent = (under < 0 ? "−" : "") + (Math.abs(under) >= 100 ? (Math.abs(under) / 100).toFixed(2).replace(".", ",") + " m" : Math.round(Math.abs(under)) + " cm");
   $("#dInfo").textContent = `Acqua ${(water / 100).toFixed(2).replace(".", ",")} m · marea ${tide === null ? "?" : (tide > 0 ? "+" : "") + tide} cm · pescaggio ${draft} cm`;
   card.classList.add(under < margin ? "alarm" : under < margin * 2 || f.src === "carta" ? "warn" : "ok");
@@ -5440,7 +5490,7 @@ let dashTimer = null, dashEdit = false, TRIP = { km: 0, max: 0, last: null };
 const DASH_I = {   // chiave: [nome, larghezza (1 o 2), descrizione]
   man: ["Prossima manovra", 2, "Cosa fare al prossimo incrocio durante la navigazione"],
   spd: ["Velocità", 1, "km/h e nodi"],
-  dep: ["Sotto il piede", 1, "Ecoscandaglio: acqua che resta sotto il piede"],
+  dep: ["Scandaglio", 1, "Acqua che resta sotto il piede"],
   tide: ["Marea", 1, "Livello di adesso a Punta della Salute"],
   head: ["Bussola", 1, "Rotta e punti cardinali"],
   vx: ["Velox", 1, "Media della tratta controllata"],
@@ -6837,6 +6887,20 @@ $("#trClose").onclick = () => setAppMode("nautica");
 
 /* ---------- mini widget in basso a sinistra: velocità · velox · marea · acqua sotto il piede ---------- */
 setTimeout(() => { loadTide(); }, 1500);
+/* meteo di Venezia (Open-Meteo, senza chiave), aggiornato ogni 15 minuti */
+let METEO = null, meteoAt = 0;
+const WMO = c => c === 0 ? ["☀️", "sereno"] : c <= 2 ? ["🌤️", "poco nuvoloso"] : c === 3 ? ["☁️", "nuvoloso"] : c <= 48 ? ["🌫️", "nebbia"] : c <= 57 ? ["🌦️", "pioviggine"] : c <= 67 ? ["🌧️", "pioggia"] : c <= 77 ? ["🌨️", "neve"] : c <= 82 ? ["🌧️", "rovesci"] : c <= 86 ? ["🌨️", "neve"] : ["⛈️", "temporale"];
+async function loadMeteo(){
+  if (Date.now() - meteoAt < 15 * 60000) return; meteoAt = Date.now();
+  const p = lastPos || { lat: 45.4371, lng: 12.3326 };
+  try{ const j = await fetchT(`https://api.open-meteo.com/v1/forecast?latitude=${p.lat.toFixed(3)}&longitude=${p.lng.toFixed(3)}&current=temperature_2m,weather_code,wind_speed_10m&timezone=Europe%2FRome`, {}, 12000).then(r => r.json());
+    if (j && j.current) METEO = { t: j.current.temperature_2m, c: j.current.weather_code, w: j.current.wind_speed_10m }; }catch(e){ meteoAt = Date.now() - 13 * 60000; }
+}
+function paintMeteo(){
+  if (Date.now() - meteoAt > 15 * 60000) loadMeteo();
+  if (!METEO) return; const [ic, nm] = WMO(METEO.c);
+  $("#mwMetI").textContent = ic; $("#mwMet").textContent = Math.round(METEO.t) + "°"; $("#mwMetL").textContent = nm + (METEO.w ? " · " + Math.round(METEO.w) + " km/h" : "");
+}
 function paintMini(){
   const w = $("#miniW"); if (!w) return;
   const tx = id => (($("#" + id) || {}).textContent || "").trim();
@@ -6849,13 +6913,17 @@ function paintMini(){
   $("#mwTide").textContent = tx("tVal") || "–";
   $("#mwDep").textContent = tx("dUnder") || "–";
   w.querySelector('[data-mw="vx"]').className = "mwc " + st("i-velox");
-  w.querySelector('[data-mw="dep"]').className = "mwc " + st("i-depth");
+  // scandaglio: colore normale, arancione sotto 1 m, rosso sotto 50 cm
+  w.querySelector('[data-mw="dep"]').className = "mwc" + (SCAND_CM === null ? "" : SCAND_CM < 50 ? " alarm" : SCAND_CM < 100 ? " orange" : "");
+  // fuori dall'acqua restano solo meteo e marea
+  const inW = !!manWat; w.classList.toggle("land", !inW);
+  paintMeteo();
 }
 setInterval(paintMini, 700);
 $("#miniW").addEventListener("click", e => {
   const c = e.target.closest("[data-mw]"); if (!c) return;
   if (c.dataset.mw === "dep"){
-    openSheet(`<h3>〰 Acqua sotto il piede: ${esc((($("#dUnder") || {}).textContent) || "–")}</h3><p class="muted">${esc((($("#dInfo") || {}).textContent) || "")}</p>
+    openSheet(`<h3>〰 Scandaglio: ${esc((($("#dUnder") || {}).textContent) || "–")}</h3><p class="muted">${esc((($("#dInfo") || {}).textContent) || "")}</p>
       <p class="muted" style="margin:10px 0 6px">Posizione del motore</p><div class="chips" id="engChipsS"></div>
       <button class="btn ghost" style="margin-top:12px" id="mwDash">Apri il cruscotto</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
     paintEngChips(); $("#mwDash").onclick = () => { closeSheet(); openDash(); }; return;
