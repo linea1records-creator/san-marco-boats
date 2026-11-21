@@ -2270,34 +2270,82 @@ function angelRoute(from, to){
   const pts = [[from.lat, from.lng]].concat(res.path.map(n => [G.la[n], G.lo[n]]), [[to.lat, to.lng]]);
   return { pts, walkEnd: 1, walkStart: pts.length - 2 };
 }
+// tempi realistici: a piedi 5 km/h, in barca 70 km/h; in volo come prima (circa 60 m al secondo, da 25 s a 2 min)
+const ANG_WALK = 5 / 3.6, ANG_BOAT = 70 / 3.6;
 function angelSecs(R, from, to){
   if (!R) return to ? Math.max(25, Math.min(120, Math.round(hav(from.lat, from.lng, to.lat, to.lng) / 60))) : 40;
-  let L = 0; for (let i = 1; i < R.pts.length; i++) L += hav(R.pts[i - 1][0], R.pts[i - 1][1], R.pts[i][0], R.pts[i][1]);
-  return Math.max(25, Math.min(150, Math.round(L / 35)));
+  let T = 0; for (let i = 1; i < R.pts.length; i++){ const d = hav(R.pts[i - 1][0], R.pts[i - 1][1], R.pts[i][0], R.pts[i][1]), walk = i <= R.walkEnd || i > R.walkStart;
+    T += d / (walk ? ANG_WALK : ANG_BOAT); }
+  return Math.max(10, Math.min(7200, Math.round(T)));
 }
-// animazione: R = percorso (o null = vola), dur in ms, startFrac = da che punto parte (per chi riceve a viaggio iniziato)
+/* angelo 3D: come l'omino ma più piccolo, tunica bianca, capelli d'oro, ali che sbattono, aureola e la lettera in mano */
+const ANG_C = { robe: "#f4f4f8", skin: "#f6c9a0", hair: "#e8c15a", wing: "#ffffff", halo: "#ffd34d", eye: "#2b1a10", belt: "#e8c15a" };
+let ANGELS = [], angRaf = 0;
+function ensureAngelLayer(){
+  if (!map || !map.isStyleLoaded || map.getSource("angel3d")) return !!(map && map.getSource("angel3d"));
+  try{
+    map.addSource("angel3d", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addSource("angeldot", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addLayer({ id: "angeldot", type: "circle", source: "angeldot", maxzoom: 16, paint: { "circle-radius": 7, "circle-color": ["get", "c"], "circle-stroke-color": "#ffd34d", "circle-stroke-width": 3, "circle-pitch-alignment": "map" } });
+    map.addLayer({ id: "angel3d", type: "fill-extrusion", source: "angel3d", minzoom: 15.5, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"],
+      "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true } });
+  }catch(e){ return false; }
+  return true;
+}
+function angelFeatures(lat, lng, hdg, mode, paper, out, tNow){
+  const S = 0.7, u = MAN_U, C = ANG_C, r = hdg * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r), kLat = 1 / 111320, kLng = 1 / (111320 * Math.cos(lat * Math.PI / 180));
+  const pt = (x, y) => { const E = (x * cs + y * sn) * u, N = (-x * sn + y * cs) * u; return [lng + E * kLng, lat + N * kLat]; };
+  const fly = mode === "fly", boat = mode === "boat";
+  const lift = fly ? 10 + Math.sin(tNow / 300) * 1.2 : boat ? 0.9 : Math.abs(Math.sin(tNow / 160)) * 0.5;   // in volo si alza, a piedi saltella
+  const poly = (P, b, t, c) => out.push({ type: "Feature", properties: { c: C[c] || c, b: Math.max(0, b) * u, h: Math.max(0.05, t) * u },
+    geometry: { type: "Polygon", coordinates: [P.concat([P[0]]).map(q => pt(q[0], q[1]))] } });
+  if (boat) boatFeatures((P, b, t, c) => poly(P.map(q => [q[0] * S, q[1] * S]), b * S, t * S, c));
+  const box = (x0, x1, y0, y1, b, t, c) => poly([[x0 * S, y0 * S], [x1 * S, y0 * S], [x1 * S, y1 * S], [x0 * S, y1 * S]], (b + lift) * S, (t + lift) * S, c);
+  box(-1.3, -0.2, -0.5, 0.7, 0, 0.6, "skin"); box(0.2, 1.3, -0.5, 0.7, 0, 0.6, "skin");                         // piedi
+  box(-1.9, 1.9, -1.1, 1.1, 0.6, 4.6, "robe"); box(-1.7, 1.7, -0.9, 0.9, 4.6, 8, "robe");                       // tunica lunga
+  box(-1.75, 1.75, -0.95, 0.95, 4.4, 4.8, "belt");                                                                 // cintura d'oro
+  box(-2.4, -1.7, -0.5, 0.5, 4.8, 8, "robe"); box(1.7, 2.4, -0.5, 0.5, 4.8, 8, "robe");                          // braccia
+  box(-1.0, 1.0, 1.0, 1.6, 4.6, 6.0, paper);                                                                       // la lettera stretta davanti
+  box(-1.6, 1.6, -1.6, 1.6, 8, 11.2, "skin");                                                                      // testa
+  box(-1.75, 1.75, -1.75, 1.2, 10.4, 11.9, "hair"); box(-1.75, 1.75, -1.75, -1.2, 8.6, 11.9, "hair");             // capelli d'oro
+  box(-0.95, -0.45, 1.6, 1.9, 9.6, 10.2, "eye"); box(0.45, 0.95, 1.6, 1.9, 9.6, 10.2, "eye");
+  [[-1.3, 1.3, -1.3, -1.05], [-1.3, 1.3, 1.05, 1.3], [-1.3, -1.05, -1.3, 1.3], [1.05, 1.3, -1.3, 1.3]].forEach(q => box(q[0], q[1], q[2], q[3], 12.7, 13.0, "halo"));   // aureola
+  // ali dietro la schiena: si aprono e si chiudono (più veloci in volo)
+  // ala = 6 piume larghe una accanto all'altra: aperte a V all'indietro, la punta più alta, il bordo di sotto che sale verso l'esterno
+  const flap = (Math.sin(tNow / (fly ? 110 : 260)) + 1) / 2, span = 4.6 + flap * (fly ? 2.4 : 0.9), back = 0.35 + (1 - flap) * 0.35, N = 6;
+  [-1, 1].forEach(sd => { for (let k = 0; k < N; k++){ const x0 = 0.9 + k * span / N, x1 = 0.9 + (k + 1) * span / N, y1 = -1.0 - k * back, y0 = y1 - 0.9;
+      const top = 10.4 + Math.sin((k + .5) / N * Math.PI) * 1.4 - k * 0.15, bot = 4.4 + k * 0.95;
+      box(sd < 0 ? -x1 : x0, sd < 0 ? -x0 : x1, y0, y1, bot, top, "wing");
+      box(sd < 0 ? -x1 : x0, sd < 0 ? -x0 : x1, y0 - 0.05, y1 + 0.05, top - 0.35, top, "#e9eef7"); } });   // bordo delle piume
+}
+function angelFrame(now){
+  angRaf = 0;
+  if (!ANGELS.length){ if (map && map.getSource("angel3d")){ map.getSource("angel3d").setData({ type: "FeatureCollection", features: [] }); map.getSource("angeldot").setData({ type: "FeatureCollection", features: [] }); } return; }
+  const feats = [], dots = [];
+  ANGELS = ANGELS.filter(A => {
+    const t = Math.min(1, (now - A.t0) / A.dur); let lat, lng, hdg = A.hdg, mode = "fly";
+    if (A.seg.length){ let x = t * A.W, k = 0; while (k < A.seg.length - 1 && x > A.seg[k].w){ x -= A.seg[k].w; k++; }
+      const sg = A.seg[k], f = Math.min(1, x / sg.w); lat = sg.a[0] + (sg.b[0] - sg.a[0]) * f; lng = sg.a[1] + (sg.b[1] - sg.a[1]) * f;
+      mode = sg.walk ? "walk" : "boat"; hdg = sg.hdg;
+    } else if (A.to){ const e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; lat = A.from.lat + (A.to.lat - A.from.lat) * e; lng = A.from.lng + (A.to.lng - A.from.lng) * e;
+    } else { lat = A.from.lat + t * 0.004; lng = A.from.lng + t * 0.002; }   // destinazione sconosciuta: vola via verso nord
+    if (t < 1 && (A.to || t < 0.95)){ angelFeatures(lat, lng, hdg, mode, A.paper, feats, now);
+      dots.push({ type: "Feature", properties: { c: A.paper }, geometry: { type: "Point", coordinates: [lng, lat] } }); return true; }
+    try{ A.done && A.done(); }catch(e){} return false;
+  });
+  if (map.getSource("angel3d")){ map.getSource("angel3d").setData({ type: "FeatureCollection", features: feats }); map.getSource("angeldot").setData({ type: "FeatureCollection", features: dots }); }
+  if (ANGELS.length) angRaf = requestAnimationFrame(angelFrame); else angelFrame(performance.now());
+}
+// R = percorso (o null = vola), dur in ms, startFrac = da che punto parte (per chi riceve a viaggio iniziato)
 function angelTrip(R, from, to, dur, paper, startFrac, done){
-  if (!map || typeof maplibregl === "undefined") return done && done();
-  const el = document.createElement("div"); el.className = "angel walk"; el.setAttribute("data-noico", "");
-  el.innerHTML = `<span class="anBt">🚤</span><span class="anB"><span class="anA">👼</span><span class="anL" style="background:${esc(paper)}"></span></span>`;
-  const mk = new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([from.lng, from.lat]).addTo(map);
-  // tappe con il loro "peso" di tempo: a piedi si va più piano che in barca
+  if (!map || !ensureAngelLayer()) return done && done();
   const seg = []; let W = 0;
   if (R){ for (let i = 1; i < R.pts.length; i++){ const a = R.pts[i - 1], b = R.pts[i], d = hav(a[0], a[1], b[0], b[1]), walk = i <= R.walkEnd || i > R.walkStart;
-      const w = Math.max(1, d * (walk ? 3 : 1)); seg.push({ a, b, w, walk }); W += w; } }
-  const t0 = performance.now() - (startFrac || 0) * dur;
-  const step = now => {
-    const t = Math.min(1, (now - t0) / dur);
-    if (R && seg.length){ let x = t * W, k = 0; while (k < seg.length - 1 && x > seg[k].w){ x -= seg[k].w; k++; }
-      const sg = seg[k], f = Math.min(1, x / sg.w); mk.setLngLat([sg.a[1] + (sg.b[1] - sg.a[1]) * f, sg.a[0] + (sg.b[0] - sg.a[0]) * f]);
-      el.classList.toggle("walk", sg.walk); el.classList.toggle("boat", !sg.walk); el.classList.remove("fly"); mk.setOffset([0, 0]);
-    } else if (to){ const e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;   // nessun canale utile: l'angelo vola
-      mk.setLngLat([from.lng + (to.lng - from.lng) * e, from.lat + (to.lat - from.lat) * e]); mk.setOffset([0, -Math.sin(t * Math.PI) * 120]);
-      el.className = "angel fly";
-    } else { el.className = "angel fly"; mk.setOffset([t * 40, -t * 260]); el.style.opacity = String(1 - t); }   // destinazione sconosciuta: vola via
-    if (t < 1) requestAnimationFrame(step); else { el.style.transition = "opacity .5s"; el.style.opacity = "0"; setTimeout(() => mk.remove(), 550); done && done(); }
-  };
-  requestAnimationFrame(step);
+      const w = Math.max(0.2, d / (walk ? ANG_WALK : ANG_BOAT)); W += w;
+      seg.push({ a, b, w, walk, hdg: Math.atan2((b[1] - a[1]) * Math.cos(a[0] * Math.PI / 180), b[0] - a[0]) * 180 / Math.PI }); } }
+  const hdg = to ? Math.atan2((to.lng - from.lng) * Math.cos(from.lat * Math.PI / 180), to.lat - from.lat) * 180 / Math.PI : 0;
+  ANGELS.push({ seg, W, from, to, dur, paper, hdg, done, t0: performance.now() - (startFrac || 0) * dur });
+  if (!angRaf) angRaf = requestAnimationFrame(angelFrame);
 }
 function letterFriends(){ return ((MY && MY.amici) || []).map(a => a.nome); }
 function openLetters(tab){
@@ -2355,7 +2403,8 @@ async function sendLetter(){
   let r; try{ r = await rpc("letter_send", { p_nome: to, p_paper: LT.paper, p_ink: LT.ink, p_body: body, p_lat: me.lat, p_lng: me.lng, p_secs: secs }); }catch(e){ return toast("Non partita: controlla la connessione."); }
   if (!r || r.errore) return toast(r && r.errore === "non_amici" ? "Puoi scrivere solo ai tuoi amici." : r && r.errore === "troppe" ? "Hai scritto tante lettere: riprova tra un po'." : "Non partita, riprova.");
   closeSheet(); haptic(); LT.body = "";
-  toastEmo(`👼 L'angelo è partito con la tua lettera per ${to}: arriva tra ${secs < 60 ? secs + " secondi" : Math.round(secs / 60) + " minuti"}`);
+  const dTxt = secs < 60 ? secs + " secondi" : secs < 3600 ? Math.round(secs / 60) + (Math.round(secs / 60) === 1 ? " minuto" : " minuti") : Math.floor(secs / 3600) + " h " + Math.round(secs % 3600 / 60) + " min";
+  toastEmo(`👼 L'angelo è partito con la tua lettera per ${to}: arriva tra ${dTxt}`);
   angelTrip(R, me, dest, secs * 1000, LT.paper, 0, () => toastEmo(`💌 Lettera consegnata a ${to}`));
 }
 const letNow = () => Date.now() - LET_SKEW;
