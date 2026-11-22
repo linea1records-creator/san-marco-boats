@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#050706">
+<meta name="theme-color" content="#07936c">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -751,7 +751,7 @@
   .rpCard{pointer-events:auto;width:100%;max-width:330px;background:rgba(255,255,255,.97);color:#111;border-radius:22px;padding:14px 16px 10px;box-shadow:0 12px 40px rgba(0,0,0,.35);animation:obIn .3s ease;
     --panel:#fff;--panel2:#f1f3f1;--line:#d6dcdf;--text:#111;--muted:#5c7282;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
   .rpHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-  .rpLogo{height:34px;width:auto}
+  .rpLogo{height:40px;width:auto}
   .rpSw{border:0;background:#eef2ef;color:#0a8f4e;font-weight:800;font-size:13px;border-radius:999px;padding:7px 12px}
   .rpT{font-weight:800;font-size:17px;margin:2px 0 10px;text-align:center}
   .rpName{display:flex;align-items:center;gap:4px;border:2px solid #d6dcdf;border-radius:14px;padding:0 12px;height:50px;background:#f6f7f6}
@@ -830,6 +830,11 @@
   /* icone a linea al posto delle emoji (stesso stile della barra in basso) */
   svg.ei{display:inline-block;width:1.2em;height:1.2em;vertical-align:-.22em;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto;overflow:visible}
   .big svg.ei,.big > svg.ei{width:1em;height:1em}
+  /* schermata d'apertura con il logo */
+  #boot{position:fixed;inset:0;z-index:7000;background:#07936c;display:flex;align-items:center;justify-content:center;transition:opacity .45s ease}
+  #boot img{width:min(100vw,62vh,560px);height:auto;animation:bootIn .6s ease}
+  #boot.out{opacity:0;pointer-events:none}
+  @keyframes bootIn{from{transform:scale(.92);opacity:0}}
   /* ===== intro animata ===== */
   #intro{position:fixed;inset:0;z-index:6000;background:#f7f7f2;display:flex;align-items:center;justify-content:center;pointer-events:none}
   #intro svg{width:min(86vw,440px);height:auto;overflow:visible}
@@ -1023,6 +1028,7 @@
 <body>
 
 <!-- ============ INTRO animata del logo (2,2 s) ============ -->
+<div id="boot" aria-hidden="true"><img src="splash.jpg" alt=""></div>
 <div id="intro" aria-hidden="true"><svg id="introSvg" viewBox="0 0 400 140"></svg></div>
 
 <!-- ============ SPLASH: avviso obbligatorio ============ -->
@@ -1486,7 +1492,7 @@
     <div id="tabs" role="tablist" aria-label="Modalità"></div>
     <div id="verMark" class="hidden"></div>
     <div id="regPop" class="hidden"><div class="rpCard">
-      <div class="rpHead"><img class="rpLogo" src="logo.png" alt="unClick"><button id="rpMode" class="rpSw">Accedi</button></div>
+      <div class="rpHead"><img class="rpLogo" src="logo-mark.png" alt=""><button id="rpMode" class="rpSw">Accedi</button></div>
       <div id="rpS1">
         <div class="rpT" id="rpT1">Scegli il tuo nome utente</div>
         <div class="cn rpName"><span>@</span><input id="rpName" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="20" placeholder="nome utente" enterkeyhint="next"></div>
@@ -8716,7 +8722,8 @@ function playIntro(){
     .onfinish = () => box.remove();
   setTimeout(() => { if (box.isConnected) box.remove(); }, 3000);
 }
-{ const b = $("#intro"); if (b) b.remove(); }   // niente animazione iniziale: la mappa si apre subito
+{ const b = $("#intro"); if (b) b.remove(); }
+{ const bt = $("#boot"); if (bt) setTimeout(() => { bt.classList.add("out"); setTimeout(() => bt.remove(), 500); }, 1500); }   // logo per un secondo e mezzo, poi la mappa   // niente animazione iniziale: la mappa si apre subito
 
 /* ---------- icone: tutte le emoji dell'app diventano icone a linea sottile, come quelle della barra in basso ---------- */
 const ICO = {
