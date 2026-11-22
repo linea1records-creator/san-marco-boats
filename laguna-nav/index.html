@@ -7200,95 +7200,153 @@ const spWhen = t => { const d = new Date(t), now = new Date(), tm = new Date(Dat
   if (d.toDateString() === now.toDateString()) return "Oggi " + h; if (d.toDateString() === tm.toDateString()) return "Domani " + h;
   return d.toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" }) + " " + h; };
 async function loadSport(){ try{ const r = await rpc("sport_list", {}); if (Array.isArray(r)){ SPEV = r; store.set("ln_sport", r); } }catch(e){} paintSport(); }
-function sportStart(){ paintSport(); loadSport(); clearInterval(spTimer); spTimer = setInterval(() => { loadSport(); if (gTab === "tris") trisLoad(); }, 30000); if (gTab === "tris") trisLoad(); }
-/* ---------- Gioca: tris con gli amici (si gioca a turni, anche a distanza) ---------- */
-let gTab = "sport", TRIS = store.get("ln_tris", null), trisOpen = null, trisTimer = null, trisSeen = store.get("ln_tris_seen", {});
-document.querySelectorAll("#spPanel [data-gt]").forEach(b => b.onclick = () => {
-  gTab = b.dataset.gt; document.querySelectorAll("#spPanel [data-gt]").forEach(x => x.classList.toggle("on", x === b));
+function sportStart(){ paintSport(); loadSport(); clearInterval(spTimer); spTimer = setInterval(() => { loadSport(); }, 30000); }
+/* ---------- Gioca: tris dal vivo, telefono contro telefono (PeerJS / WebRTC) o contro la CPU ----------
+   Nessun server per le mosse: i due telefoni si parlano direttamente. La mossa si disegna nello stesso tocco
+   e all'altro parte solo {"g":"ttt","i":4}. PeerJS si scarica solo quando apri una stanza. */
+let gTab = "sport";
+document.querySelectorAll("#spPanel [data-gt]").forEach(b => b.onclick = () => { gTab = b.dataset.gt; document.querySelectorAll("#spPanel [data-gt]").forEach(x => x.classList.toggle("on", x === b));
   $("#spSport").classList.toggle("hidden", gTab !== "sport"); $("#spTris").classList.toggle("hidden", gTab !== "tris");
-  if (gTab === "tris"){ paintTris(); trisLoad(); }
-});
-const trisMini = b => `<span class="mini">${[...b].map(c => `<i>${c === "X" ? "✕" : c === "O" ? "◯" : ""}</i>`).join("")}</span>`;
-async function trisLoad(){
-  try{ const r = await rpc("tris_list", {});
-    if (r && r.partite){ TRIS = r; store.set("ln_tris", r); }
-    else if (r && r.errore === "non_autorizzato"){ TRIS = { errore: "account" }; }
-    else if (r && (r.code || r.message)){ TRIS = { errore: "presto" }; }
-  }catch(e){ if (/PGRST202|Could not find the function/i.test(String(e && e.message))) TRIS = { errore: "presto" }; else if (!TRIS) TRIS = { errore: "rete" }; }
-  paintTris(); trisBadge();
+  if (gTab === "tris") paintTris(); });
+const TTT_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+function trisLine(b){ for (const l of TTT_LINES) if (b[l[0]] !== "." && b[l[0]] === b[l[1]] && b[l[1]] === b[l[2]]) return l; return []; }
+const tttEnd = b => trisLine(b).length ? b[trisLine(b)[0]] : b.includes(".") ? null : "=";
+let TTT = null;   // { mode: "cpu" | "host" | "guest", b, turn, me, start, peer, conn, code, score }
+let PEERJS = null;
+function loadPeerJS(){
+  if (window.Peer) return Promise.resolve();
+  if (PEERJS) return PEERJS;
+  PEERJS = new Promise((ok, ko) => { const s = document.createElement("script"); s.src = "https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"; s.async = true;
+    s.onload = () => ok(); s.onerror = () => { PEERJS = null; ko(new Error("peerjs")); }; document.head.appendChild(s); });
+  return PEERJS;
 }
-function trisBadge(){
-  const n = TRIS && TRIS.partite ? TRIS.partite.filter(g => g.mia_mossa || g.invitato).length : 0, b = $("#trisBadge");
-  if (b){ b.textContent = n; b.classList.toggle("hidden", !n); }
-  if (TRIS && TRIS.partite) TRIS.partite.forEach(g => { const k = g.id + ":" + g.status + ":" + g.board;
-    if ((g.mia_mossa || g.invitato) && !trisSeen[k] && !(trisOpen && trisOpen === g.id)){ trisSeen[k] = 1; store.set("ln_tris_seen", trisSeen);
-      if (g.invitato) toast(`✕◯ @${g.avversario} ti sfida a tris!`); else if (g.board !== ".........") toast(`✕◯ Tocca a te contro @${g.avversario}`); } });
-}
+// preparo PeerJS in sottofondo appena si apre la scheda dei giochi, così "Crea stanza" è immediato
 function paintTris(){
   const box = $("#spTris"); if (!box || gTab !== "tris") return;
-  if (!TRIS){ box.innerHTML = `<p class="trnote">Carico le partite…</p>`; return; }
-  if (TRIS.errore === "account"){ box.innerHTML = `<p class="trnote">Per giocare con gli amici serve l'account: esci e rientra con il tuo clickname.</p>`; return; }
-  if (TRIS.errore === "presto"){ box.innerHTML = `<p class="trnote">Il tris con gli amici si sta attivando sul server: riprova tra poco.</p>`; return; }
-  if (TRIS.errore){ box.innerHTML = `<p class="trnote">Partite non disponibili: controlla la connessione.</p>`; return; }
-  const P = TRIS.partite || [];
-  const st = g => g.invitato ? `<small class="go">Rispondi</small>` : g.mia_mossa ? `<small class="go">Tocca a te</small>` : g.status === "invito" ? `<small>In attesa</small>`
-    : g.status === "gioco" ? `<small>Tocca a lui</small>` : `<small>${g.winner === "=" ? "Pareggio" : !g.winner ? "Scaduta" : g.winner === g.io ? "Hai vinto 🏆" : "Hai perso"}</small>`;
-  box.innerHTML = `<div class="mkcats dg"><button class="on">✕◯ Tris</button><button disabled>Altri giochi in arrivo</button></div>`
-    + `<p class="trnote" style="margin-top:0">Tris con gli amici · vinte ${TRIS.vinte || 0} · perse ${TRIS.perse || 0} · pari ${TRIS.pari || 0}</p>`
-    + (P.length ? P.map(g => `<div class="tg" data-tg="${g.id}">${trisMini(g.board)}<b>@${esc(g.avversario || "?")}</b>${st(g)}</div>`).join("") : `<p class="trnote">Nessuna partita: sfida un amico!</p>`)
-    + `<button class="btn small" id="trisNew">✕◯ Sfida un amico</button>`;
-  $("#trisNew").onclick = trisChallenge;
-  box.querySelectorAll("[data-tg]").forEach(el => el.onclick = () => { const g = P.find(x => x.id === +el.dataset.tg); if (g) trisShow(g); });
+  box.innerHTML = `<div class="mkcats dg"><button class="on">✕◯ Tris</button><button disabled>Altri giochi in arrivo</button></div>
+    <p class="trnote" style="margin-top:0">Gioca dal vivo con un amico: uno crea la stanza e manda il codice, l'altro entra.</p>
+    <button class="btn small" id="tttHost">Crea stanza</button>
+    <div class="row" style="gap:8px;margin-top:8px"><div class="field" style="flex:1;margin:0"><input id="tttCode" maxlength="4" autocapitalize="characters" autocomplete="off" placeholder="CODICE" style="text-transform:uppercase;letter-spacing:4px;font-weight:800;text-align:center"></div><button class="btn small" id="tttJoin" style="flex:0 0 auto">Entra in stanza</button></div>
+    <button class="btn small ghost" id="tttCpu" style="margin-top:8px">Gioca vs CPU</button>`;
+  $("#tttHost").onclick = tttHost; $("#tttCpu").onclick = () => tttNew("cpu");
+  $("#tttJoin").onclick = () => tttJoin($("#tttCode").value);
+  $("#tttCode").onkeydown = e => { if (e.key === "Enter") tttJoin($("#tttCode").value); };
+  $("#tttCode").oninput = e => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4); };
+  loadPeerJS().catch(() => {});
 }
-async function trisChallenge(){
-  if (!MY || !MY.amici){ try{ const j = await rpc("friend_list", {}); if (j && !j.errore){ MY = j; store.set("ln_my", j); } }catch(e){} }
-  const A = (MY && MY.amici) || [];
-  if (!A.length){ openSheet(`<h3>✕◯ Sfida un amico</h3><p class="muted">Non hai ancora amici su unClick. Aggiungili da myClick e poi sfidali a tris.</p><button class="btn" onclick="closeSheet()">Ok</button>`); return; }
-  openSheet(`<h3>✕◯ Chi sfidi?</h3><div class="wzopts">${A.map(a => `<button class="wzo" data-tri="${esc(a.nome)}"><span data-noico>${esc(a.emoji || "")}</span> @${esc(a.nome)}</button>`).join("")}</div>
-    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
-  document.querySelectorAll("[data-tri]").forEach(b => b.onclick = async () => {
-    b.disabled = true;
-    try{ const r = await rpc("tris_invite", { p_nome: b.dataset.tri });
-      if (r && r.partita){ haptic(); trisShow(r.partita); trisLoad(); if (r.partita.status === "invito") toast("Sfida mandata: inizi tu con ✕ appena accetta."); }
-      else toast(r && r.errore === "non_amici" ? "Potete giocare solo tra amici." : r && r.errore === "troppe" ? "Troppe sfide nell'ultima ora." : r && (r.code || r.message) ? "Il tris si sta attivando sul server: riprova tra poco." : "Sfida non mandata.");
-    }catch(e){ toast(/PGRST202|Could not find the function/i.test(String(e && e.message)) ? "Il tris si sta attivando sul server: riprova tra poco." : "Sfida non mandata: controlla la connessione."); }
-    b.disabled = false;
-  });
+const tttCodeNew = () => { const A = "ABCDEFGHJKLMNPQRSTUVWXYZ"; let s = ""; for (let i = 0; i < 4; i++) s += A[Math.floor(Math.random() * A.length)]; return s; };
+const tttPeerId = c => "unclick-tris-" + c;
+function tttNew(mode, extra){
+  tttClose(true);
+  TTT = Object.assign({ mode, b: ".........", start: "X", turn: "X", me: "X", score: { io: 0, lui: 0, pari: 0 }, ready: mode === "cpu" }, extra || {});
+  tttSheet();
 }
-function trisLine(b){ for (const l of [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]) if (b[l[0]] !== "." && b[l[0]] === b[l[1]] && b[l[1]] === b[l[2]]) return l; return []; }
-function trisShow(g){
-  trisOpen = g.id; const win = trisLine(g.board), me = g.io === "X" ? "✕" : "◯";
-  const state = g.invitato ? `@${esc(g.avversario)} ti sfida a tris` : g.status === "invito" ? `Aspetto che @${esc(g.avversario)} accetti`
-    : g.status === "gioco" ? (g.mia_mossa ? `Tocca a te (${me})` : `Tocca a @${esc(g.avversario)}`)
-    : g.winner === "=" ? "Pareggio!" : !g.winner ? "Sfida scaduta" : g.winner === g.io ? "Hai vinto! 🏆" : `Ha vinto @${esc(g.avversario)}`;
-  openSheet(`<h3>✕◯ Tris con @${esc(g.avversario)}</h3>
-    <div class="tstate">${state}</div><div class="tsub">Tu giochi con ${me}</div>
-    <div class="tboard">${[...g.board].map((c, i) => `<button data-tc="${i}" class="${c === "O" ? "o" : ""}${win.includes(i) ? " w" : ""}" ${g.mia_mossa && c === "." ? "" : "disabled"}>${c === "X" ? "✕" : c === "O" ? "◯" : ""}</button>`).join("")}</div>
-    ${g.invitato ? `<div class="row"><button class="btn" id="trYes">Accetta</button><button class="btn ghost" id="trNo">No grazie</button></div>` : ""}
-    ${g.status === "fine" ? `<button class="btn" id="trAgain">↻ Rivincita</button>` : ""}
-    ${g.status === "gioco" ? `<button class="btn ghost" id="trQuit" style="margin-top:8px">Abbandona</button>` : ""}
-    ${g.status === "invito" && !g.invitato ? `<button class="btn ghost" id="trQuit" style="margin-top:8px">Annulla la sfida</button>` : ""}
-    <button class="btn ghost" style="margin-top:8px" id="trClose">Chiudi</button>`);
-  const after = r => { if (r && r.partita){ trisShow(r.partita); trisLoad(); } else toast("Non riesco: controlla la connessione."); };
-  document.querySelectorAll("[data-tc]").forEach(b => b.onclick = async () => {
-    b.textContent = me; document.querySelectorAll("[data-tc]").forEach(x => x.disabled = true); haptic();
-    try{ const r = await rpc("tris_move", { p_id: g.id, p_cell: +b.dataset.tc }); after(r); if (r && r.partita && r.partita.status === "fine" && r.partita.winner === g.io) buzz([80, 60, 80]); }catch(e){ after(null); }
-  });
-  const ans = async ok => { try{ after(await rpc("tris_answer", { p_id: g.id, p_ok: ok })); }catch(e){ after(null); } };
-  if ($("#trYes")) $("#trYes").onclick = () => ans(true);
-  if ($("#trNo")) $("#trNo").onclick = () => ans(false);
-  if ($("#trQuit")) $("#trQuit").onclick = () => ans(false);
-  if ($("#trAgain")) $("#trAgain").onclick = async () => { try{ const r = await rpc("tris_invite", { p_nome: g.avversario }); after(r); }catch(e){ after(null); } };
-  $("#trClose").onclick = () => { trisOpen = null; clearInterval(trisTimer); closeSheet(); paintTris(); };
-  // mentre la partita è aperta guardo ogni 3 secondi se l'altro ha mosso
-  clearInterval(trisTimer);
-  if (g.status === "gioco" && !g.mia_mossa || g.status === "invito") trisTimer = setInterval(async () => {
-    if (trisOpen !== g.id || $("#sheet").classList.contains("hidden")){ clearInterval(trisTimer); trisOpen = null; return; }
-    try{ const r = await rpc("tris_get", { p_id: g.id }); if (r && r.partita && (r.partita.board !== g.board || r.partita.status !== g.status)){ clearInterval(trisTimer); haptic(); trisShow(r.partita); trisLoad(); } }catch(e){}
-  }, 3000);
+async function tttHost(){
+  const code = tttCodeNew();
+  tttNew("host", { code, ready: false, me: "X" });
+  try{ await loadPeerJS(); }catch(e){ return tttFail("Non riesco a preparare il gioco: controlla la connessione."); }
+  if (!TTT || TTT.code !== code) return;
+  const peer = new Peer(tttPeerId(code)); TTT.peer = peer;
+  peer.on("error", e => { if (e && e.type === "unavailable-id"){ tttHost(); return; } tttFail("Collegamento non riuscito: riprova."); });
+  peer.on("connection", c => { if (TTT && TTT.conn){ c.on("open", () => { c.send({ g: "ttt", full: 1 }); setTimeout(() => c.close(), 300); }); return; } tttWire(c); });
+  tttPaint();
 }
-// ogni minuto: nuove sfide e mosse degli amici, anche fuori da Gioca
-setTimeout(() => { trisLoad(); setInterval(() => { if (!document.hidden) trisLoad(); }, 60000); }, 8000);
+async function tttJoin(raw){
+  const code = String(raw || "").toUpperCase().replace(/[^A-Z]/g, ""); if (code.length !== 4) return toast("Il codice ha 4 lettere.");
+  tttNew("guest", { code, ready: false, me: "O" });
+  try{ await loadPeerJS(); }catch(e){ return tttFail("Non riesco a collegarmi: controlla la connessione."); }
+  if (!TTT || TTT.code !== code) return;
+  const peer = new Peer(); TTT.peer = peer;
+  peer.on("error", e => tttFail(e && e.type === "peer-unavailable" ? "Stanza non trovata: controlla il codice." : "Collegamento non riuscito: riprova."));
+  peer.on("open", () => tttWire(peer.connect(tttPeerId(code), { reliable: true, serialization: "json" })));
+  tttPaint();
+}
+function tttWire(c){
+  if (!TTT) return; TTT.conn = c;
+  c.on("open", () => { if (!TTT) return; TTT.ready = true; haptic(); tttPaint(); });
+  c.on("data", d => tttRecv(d));
+  c.on("close", () => { if (TTT && TTT.conn === c){ TTT.conn = null; TTT.ready = false; TTT.gone = true; tttPaint(); } });
+}
+function tttFail(msg){ if (!TTT) return; TTT.err = msg; tttPaint(); }
+// pacchetti minimi: {"g":"ttt","i":4} mossa · {"g":"ttt","r":1} rivincita · {"g":"ttt","full":1} stanza piena
+function tttRecv(d){
+  if (!TTT || !d || d.g !== "ttt") return;
+  if (d.full){ tttFail("Questa stanza è già piena."); return; }
+  if (d.r){ tttReset(); return; }
+  const i = d.i | 0, other = TTT.me === "X" ? "O" : "X";
+  if (i < 0 || i > 8 || TTT.b[i] !== "." || TTT.turn !== other || tttEnd(TTT.b)) return;
+  tttPlace(i, other);
+}
+function tttPlace(i, who){
+  const b = TTT.b.split(""); b[i] = who; TTT.b = b.join(""); TTT.turn = who === "X" ? "O" : "X";
+  const cell = document.querySelector(`#tttBoard [data-tc="${i}"]`);
+  if (cell){ cell.textContent = who === "X" ? "✕" : "◯"; cell.classList.toggle("o", who === "O"); }   // disegno subito, poi il resto
+  const end = tttEnd(TTT.b);
+  if (end){ if (end === "=") TTT.score.pari++; else if (end === TTT.me) TTT.score.io++; else TTT.score.lui++;
+    if (end === TTT.me) buzz([80, 60, 80]); }
+  tttPaint(true);
+}
+function tttTap(i){
+  if (!TTT || TTT.b[i] !== "." || tttEnd(TTT.b) || TTT.turn !== TTT.me || !TTT.ready) return;
+  tttPlace(i, TTT.me);                                         // 0 ms: la mossa è già sullo schermo
+  if (TTT.conn) TTT.conn.send({ g: "ttt", i });                // e intanto parte all'altro telefono
+  if (TTT.mode === "cpu" && !tttEnd(TTT.b)) setTimeout(tttCpu, 280);
+}
+// CPU: imbattibile ma non noiosa (a volte sceglie a caso tra le mosse buone)
+function tttCpu(){
+  if (!TTT || TTT.mode !== "cpu" || tttEnd(TTT.b) || TTT.turn === TTT.me) return;
+  const ai = TTT.me === "X" ? "O" : "X";
+  const mm = (b, p) => { const e = tttEnd(b); if (e === ai) return 10; if (e === TTT.me) return -10; if (e === "=") return 0;
+    let best = p === ai ? -99 : 99; for (let k = 0; k < 9; k++) if (b[k] === "."){ const n = b.slice(0, k) + p + b.slice(k + 1), v = mm(n, p === "X" ? "O" : "X") * 0.9;
+      best = p === ai ? Math.max(best, v) : Math.min(best, v); } return best; };
+  const opts = []; for (let k = 0; k < 9; k++) if (TTT.b[k] === "."){ const n = TTT.b.slice(0, k) + ai + TTT.b.slice(k + 1); opts.push([mm(n, TTT.me), k]); }
+  const top = Math.max(...opts.map(o => o[0])), good = opts.filter(o => o[0] >= top - 0.01);
+  tttPlace(good[Math.floor(Math.random() * good.length)][1], ai);
+}
+function tttReset(){
+  if (!TTT) return; TTT.start = TTT.start === "X" ? "O" : "X"; TTT.b = "........."; TTT.turn = TTT.start;   // a ogni rivincita inizia l'altro
+  tttSheet(); if (TTT.mode === "cpu" && TTT.turn !== TTT.me) setTimeout(tttCpu, 280);
+}
+function tttState(){
+  const T = TTT, end = tttEnd(T.b), vs = T.mode === "cpu" ? "la CPU" : "il tuo amico";
+  if (T.err) return T.err;
+  if (T.gone) return "L'altro giocatore è uscito.";
+  if (!T.ready) return T.mode === "host" ? "Manda il codice al tuo amico" : "Mi collego alla stanza…";
+  if (end) return end === "=" ? "Pareggio!" : end === T.me ? "Hai vinto! 🏆" : `Ha vinto ${vs}`;
+  return T.turn === T.me ? `Tocca a te (${T.me === "X" ? "✕" : "◯"})` : `Tocca a ${vs}`;
+}
+function tttSheet(){
+  const T = TTT; if (!T) return;
+  openSheet(`<h3>✕◯ Tris ${T.mode === "cpu" ? "contro la CPU" : "dal vivo"}</h3>
+    <div class="tstate" id="tttState"></div><div class="tsub" id="tttSub"></div>
+    <div id="tttRoom" class="hidden" style="text-align:center;margin:8px 0"><div style="font-size:34px;font-weight:800;letter-spacing:8px" id="tttCodeBig">${esc(T.code || "")}</div><button class="btn small ghost" id="tttCopy" style="margin-top:6px">Copia codice</button></div>
+    <div class="tboard" id="tttBoard">${[...T.b].map((c, i) => `<button data-tc="${i}" class="${c === "O" ? "o" : ""}">${c === "X" ? "✕" : c === "O" ? "◯" : ""}</button>`).join("")}</div>
+    <button class="btn hidden" id="tttAgain">↻ Rivincita</button>
+    <button class="btn ghost" style="margin-top:8px" id="tttX">Esci</button>`);
+  // pointerdown: la X o il cerchio compaiono nel momento in cui il dito tocca, non quando si alza
+  document.querySelectorAll("#tttBoard [data-tc]").forEach(b => b.addEventListener("pointerdown", e => { e.preventDefault(); tttTap(+b.dataset.tc); }));
+  $("#tttCopy").onclick = async () => { try{ await navigator.clipboard.writeText(T.code); toast("Codice copiato: " + T.code); }catch(e){ toast("Codice: " + T.code); } };
+  $("#tttAgain").onclick = () => { if (!TTT) return; if (TTT.conn) TTT.conn.send({ g: "ttt", r: 1 }); tttReset(); };
+  $("#tttX").onclick = () => tttClose();
+  tttPaint();
+}
+function tttPaint(light){
+  const T = TTT; if (!T || !$("#tttBoard")) return;
+  const end = tttEnd(T.b), win = trisLine(T.b), my = T.ready && !end && T.turn === T.me;
+  $("#tttState").textContent = tttState();
+  $("#tttSub").textContent = T.mode === "cpu" ? `Tu ✕ · CPU ◯ · ${T.score.io}–${T.score.lui}${T.score.pari ? " · pari " + T.score.pari : ""}`
+    : T.ready ? `Tu giochi con ${T.me === "X" ? "✕" : "◯"} · ${T.score.io}–${T.score.lui}${T.score.pari ? " · pari " + T.score.pari : ""}` : T.mode === "host" ? "La stanza resta aperta finché non esci" : `Stanza ${T.code}`;
+  $("#tttRoom").classList.toggle("hidden", !(T.mode === "host" && !T.ready && !T.err));
+  document.querySelectorAll("#tttBoard [data-tc]").forEach((b, i) => { b.disabled = !(my && T.b[i] === "."); b.classList.toggle("w", win.includes(i)); });
+  $("#tttAgain").classList.toggle("hidden", !(end && (T.mode === "cpu" || T.ready)));
+}
+function tttClose(keepSheet){
+  if (TTT){ try{ TTT.conn && TTT.conn.close(); }catch(e){} try{ TTT.peer && TTT.peer.destroy(); }catch(e){} }
+  TTT = null; if (!keepSheet) closeSheet();
+}
+// se chiudi la scheda in un altro modo, la stanza si chiude
+new MutationObserver(() => { if (TTT && $("#sheet").classList.contains("hidden")) tttClose(true); }).observe($("#sheet"), { attributes: true, attributeFilter: ["class"] });
+function trisBadge(){}   // le sfide a turni via server non ci sono più
 function sportStop(){ clearInterval(spTimer); spMarkers.forEach(m => m.remove()); spMarkers = []; }
 function paintSport(){
   const list = SPEV.filter(e => !spCat || e.sport === spCat), ref = refPoint();
