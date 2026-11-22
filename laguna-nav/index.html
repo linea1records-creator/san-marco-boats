@@ -8,11 +8,11 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="unClick">
+<meta name="apple-mobile-web-app-title" content="clickVenice">
 <link rel="icon" type="image/png" href="favicon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>unClick</title>
+<title>clickVenice</title>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>if(!window.maplibregl){document.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"><\/script>');}</script>
@@ -329,7 +329,7 @@
   .kiss.pop span{animation:kpop .45s ease-out forwards}
   @keyframes kpop{to{transform:scale(2.2);opacity:0}}
   #tideC{width:100%;height:36px;display:block;margin-top:4px;border-radius:8px;background:#06101f}
-  /* ===== unClick / unClick ===== */
+  /* ===== clickVenice / clickVenice ===== */
   #splash{background:radial-gradient(120% 80% at 50% 0%,#141816 0%,#000 70%)}
   .ob{display:flex;flex-direction:column;justify-content:center;min-height:100%;animation:obIn .35s ease}
   @keyframes obIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
@@ -841,7 +841,7 @@
   #intro text{font-family:"Avenir Next","Montserrat","Segoe UI",Roboto,Arial,sans-serif;fill:#050706;font-size:64px}
   #intro .lt{font-weight:300} #intro .bd{font-weight:800;letter-spacing:-1px}
   #intro .an{transform-box:fill-box;transform-origin:50% 100%;opacity:0}
-  /* ===== unClick: navy + corallo su crema ===== */
+  /* ===== clickVenice: navy + corallo su crema ===== */
   #splash{background:var(--cream)!important;color:var(--navy);--panel:#fff;--panel2:#eef0ee;--line:#d6dcdf;--text:var(--navy);--muted:#5c7282}
   #splash input{color:var(--navy)}
   #splash .seg{background:#e8ebe8} #splash .seg button{color:#5c7282} #splash .seg button.on{background:var(--navy);color:#fff}
@@ -1028,16 +1028,15 @@
 <body>
 
 <!-- ============ INTRO animata del logo (2,2 s) ============ -->
-<div id="boot" aria-hidden="true"><img src="splash.jpg" alt=""></div>
 <div id="intro" aria-hidden="true"><svg id="introSvg" viewBox="0 0 400 140"></svg></div>
 
 <!-- ============ SPLASH: avviso obbligatorio ============ -->
 <div id="splash">
   <!-- logo -->
-  <div class="ob hidden" id="ob-brand"><img class="obLogo" src="logo.png" alt="unClick"></div>
+  <div class="ob hidden" id="ob-brand"><img class="obLogo" src="logo.png" alt="clickVenice"></div>
   <!-- 3) accesso o registrazione -->
   <div class="ob hidden" id="ob-reg">
-    <img class="obLogo small" src="logo.png" alt="unClick">
+    <img class="obLogo small" src="logo.png" alt="clickVenice">
     <div class="seg" id="authSeg" style="margin-top:20px"><button data-a="login" class="on">Accedi</button><button data-a="reg">Registrati</button></div>
     <div class="field"><label>Clickname</label>
       <div class="cn"><span>@</span><input id="regName" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20" placeholder="il_tuo_nome"></div>
@@ -1121,14 +1120,14 @@
       <div class="ovh"><b>🔥 Click Match</b><span id="cmMine"></span><button class="ovx" data-ovx>✕</button></div>
       <div id="cmBody"></div>
     </div>
-    <!-- Videochat casuale con tutti gli utenti di unClick -->
+    <!-- Videochat casuale con tutti gli utenti di clickVenice -->
     <div id="vcOv" class="ov hidden">
       <video id="vcRemote" autoplay playsinline></video>
       <video id="vcLocal" autoplay playsinline muted></video>
       <div id="vcTop"><b id="vcWho">🎥 Videochat</b><span id="vcState">Pronto</span><button class="ovx" data-ovx>✕</button></div>
       <div id="vcStart" class="vcstart">
         <div class="big">🎲</div><h3>Roulette video</h3>
-        <p>Parli a caso con chi sta usando unClick in questo momento, in tutte le città. Solo maggiorenni.</p>
+        <p>Parli a caso con chi sta usando clickVenice in questo momento, in tutte le città. Solo maggiorenni.</p>
         <ul><li>Se qualcuno ti mette a disagio tocca <b>⚑ Segnala</b>: lo blocchi subito e chi riceve più segnalazioni viene sospeso.</li><li>Non mostrare documenti, indirizzi o dati personali.</li><li>Il video passa direttamente tra i due telefoni e non viene registrato.</li></ul>
         <button class="btn" id="vcGo">🎲 Lancia i dadi</button>
       </div>
@@ -1453,10 +1452,10 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">unClick · unClick · versione 3.52</p>
+      <p class="sub">clickVenice · versione 3.52</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
-        <button class="btn" id="instBtn">📲 Installa unClick</button>
+        <button class="btn" id="instBtn">📲 Installa clickVenice</button>
         <p class="muted" id="instTxt" style="line-height:1.45;margin:8px 0 12px">Si apre a schermo intero dall'icona, come un'app.</p>
         <button class="btn ghost" id="vibBtn">📳 Prova la vibrazione</button>
         <p class="muted" id="vibTxt" style="line-height:1.45;margin:8px 0 0"></p>
@@ -1520,7 +1519,7 @@
 /* =========================================================
    CONFIGURAZIONE — modifica qui
    ========================================================= */
-const NAVY = "#050706", CORAL = "#ff6446";   // blu navy di unClick: freccia Naviga, tasto ➤, acqua, icone selezionate
+const NAVY = "#050706", CORAL = "#ff6446";   // blu navy di clickVenice: freccia Naviga, tasto ➤, acqua, icone selezionate
 const CONFIG = {
   // Numero WhatsApp che riceve gli ordini (formato internazionale senza +, es. "393401234567")
   ORDER_WHATSAPP: "",
@@ -1575,7 +1574,7 @@ async function api(path, { method = "GET", body, ret = false } = {}){
 }
 const deleteOwn = (table, id) => api("rpc/delete_own", { method: "POST", body: { p_table: table, p_id: id, p_token: TOKEN }, ret: true });
 
-/* ---------- apertura: città → unClick → registrazione ---------- */
+/* ---------- apertura: città → clickVenice → registrazione ---------- */
 let PROFILE = store.get("ln_profile", null);
 const agree = $("#agree"), enter = $("#enter");
 function showOb(id){ ["ob-brand", "ob-reg"].forEach(x => $("#" + x).classList.toggle("hidden", x !== id)); }
@@ -1672,7 +1671,7 @@ enter.onclick = async () => {
   if (r.token && r.token !== TOKEN){ store.set("ln_token", r.token); store.set("ln_mine", { zones: [], depths: [] }); location.reload(); return; }
   openApp();
 };
-// transizione: il puntatore entra da sotto, va sul logo unClick, clicca, e la mappa si apre "zoomando"
+// transizione: il puntatore entra da sotto, va sul logo clickVenice, clicca, e la mappa si apre "zoomando"
 let introDone = false;
 function introThenOpen(){
   introDone = true; openApp(); return;
@@ -1801,7 +1800,7 @@ if ("serviceWorker" in navigator) window.addEventListener("load", () => {
   navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(r => { r.update(); document.addEventListener("visibilitychange", () => { if (!document.hidden) r.update(); }); }).catch(() => {});
 });
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); instEvt = e; });
-window.addEventListener("appinstalled", () => { instEvt = null; toast("unClick è sulla schermata Home ✓"); });
+window.addEventListener("appinstalled", () => { instEvt = null; toast("clickVenice è sulla schermata Home ✓"); });
 document.addEventListener("click", async e => {
   if (e.target.closest("#instBtn")){
     if (window.matchMedia("(display-mode: standalone)").matches){ $("#instTxt").textContent = "Stai già usando l'app installata ✓"; return; }
@@ -1812,7 +1811,7 @@ document.addEventListener("click", async e => {
   if (e.target.closest("#vibBtn")){
     let ok = false; try{ ok = navigator.vibrate ? navigator.vibrate([200, 100, 200]) : false; }catch(_){}
     $("#vibTxt").innerHTML = (ok ? "<b>Chrome dice: vibrazione mandata ✓</b><br>" : "<b>Chrome dice: vibrazione bloccata ✗</b><br>") + (ok ? "Se non hai sentito niente: controlla che la vibrazione del telefono sia attiva (Impostazioni → Suoni e vibrazione), che il telefono non sia in modalità silenzioso totale o Non disturbare, e usa Chrome."
-      : "Questo browser non lascia vibrare le pagine web. Su Android apri unClick con Chrome e tocca prima un punto qualsiasi della pagina.");
+      : "Questo browser non lascia vibrare le pagine web. Su Android apri clickVenice con Chrome e tocca prima un punto qualsiasi della pagina.");
   }
 });
 
@@ -1897,7 +1896,7 @@ function paintMe(){
   if (!PROFILE) return; const me = (MY && MY.io) || { nome: PROFILE.clickname };
   const a = $("#pfAvatar"); a.textContent = me.emoji || PROFILE.clickname[0].toUpperCase(); a.style.background = me.colore || "";
   $("#pfName").textContent = "@" + PROFILE.clickname;
-  $("#pfSub").textContent = me.bio || "unClick";
+  $("#pfSub").textContent = me.bio || "clickVenice";
   ["#pfMini", "#cmAv"].forEach(s => { const el = $(s); el.textContent = me.emoji || PROFILE.clickname[0].toUpperCase(); el.style.background = me.colore || "#050706"; });
   $("#cmText").placeholder = "A cosa stai pensando, @" + PROFILE.clickname + "?";
 }
@@ -2104,7 +2103,7 @@ function paintWork(){
   if (wkTab === "jobs"){
     const of = WK.offerte || [];
     box.innerHTML = (azienda ? `<button class="btn small" id="wkNewJob" style="width:100%;margin-bottom:10px">＋ Pubblica un'offerta di lavoro</button>` : "") +
-      (of.length ? of.map(jobCard).join("") : `<div class="card soonbox"><div class="big">📋</div><h3>Nessuna offerta${$("#wkQ").value ? " per questa ricerca" : " per ora"}</h3><p class="muted">Le aziende di unClick pubblicano qui le richieste di personale.</p></div>`);
+      (of.length ? of.map(jobCard).join("") : `<div class="card soonbox"><div class="big">📋</div><h3>Nessuna offerta${$("#wkQ").value ? " per questa ricerca" : " per ora"}</h3><p class="muted">Le aziende di clickVenice pubblicano qui le richieste di personale.</p></div>`);
   } else if (wkTab === "people"){
     const lv = WK.lavoratori || [];
     box.innerHTML = lv.length ? lv.map(c => `<div class="card">${cvHtml(c)}</div>`).join("") : `<div class="card soonbox"><div class="big">🧑‍🔧</div><h3>Nessun lavoratore${$("#wkQ").value ? " per questa ricerca" : " ancora"}</h3><p class="muted">Chi cerca lavoro mette qui competenze ed esperienze dal suo spazio.</p></div>`;
@@ -2414,7 +2413,7 @@ function renderMeet(){
       <button class="btn" id="adultYes" style="margin-top:8px">Ho almeno 18 anni</button>
       <button class="btn ghost" id="adultNo" style="margin-top:8px">Non ho ancora 18 anni</button></div>`;
     $("#adultYes").onclick = () => { store.set("ln_adult", true); renderMeet(); };
-    $("#adultNo").onclick = () => { box.innerHTML = `<div class="card soonbox"><div class="big">🔒</div><h3>Incontra non è disponibile</h3><p class="muted">Questa sezione è riservata a chi ha almeno 18 anni. Tutto il resto di unClick puoi usarlo.</p></div>`; };
+    $("#adultNo").onclick = () => { box.innerHTML = `<div class="card soonbox"><div class="big">🔒</div><h3>Incontra non è disponibile</h3><p class="muted">Questa sezione è riservata a chi ha almeno 18 anni. Tutto il resto di clickVenice puoi usarlo.</p></div>`; };
     return;
   }
   box.innerHTML = `<h2>Incontra</h2><p class="sub">Conosci persone a Venezia attraverso il loro status.</p>
@@ -6597,7 +6596,7 @@ function renderDriverBox(){
   if (txBoard.errore){
     box.innerHTML = `<p class="trnote" style="margin-top:10px">${txBoard.richiesta ? "🕐 La tua richiesta di convenzione è in attesa di approvazione." : `Sei un tassista? <a href="#" id="txJoin" style="color:#b45309;font-weight:700">Chiedi la convenzione</a>`}</p>`;
     if ($("#txJoin")) $("#txJoin").onclick = e => { e.preventDefault(); openSheet(`<h3>🚕 Diventa tassista convenzionato</h3>
-      <p class="muted" style="line-height:1.45">Riceverai le richieste dei clienti di unClick. Il primo tassista che accetta prende la corsa.</p>
+      <p class="muted" style="line-height:1.45">Riceverai le richieste dei clienti di clickVenice. Il primo tassista che accetta prende la corsa.</p>
       <div class="field"><label>Telefono per i clienti</label><input id="tjP" type="tel" maxlength="30"></div>
       <div class="field"><label>Nome o numero della barca</label><input id="tjB" maxlength="60"></div>
       <div class="field"><label>Numero di licenza</label><input id="tjL" maxlength="40"></div>
@@ -6742,7 +6741,7 @@ async function openDlv(i){
   $("#dlvGo").onclick = () => { closeSheet(); setMode("nautica"); openPlan({ name: x.n, lat: x.lat, lng: x.lng }); };
   if (food){
     $("#dlvOrd").onclick = () => { if (partner && partner.order_rest && CONFIG.RISTORANTI.some(r => r.id === partner.order_rest)){ closeSheet(); showView("order"); openMenu(partner.order_rest); }
-      else toast("Questo locale non fa ancora consegne con unClick."); };
+      else toast("Questo locale non fa ancora consegne con clickVenice."); };
     $("#dlvBook").onclick = () => bookPlace(x, key);
   }
   let R; try{ R = await rpc("review_list", { p_key: key }); }catch(e){ R = null; }
@@ -6780,7 +6779,7 @@ function bookPlace(x, key){
       step("Quante persone?", [1, 2, 3, 4, 5, 6, 7, 8, 10, 12].map(n => [n === 12 ? "12+" : String(n), n]), async n => { B.n = n;
         try{ const r = await rpc("booking_request", { p_key: key, p_nome: x.n, p_giorno: B.g, p_ora: B.o, p_persone: B.n });
           if (r && r.ok){ closeSheet(); openSheet(`<h3>Richiesta inviata</h3><p style="line-height:1.45">${esc(x.n)} · ${B.g.split("-").reverse().join("/")} alle ${B.o} · ${B.n} ${B.n === 1 ? "persona" : "persone"}</p>
-            <p class="muted" style="line-height:1.45">Il locale riceve la richiesta se è iscritto a unClick. Finché non conferma, la prenotazione non è sicura.</p><button class="btn" onclick="closeSheet()">Ok</button>`); }
+            <p class="muted" style="line-height:1.45">Il locale riceve la richiesta se è iscritto a clickVenice. Finché non conferma, la prenotazione non è sicura.</p><button class="btn" onclick="closeSheet()">Ok</button>`); }
           else toast(r && r.errore === "non_autorizzato" ? "Per prenotare serve l'account." : r && r.errore === "troppi" ? "Troppe richieste, riprova più tardi." : "Richiesta non inviata, riprova."); }
         catch(e){ toast("Controlla la connessione."); } }); }); });
 }
@@ -6844,7 +6843,7 @@ function sosForm(kind){
       { k: "note", q: "Vuoi aggiungere qualcosa?", type: "text", max: 160, optional: true, skipLabel: "No, manda subito",
         chips: ["Siamo in 2", "Siamo in 4", "Abbiamo i remi", "C'è un bambino", "Fermi vicino alla bricola", "Ci serve un traino"], multi: true },
       { k: "_ok", q: "Mando l'SOS?", type: "custom",
-        render: () => `<p class="wzh">Le barche vicine che usano unClick in Nautica vedono un piccolo avviso con <b>la tua posizione esatta</b> per 2 ore. <b>Non sostituisce il 1530.</b></p>
+        render: () => `<p class="wzh">Le barche vicine che usano clickVenice in Nautica vedono un piccolo avviso con <b>la tua posizione esatta</b> per 2 ore. <b>Non sostituisce il 1530.</b></p>
           <p class="wzh" id="wzSosPos">${lastPos ? "📍 Posizione GPS pronta" : "📍 Aspetto il GPS…"}</p>
           <div class="wzopts"><button class="wzo" id="wzSosGo" style="background:#d32f2f;border-color:#d32f2f;text-align:center;font-size:18px">🆘 Manda SOS adesso</button>
           <a class="wzo" href="tel:1530" style="text-align:center;text-decoration:none">📞 Chiama il 1530 Guardia Costiera</a><a class="wzo" href="tel:112" style="text-align:center;text-decoration:none">📞 Chiama il 112</a></div>`,
@@ -7019,7 +7018,7 @@ function adultGate(){
     await syncAdult();
     store.set("ln_adult", true); closeSheet(); const nx = MEET_NEXT; MEET_NEXT = null; if (nx) openMeet(nx);
   };
-  $("#agNo").onclick = () => { closeSheet(); MEET_NEXT = null; toast("Questa parte di myClick è riservata ai maggiorenni. Il resto di unClick puoi usarlo."); };
+  $("#agNo").onclick = () => { closeSheet(); MEET_NEXT = null; toast("Questa parte di myClick è riservata ai maggiorenni. Il resto di clickVenice puoi usarlo."); };
 }
 // la conferma dei 18 anni deve arrivare anche al server (prima restava solo sul telefono)
 async function syncAdult(){
@@ -7596,8 +7595,8 @@ function roomBox(){
 function wireRoom(){
   const T = TTT; if (!T || !$("#tttRoom")) return;
   $("#tttCopy").onclick = async () => { try{ await navigator.clipboard.writeText(T.code); toast("Codice copiato: " + T.code); }catch(e){ toast("Codice: " + T.code); } };
-  $("#tttShare").onclick = async () => { const url = location.origin + location.pathname + "#tris=" + T.code + (myName() ? "&da=" + encodeURIComponent(myName()) : ""), txt = "Giochiamo su unClick! Codice " + T.code;
-    try{ if (navigator.share){ await navigator.share({ title: "Gioca su unClick", text: txt, url }); return; } }catch(e){ return; }
+  $("#tttShare").onclick = async () => { const url = location.origin + location.pathname + "#tris=" + T.code + (myName() ? "&da=" + encodeURIComponent(myName()) : ""), txt = "Giochiamo su clickVenice! Codice " + T.code;
+    try{ if (navigator.share){ await navigator.share({ title: "Gioca su clickVenice", text: txt, url }); return; } }catch(e){ return; }
     try{ await navigator.clipboard.writeText(txt + " " + url); toast("Link copiato: mandalo al tuo amico"); }catch(e){ toast(url); } };
   $("#tttInv").onclick = () => tttInvite();
 }
@@ -7661,7 +7660,7 @@ function tttClose(keepSheet){
 new MutationObserver(() => { if (TTT && $("#sheet").classList.contains("hidden")) tttClose(true); }).observe($("#sheet"), { attributes: true, attributeFilter: ["class"] });
 function trisBadge(){}   // le sfide a turni via server non ci sono più
 
-// link d'invito: unClick aperto con #tris=ABCD entra subito nella stanza
+// link d'invito: clickVenice aperto con #tris=ABCD entra subito nella stanza
 function pendTris(){ const c = store.get("ln_pend_tris", null), da = store.get("ln_pend_da", null); if (!c || !PROFILE) return; store.set("ln_pend_tris", null); store.set("ln_pend_da", null);
   try{ setMode("sport"); }catch(e){} tttJoin(c); if (TTT && da && norm(da) !== norm(myName())) TTT.invFrom = da; }
 setTimeout(() => { const m = /tris=([A-Za-z]{4})/.exec(location.hash || ""); if (m){ const da = /da=([A-Za-z0-9_.]{3,20})/.exec(location.hash || ""); history.replaceState(null, "", location.pathname + location.search);
@@ -7872,7 +7871,7 @@ function bsPaint(){
   $("#tttAgain").classList.toggle("hidden", !(B.phase === "end" && (T.mode === "cpu" || T.ready)));
   betPaint();
 }
-/* ---------- Schei: la moneta di unClick (1 scheo, tanti schei) ----------
+/* ---------- Schei: la moneta di clickVenice (1 scheo, tanti schei) ----------
    Si guadagnano camminando (1 ogni 100 m, controllato dal server), con le segnalazioni verificate da tropss (+30),
    con i tesori nelle isole (+120, una volta al giorno ciascuno) e si puntano nelle sfide tra amici (doppio o niente). */
 const SCHEO_SVG = `<svg class="scheo" viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="scg" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#fff3a8"/><stop offset=".45" stop-color="#ffd23f"/><stop offset="1" stop-color="#e09a00"/></radialGradient></defs><circle cx="16" cy="16" r="15" fill="url(#scg)" stroke="#a86f00" stroke-width="1.4"/><circle cx="16" cy="16" r="12.2" fill="none" stroke="#c98a00" stroke-width=".7" stroke-dasharray="1.2 .9"/><g fill="#8a5600"><circle cx="9.4" cy="15.6" r="2.9"/><path d="M8.2 17.4l-1.6 1.2 1.9.2z"/><path d="M11 17.2c1.2-.9 3-1.2 4.6-1.2h5.2c2 0 3.2 1.4 3.2 3.2v4.1h-1.4v-2.6l-.9-.9h-7.8l-.8.9v2.6h-1.4v-3.4c-.6-.8-.9-1.6-.7-2.7z"/><path d="M14 16.6c-.4-4.3 2.4-7.6 8.3-8.6-1.4 1.1-1.4 2-.7 2.6-1 .2-1.6.9-1.3 1.6-1 .2-1.5.9-1.1 1.6-1 .3-1.4 1-1 1.7-1.3.3-2.5.9-4.2 1.1z"/><path d="M23.8 19.4c1.8-.4 2.4-1.9 1.6-3.4" fill="none" stroke="#8a5600" stroke-width=".9" stroke-linecap="round"/></g><circle cx="9.4" cy="15.3" r="4.3" fill="none" stroke="#8a5600" stroke-width=".7"/></svg>`;
@@ -8568,7 +8567,7 @@ async function sendOrder(){
     where = `A piedi – ${v("oAddr")}`;
   }
   const lines = curRest.menu.map((m, i) => cart[i] ? `${cart[i]}× ${m.n} (${eur(m.p * cart[i])})` : null).filter(Boolean);
-  const text = `ORDINE unClick\n${curRest.name}\n\n${lines.join("\n")}\nTotale: ${eur(cartTotal())}\n\n${where}\n${v("oName")} · ${v("oTel")}` + (v("oNote") ? `\nNote: ${v("oNote")}` : "");
+  const text = `ORDINE clickVenice\n${curRest.name}\n\n${lines.join("\n")}\nTotale: ${eur(cartTotal())}\n\n${where}\n${v("oName")} · ${v("oTel")}` + (v("oNote") ? `\nNote: ${v("oNote")}` : "");
   const orders = store.get("ln_orders", []);
   orders.unshift({ t: Date.now(), rest: curRest.name, mode: orderMode, tot: cartTotal() }); store.set("ln_orders", orders);
   let saved = true;
@@ -8661,7 +8660,7 @@ $("#learn").onchange = e => { learnOn = e.target.checked; store.set("ln_learn", 
 const paintHs = () => document.querySelectorAll("#hsrc [data-hs]").forEach(b => b.classList.toggle("on", b.dataset.hs === headingSrc));
 document.querySelectorAll("#hsrc [data-hs]").forEach(b => b.onclick = () => { headingSrc = b.dataset.hs; store.set("ln_hsrc", headingSrc); paintHs(); haptic(); }); paintHs();
 
-/* ---------- intro: animazione del logo unClick, 2,2 secondi ----------
+/* ---------- intro: animazione del logo clickVenice, 2,2 secondi ----------
    0,0–0,7 la "u" galleggia dentro con la scia corallo, le altre lettere arrivano in fila
    0,7–1,4 la C si disegna, onda corallo dal centro e la freccia GPS ci atterra con un rimbalzo
    1,4–2,2 la freccia si assesta sul Nord, mezzo secondo fermo, poi lo splash si apre */
@@ -8717,8 +8716,7 @@ function playIntro(){
     .onfinish = () => box.remove();
   setTimeout(() => { if (box.isConnected) box.remove(); }, 3000);
 }
-{ const b = $("#intro"); if (b) b.remove(); }
-{ const bt = $("#boot"); if (bt) setTimeout(() => { bt.classList.add("out"); setTimeout(() => bt.remove(), 500); }, 1500); }   // logo per un secondo e mezzo, poi la mappa   // niente animazione iniziale: la mappa si apre subito
+{ const b = $("#intro"); if (b) b.remove(); }   // niente animazione iniziale: la mappa si apre subito
 
 /* ---------- icone: tutte le emoji dell'app diventano icone a linea sottile, come quelle della barra in basso ---------- */
 const ICO = {
@@ -8870,7 +8868,7 @@ deEmoji(document.body);
 new MutationObserver(ms => ms.forEach(m => { if (m.type === "characterData") deEmojiText(m.target); else m.addedNodes.forEach(deEmoji); }))
   .observe(document.body, { childList: true, subtree: true, characterData: true });
 
-// avvio: chi ha già un profilo entra direttamente in unClick
+// avvio: chi ha già un profilo entra direttamente in clickVenice
 if (PROFILE && PROFILE.age !== undefined){
   // profilo della prima versione (con l'età, senza password): si sceglie la password tenendo lo stesso clickname
   const old = PROFILE.clickname; PROFILE = null; try{ localStorage.removeItem("ln_profile"); localStorage.removeItem("ln_schei"); }catch(e){} try{ SCHEI.saldo = null; hudPaint(); }catch(e){}

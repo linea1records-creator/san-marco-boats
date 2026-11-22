@@ -1,7 +1,7 @@
 {
- "name": "unClick",
- "short_name": "unClick",
- "description": "unClick: navigatore per la laguna, Ordina, Socializza, Gioca e myClick.",
+ "name": "clickVenice",
+ "short_name": "clickVenice",
+ "description": "clickVenice: navigatore per la laguna, Ordina, Socializza, Gioca e myClick.",
  "id": "./",
  "start_url": "./index.html",
  "scope": "./",
