@@ -6408,12 +6408,7 @@ async function openCorsa(o){
   corsaList();
   const nf = F.length - 1; $("#cbNote").textContent = (nf === 1 ? "1 fermata" : nf + " fermate") + " fino al capolinea \u00b7 orari ufficiali, senza ritardi";
   if (!map) return; corsaLayers(); corsaPaint();
-  if (o.k && TRK && TRK.k === o.k){   // battello seguito: prima si vede tutto il giro, poi la visuale va sul battello e lo segue
-    trkList(); TRK.follow = false; paintTrkBtn();
-    try{ setFollow(false); const bb = new maplibregl.LngLatBounds(); (PAST || []).concat(pts).forEach(p => bb.extend([p[1], p[0]]));
-      map.fitBounds(bb, { padding: { top: 70, left: 40, right: 40, bottom: Math.round(innerHeight * 0.45) + 20 }, maxZoom: 15.5, pitch: 0, bearing: 0, duration: 700 }); }catch(e){}
-    const kk = o.k; setTimeout(() => { if (TRK && TRK.k === kk && !TRK.follow && !TRK.touched){ TRK.follow = true; paintTrkBtn(); trkFocus(true); } }, 3500);   // dopo il giro intero si torna vicini al battello
-    return; }
+  if (o.k && TRK && TRK.k === o.k){ trkList(); return; }   // battello seguito: la visuale resta vicina al battello fin dall'inizio
   try{ setFollow(false); const bb = new maplibregl.LngLatBounds(); pts.forEach(p => bb.extend([p[1], p[0]]));
     map.fitBounds(bb, { padding: { top: 70, left: 40, right: 40, bottom: Math.round(innerHeight * 0.45) + 20 }, maxZoom: 16, duration: 700 }); }catch(e){}
 }
@@ -6453,7 +6448,7 @@ function trkTick(force){
 function trackBoat(b){
   if (!map || !b || !b.raw) return;
   trkStop(true); trkLayer(); TRK = { kind: "boat", k: b.k, raw: b.raw, img: b.img, follow: true };
-  setBattelliFilter(); trkTick(true);   // la visuale si sposta dopo aver mostrato tutto il giro
+  setBattelliFilter(); trkTick(true); paintTrkBtn(); trkFocus(true);   // subito vicino al battello, poi lo segue
   trkT = setInterval(() => { if (!TRK || TRK.kind !== "boat") return;   // i dati delle corse si aggiornano ogni minuto: tiene la stessa corsa
     const nb = BOATS_ACTV.find(x => x.k === TRK.k); if (nb) TRK.raw = nb.raw; trkList(); }, 15000);
 }
