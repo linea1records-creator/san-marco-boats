@@ -7226,7 +7226,9 @@ function paintTris(){
   box.innerHTML = `<div class="mkcats dg"><button class="on">✕◯ Tris</button><button disabled>Altri giochi in arrivo</button></div>
     <p class="trnote" style="margin-top:0">Gioca dal vivo con un amico: uno crea la stanza e manda il codice, l'altro entra.</p>
     <button class="btn small" id="tttHost">Crea stanza</button>
-    <div class="row" style="gap:8px;margin-top:8px"><div class="field" style="flex:1;margin:0"><input id="tttCode" maxlength="4" autocapitalize="characters" autocomplete="off" placeholder="CODICE" style="text-transform:uppercase;letter-spacing:4px;font-weight:800;text-align:center"></div><button class="btn small" id="tttJoin" style="flex:0 0 auto">Entra in stanza</button></div>
+    <div class="field" style="margin:12px 0 6px"><input id="tttCode" maxlength="4" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="CODICE"
+      style="width:100%;box-sizing:border-box;min-width:0;height:56px;font-size:28px;text-transform:uppercase;letter-spacing:10px;font-weight:800;text-align:center;padding:0 0 0 10px"></div>
+    <button class="btn small" id="tttJoin">Entra in stanza</button>
     <button class="btn small ghost" id="tttCpu" style="margin-top:8px">Gioca vs CPU</button>`;
   $("#tttHost").onclick = tttHost; $("#tttCpu").onclick = () => tttNew("cpu");
   $("#tttJoin").onclick = () => tttJoin($("#tttCode").value);
