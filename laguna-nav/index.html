@@ -744,6 +744,41 @@
   .tboard button:disabled{cursor:default}
   .tstate{text-align:center;font-size:16px;font-weight:700;margin:4px 0}
   .tsub{text-align:center;color:var(--muted);font-size:13px}
+  /* schei: saldo sempre in alto a destra */
+  #hud{position:fixed;z-index:40;top:calc(10px + var(--safe-t));right:10px;display:flex;gap:6px;align-items:center}
+  #hud button{height:34px;border:0;border-radius:999px;background:rgba(17,17,17,.9);color:#fff;font-weight:800;font-size:15px;display:flex;align-items:center;gap:5px;padding:0 12px 0 4px;box-shadow:0 2px 8px rgba(0,0,0,.28);font-variant-numeric:tabular-nums}
+  #hud .scheo{width:26px;height:26px;flex:0 0 auto}
+  #hudAdm{padding:0 11px!important;background:#0a8f4e!important;font-size:13px!important;position:relative}
+  #hudAdm i{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:9px;background:#e5322d;color:#fff;font:800 11px/18px system-ui;font-style:normal;text-align:center;padding:0 4px;box-sizing:border-box}
+  #hudCoin.pop{animation:schPop .5s ease}
+  @keyframes schPop{40%{transform:scale(1.18)}}
+  .schPlus{position:fixed;z-index:4500;transform:translateX(-50%);color:#ffd23f;font:900 20px system-ui;text-shadow:0 1px 3px #000,0 0 8px rgba(0,0,0,.5);pointer-events:none;animation:schUp 1.5s ease-out forwards}
+  @keyframes schUp{to{transform:translate(-50%,40px);opacity:0}}
+  #searchBox{right:var(--hudw,10px)}
+  .lightv > .igh:first-child{margin-top:30px}
+  body.nav #hud{display:none}
+  #tesBtn{position:fixed;z-index:45;left:50%;transform:translateX(-50%);bottom:calc(96px + var(--safe-b, 0px));display:flex;align-items:center;gap:10px;border:0;border-radius:18px;padding:10px 16px 10px 10px;
+    background:linear-gradient(#ffe066,#f2b705);color:#3b2600;box-shadow:0 6px 22px rgba(0,0,0,.35);animation:tesPulse 1.4s ease-in-out infinite;text-align:left;max-width:92vw}
+  #tesBtn.hidden{display:none} #tesBtn .scheo{width:40px;height:40px} #tesBtn small{display:block;font-size:12px;font-weight:600}
+  @keyframes tesPulse{50%{transform:translateX(-50%) scale(1.04)}}
+  .tesMk{width:30px;height:30px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));cursor:pointer} .tesMk .scheo{width:100%;height:100%} .tesMk.used{opacity:.4;filter:grayscale(1)}
+  .segMk{width:32px;height:32px;border-radius:50%;background:#fff;border:2px solid #111;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 2px 6px rgba(0,0,0,.35);cursor:pointer}
+  .segPin{font-size:30px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+  body.mode-market .segMk, body.mode-incontra .segMk, body.mode-trasporti .segMk, body.mode-market .tesMk, body.mode-incontra .tesMk, body.mode-trasporti .tesMk{display:none}
+  body.mode-market #tesBtn, body.mode-incontra #tesBtn{display:none}
+  .seghint{border:0;border-radius:9px;background:#111;color:#fff;font-weight:700;padding:5px 9px;margin-left:4px}
+  .segcats{display:grid;grid-template-columns:1fr 1fr;gap:8px} .segcats button{display:flex;align-items:center;gap:8px;border:2px solid var(--line);background:var(--panel2);color:inherit;border-radius:12px;padding:10px;font-weight:700;font-size:13.5px;text-align:left}
+  .segcats button span{font-size:22px} .segcats button.on{border-color:var(--accent);background:rgba(61,201,145,.16)}
+  .segimg{height:220px;border-radius:14px;background:var(--panel2) center/cover no-repeat;margin:10px 0;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+  .segcard{border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:12px} .segcard .segimg{height:190px;margin:0 0 8px}
+  .segmeta{display:flex;flex-direction:column;gap:2px;margin-bottom:8px} .segmeta small{color:var(--muted)} .segmeta a{color:#2f8fd8}
+  .schTop{display:flex;align-items:center;gap:14px;justify-content:center;margin:4px 0 10px} .schTop .scheo{width:64px;height:64px} .schTop b{font-size:40px;line-height:1;display:block} .schTop small{color:var(--muted)}
+  .schWays{display:flex;flex-direction:column;gap:8px;margin-bottom:10px} .schWays div{display:flex;gap:10px;align-items:flex-start} .schWays span{font-size:22px;width:28px;text-align:center}
+  .schWays p{margin:0;font-size:14px} .schWays small{display:block;color:var(--muted);font-size:12px}
+  .schBdg{background:#e5322d;color:#fff;border-radius:10px;padding:1px 7px;font-size:12px;margin-left:4px} .schH{margin:14px 0 6px}
+  .tesBig{display:flex;align-items:center;justify-content:center;gap:8px;font-size:18px} .tesBig .scheo{width:46px;height:46px} .tesBig b{font-size:30px}
+  .betbox{margin:6px 0} .betbox .btn{display:flex;align-items:center;justify-content:center;gap:6px} .betbox .scheo{width:20px;height:20px;vertical-align:-5px}
+  .betrow{text-align:center;font-size:13.5px;margin:4px 0} .betrow small{color:var(--muted);display:block} .betrow.on{background:linear-gradient(#fff3b0,#ffe066);color:#3b2600;border-radius:12px;padding:7px}
   /* battaglia navale: stesso stile del tris (griglia nera, caselle bianche) */
   .bsg{position:relative;display:grid;grid-template-columns:repeat(var(--n),1fr);gap:2px;background:#111;padding:4px;border-radius:12px;width:min(92vw,360px,calc(100vh - 330px));margin:8px auto;touch-action:manipulation}
   .bsg button{aspect-ratio:1;background:#fff;border-radius:3px;padding:0;border:0;font-size:min(4vw,16px);font-weight:800;color:#111;display:flex;align-items:center;justify-content:center;line-height:1}
@@ -1424,6 +1459,8 @@
   <nav id="dock">
     <div id="tabs" role="tablist" aria-label="Modalità"></div>
     <div id="verMark" class="hidden"></div>
+    <div id="hud" class="hidden"><button id="hudAdm" class="hidden" aria-label="Valida segnalazioni" title="Valida segnalazioni">✓ Valida<i class="hidden"></i></button><button id="hudCoin" aria-label="I tuoi schei"></button></div>
+    <button id="tesBtn" class="hidden"></button>
   </nav>
 </div>
 
@@ -1580,7 +1617,7 @@ enter.onclick = async () => {
     try{ const c = await api("rpc/company_save", { method: "POST", ret: true, body: { p_token: r.token || TOKEN, p_data: REGCO } });
       if (c && c.errore) toast("Account creato. Completa i dati dell'azienda in myClick → Lavoro."); }catch(e){}
   }
-  PROFILE = { clickname: r.clickname, city: store.get("ln_city", "venezia") }; store.set("ln_profile", PROFILE); store.set("ln_agree", Date.now());
+  PROFILE = { clickname: r.clickname, city: store.get("ln_city", "venezia") }; store.set("ln_profile", PROFILE); store.set("ln_agree", Date.now()); setTimeout(() => { try{ scheiLoad(); tesLoad(); }catch(e){} }, 500);
   // l'account ha la sua chiave: se è diversa da quella del telefono, si riparte con quella (così vedi e gestisci le tue cose da qualsiasi telefono)
   if (r.token && r.token !== TOKEN){ store.set("ln_token", r.token); store.set("ln_mine", { zones: [], depths: [] }); location.reload(); return; }
   openApp();
@@ -2348,6 +2385,7 @@ function initMap(){
   map.on("click", e => {
     if (typeof DRAW !== "undefined" && DRAW) return;   // mentre tropss ridisegna un tratto i tocchi servono solo alla matita
     if ($("#sheet") && !$("#sheet").classList.contains("hidden")) return;   // appena dopo il tocco lungo si apre la scheda: il rilascio non conta
+    if (addMode === "segpick"){ addMode = null; $("#modeHint").classList.add("hidden"); return segForm(e.lngLat.lat, e.lngLat.lng); }
     if (appMode === "market" && map.getLayer("dlv")){ const d = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["dlv"] })[0]; if (d) return openDlv(d.properties.i); }
     { const mp = map.getLayer("myplaces") && map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["myplaces"] })[0];
       if (mp) return openMyPlace(mp.properties.i); }
@@ -3168,6 +3206,7 @@ function onPos(pos){
     drawMan(); pushMyLoc(p);
   }
   checkZones(p, kmh); checkShallow(p); navTick(p); recPoint(p); updateDepth(p); veloxTick(p, kmh); bridgeTick(p);
+  try{ scheiWalk(p); tesTick(p); }catch(e){}
 }
 // direzione da seguire in questo momento
 function targetHeading(){
@@ -7354,7 +7393,7 @@ async function tttJoin(raw){
   let tries = 0;
   const hello = () => { if (!TTT || TTT.code !== code || TTT.ready) return;
     if (++tries > 10){ tttFail("Non trovo la stanza: controlla il codice o chiedi all'amico di crearne una nuova."); return; }
-    tttSend({ hi: 1 }); setTimeout(hello, 1500); };
+    tttSend({ hi: 1, nm: myName() }); setTimeout(hello, 1500); };
   setTimeout(hello, 400);
   loadPeerJS().then(() => { if (!TTT || TTT.code !== code) return; try{
     const peer = new Peer(); TTT.peer = peer; peer.on("error", () => {});
@@ -7367,13 +7406,15 @@ function tttRecv(d){
   if (!TTT || !d || (d.g !== "ttt" && d.g !== "bs") || d.p === TTT.pid) return;
   if (d.hi && TTT.mode === "host"){
     if (TTT.other && TTT.other !== d.p){ rtSend("tris-" + TTT.code, "m", { g: "ttt", full: 1, to: d.p, p: TTT.pid, n: 0 }); return; }
-    TTT.other = d.p; if (!TTT.ready){ TTT.ready = true; haptic(); tttPaint(); } tttSend({ hey: 1 }); tttSend({ sel: TTT.game, size: TTT.bs ? TTT.bs.n : LOBBY.size }); return; }
+    TTT.other = d.p; TTT.otherName = d.nm || TTT.otherName; if (!TTT.ready){ TTT.ready = true; haptic(); tttPaint(); } tttSend({ hey: 1, nm: myName() }); tttSend({ sel: TTT.game, size: TTT.bs ? TTT.bs.n : LOBBY.size }); return; }
   if (d.full){ if (d.to === TTT.pid) tttFail("Questa stanza è già piena."); return; }
   if (TTT.other && d.p !== TTT.other) return;                // un terzo: lo ignoro
   if (d.n && d.n <= (TTT.seen || 0)) return; if (d.n) TTT.seen = d.n;   // doppione arrivato dall'altra strada
-  if (d.hey && TTT.mode === "guest"){ TTT.other = d.p; if (!TTT.ready){ TTT.ready = true; haptic(); tttPaint(); } return; }
-  if (d.bye){ TTT.ready = false; TTT.gone = true; tttPaint(); return; }
+  if (d.hey && TTT.mode === "guest"){ TTT.other = d.p; TTT.otherName = d.nm || TTT.otherName; if (!TTT.ready){ TTT.ready = true; haptic(); tttPaint(); } return; }
+  if (d.bye){ if (TTT.bet && TTT.bet.stato === "on"){ const id = TTT.bet.id; TTT.bet.stato = "done"; setTimeout(() => betSettle(id, "vinto", 0), 1500); } else TTT.bet = null;
+    TTT.ready = false; TTT.gone = true; tttPaint(); return; }
   if (d.sel){ setGame(d.sel, d.size, true); return; }
+  if (d.bet){ betRecv(d); return; }
   if (d.g === "bs"){ bsRecv(d); return; }
   if (d.r){ tttReset(); return; }
   if (d.i === undefined) return;
@@ -7387,6 +7428,7 @@ function tttPlace(i, who){
   if (cell){ cell.textContent = who === "X" ? "✕" : "◯"; cell.classList.toggle("o", who === "O"); }   // disegno subito, poi il resto
   const end = tttEnd(TTT.b);
   if (end){ if (end === "=") TTT.score.pari++; else if (end === TTT.me) TTT.score.io++; else TTT.score.lui++;
+    betEnd(end === "=" ? "pari" : end === TTT.me ? "vinto" : "perso");
     if (end === TTT.me) buzz([80, 60, 80]); }
   tttPaint(true);
 }
@@ -7423,7 +7465,7 @@ function tttSheet(){
   const T = TTT; if (!T) return;
   openSheet(`<h3>✕◯ Tris ${T.mode === "cpu" ? "contro la CPU" : "dal vivo"}</h3>
     ${gameSwitch()}
-    <div class="tstate" id="tttState"></div><div class="tsub" id="tttSub"></div>
+    <div class="tstate" id="tttState"></div><div class="tsub" id="tttSub"></div><div id="betBox" class="betbox hidden"></div>
     ${roomBox()}
     <div class="tboard" id="tttBoard">${[...T.b].map((c, i) => `<button data-tc="${i}" class="${c === "O" ? "o" : ""}">${c === "X" ? "✕" : c === "O" ? "◯" : ""}</button>`).join("")}</div>
     <button class="btn hidden" id="tttAgain">↻ Rivincita</button>
@@ -7431,7 +7473,7 @@ function tttSheet(){
   // pointerdown: la X o il cerchio compaiono nel momento in cui il dito tocca, non quando si alza
   document.querySelectorAll("#tttBoard [data-tc]").forEach(b => b.addEventListener("pointerdown", e => { e.preventDefault(); tttTap(+b.dataset.tc); }));
   $("#tttAgain").onclick = () => { if (!TTT) return; if (TTT.mode !== "cpu") tttSend({ r: 1 }); tttReset(); };
-  $("#tttX").onclick = () => tttClose();
+  $("#tttX").onclick = () => { if (betExitOk()) tttClose(); };
   wireRoom(); wireSwitch(); tttPaint();
 }
 // parti in comune ai giochi: codice della stanza con inviti, e il cambio di gioco
@@ -7454,8 +7496,8 @@ function gameSwitch(){
   return `<div class="mkcats dg gsw"><button data-sg="ttt" class="${bs ? "" : "on"}">✕◯ Tris</button><button data-sg="bs" class="${bs ? "on" : ""}">⚓ Battaglia navale</button>${bs ? `<button data-ss="${T.bs.n === 6 ? 10 : 6}">${T.bs.n === 6 ? "10×10" : "Rapida 6×6"}</button>` : ""}</div>`;
 }
 function wireSwitch(){
-  document.querySelectorAll("[data-sg]").forEach(b => b.onclick = () => { if (b.dataset.sg !== TTT.game) setGame(b.dataset.sg, LOBBY.size); });
-  document.querySelectorAll("[data-ss]").forEach(b => b.onclick = () => setGame("bs", +b.dataset.ss));
+  document.querySelectorAll("[data-sg]").forEach(b => b.onclick = () => { if (b.dataset.sg !== TTT.game && !betLock()) setGame(b.dataset.sg, LOBBY.size); });
+  document.querySelectorAll("[data-ss]").forEach(b => b.onclick = () => { if (!betLock()) setGame("bs", +b.dataset.ss); });
 }
 function setGame(g, size, remote){
   const T = TTT; if (!T) return; T.game = g === "bs" ? "bs" : "ttt";
@@ -7474,6 +7516,7 @@ function tttPaint(light){
   paintRoom();
   document.querySelectorAll("#tttBoard [data-tc]").forEach((b, i) => { b.disabled = !(my && T.b[i] === "."); b.classList.toggle("w", win.includes(i)); });
   $("#tttAgain").classList.toggle("hidden", !(end && (T.mode === "cpu" || T.ready)));
+  betPaint();
 }
 // invito automatico: l'amico riceve la sfida e con un tocco entra nella stessa stanza, senza scrivere il codice
 function tttInvite(){
@@ -7486,6 +7529,7 @@ function tttInvite(){
   document.querySelectorAll("[data-ti]").forEach(b => b.onclick = () => { rtSend(rtNameOf(b.dataset.ti), "inv", { code: T.code, from: PROFILE.clickname }); b.querySelector("span").textContent = "Invitato ✓"; b.disabled = true; haptic(); });
 }
 function tttClose(keepSheet){
+  try{ betLeave(); }catch(e){}
   if (TTT){ if (TTT.mode !== "cpu"){ try{ if (TTT.ready) tttSend({ bye: 1 }); }catch(e){} const c = TTT.code; setTimeout(() => rtLeave("tris-" + c), 300); }
     try{ TTT.conn && TTT.conn.close(); }catch(e){} try{ TTT.peer && TTT.peer.destroy(); }catch(e){} }
   TTT = null; if (!keepSheet) closeSheet();
@@ -7563,7 +7607,7 @@ function bsGot(i, r){
   const T = TTT, B = T && T.bs; if (!B || !r) return;
   B.wait = false; bsMark(B, i, r); B.last = BS_NAME[r.res]; bsSound(r.res === "a" ? "pluff" : r.res === "c" ? "boom" : "siren");
   if (r.res !== "a") buzz(r.res === "f" ? [70, 40, 120] : [40]); else haptic();
-  if (r.end || B.left === 0){ B.phase = "end"; B.winner = "me"; T.bsScore.io++; buzz([80, 60, 80]); }
+  if (r.end || B.left === 0){ B.phase = "end"; B.winner = "me"; T.bsScore.io++; buzz([80, 60, 80]); betEnd("vinto"); }
   else if (r.res === "a"){ B.turn = "him"; if (T.mode === "cpu") setTimeout(bsCpuShoot, 650); }
   bsPaint();
 }
@@ -7572,7 +7616,7 @@ function bsIncoming(i){
   const T = TTT, B = T.bs, r = bsResolve(B, i); if (!r) return null;
   B.last = r.res === "a" ? "L'avversario ha preso acqua" : r.res === "c" ? "Ti ha colpito una nave" : "Ti ha affondato una nave";
   if (r.res !== "a") buzz([60]); bsSound(r.res === "a" ? "pluff" : r.res === "c" ? "boom" : "siren");
-  if (r.end){ B.phase = "end"; B.winner = "him"; T.bsScore.lui++; }
+  if (r.end){ B.phase = "end"; B.winner = "him"; T.bsScore.lui++; betEnd("perso"); }
   else if (r.res === "a") B.turn = "me";
   bsPaint(); return r;
 }
@@ -7662,7 +7706,7 @@ function bsSheet(){
   const T = TTT; if (!T || !T.bs) return; const B = T.bs, play = B.phase !== "place";
   openSheet(`<h3>⚓ Battaglia navale ${T.mode === "cpu" ? "contro la CPU" : "dal vivo"}</h3>
     ${gameSwitch()}
-    <div class="tstate" id="tttState"></div><div class="tsub" id="tttSub"></div>
+    <div class="tstate" id="tttState"></div><div class="tsub" id="tttSub"></div><div id="betBox" class="betbox hidden"></div>
     ${roomBox()}
     ${play ? bsGridHtml("bsEn", B.n) + `<div class="bsfoot"><div><small>La tua flotta</small>${bsGridHtml("bsMe", B.n, true)}</div><div class="bsinfo" id="bsInfo"></div></div>`
       : bsGridHtml("bsMe", B.n) + `<div class="bsbar"><button class="btn small ghost" id="bsRot">↻ Ruota</button><button class="btn small ghost" id="bsRnd">Posiziona a caso</button><button class="btn small" id="bsGo">Pronto</button></div>`}
@@ -7673,7 +7717,7 @@ function bsSheet(){
   if (!play){ $("#bsRot").onclick = () => { B.dir = B.dir === "h" ? "v" : "h"; bsPaint(); };
     $("#bsRnd").onclick = () => { if (B.meReady) return; bsRandom(B); haptic(); bsPaint(); }; $("#bsGo").onclick = bsReady; }
   $("#tttAgain").onclick = () => bsRematch(false);
-  $("#tttX").onclick = () => tttClose();
+  $("#tttX").onclick = () => { if (betExitOk()) tttClose(); };
   wireRoom(); wireSwitch(); bsPaint();
 }
 function bsCell(which, i){
@@ -7700,7 +7744,277 @@ function bsPaint(){
   if ($("#bsEn")) $("#bsEn").classList.toggle("off", !(B.phase === "play" && B.turn === "me" && !B.wait));
   paintRoom();
   $("#tttAgain").classList.toggle("hidden", !(B.phase === "end" && (T.mode === "cpu" || T.ready)));
+  betPaint();
 }
+/* ---------- Schei: la moneta di unClick (1 scheo, tanti schei) ----------
+   Si guadagnano camminando (1 ogni 100 m, controllato dal server), con le segnalazioni verificate da tropss (+30),
+   con i tesori nelle isole (+120, una volta al giorno ciascuno) e si puntano nelle sfide tra amici (doppio o niente). */
+const SCHEO_SVG = `<svg class="scheo" viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="scg" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#fff3a8"/><stop offset=".45" stop-color="#ffd23f"/><stop offset="1" stop-color="#e09a00"/></radialGradient></defs><circle cx="16" cy="16" r="15" fill="url(#scg)" stroke="#a86f00" stroke-width="1.4"/><circle cx="16" cy="16" r="12.2" fill="none" stroke="#c98a00" stroke-width=".7" stroke-dasharray="1.2 .9"/><g fill="#8a5600"><circle cx="9.4" cy="15.6" r="2.9"/><path d="M8.2 17.4l-1.6 1.2 1.9.2z"/><path d="M11 17.2c1.2-.9 3-1.2 4.6-1.2h5.2c2 0 3.2 1.4 3.2 3.2v4.1h-1.4v-2.6l-.9-.9h-7.8l-.8.9v2.6h-1.4v-3.4c-.6-.8-.9-1.6-.7-2.7z"/><path d="M14 16.6c-.4-4.3 2.4-7.6 8.3-8.6-1.4 1.1-1.4 2-.7 2.6-1 .2-1.6.9-1.3 1.6-1 .2-1.5.9-1.1 1.6-1 .3-1.4 1-1 1.7-1.3.3-2.5.9-4.2 1.1z"/><path d="M23.8 19.4c1.8-.4 2.4-1.9 1.6-3.4" fill="none" stroke="#8a5600" stroke-width=".9" stroke-linecap="round"/></g><circle cx="9.4" cy="15.3" r="4.3" fill="none" stroke="#8a5600" stroke-width=".7"/></svg>`;
+const scheiTxt = n => (n | 0) === 1 ? "1 scheo" : (n | 0) + " schei";
+let SCHEI = Object.assign({ saldo: null, pending: 0, metri: 0 }, store.get("ln_schei", {}));
+function hudPaint(){
+  const h = $("#hud"); if (!h) return;
+  const on = !!(PROFILE && PROFILE.clickname); h.classList.toggle("hidden", !on);
+  $("#hudCoin").innerHTML = SCHEO_SVG + `<b>${SCHEI.saldo == null ? "–" : SCHEI.saldo}</b>`;
+  const adm = on && isTropss(); $("#hudAdm").classList.toggle("hidden", !adm);
+  $("#hudAdm i").textContent = SCHEI.pending || ""; $("#hudAdm i").classList.toggle("hidden", !SCHEI.pending);
+  requestAnimationFrame(() => document.documentElement.style.setProperty("--hudw", (on ? h.offsetWidth + 18 : 10) + "px"));
+}
+function scheiSet(j){ if (!j || j.errore) return; ["saldo", "pending", "metri", "mie_pending"].forEach(k => { if (j[k] !== undefined) SCHEI[k] = j[k]; }); store.set("ln_schei", SCHEI); hudPaint(); }
+async function scheiLoad(){ if (!PROFILE || !PROFILE.clickname) return hudPaint(); try{ scheiSet(await rpc("schei_me", {})); }catch(e){ hudPaint(); } }
+// "+N" che vola fuori dalla monetina
+function scheiPlus(n){
+  try{
+  const b = $("#hudCoin"); if (!b) return; const r = b.getBoundingClientRect(), el = document.createElement("div");
+  el.className = "schPlus"; el.textContent = (n > 0 ? "+" : "") + n; el.style.left = (r.left + r.width / 2) + "px"; el.style.top = (r.bottom + 2) + "px";
+  document.body.appendChild(el); setTimeout(() => el.remove(), 1500); b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+  }catch(e){}
+}
+$("#hudCoin").onclick = () => { haptic(); scheiSheet(); };
+$("#hudAdm").onclick = () => { haptic(); segAdmin(); };
+setInterval(() => { if (!document.hidden) scheiLoad(); }, 60000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) scheiLoad(); });
+setTimeout(() => { scheiLoad(); segLoadPublic(); tesLoad(); }, 1200);
+setInterval(() => { if (!document.hidden){ segLoadPublic(); } }, 300000);
+
+// cammino: il telefono manda solo punti GPS buoni, il server misura (Haversine) e scarta i tratti sopra i 35 km/h
+let schWalkAt = 0, schWalkBusy = false;
+function scheiWalk(p){
+  if (!PROFILE || !PROFILE.clickname || schWalkBusy || !p || !(p.acc <= 30) || Date.now() - schWalkAt < 8000) return;
+  schWalkAt = Date.now(); schWalkBusy = true;
+  rpc("schei_walk", { p_lat: p.lat, p_lng: p.lng, p_acc: p.acc }).then(j => {
+    if (!j || j.errore) return; const g = j.guadagno | 0; SCHEI.saldo = j.saldo; if (j.metri !== undefined) SCHEI.metri = j.metri;
+    store.set("ln_schei", SCHEI); hudPaint(); if (g > 0){ scheiPlus(g); haptic(); } }).catch(() => {}).finally(() => { schWalkBusy = false; });
+}
+
+/* ---------- Segnalazioni con foto ---------- */
+const SEG_T = { canale: ["⛔", "Canale bloccato"], lavori: ["🚧", "Lavori in corso"], fontanella: ["🚰", "Fontanella funzionante"], bagno: ["🚻", "Bagno pubblico aperto"], bar: ["🍹", "Affluenza bar"] };
+const SEG_BAR = [["poca", "Poca gente"], ["media", "Abbastanza"], ["piena", "Pieno"]];
+let SEGF = null, segTmpMk = null, SEG_MK = [];
+function agoTxt(t){ const m = Math.round((Date.now() - new Date(t)) / 60000); return m < 1 ? "adesso" : m < 60 ? m + " min fa" : m < 1440 ? Math.round(m / 60) + " h fa" : Math.round(m / 1440) + " g fa"; }
+function segStart(){
+  if (!PROFILE || !PROFILE.clickname) return toast("Per segnalare serve l'account.");
+  closeSheet(); if (MODES[modeIdx].v !== "map" || appMode === "market" || appMode === "incontra") setMode("nautica");
+  addMode = "segpick"; const h = $("#modeHint");
+  h.innerHTML = `📍 Tocca la mappa dove si trova · <button id="segHere" class="seghint">Sono qui</button> <button id="segNo" class="seghint">Annulla</button>`; h.classList.remove("hidden");
+  $("#segHere").onclick = e => { e.stopPropagation(); if (!lastPos) return toast("Aspetto il GPS…"); addMode = null; h.classList.add("hidden"); segForm(lastPos.lat, lastPos.lng); };
+  $("#segNo").onclick = e => { e.stopPropagation(); addMode = null; h.classList.add("hidden"); };
+}
+function segForm(lat, lng){
+  SEGF = { lat, lng, tipo: null, foto: null, liv: null };
+  try{ segTmpMk && segTmpMk.remove(); const el = document.createElement("div"); el.className = "segPin"; el.textContent = "📍"; segTmpMk = new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([lng, lat]).addTo(map); }catch(e){}
+  openSheet(`<h3>📸 Nuova segnalazione</h3>
+    <p class="trnote" style="margin-top:0">Se Trops la verifica diventa pubblica sulla mappa e ricevi <b>+30 schei</b>.</p>
+    <div class="segcats">${Object.entries(SEG_T).map(([k, [e, n]]) => `<button data-st="${k}"><span>${e}</span>${n}</button>`).join("")}</div>
+    <div id="segLiv" class="mkcats dg hidden" style="margin-top:8px">${SEG_BAR.map(([k, n]) => `<button data-sl="${k}">${n}</button>`).join("")}</div>
+    <label class="photoPick" id="segPh" style="margin-top:10px"><span>📷 Scatta o carica la foto (obbligatoria)</span><input type="file" accept="image/*" id="segFile" hidden></label>
+    <div class="field" style="margin-top:10px"><input id="segNota" maxlength="120" placeholder="Nota (facoltativa)"></div>
+    <button class="btn" id="segGo" disabled>Invia segnalazione</button>
+    <button class="btn ghost" id="segX" style="margin-top:8px">Annulla</button>`);
+  const ok = () => { $("#segGo").disabled = !(SEGF.tipo && SEGF.foto && (SEGF.tipo !== "bar" || SEGF.liv)); };
+  document.querySelectorAll("[data-st]").forEach(b => b.onclick = () => { SEGF.tipo = b.dataset.st; document.querySelectorAll("[data-st]").forEach(x => x.classList.toggle("on", x === b));
+    $("#segLiv").classList.toggle("hidden", SEGF.tipo !== "bar"); ok(); });
+  document.querySelectorAll("[data-sl]").forEach(b => b.onclick = () => { SEGF.liv = b.dataset.sl; document.querySelectorAll("[data-sl]").forEach(x => x.classList.toggle("on", x === b)); ok(); });
+  $("#segFile").onchange = async e => { const f = e.target.files && e.target.files[0]; if (!f) return;
+    try{ SEGF.foto = await shrinkPhoto(f); const p = $("#segPh"); p.style.backgroundImage = `url('${SEGF.foto}')`; p.classList.add("has"); p.querySelector("span").textContent = "📷 Cambia foto"; ok(); }
+    catch(er){ toast("Questa foto non si apre, provane un'altra."); } };
+  $("#segX").onclick = () => { segTmpClear(); closeSheet(); };
+  $("#segGo").onclick = async () => {
+    const b = $("#segGo"); b.disabled = true; b.textContent = "Invio…";
+    const nota = [SEGF.tipo === "bar" ? (SEG_BAR.find(x => x[0] === SEGF.liv) || [])[1] : "", $("#segNota").value.trim()].filter(Boolean).join(" · ");
+    try{ const j = await rpc("seg_send", { p_tipo: SEGF.tipo, p_lat: SEGF.lat, p_lng: SEGF.lng, p_foto: SEGF.foto, p_nota: nota || null });
+      if (!j || j.errore){ b.disabled = false; b.textContent = "Invia segnalazione";
+        return toast(j && j.errore === "troppe" ? "Hai già 5 segnalazioni in attesa: aspetta che vengano verificate." : j && j.errore === "fuori_zona" ? "Il punto è fuori dalla laguna." : "Non inviata, riprova."); }
+      segTmpClear(); closeSheet(); haptic(); toast("Segnalazione inviata: quando Trops la verifica ricevi +30 schei"); scheiLoad();
+    }catch(e){ b.disabled = false; b.textContent = "Invia segnalazione"; toast("Non inviata: controlla la connessione."); }
+  };
+}
+function segTmpClear(){ try{ segTmpMk && segTmpMk.remove(); }catch(e){} segTmpMk = null; }
+async function segLoadPublic(){
+  if (!map) return setTimeout(segLoadPublic, 3000); let L; try{ L = await rpc("seg_pubbliche", {}); }catch(e){ return; } if (!Array.isArray(L)) return;
+  SEG_MK.forEach(m => m.remove()); SEG_MK = [];
+  L.forEach(s => { const t = SEG_T[s.tipo]; if (!t) return; const el = document.createElement("div"); el.className = "segMk"; el.textContent = t[0]; el.title = t[1];
+    el.onclick = ev => { ev.stopPropagation(); segOpen(s); };
+    SEG_MK.push(new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([s.lng, s.lat]).addTo(map)); });
+}
+async function segOpen(s){
+  const t = SEG_T[s.tipo];
+  openSheet(`<h3>${t[0]} ${esc(t[1])}</h3><div class="tsub" style="text-align:left">Verificata da Trops · ${agoTxt(s.quando)}${s.nota ? " · " + esc(s.nota) : ""}</div>
+    <div class="segimg" id="segImg">Carico la foto…</div>
+    <button class="btn" id="segGoto">Portami qui</button><button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">Chiudi</button>`);
+  $("#segGoto").onclick = () => { closeSheet(); setMode("nautica"); openPlan({ name: t[1], lat: s.lat, lng: s.lng }); };
+  try{ const j = await rpc("seg_foto", { p_id: s.id }); const im = $("#segImg"); if (im && j && /^data:image\//.test(j.foto || "")){ im.style.backgroundImage = `url('${j.foto}')`; im.textContent = ""; } else if (im) im.textContent = "Foto non disponibile"; }catch(e){}
+}
+// solo tropss: verifica delle segnalazioni
+async function segAdmin(){
+  if (!isTropss()) return;
+  openSheet(`<h3>✓ Valida segnalazioni</h3><div id="segAdm"><p class="muted">Carico…</p></div><button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">Chiudi</button>`);
+  let L; try{ L = await rpc("seg_admin_list", {}); }catch(e){ $("#segAdm").innerHTML = `<p class="muted">Non riesco a caricarle: controlla la connessione.</p>`; return; }
+  if (!Array.isArray(L)){ $("#segAdm").innerHTML = `<p class="muted">Solo Trops può validare.</p>`; return; }
+  SCHEI.pending = L.length; hudPaint();
+  if (!L.length){ $("#segAdm").innerHTML = `<p class="muted">Nessuna segnalazione da verificare. 👌</p>`; return; }
+  $("#segAdm").innerHTML = L.map(s => { const t = SEG_T[s.tipo] || ["❓", s.tipo], f = /^data:image\//.test(s.foto || "") ? s.foto : "";
+    return `<div class="segcard" data-sc="${s.id}"><div class="segimg" style="background-image:url('${esc(f)}')"></div>
+      <div class="segmeta"><b>${t[0]} ${esc(t[1])}</b><small>@${esc(s.utente)} · ${agoTxt(s.quando)}</small>${s.nota ? `<small>${esc(s.nota)}</small>` : ""}
+      <small>${(+s.lat).toFixed(5)}, ${(+s.lng).toFixed(5)} · <a href="#" data-sgm="${s.lat},${s.lng}">vedi sulla mappa</a></small></div>
+      <div class="row" style="gap:8px"><button class="btn small" data-sok="${s.id}" style="flex:1">✓ Approva (Vera)</button><button class="btn small ghost" data-sko="${s.id}" style="flex:1">✕ Rifiuta (Falsa)</button></div></div>`; }).join("");
+  const act = async (id, ok, b) => { b.disabled = true;
+    try{ const j = await rpc("seg_admin_set", { p_id: +id, p_ok: ok }); if (!j || j.errore) throw 0;
+      const c = document.querySelector(`[data-sc="${id}"]`); if (c) c.remove(); SCHEI.pending = j.pending | 0; hudPaint(); haptic();
+      toast(ok ? "Approvata: +30 schei all'utente" : "Rifiutata"); if (ok) segLoadPublic();
+      if (!document.querySelector("[data-sc]")) $("#segAdm").innerHTML = `<p class="muted">Tutto verificato. 👌</p>`;
+    }catch(e){ b.disabled = false; toast("Non salvato, riprova."); } };
+  document.querySelectorAll("[data-sok]").forEach(b => b.onclick = () => act(b.dataset.sok, true, b));
+  document.querySelectorAll("[data-sko]").forEach(b => b.onclick = () => act(b.dataset.sko, false, b));
+  document.querySelectorAll("[data-sgm]").forEach(a => a.onclick = e => { e.preventDefault(); const [la, lo] = a.dataset.sgm.split(",").map(Number); closeSheet(); setMode("nautica");
+    try{ setFollow(false); }catch(er){} segTmpClear(); try{ const el = document.createElement("div"); el.className = "segPin"; el.textContent = "📍"; segTmpMk = new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([lo, la]).addTo(map); }catch(er){}
+    map.flyTo({ center: [lo, la], zoom: 18 }); setTimeout(segTmpClear, 15000); });
+}
+
+/* ---------- Tesori nelle isole ---------- */
+let TESORI = [], TES_MK = [], tesNear = null;
+const tesWait = t => t.prossimo && new Date(t.prossimo) > new Date();
+const tesLeft = t => { const m = Math.max(0, Math.round((new Date(t.prossimo) - Date.now()) / 60000)); return m >= 60 ? Math.floor(m / 60) + " h " + (m % 60) + " min" : m + " min"; };
+async function tesLoad(){ try{ const j = await rpc("tesori_list", {}); if (Array.isArray(j)){ TESORI = j; tesDraw(); if (lastPos) tesTick(lastPos); } }catch(e){} }
+function tesDraw(){
+  TES_MK.forEach(m => m.remove()); TES_MK = []; if (!map) return setTimeout(tesDraw, 3000);
+  TESORI.forEach(t => { const el = document.createElement("div"); el.className = "tesMk" + (tesWait(t) ? " used" : ""); el.innerHTML = SCHEO_SVG; el.title = t.nome;
+    el.onclick = ev => { ev.stopPropagation(); tesInfo(t); };
+    TES_MK.push(new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([t.lng, t.lat]).addTo(map)); });
+}
+function tesTick(p){
+  if (!p || !TESORI.length) return; let best = null;
+  if (p.acc <= 30) TESORI.forEach(t => { if (tesWait(t)) return; const d = dist(p, t); if (d <= t.raggio + Math.min(p.acc || 30, 15) && (!best || d < best.d)) best = { t, d }; });
+  tesNear = best && best.t; const b = $("#tesBtn");
+  if (b){ b.classList.toggle("hidden", !tesNear); if (tesNear) b.innerHTML = SCHEO_SVG + `<span>Tesoro! <b>${esc(tesNear.nome)}</b><small>Tocca per riscattare +${tesNear.premio} schei</small></span>`; }
+}
+$("#tesBtn").onclick = () => tesNear && tesClaim(tesNear);
+async function tesClaim(t){
+  if (!lastPos) return toast("Aspetto il GPS…");
+  const b = $("#tesBtn"); b.disabled = true;
+  try{ const j = await rpc("tesoro_prendi", { p_id: t.id, p_lat: lastPos.lat, p_lng: lastPos.lng, p_acc: lastPos.acc });
+    if (j && j.ok){ t.prossimo = new Date(Date.now() + 864e5).toISOString(); SCHEI.saldo = j.saldo; store.set("ln_schei", SCHEI); hudPaint(); scheiPlus(j.premio);
+      buzz([60, 40, 60, 40, 120]); toast(`💰 Tesoro trovato: +${j.premio} schei!`); tesDraw(); tesTick(lastPos); closeSheet(); }
+    else toast(!j ? "Riprova." : j.errore === "lontano" ? `Sei a ${j.metri} m: avvicinati ancora` : j.errore === "gps" ? "GPS poco preciso: riprova all'aperto" : j.errore === "cooldown" ? "L'hai già preso: torna fra 24 ore" : "Non riscattato, riprova.");
+  }catch(e){ toast("Non riscattato: controlla la connessione."); }
+  b.disabled = false;
+}
+function tesInfo(t){
+  const d = lastPos ? dist(lastPos, t) : null, wait = tesWait(t), near = d !== null && lastPos.acc <= 30 && d <= t.raggio + Math.min(lastPos.acc || 30, 15);
+  openSheet(`<h3>💰 ${esc(t.nome)}</h3><div class="tesBig">${SCHEO_SVG}<b>+${t.premio}</b> schei</div>
+    <p class="trnote">Arriva entro ${t.raggio} m dal tesoro col GPS acceso per riscattarlo. Ogni tesoro si può prendere una volta ogni 24 ore.</p>
+    <div class="tsub">${wait ? "Già preso: torna fra " + tesLeft(t) : d === null ? "Accendi il GPS per sapere quanto manca" : near ? "Ci sei!" : "Sei a " + (d >= 1000 ? (d / 1000).toFixed(1) + " km" : Math.round(d) + " m")}</div>
+    ${near && !wait ? `<button class="btn" id="tesGo">💰 Riscatta +${t.premio}</button>` : `<button class="btn" id="tesNav">Portami qui</button>`}
+    ${isTropss() ? `<button class="btn small ghost" id="tesDel" style="margin-top:8px">🗑️ Togli questo tesoro (solo Trops)</button>` : ""}
+    <button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">Chiudi</button>`);
+  if ($("#tesGo")) $("#tesGo").onclick = () => tesClaim(t);
+  if ($("#tesNav")) $("#tesNav").onclick = () => { closeSheet(); setMode("nautica"); openPlan({ name: t.nome, lat: t.lat, lng: t.lng }); };
+  if ($("#tesDel")) $("#tesDel").onclick = async () => { const j = await rpc("tesoro_admin", { p_azione: "del", p_id: t.id }).catch(() => null); if (j && j.ok){ closeSheet(); toast("Tesoro tolto"); tesLoad(); } else toast("Non riuscito"); };
+}
+
+/* ---------- La scheda degli schei ---------- */
+async function scheiSheet(){
+  const adm = isTropss(), toNext = Math.max(0, 100 - (SCHEI.metri | 0));
+  openSheet(`<div class="schTop">${SCHEO_SVG}<div><b id="schSaldo">${SCHEI.saldo == null ? "–" : SCHEI.saldo}</b><small>${SCHEI.saldo === 1 ? "scheo" : "schei"}</small></div></div>
+    <div class="schWays">
+      <div><span>🚶</span><p><b>1 scheo ogni 100 m</b> a piedi<small>GPS preciso e sotto i 35 km/h · prossimo fra ${toNext} m</small></p></div>
+      <div><span>📸</span><p><b>+30</b> per ogni segnalazione verificata<small>Canali bloccati, lavori, fontanelle, bagni aperti, bar pieni</small></p></div>
+      <div><span>💰</span><p><b>+120</b> per ogni tesoro nelle isole<small>Torcello, Burano, Sant'Erasmo, Pellestrina e altri</small></p></div>
+      <div><span>⚔️</span><p><b>Sfide tra amici</b>: doppio o niente<small>Si punta al massimo quanto ha chi ne ha meno</small></p></div>
+    </div>
+    ${adm ? `<button class="btn" id="schAdm" style="background:#0a8f4e">✓ Valida segnalazioni${SCHEI.pending ? ` <span class="schBdg">${SCHEI.pending}</span>` : ""}</button>` : ""}
+    <div class="row" style="gap:8px;margin-top:8px"><button class="btn small" id="schSeg" style="flex:1">📸 Segnala</button><button class="btn small" id="schSfida" style="flex:1">⚔️ Sfida un amico</button></div>
+    ${adm ? `<button class="btn small ghost" id="schTesAdd" style="margin-top:8px">💰 Metti un tesoro sulla mappa (solo Trops)</button>` : ""}
+    <h4 class="schH">Tesori</h4><div id="schTes"></div>
+    <h4 class="schH">Le tue sfide</h4><div id="schSf"><p class="muted">Carico…</p></div>
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
+  if ($("#schAdm")) $("#schAdm").onclick = segAdmin;
+  $("#schSeg").onclick = segStart;
+  $("#schSfida").onclick = () => { closeSheet(); setMode("sport"); tttHost(); toast("Invita un amico nella stanza, poi puntate gli schei"); };
+  if ($("#schTesAdd")) $("#schTesAdd").onclick = () => { closeSheet(); setMode("nautica"); addMode = "wzpick"; const h = $("#modeHint"); h.textContent = "💰 Tocca la mappa dove mettere il tesoro"; h.classList.remove("hidden");
+    window._wzPick = async ll => { const nome = prompt("Nome del tesoro (es. «Torcello · il campanile»)", "Tesoro"); if (nome === null) return;
+      const j = await rpc("tesoro_admin", { p_azione: "add", p_nome: nome, p_lat: ll.lat, p_lng: ll.lng }).catch(() => null); if (j && j.ok){ toast("Tesoro aggiunto"); tesLoad(); } else toast("Non aggiunto"); }; };
+  const T = TESORI.map(t => ({ t, d: lastPos ? dist(lastPos, t) : null })).sort((a, b) => (a.d ?? 1e12) - (b.d ?? 1e12));
+  $("#schTes").innerHTML = T.length ? T.map(({ t, d }) => `<button class="card rowbtn" data-tz="${t.id}" style="width:100%">${esc(t.nome)} <span>${tesWait(t) ? "fra " + tesLeft(t) : d === null ? "+" + t.premio : d >= 1000 ? (d / 1000).toFixed(1) + " km" : Math.round(d) + " m"}</span></button>`).join("") : `<p class="muted">Nessun tesoro per ora.</p>`;
+  document.querySelectorAll("[data-tz]").forEach(b => b.onclick = () => { const t = TESORI.find(x => x.id === +b.dataset.tz); if (t) tesInfo(t); });
+  scheiLoad().then(() => { const s = $("#schSaldo"); if (s) s.textContent = SCHEI.saldo == null ? "–" : SCHEI.saldo; });
+  let L = null; try{ L = await rpc("sfide_mie", {}); }catch(e){}
+  const box = $("#schSf"); if (!box) return;
+  if (!Array.isArray(L) || !L.length){ box.innerHTML = `<p class="muted">Nessuna sfida. Entra in una stanza di gioco con un amico e premi «Punta schei».</p>`; return; }
+  const st = s => s.stato === "attesa" ? "in attesa" : s.stato === "in_corso" ? "in gioco" : s.stato === "annullata" ? "annullata" : s.vincitore_io ? `vinta +${s.posta * 2}` : s.vincitore_io === false && s.stato === "chiusa" ? `persa −${s.posta}` : "rimborsata";
+  box.innerHTML = L.map(s => `<div class="card rowbtn" style="width:100%">@${esc(s.altro)} · ${scheiTxt(s.posta)} <span>${st(s)}${s.stato === "attesa" || s.stato === "in_corso" ? ` <a href="#" data-sfx="${s.id}" data-sfe="${s.mio_esito || ""}">${s.mio_esito === "vinto" ? "riscuoti" : s.stato === "attesa" ? "annulla" : "rimborso"}</a>` : ""}</span></div>`).join("");
+  box.querySelectorAll("[data-sfx]").forEach(a => a.onclick = async e => { e.preventDefault(); const id = +a.dataset.sfx;
+    const j = a.dataset.sfe === "vinto" ? await rpc("sfida_esito", { p_id: id, p_esito: "vinto" }).catch(() => null) : await rpc("sfida_annulla", { p_id: id }).catch(() => null);
+    if (!j) return toast("Riprova.");
+    if (j.esito === "attendi") toast("Aspetto la conferma dell'avversario (al massimo 2 minuti)");
+    else if (j.errore === "non_annullabile") toast("Si può chiedere il rimborso 30 minuti dopo l'inizio, se nessuno ha dichiarato il risultato.");
+    else { toast(j.esito === "vinto" ? "Schei riscossi!" : "Fatto"); scheiSheet(); } });
+}
+
+/* ---------- Sfide a schei nelle stanze di gioco: doppio o niente ---------- */
+// pacchetti: {bet:"offer",id,posta} · {bet:"ok",id} · {bet:"no",id}
+const myName = () => (PROFILE && PROFILE.clickname) || "";
+function betLock(){ const T = TTT; if (T && T.bet && T.bet.stato === "on"){ toast("C'è una sfida a schei in corso: finite prima la partita."); return true; } return false; }
+function betPaint(){
+  const T = TTT, box = $("#betBox"); if (!box || !T) return;
+  const show = T.mode !== "cpu" && T.ready && T.otherName && !T.gone; box.classList.toggle("hidden", !show); if (!show) return;
+  const B = T.bet, key = B ? B.stato + ":" + (B.id || "") + ":" + (B.max || "") : "none"; if (box.dataset.k === key) return; box.dataset.k = key;
+  const nm = "@" + esc(T.otherName);
+  if (!B) box.innerHTML = `<button class="btn small ghost" id="betStart">${SCHEO_SVG} Punta schei · doppio o niente</button>`;
+  else if (B.stato === "pick") box.innerHTML = `<div class="betrow">Posta: <b id="betV">${Math.min(10, B.max)}</b> schei a testa <small>(max ${B.max}: il saldo di chi ne ha meno)</small></div>
+      <input type="range" id="betR" min="1" max="${B.max}" value="${Math.min(10, B.max)}" style="width:100%">
+      <div class="row" style="gap:8px"><button class="btn small" id="betSend" style="flex:1">Lancia la sfida</button><button class="btn small ghost" id="betX" style="flex:1">Annulla</button></div>`;
+  else if (B.stato === "offer_out") box.innerHTML = `<div class="betrow">Sfida da <b>${scheiTxt(B.posta)}</b> inviata, aspetto ${nm}…</div><button class="btn small ghost" id="betX">Ritira</button>`;
+  else if (B.stato === "offer_in") box.innerHTML = `<div class="betrow">${SCHEO_SVG} ${nm} ti sfida: <b>${scheiTxt(B.posta)}</b> a testa, chi vince prende <b>${B.posta * 2}</b></div>
+      <div class="row" style="gap:8px"><button class="btn small" id="betOk" style="flex:1">Accetta</button><button class="btn small ghost" id="betNo" style="flex:1">Rifiuta</button></div>`;
+  else if (B.stato === "on") box.innerHTML = `<div class="betrow on">${SCHEO_SVG} In palio <b>${B.posta * 2} schei</b> · chi vince prende tutto</div>`;
+  else box.innerHTML = `<div class="betrow">Conto gli schei…</div>`;
+  if ($("#betStart")) $("#betStart").onclick = async () => {
+    const j = await rpc("sfida_max", { p_amico: T.otherName }).catch(() => null);
+    if (!j || j.errore) return toast(j && j.errore === "non_amici" ? "Le sfide a schei sono solo tra amici di myClick." : "Non riesco, riprova.");
+    if (j.max < 1) return toast(j.io < 1 ? "Non hai schei: cammina, segnala o trova un tesoro!" : `@${T.otherName} non ha schei da puntare.`);
+    T.bet = { stato: "pick", max: j.max }; betPaint(); };
+  if ($("#betR")) $("#betR").oninput = e => { $("#betV").textContent = e.target.value; };
+  if ($("#betSend")) $("#betSend").onclick = async () => { const posta = +$("#betR").value;
+    const j = await rpc("sfida_crea", { p_amico: T.otherName, p_posta: posta, p_gioco: T.game }).catch(() => null);
+    if (!j || !j.ok) return toast(j && j.errore === "posta" ? `Al massimo ${j.max} schei` : "Sfida non creata, riprova.");
+    T.bet = { stato: "offer_out", id: j.id, posta }; tttSend({ bet: "offer", id: j.id, posta }); betPaint(); };
+  if ($("#betX")) $("#betX").onclick = () => { if (B && B.id){ rpc("sfida_annulla", { p_id: B.id }).catch(() => {}); tttSend({ bet: "no", id: B.id }); } T.bet = null; betPaint(); };
+  if ($("#betNo")) $("#betNo").onclick = () => { rpc("sfida_annulla", { p_id: B.id }).catch(() => {}); tttSend({ bet: "no", id: B.id }); T.bet = null; betPaint(); };
+  if ($("#betOk")) $("#betOk").onclick = async () => { $("#betOk").disabled = true;
+    const j = await rpc("sfida_accetta", { p_id: B.id }).catch(() => null);
+    if (!j || !j.ok){ toast(j && j.errore === "saldo" ? "Uno dei due non ha più abbastanza schei." : j && j.errore === "scaduta" ? "La sfida è scaduta." : "Non accettata, riprova."); tttSend({ bet: "no", id: B.id }); T.bet = null; betPaint(); return; }
+    SCHEI.saldo = j.saldo; hudPaint(); scheiPlus(-B.posta); T.bet.stato = "on"; tttSend({ bet: "ok", id: B.id });
+    if (T.game === "bs") bsRematch(false); else { tttSend({ r: 1 }); tttReset(); }   // si riparte da zero con gli schei in palio
+    toast(`Sfida accettata: in palio ${B.posta * 2} schei`); };
+}
+function betRecv(d){
+  const T = TTT; if (!T) return;
+  if (d.bet === "offer"){ T.bet = { stato: "offer_in", id: d.id, posta: d.posta | 0 }; buzz([40, 40, 40]); }
+  else if (d.bet === "ok" && T.bet && T.bet.id === d.id){ T.bet.stato = "on"; scheiPlus(-T.bet.posta); scheiLoad(); toast(`@${T.otherName} ha accettato: in palio ${T.bet.posta * 2} schei`); }
+  else if (d.bet === "no" && T.bet && T.bet.id === d.id){ if (T.bet.stato === "offer_out") toast(`@${T.otherName} ha rifiutato la sfida`); T.bet = null; }
+  betPaint();
+}
+// fine partita: ognuno dichiara il proprio risultato, il server paga quando i due coincidono (o chi perde lo conferma)
+function betEnd(res){ const T = TTT; if (!T || T.mode === "cpu" || !T.bet || T.bet.stato !== "on") return; const id = T.bet.id; T.bet.stato = "done"; betPaint(); betSettle(id, res, 0); }
+async function betSettle(id, res, tries){
+  let j = null; try{ j = await rpc("sfida_esito", { p_id: id, p_esito: res }); }catch(e){}
+  if (!j || j.errore){ if (tries < 3) setTimeout(() => betSettle(id, res, tries + 1), 4000); return; }
+  if (j.esito === "attendi"){ if (tries < 6) setTimeout(() => betSettle(id, res, tries + 1), tries < 3 ? 5000 : 40000); return; }
+  if (j.saldo !== undefined && j.saldo !== null){ SCHEI.saldo = j.saldo; store.set("ln_schei", SCHEI); hudPaint(); }
+  if (j.esito === "vinto"){ scheiPlus(j.posta * 2); buzz([80, 60, 80]); toast(`🏆 Hai vinto ${j.posta * 2} schei!`); }
+  else if (j.esito === "perso") toast(`Hai perso ${scheiTxt(j.posta)}. Rivincita?`);
+  else if (j.esito === "rimborso") toast("Risultati diversi: schei restituiti a tutti e due");
+  if (TTT && TTT.bet && TTT.bet.id === id){ TTT.bet = null; betPaint(); }
+}
+function betExitOk(){ const T = TTT; if (T && T.bet && T.bet.stato === "on") return confirm("C'è una sfida a schei in corso: se esci adesso la perdi. Uscire?"); return true; }
+// uscendo dalla stanza: la sfida in corso si perde a tavolino, quelle in attesa si annullano
+function betLeave(){
+  const T = TTT; if (!T || !T.bet || !T.bet.id) return; const B = T.bet;
+  if (B.stato === "on") betSettle(B.id, "perso", 0);
+  else if (B.stato === "offer_out" || B.stato === "offer_in"){ rpc("sfida_annulla", { p_id: B.id }).catch(() => {}); try{ tttSend({ bet: "no", id: B.id }); }catch(e){} }
+}
+
 function sportStop(){ clearInterval(spTimer); spMarkers.forEach(m => m.remove()); spMarkers = []; }
 function paintSport(){
   const list = SPEV.filter(e => !spCat || e.sport === spCat), ref = refPoint();
@@ -8432,7 +8746,7 @@ new MutationObserver(ms => ms.forEach(m => { if (m.type === "characterData") deE
 // avvio: chi ha già un profilo entra direttamente in unClick
 if (PROFILE && PROFILE.age !== undefined){
   // profilo della prima versione (con l'età, senza password): si sceglie la password tenendo lo stesso clickname
-  const old = PROFILE.clickname; PROFILE = null; try{ localStorage.removeItem("ln_profile"); }catch(e){}
+  const old = PROFILE.clickname; PROFILE = null; try{ localStorage.removeItem("ln_profile"); localStorage.removeItem("ln_schei"); }catch(e){} try{ SCHEI.saldo = null; hudPaint(); }catch(e){}
   showOb("ob-reg"); document.querySelector('#authSeg [data-a="reg"]').click();
   $("#regName").value = old; nameOk = true; agree.checked = true; regCheck();
   $("#regNameHint").textContent = "Il tuo clickname: scegli una password per proteggerlo"; $("#regNameHint").className = "hint ok";
