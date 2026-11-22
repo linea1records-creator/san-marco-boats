@@ -1,5 +1,5 @@
 // unClick — fermate rimanenti di una corsa ACTV/Alilaguna (orari ufficiali GTFS)
-// ?linea=1&dir=Lido&la=45.43&lo=12.33&t=1150&nx=Ospedale   (t = minuti dalla mezzanotte della partenza da quella fermata,
+// ?linea=1&dir=Lido&la=45.43&lo=12.33&t=1150&nx=Ospedale&tutto=1   (t = minuti dalla mezzanotte della partenza da quella fermata,
 //   nx = fermata successiva: serve per le linee circolari, che passano dalla stessa fermata alla stessa ora in due versi)
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type, apikey, authorization', 'Access-Control-Allow-Methods': 'GET, OPTIONS' };
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...CORS, 'content-type': 'application/json', 'cache-control': 'public, max-age=60' } });
@@ -33,7 +33,7 @@ async function load() {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   const q = new URL(req.url).searchParams;
-  const linea = q.get('linea') || '', dir = q.get('dir') || '', la = +(q.get('la') || 0), lo = +(q.get('lo') || 0), t = +(q.get('t') || NaN), tol = Math.min(600, +(q.get('tol') || 60)), nx = norm(q.get('nx') || '');
+  const linea = q.get('linea') || '', dir = q.get('dir') || '', la = +(q.get('la') || 0), lo = +(q.get('lo') || 0), t = +(q.get('t') || NaN), tol = Math.min(600, +(q.get('tol') || 60)), nx = norm(q.get('nx') || ''), tutto = q.get('tutto') === '1';
   if (!linea || !la || !lo || isNaN(t)) return json({ errore: 'parametri' }, 400);
   try {
     const d = await load();
@@ -54,12 +54,13 @@ Deno.serve(async (req) => {
     }
     if (!best) return json({ errore: 'corsa_non_trovata' }, 404);
     const f = best.tr.f, n = f.length / 3, out: unknown[] = [];
-    for (let k = best.k; k < n; k++) {
+    // tutto=1: tutta la corsa dal capolinea, con qui = la fermata richiesta (per disegnare anche la parte già fatta)
+    for (let k = tutto ? 0 : best.k; k < n; k++) {
       const s = d.stops[f[k * 3]], ar = f[k * 3 + 1] + best.off, dp = f[k * 3 + 2] + best.off;
       // coordinate arrotondate come nelle posizioni dei battelli: così i tratti tra fermate hanno la stessa chiave
       out.push({ n: base(String(s[1])), lat: +(+s[2]).toFixed(5), lng: +(+s[3]).toFixed(5), arr: hhmm(ar), dep: Math.round(dp * 10) / 10, ar: Math.round(ar * 10) / 10 });
     }
-    return json({ linea, dir: best.tr.dir, fermate: out });
+    return json({ linea, dir: best.tr.dir, fermate: out, qui: tutto ? best.k : 0 });
   } catch (e) {
     return json({ errore: String(e) }, 500);
   }

@@ -6001,10 +6001,19 @@ function vpUpload(k, pts){   // tragitto calcolato qui: lo condivido (il server 
 }
 // calcola in anticipo tutti i tratti che mancano, a piccoli pezzi, così i battelli non restano fermi ad aspettare
 let vpPreT = null;
+// tutti i tratti tra due fermate di tutte le linee (dal server): si calcolano una volta sola per tutti e si salvano nel database
+let VP_ALL = store.get("ln_vap_all", null), vpAllAt = 0;
+async function vpLoadAll(){
+  if (VP_ALL && Date.now() - (VP_ALL.at || 0) < 3 * 864e5) return;
+  if (Date.now() - vpAllAt < 10 * 60000) return; vpAllAt = Date.now();
+  try{ const j = await api("rpc/actv_tratte", { method: "POST", body: {} }); if (j && Array.isArray(j.p)){ VP_ALL = { at: Date.now(), p: j.p }; store.set("ln_vap_all", VP_ALL); vpPrecompute(); } }catch(e){}
+}
 function vpPrecompute(){
-  if (vpPreT || !actvRaw || !G.done) return;
+  if (vpPreT || !G.done) return;
   const todo = []; const seen = new Set();
-  actvRaw.forEach(b => { const st = b[4] || []; for (let i = 1; i < st.length; i++){ const k = vpKey(st[i - 1][0], st[i - 1][1], st[i][0], st[i][1]); if (!ACTV_PATH.has(k) && !seen.has(k)){ seen.add(k); todo.push(st[i - 1].concat(st[i])); } } });
+  const add = (a, b) => { const k = vpKey(a[0], a[1], b[0], b[1]); if (!ACTV_PATH.has(k) && !seen.has(k)){ seen.add(k); todo.push([a[0], a[1], 0, 0, b[0], b[1]]); } };
+  ((VP_ALL && VP_ALL.p) || []).forEach(t => add([t[0], t[1]], [t[2], t[3]]));   // prima tutte le linee, così ogni tratto è pronto quando serve
+  (actvRaw || []).forEach(b => { const st = b[4] || []; for (let i = 1; i < st.length; i++) add(st[i - 1], st[i]); });
   if (!todo.length) return;
   const step = () => { vpPreT = null; actvBudget = 40; actvDeadline = performance.now() + 30;
     while (todo.length && actvBudget > 0 && performance.now() < actvDeadline){ const t = todo[todo.length - 1]; actvPath(t[0], t[1], t[4], t[5]); if (ACTV_PATH.has(vpKey(t[0], t[1], t[4], t[5]))) todo.pop(); }
@@ -6051,7 +6060,7 @@ function corsaLayers(){
   if (!map || map.getSource("corsa")) return;
   map.addSource("corsa", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
   const L = ["==", ["geometry-type"], "LineString"], P = ["==", ["geometry-type"], "Point"];
-  map.addLayer({ id: "corsa-case", type: "line", source: "corsa", filter: L, layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#111", "line-width": 8 } });
+  map.addLayer({ id: "corsa-case", type: "line", source: "corsa", filter: L, layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": ["case", ["has", "g"], "#5b6560", "#111"], "line-width": 8 } });
   map.addLayer({ id: "corsa-line", type: "line", source: "corsa", filter: L, layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": ["get", "c"], "line-width": ["case", ["has", "d"], 6, 5] } });
   map.addLayer({ id: "corsa-pt", type: "circle", source: "corsa", filter: P, paint: { "circle-radius": ["case", ["get", "f"], 8, 6], "circle-color": "#ffffff", "circle-stroke-color": ["get", "s"], "circle-stroke-width": 3 } });
   if (map.getStyle().glyphs) map.addLayer({ id: "corsa-lbl", type: "symbol", source: "corsa", filter: P, layout: { "text-field": ["get", "t"], "text-font": ["Noto Sans Bold", "Noto Sans Regular"],
@@ -6070,6 +6079,8 @@ function corsaList(){
 function corsaPaint(){
   const st = CORSA_ST; if (!st || !map || !map.getSource("corsa")) return; const feats = [];
   actvBudget = 400; actvDeadline = performance.now() + 2500;
+  for (let i = 1; i < (st.past || []).length; i++){ const a = st.past[i - 1], b = st.past[i], P = actvPath(a[0], a[1], b[0], b[1]);   // già fatto: grigio
+    if (P) feats.push({ type: "Feature", properties: { c: "#9aa0a8", g: 1 }, geometry: { type: "LineString", coordinates: P.pts.map(p => [p[1], p[0]]) } }); }
   for (let i = 1; i < st.pts.length; i++){ const a = st.pts[i - 1], b = st.pts[i], k = vpKey(a[0], a[1], b[0], b[1]); if (k === st.hide) continue;
     const P = actvPath(a[0], a[1], b[0], b[1]);
     if (P) feats.push({ type: "Feature", properties: { c: st.col }, geometry: { type: "LineString", coordinates: P.pts.map(p => [p[1], p[0]]) } }); }
@@ -6167,13 +6178,16 @@ async function openCorsa(o){
   $("#cbClose").onclick = closeCorsa; $("#cbNote").textContent = ""; CORSA_ST = null; drawStop(true); paintTrkBtn();
   if ($("#cbEdit")) $("#cbEdit").onclick = () => { if (!CORSA_ST) return; CORSA_ST.edit = !CORSA_ST.edit; $("#cbEdit").classList.toggle("on", CORSA_ST.edit); corsaList(); };
   $("#cbList").innerHTML = `<div class="cbMsg">Carico le fermate\u2026</div>`;
-  let j; try{ j = await CORSA(`linea=${encodeURIComponent(o.linea)}&dir=${encodeURIComponent(o.dir)}&la=${o.la}&lo=${o.lng}&t=${o.t}&tol=${o.tol || 60}${o.nx ? "&nx=" + encodeURIComponent(o.nx) : ""}`); }catch(e){ j = { errore: "rete" }; }
+  let j; try{ j = await CORSA(`linea=${encodeURIComponent(o.linea)}&dir=${encodeURIComponent(o.dir)}&la=${o.la}&lo=${o.lng}&t=${o.t}&tol=${o.tol || 60}&tutto=1${o.nx ? "&nx=" + encodeURIComponent(o.nx) : ""}`); }catch(e){ j = { errore: "rete" }; }
+  // tutto il giro del battello: la parte già fatta resta in grigio, sotto si elencano le fermate che mancano
+  let PAST = [];
+  if (j && Array.isArray(j.fermate) && j.qui > 0){ PAST = j.fermate.slice(0, j.qui + 1).map(f => [f.lat, f.lng]); j.fermate = j.fermate.slice(j.qui); }
   if (seq !== corsaSeq) return;
   if (!j || !Array.isArray(j.fermate) || !j.fermate.length){ $("#cbList").innerHTML = `<div class="cbMsg">${j && j.errore === "corsa_non_trovata" ? "Non trovo questa corsa negli orari." : "Fermate non disponibili: controlla la connessione."}</div>`; return; }
   let F = j.fermate.slice();
   if (o.boat){ let t = romeMinNow(); const d0 = F[0].dep; if (t < d0 - 600) t += 1440; else if (t > d0 + 600) t -= 1440; if (F.length > 1 && t > d0 + 0.2) F = F.slice(1); }   // fermata già lasciata
   const pts = (o.boat ? [[o.la, o.lng]] : []).concat(F.map(f => [f.lat, f.lng]));
-  CORSA_ST = { o, F, pts, col, light, edit: false, hide: null };
+  CORSA_ST = { o, F, pts, past: PAST, col, light, edit: false, hide: null };
   corsaList();
   const nf = F.length - 1; $("#cbNote").textContent = (nf === 1 ? "1 fermata" : nf + " fermate") + " fino al capolinea \u00b7 orari ufficiali, senza ritardi";
   if (!map) return; corsaLayers(); corsaPaint();
@@ -6253,7 +6267,7 @@ function trkStop(keepBox){
 }
 function actvStart(){
   if (typeof loadGraph === "function") loadGraph();
-  if (!map) return; addBoatsLayer(); if (!actvFetchT){ vpSync(); setInterval(() => { if (!document.hidden) vpSync(); }, 5 * 60000); actvFetch(); actvFetchT = setInterval(() => { if (!document.hidden) actvFetch(); }, 60000); }
+  if (!map) return; addBoatsLayer(); if (!actvFetchT){ vpSync(); setTimeout(vpLoadAll, 8000); setInterval(() => { if (!document.hidden) vpSync(); }, 5 * 60000); actvFetch(); actvFetchT = setInterval(() => { if (!document.hidden) actvFetch(); }, 60000); }
   if (!actvAnimT) actvAnimT = setInterval(() => { if (!document.hidden) actvPaint(); }, 2000);
 }
 function actvStop(){ clearInterval(actvFetchT); clearInterval(actvAnimT); actvFetchT = actvAnimT = null; }
