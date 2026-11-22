@@ -6412,7 +6412,7 @@ async function openCorsa(o){
     trkList(); TRK.follow = false; paintTrkBtn();
     try{ setFollow(false); const bb = new maplibregl.LngLatBounds(); (PAST || []).concat(pts).forEach(p => bb.extend([p[1], p[0]]));
       map.fitBounds(bb, { padding: { top: 70, left: 40, right: 40, bottom: Math.round(innerHeight * 0.45) + 20 }, maxZoom: 15.5, pitch: 0, bearing: 0, duration: 700 }); }catch(e){}
-    const kk = o.k; setTimeout(() => { if (TRK && TRK.k === kk && !TRK.follow && !TRK.touched){ TRK.follow = true; paintTrkBtn(); trkFocus(false); } }, 3500);
+    const kk = o.k; setTimeout(() => { if (TRK && TRK.k === kk && !TRK.follow && !TRK.touched){ TRK.follow = true; paintTrkBtn(); trkFocus(true); } }, 3500);   // dopo il giro intero si torna vicini al battello
     return; }
   try{ setFollow(false); const bb = new maplibregl.LngLatBounds(); pts.forEach(p => bb.extend([p[1], p[0]]));
     map.fitBounds(bb, { padding: { top: 70, left: 40, right: 40, bottom: Math.round(innerHeight * 0.45) + 20 }, maxZoom: 16, duration: 700 }); }catch(e){}
@@ -6421,7 +6421,7 @@ async function openCorsa(o){
 var TRK = null, trkT = null;   // var: lo leggono anche funzioni chiamate prima di questa riga
 const TRK_BTN = `<button id="cbFollow" aria-label="Segui">Segui</button>`;
 function paintTrkBtn(){ const b = $("#cbFollow"); if (b){ b.classList.toggle("on", !!(TRK && TRK.follow)); b.textContent = TRK && TRK.follow ? "Seguo" : "Segui";
-  b.onclick = () => { if (!TRK) return; TRK.follow = !TRK.follow; if (TRK.follow) trkFocus(false); paintTrkBtn(); }; } }
+  b.onclick = () => { if (!TRK) return; TRK.follow = !TRK.follow; if (TRK.follow){ TRK.touched = false; trkFocus(true); } paintTrkBtn(); }; } }
 function trkLayer(){
   if (!map || map.getSource("trkboat")) return;
   map.addSource("trkboat", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
