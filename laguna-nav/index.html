@@ -744,6 +744,20 @@
   .tboard button:disabled{cursor:default}
   .tstate{text-align:center;font-size:16px;font-weight:700;margin:4px 0}
   .tsub{text-align:center;color:var(--muted);font-size:13px}
+  /* battaglia navale: stesso stile del tris (griglia nera, caselle bianche) */
+  .bsg{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:2px;background:#111;padding:4px;border-radius:12px;width:min(92vw,360px,calc(100vh - 330px));margin:8px auto;touch-action:manipulation}
+  .bsg button{aspect-ratio:1;background:#fff;border-radius:3px;padding:0;border:0;font-size:min(4vw,16px);font-weight:800;color:#111;display:flex;align-items:center;justify-content:center;line-height:1}
+  .bsg.mini{width:150px;gap:1px;padding:3px;border-radius:8px;margin:2px 0 0} .bsg.mini button{border-radius:1px;font-size:8px;pointer-events:none}
+  .bsg button.ship{background:#6b7078;color:#fff}
+  .bsg button.w{background:#dbe7f3;color:#5b7fa6}
+  .bsg button.h{background:#e8710a;color:#fff}
+  .bsg button.s{background:#b3261e;color:#fff}
+  .bsg button.pend{background:#ffe9a8;box-shadow:inset 0 0 0 2px #111}
+  .bsg.off{opacity:.72}
+  .bsbar{display:flex;gap:6px;justify-content:center;margin:4px 0 6px} .bsbar .btn{flex:1;padding-left:4px;padding-right:4px}
+  .bsfoot{display:flex;gap:14px;align-items:flex-start;justify-content:center;margin:2px 0 6px} .bsfoot small{color:var(--muted);font-size:11px}
+  .bsinfo{font-size:13px;line-height:1.35;color:var(--muted)} .bsinfo b{font-size:20px;color:var(--text)}
+  .gsw{margin:-2px 0 4px} .gsw button{font-size:12.5px}
   /* icone a linea al posto delle emoji (stesso stile della barra in basso) */
   svg.ei{display:inline-block;width:1.2em;height:1.2em;vertical-align:-.22em;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto;overflow:visible}
   .big svg.ei,.big > svg.ei{width:1em;height:1em}
@@ -7265,7 +7279,7 @@ document.querySelectorAll("#spPanel [data-gt]").forEach(b => b.onclick = () => {
 const TTT_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 function trisLine(b){ for (const l of TTT_LINES) if (b[l[0]] !== "." && b[l[0]] === b[l[1]] && b[l[1]] === b[l[2]]) return l; return []; }
 const tttEnd = b => trisLine(b).length ? b[trisLine(b)[0]] : b.includes(".") ? null : "=";
-let TTT = null;   // { mode: "cpu" | "host" | "guest", b, turn, me, start, peer, conn, code, score }
+let TTT = null, LOBBY = Object.assign({ game: "ttt", size: 10 }, store.get("ln_lobby", {}));   // { mode: "cpu" | "host" | "guest", b, turn, me, start, peer, conn, code, score }
 let PEERJS = null;
 function loadPeerJS(){
   if (window.Peer) return Promise.resolve();
@@ -7277,11 +7291,16 @@ function loadPeerJS(){
 // preparo PeerJS in sottofondo appena si apre la scheda dei giochi, così "Crea stanza" è immediato
 function paintTris(){
   const box = $("#spTris"); if (!box || gTab !== "tris") return;
-  box.innerHTML = `<div class="mkcats dg"><button class="on">✕◯ Tris</button><button disabled>Altri giochi in arrivo</button></div>
-    <p class="trnote" style="margin-top:0">Gioca dal vivo con un amico: uno crea la stanza e manda il codice, l'altro entra.</p>
+  box.innerHTML = `<div class="mkcats dg"><button data-lg="ttt" class="${LOBBY.game === "ttt" ? "on" : ""}">✕◯ Tris</button><button data-lg="bs" class="${LOBBY.game === "bs" ? "on" : ""}">⚓ Battaglia navale</button></div>
+    ${LOBBY.game === "bs" ? `<div class="mkcats dg" style="margin-top:-4px"><button data-ls="10" class="${LOBBY.size === 10 ? "on" : ""}">Classica 10×10</button><button data-ls="6" class="${LOBBY.size === 6 ? "on" : ""}">Partita rapida 6×6</button></div>` : ""}
+    <p class="trnote" style="margin-top:0">Gioca dal vivo con un amico: uno crea la stanza e manda il codice, l'altro entra. Nella stanza potete cambiare gioco quando volete.</p>
     <button class="btn small" id="tttHost">Crea stanza</button>
-    <div class="row" style="gap:8px;margin-top:8px"><div class="field" style="flex:1;margin:0"><input id="tttCode" maxlength="4" autocapitalize="characters" autocomplete="off" placeholder="CODICE" style="text-transform:uppercase;letter-spacing:4px;font-weight:800;text-align:center"></div><button class="btn small" id="tttJoin" style="flex:0 0 auto">Entra in stanza</button></div>
+    <div class="field" style="margin:12px 0 6px"><input id="tttCode" maxlength="4" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="CODICE"
+      style="width:100%;box-sizing:border-box;min-width:0;height:56px;font-size:28px;text-transform:uppercase;letter-spacing:10px;font-weight:800;text-align:center;padding:0 0 0 10px"></div>
+    <button class="btn small" id="tttJoin">Entra in stanza</button>
     <button class="btn small ghost" id="tttCpu" style="margin-top:8px">Gioca vs CPU</button>`;
+  box.querySelectorAll("[data-lg]").forEach(b => b.onclick = () => { LOBBY.game = b.dataset.lg; store.set("ln_lobby", LOBBY); paintTris(); });
+  box.querySelectorAll("[data-ls]").forEach(b => b.onclick = () => { LOBBY.size = +b.dataset.ls; store.set("ln_lobby", LOBBY); paintTris(); });
   $("#tttHost").onclick = tttHost; $("#tttCpu").onclick = () => tttNew("cpu");
   $("#tttJoin").onclick = () => tttJoin($("#tttCode").value);
   $("#tttCode").onkeydown = e => { if (e.key === "Enter") tttJoin($("#tttCode").value); };
@@ -7292,13 +7311,15 @@ const tttCodeNew = () => { const A = "ABCDEFGHJKLMNPQRSTUVWXYZ"; let s = ""; for
 const tttPeerId = c => "unclick-tris-" + c;
 function tttNew(mode, extra){
   tttClose(true);
-  TTT = Object.assign({ mode, b: ".........", start: "X", turn: "X", me: "X", score: { io: 0, lui: 0, pari: 0 }, ready: mode === "cpu", pid: Math.random().toString(36).slice(2, 10), seq: 0, seen: 0 }, extra || {});
-  tttSheet();
+  TTT = Object.assign({ mode, game: mode === "guest" ? "ttt" : LOBBY.game, b: ".........", start: "X", turn: "X", me: "X", score: { io: 0, lui: 0, pari: 0 }, bsScore: { io: 0, lui: 0 },
+    ready: mode === "cpu", pid: Math.random().toString(36).slice(2, 10), seq: 0, seen: 0 }, extra || {});
+  if (TTT.game === "bs") TTT.bs = bsNew(LOBBY.size);
+  gameSheet();
 }
 // trasporto doppio: il canale dal vivo del server (arriva sempre, anche su rete mobile) e, se si collega, WebRTC diretto (PeerJS).
 // Ogni pacchetto ha chi lo manda (p) e un numero (n): se arriva da tutte e due le strade, il doppione si scarta.
 function tttSend(msg){
-  if (!TTT) return; msg.g = "ttt"; msg.p = TTT.pid; msg.n = ++TTT.seq;
+  if (!TTT) return; msg.g = msg.g || "ttt"; msg.p = TTT.pid; msg.n = ++TTT.seq;
   try{ if (TTT.conn && TTT.conn.open) TTT.conn.send(msg); }catch(e){}
   rtSend("tris-" + TTT.code, "m", msg);
 }
@@ -7332,15 +7353,17 @@ async function tttJoin(raw){
 function tttFail(msg){ if (!TTT) return; TTT.err = msg; tttPaint(); }
 // pacchetti minimi: {"g":"ttt","i":4} mossa · {"r":1} rivincita · {"hi":1}/{"hey":1} ingresso · {"bye":1} uscita
 function tttRecv(d){
-  if (!TTT || !d || d.g !== "ttt" || d.p === TTT.pid) return;
+  if (!TTT || !d || (d.g !== "ttt" && d.g !== "bs") || d.p === TTT.pid) return;
   if (d.hi && TTT.mode === "host"){
     if (TTT.other && TTT.other !== d.p){ rtSend("tris-" + TTT.code, "m", { g: "ttt", full: 1, to: d.p, p: TTT.pid, n: 0 }); return; }
-    TTT.other = d.p; if (!TTT.ready){ TTT.ready = true; haptic(); tttPaint(); } tttSend({ hey: 1 }); return; }
+    TTT.other = d.p; if (!TTT.ready){ TTT.ready = true; haptic(); tttPaint(); } tttSend({ hey: 1 }); tttSend({ sel: TTT.game, size: TTT.bs ? TTT.bs.n : LOBBY.size }); return; }
   if (d.full){ if (d.to === TTT.pid) tttFail("Questa stanza è già piena."); return; }
   if (TTT.other && d.p !== TTT.other) return;                // un terzo: lo ignoro
   if (d.n && d.n <= (TTT.seen || 0)) return; if (d.n) TTT.seen = d.n;   // doppione arrivato dall'altra strada
   if (d.hey && TTT.mode === "guest"){ TTT.other = d.p; if (!TTT.ready){ TTT.ready = true; haptic(); tttPaint(); } return; }
   if (d.bye){ TTT.ready = false; TTT.gone = true; tttPaint(); return; }
+  if (d.sel){ setGame(d.sel, d.size, true); return; }
+  if (d.g === "bs"){ bsRecv(d); return; }
   if (d.r){ tttReset(); return; }
   if (d.i === undefined) return;
   const i = d.i | 0, other = TTT.me === "X" ? "O" : "X";
@@ -7375,7 +7398,7 @@ function tttCpu(){
 }
 function tttReset(){
   if (!TTT) return; TTT.start = TTT.start === "X" ? "O" : "X"; TTT.b = "........."; TTT.turn = TTT.start;   // a ogni rivincita inizia l'altro
-  tttSheet(); if (TTT.mode === "cpu" && TTT.turn !== TTT.me) setTimeout(tttCpu, 280);
+  gameSheet(); if (TTT.mode === "cpu" && TTT.turn !== TTT.me) setTimeout(tttCpu, 280);
 }
 function tttState(){
   const T = TTT, end = tttEnd(T.b), vs = T.mode === "cpu" ? "la CPU" : "il tuo amico";
@@ -7388,30 +7411,56 @@ function tttState(){
 function tttSheet(){
   const T = TTT; if (!T) return;
   openSheet(`<h3>✕◯ Tris ${T.mode === "cpu" ? "contro la CPU" : "dal vivo"}</h3>
+    ${gameSwitch()}
     <div class="tstate" id="tttState"></div><div class="tsub" id="tttSub"></div>
-    <div id="tttRoom" class="hidden" style="text-align:center;margin:8px 0"><div style="font-size:34px;font-weight:800;letter-spacing:8px" id="tttCodeBig">${esc(T.code || "")}</div><button class="btn small ghost" id="tttCopy" style="margin-top:6px">Copia codice</button>
-      <div class="row" style="gap:8px;margin-top:8px"><button class="btn small" id="tttInv" style="flex:1">Invita un amico</button><button class="btn small ghost" id="tttShare" style="flex:1">Invia link</button></div></div>
+    ${roomBox()}
     <div class="tboard" id="tttBoard">${[...T.b].map((c, i) => `<button data-tc="${i}" class="${c === "O" ? "o" : ""}">${c === "X" ? "✕" : c === "O" ? "◯" : ""}</button>`).join("")}</div>
     <button class="btn hidden" id="tttAgain">↻ Rivincita</button>
     <button class="btn ghost" style="margin-top:8px" id="tttX">Esci</button>`);
   // pointerdown: la X o il cerchio compaiono nel momento in cui il dito tocca, non quando si alza
   document.querySelectorAll("#tttBoard [data-tc]").forEach(b => b.addEventListener("pointerdown", e => { e.preventDefault(); tttTap(+b.dataset.tc); }));
-  $("#tttCopy").onclick = async () => { try{ await navigator.clipboard.writeText(T.code); toast("Codice copiato: " + T.code); }catch(e){ toast("Codice: " + T.code); } };
   $("#tttAgain").onclick = () => { if (!TTT) return; if (TTT.mode !== "cpu") tttSend({ r: 1 }); tttReset(); };
-  $("#tttShare").onclick = async () => { const url = location.origin + location.pathname + "#tris=" + T.code, txt = "Giochiamo a tris su unClick! Codice " + T.code;
-    try{ if (navigator.share){ await navigator.share({ title: "Tris su unClick", text: txt, url }); return; } }catch(e){ return; }
+  $("#tttX").onclick = () => tttClose();
+  wireRoom(); wireSwitch(); tttPaint();
+}
+// parti in comune ai giochi: codice della stanza con inviti, e il cambio di gioco
+function roomBox(){
+  const T = TTT; if (!T || T.mode === "cpu") return "";
+  return `<div id="tttRoom" class="hidden" style="text-align:center;margin:8px 0"><div style="font-size:34px;font-weight:800;letter-spacing:8px" id="tttCodeBig">${esc(T.code || "")}</div><button class="btn small ghost" id="tttCopy" style="margin-top:6px">Copia codice</button>
+      <div class="row" style="gap:8px;margin-top:8px"><button class="btn small" id="tttInv" style="flex:1">Invita un amico</button><button class="btn small ghost" id="tttShare" style="flex:1">Invia link</button></div></div>`;
+}
+function wireRoom(){
+  const T = TTT; if (!T || !$("#tttRoom")) return;
+  $("#tttCopy").onclick = async () => { try{ await navigator.clipboard.writeText(T.code); toast("Codice copiato: " + T.code); }catch(e){ toast("Codice: " + T.code); } };
+  $("#tttShare").onclick = async () => { const url = location.origin + location.pathname + "#tris=" + T.code, txt = "Giochiamo su unClick! Codice " + T.code;
+    try{ if (navigator.share){ await navigator.share({ title: "Gioca su unClick", text: txt, url }); return; } }catch(e){ return; }
     try{ await navigator.clipboard.writeText(txt + " " + url); toast("Link copiato: mandalo al tuo amico"); }catch(e){ toast(url); } };
   $("#tttInv").onclick = () => tttInvite();
-  $("#tttX").onclick = () => tttClose();
-  tttPaint();
 }
+function paintRoom(){ const T = TTT, r = $("#tttRoom"); if (r) r.classList.toggle("hidden", !(T.mode === "host" && !T.ready && !T.err)); }
+function gameSwitch(){
+  const T = TTT, bs = T.game === "bs";
+  return `<div class="mkcats dg gsw"><button data-sg="ttt" class="${bs ? "" : "on"}">✕◯ Tris</button><button data-sg="bs" class="${bs ? "on" : ""}">⚓ Battaglia navale</button>${bs ? `<button data-ss="${T.bs.n === 6 ? 10 : 6}">${T.bs.n === 6 ? "10×10" : "Rapida 6×6"}</button>` : ""}</div>`;
+}
+function wireSwitch(){
+  document.querySelectorAll("[data-sg]").forEach(b => b.onclick = () => { if (b.dataset.sg !== TTT.game) setGame(b.dataset.sg, LOBBY.size); });
+  document.querySelectorAll("[data-ss]").forEach(b => b.onclick = () => setGame("bs", +b.dataset.ss));
+}
+function setGame(g, size, remote){
+  const T = TTT; if (!T) return; T.game = g === "bs" ? "bs" : "ttt";
+  if (T.game === "bs") T.bs = bsNew(size); else { T.b = "........."; T.turn = T.start; }
+  if (!remote && T.mode !== "cpu") tttSend({ sel: T.game, size: T.bs ? T.bs.n : size });
+  gameSheet();
+}
+function gameSheet(){ if (!TTT) return; if (TTT.game === "bs") bsSheet(); else tttSheet(); }
 function tttPaint(light){
+  if (TTT && TTT.game === "bs") return bsPaint();
   const T = TTT; if (!T || !$("#tttBoard")) return;
   const end = tttEnd(T.b), win = trisLine(T.b), my = T.ready && !end && T.turn === T.me;
   $("#tttState").textContent = tttState();
   $("#tttSub").textContent = T.mode === "cpu" ? `Tu ✕ · CPU ◯ · ${T.score.io}–${T.score.lui}${T.score.pari ? " · pari " + T.score.pari : ""}`
     : T.ready ? `Tu giochi con ${T.me === "X" ? "✕" : "◯"} · ${T.score.io}–${T.score.lui}${T.score.pari ? " · pari " + T.score.pari : ""}` : T.mode === "host" ? "La stanza resta aperta finché non esci" : `Stanza ${T.code}`;
-  $("#tttRoom").classList.toggle("hidden", !(T.mode === "host" && !T.ready && !T.err));
+  paintRoom();
   document.querySelectorAll("#tttBoard [data-tc]").forEach((b, i) => { b.disabled = !(my && T.b[i] === "."); b.classList.toggle("w", win.includes(i)); });
   $("#tttAgain").classList.toggle("hidden", !(end && (T.mode === "cpu" || T.ready)));
 }
@@ -7436,6 +7485,180 @@ function trisBadge(){}   // le sfide a turni via server non ci sono più
 
 // link d'invito: unClick aperto con #tris=ABCD entra subito nella stanza
 setTimeout(() => { const m = /tris=([A-Za-z]{4})/.exec(location.hash || ""); if (m){ history.replaceState(null, "", location.pathname + location.search); try{ setMode("sport"); }catch(e){} tttJoin(m[1]); } }, 1500);
+/* ---------- Battaglia navale: stessa stanza, stesso canale istantaneo del tris ----------
+   Ognuno tiene segreta la sua flotta. Chi spara manda solo {"g":"bs","x":3,"y":5}; chi viene colpito risponde
+   con l'esito {"g":"bs","x":3,"y":5,"res":"a|c|f"} (acqua, colpito, affondato). Il tocco si vede subito (0 ms). */
+const BS_FLEET = { 10: [4, 3, 3, 2, 2, 2, 1, 1, 1, 1], 6: [3, 2, 2, 1, 1] };
+const BS_NAME = { a: "Acqua", c: "Colpito!", f: "Affondato!" };
+function bsNew(size){
+  const n = size === 6 ? 6 : 10;
+  return { n, fleet: BS_FLEET[n], ships: [], grid: new Array(n * n).fill(-1), onMe: new Array(n * n).fill(0), en: new Array(n * n).fill(0),
+    phase: "place", dir: "h", meReady: false, otherReady: false, turn: null, wait: false, left: BS_FLEET[n].length, myLeft: BS_FLEET[n].length, winner: null, last: "" };
+}
+// le navi non si toccano, nemmeno in diagonale (regola classica)
+function bsFits(B, len, i, dir){
+  const n = B.n, x = i % n, y = Math.floor(i / n), cells = [];
+  for (let k = 0; k < len; k++){ const cx = dir === "h" ? x + k : x, cy = dir === "v" ? y + k : y; if (cx >= n || cy >= n) return null; cells.push(cy * n + cx); }
+  for (const c of cells){ const cx = c % n, cy = Math.floor(c / n);
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++){ const ax = cx + dx, ay = cy + dy; if (ax < 0 || ay < 0 || ax >= n || ay >= n) continue; if (B.grid[ay * n + ax] !== -1) return null; } }
+  return cells;
+}
+function bsPut(B, cells){ const id = B.ships.length; B.ships.push({ cells, hits: 0 }); cells.forEach(c => B.grid[c] = id); }
+function bsRandom(B){
+  for (let tries = 0; tries < 200; tries++){
+    B.ships = []; B.grid.fill(-1); let ok = true;
+    for (const len of B.fleet){ let placed = false;
+      for (let t = 0; t < 400 && !placed; t++){ const dir = Math.random() < 0.5 ? "h" : "v", cells = bsFits(B, len, Math.floor(Math.random() * B.n * B.n), dir); if (cells){ bsPut(B, cells); placed = true; } }
+      if (!placed){ ok = false; break; } }
+    if (ok) return true;
+  }
+  return false;
+}
+// chi viene colpito decide l'esito sulla propria flotta
+function bsResolve(B, i){
+  if (B.onMe[i]) return null;
+  const id = B.grid[i];
+  if (id < 0){ B.onMe[i] = 1; return { res: "a" }; }
+  B.onMe[i] = 2; const s = B.ships[id]; s.hits++;
+  if (s.hits < s.cells.length) return { res: "c" };
+  B.myLeft--; return { res: "f", s: s.cells, end: B.myLeft === 0 ? 1 : 0 };
+}
+// esito ricevuto sui miei colpi: un affondato segna anche l'acqua intorno (lì non può esserci niente)
+function bsMark(B, i, r){
+  const n = B.n;
+  if (r.res === "a") B.en[i] = 1;
+  else if (r.res === "c") B.en[i] = 2;
+  else { (r.s || [i]).forEach(c => { B.en[c] = 3;
+      const cx = c % n, cy = Math.floor(c / n);
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++){ const ax = cx + dx, ay = cy + dy; if (ax >= 0 && ay >= 0 && ax < n && ay < n && B.en[ay * n + ax] === 0) B.en[ay * n + ax] = 1; } });
+    B.left--; }
+}
+function bsStart(){
+  const T = TTT, B = T.bs; B.phase = "play"; B.wait = false;
+  const hostFirst = T.bsStartHost !== false;
+  B.turn = T.mode === "cpu" ? (T.bsStartHost === false ? "him" : "me") : ((T.mode === "host") === hostFirst ? "me" : "him");
+  haptic(); bsSheet();
+  if (T.mode === "cpu" && B.turn === "him") setTimeout(bsCpuShoot, 500);
+}
+function bsTap(i){
+  const T = TTT; if (!T || !T.bs) return; const B = T.bs;
+  if (B.phase === "place") return bsPlaceAt(i);
+  if (B.phase !== "play" || B.turn !== "me" || B.wait || B.en[i] || !T.ready) return;
+  B.wait = true; B.en[i] = 4; bsCell("en", i);                  // 0 ms: il colpo è già sulla griglia
+  if (T.mode === "cpu"){ const r = bsResolve(T.cpu, i); setTimeout(() => bsGot(i, r), 120); return; }
+  tttSend({ g: "bs", x: i % B.n, y: Math.floor(i / B.n) });     // e parte all'avversario
+}
+function bsGot(i, r){
+  const T = TTT, B = T && T.bs; if (!B || !r) return;
+  B.wait = false; bsMark(B, i, r); B.last = BS_NAME[r.res];
+  if (r.res !== "a") buzz(r.res === "f" ? [70, 40, 120] : [40]); else haptic();
+  if (r.end || B.left === 0){ B.phase = "end"; B.winner = "me"; T.bsScore.io++; buzz([80, 60, 80]); }
+  else if (r.res === "a"){ B.turn = "him"; if (T.mode === "cpu") setTimeout(bsCpuShoot, 650); }
+  bsPaint();
+}
+// colpo dell'avversario sulla mia flotta
+function bsIncoming(i){
+  const T = TTT, B = T.bs, r = bsResolve(B, i); if (!r) return null;
+  B.last = r.res === "a" ? "L'avversario ha preso acqua" : r.res === "c" ? "Ti ha colpito una nave" : "Ti ha affondato una nave";
+  if (r.res !== "a") buzz([60]);
+  if (r.end){ B.phase = "end"; B.winner = "him"; T.bsScore.lui++; }
+  else if (r.res === "a") B.turn = "me";
+  bsPaint(); return r;
+}
+// CPU: cerca a scacchiera, quando colpisce insegue la nave lungo la linea
+function bsCpuShoot(){
+  const T = TTT; if (!T || T.mode !== "cpu" || !T.bs || T.bs.phase !== "play" || T.bs.turn !== "him") return;
+  const B = T.bs, n = B.n, shot = c => B.onMe[c] !== 0, free = c => c >= 0 && c < n * n && !shot(c);
+  const hits = []; for (let c = 0; c < n * n; c++) if (B.onMe[c] === 2 && B.ships[B.grid[c]].hits < B.ships[B.grid[c]].cells.length) hits.push(c);
+  let pick = null;
+  if (hits.length){
+    const cand = [];
+    if (hits.length > 1){ const hor = hits.every(c => Math.floor(c / n) === Math.floor(hits[0] / n));
+      const s = hits.slice().sort((a, b) => a - b), a = s[0], b = s[s.length - 1];
+      if (hor){ if (a % n > 0) cand.push(a - 1); if (b % n < n - 1) cand.push(b + 1); } else { cand.push(a - n, b + n); } }
+    hits.forEach(c => { if (c % n > 0) cand.push(c - 1); if (c % n < n - 1) cand.push(c + 1); cand.push(c - n, c + n); });
+    const ok = cand.filter(free); if (ok.length) pick = ok[0];
+  }
+  if (pick === null){ const L = []; for (let c = 0; c < n * n; c++) if (free(c) && ((c % n) + Math.floor(c / n)) % 2 === 0) L.push(c);
+    const L2 = L.length ? L : [...Array(n * n).keys()].filter(free); pick = L2[Math.floor(Math.random() * L2.length)]; }
+  const r = bsIncoming(pick);
+  if (r && r.res !== "a" && T.bs.phase === "play") setTimeout(bsCpuShoot, 650);
+}
+function bsPlaceAt(i){
+  const B = TTT.bs; if (B.meReady) return;
+  const id = B.grid[i];
+  if (id >= 0){ const s = B.ships[id]; s.cells.forEach(c => B.grid[c] = -1); s.cells = []; s.gone = true; bsCompact(B); bsPaint(); return; }   // tocco su una nave: la tolgo
+  const len = B.fleet[B.ships.length]; if (!len) return;
+  const cells = bsFits(B, len, i, B.dir); if (!cells) return toast("Non ci sta: le navi non possono toccarsi");
+  bsPut(B, cells); haptic(); bsPaint();
+}
+function bsCompact(B){ const keep = B.ships.filter(s => !s.gone).sort((a, b) => b.cells.length - a.cells.length); B.ships = []; B.grid.fill(-1); keep.forEach(s => bsPut(B, s.cells)); }
+function bsReady(){
+  const T = TTT, B = T.bs; if (B.ships.length < B.fleet.length) return toast("Mancano ancora delle navi: tocca «Posiziona a caso»");
+  B.meReady = true; haptic();
+  if (T.mode === "cpu"){ T.cpu = bsNew(B.n); bsRandom(T.cpu); bsStart(); return; }
+  tttSend({ g: "bs", rd: 1 });
+  if (B.otherReady) bsStart(); else bsPaint();
+}
+function bsRecv(d){
+  const T = TTT; if (!T || !T.bs) return; const B = T.bs;
+  if (d.r){ bsRematch(true); return; }
+  if (d.rd){ B.otherReady = true; if (B.meReady && B.phase === "place") bsStart(); else bsPaint(); return; }
+  if (d.x === undefined) return;
+  const i = (d.y | 0) * B.n + (d.x | 0); if (i < 0 || i >= B.n * B.n) return;
+  if (d.res){ if (B.en[i] === 4 || B.en[i] === 0) bsGot(i, d); return; }   // esito del mio colpo
+  if (B.phase !== "play" || B.turn !== "him") return;                       // colpo su di me
+  const r = bsIncoming(i); if (r) tttSend(Object.assign({ g: "bs", x: d.x, y: d.y }, r));
+}
+function bsRematch(remote){
+  const T = TTT; if (!T) return; const size = T.bs ? T.bs.n : 10;
+  if (!remote && T.mode !== "cpu") tttSend({ g: "bs", r: 1 });
+  T.bsStartHost = T.bsStartHost === false;   // a ogni rivincita inizia l'altro
+  T.bs = bsNew(size); bsSheet();
+}
+function bsGridHtml(id, n, mini){ let h = ""; for (let i = 0; i < n * n; i++) h += `<button data-bc="${i}"></button>`; return `<div class="bsg${mini ? " mini" : ""}" id="${id}" style="--n:${n}">${h}</div>`; }
+function bsSheet(){
+  const T = TTT; if (!T || !T.bs) return; const B = T.bs, play = B.phase !== "place";
+  openSheet(`<h3>⚓ Battaglia navale ${T.mode === "cpu" ? "contro la CPU" : "dal vivo"}</h3>
+    ${gameSwitch()}
+    <div class="tstate" id="tttState"></div><div class="tsub" id="tttSub"></div>
+    ${roomBox()}
+    ${play ? bsGridHtml("bsEn", B.n) + `<div class="bsfoot"><div><small>La tua flotta</small>${bsGridHtml("bsMe", B.n, true)}</div><div class="bsinfo" id="bsInfo"></div></div>`
+      : bsGridHtml("bsMe", B.n) + `<div class="bsbar"><button class="btn small ghost" id="bsRot">↻ Ruota</button><button class="btn small ghost" id="bsRnd">Posiziona a caso</button><button class="btn small" id="bsGo">Pronto</button></div>`}
+    <button class="btn hidden" id="tttAgain">↻ Rivincita</button>
+    <button class="btn ghost" style="margin-top:8px" id="tttX">Esci</button>`);
+  const grid = play ? "#bsEn" : "#bsMe";
+  document.querySelectorAll(grid + " [data-bc]").forEach(b => b.addEventListener("pointerdown", e => { e.preventDefault(); bsTap(+b.dataset.bc); }));
+  if (!play){ $("#bsRot").onclick = () => { B.dir = B.dir === "h" ? "v" : "h"; bsPaint(); };
+    $("#bsRnd").onclick = () => { if (B.meReady) return; bsRandom(B); haptic(); bsPaint(); }; $("#bsGo").onclick = bsReady; }
+  $("#tttAgain").onclick = () => bsRematch(false);
+  $("#tttX").onclick = () => tttClose();
+  wireRoom(); wireSwitch(); bsPaint();
+}
+function bsCell(which, i){
+  const T = TTT, B = T.bs, el = document.querySelector(`#${which === "en" ? "bsEn" : "bsMe"} [data-bc="${i}"]`); if (!el) return;
+  if (which === "en"){ const v = B.en[i]; el.className = v === 1 ? "w" : v === 2 ? "h" : v === 3 ? "s" : v === 4 ? "pend" : ""; el.textContent = v === 1 ? "•" : v === 2 || v === 3 ? "✕" : ""; }
+  else { const sh = B.grid[i] >= 0, o = B.onMe[i]; el.className = (sh ? "ship" : "") + (o === 1 ? " w" : o === 2 ? (B.ships[B.grid[i]].hits >= B.ships[B.grid[i]].cells.length ? " s" : " h") : "");
+    el.textContent = o === 1 ? "•" : o === 2 ? "✕" : ""; }
+}
+function bsPaint(){
+  const T = TTT; if (!T || !T.bs || !$("#tttState")) return; const B = T.bs, n = B.n, vs = T.mode === "cpu" ? "la CPU" : "l'avversario";
+  if ($("#bsEn")) for (let i = 0; i < n * n; i++) bsCell("en", i);
+  if ($("#bsMe")) for (let i = 0; i < n * n; i++) bsCell("me", i);
+  let st;
+  if (T.err) st = T.err; else if (T.gone) st = "L'altro giocatore è uscito.";
+  else if (!T.ready) st = T.mode === "host" ? "Manda il codice al tuo amico" : "Mi collego alla stanza…";
+  else if (B.phase === "place") st = B.meReady ? (B.otherReady ? "Si parte!" : `Pronto! Aspetto ${vs}…`) : B.ships.length < B.fleet.length ? `Schiera la flotta: nave da ${B.fleet[B.ships.length]} (${B.dir === "h" ? "orizzontale" : "verticale"})` : "Flotta pronta: tocca «Pronto»";
+  else if (B.phase === "end") st = B.winner === "me" ? "Hai vinto! 🏆 Flotta nemica affondata" : `Ha vinto ${vs}`;
+  else st = (B.last ? B.last + " · " : "") + (B.turn === "me" ? (B.wait ? "Sparo…" : "Tocca a te: spara") : `Tocca a ${vs}`);
+  $("#tttState").textContent = st;
+  $("#tttSub").textContent = `${n}×${n} · ${T.mode === "cpu" ? "Tu – CPU" : "Tu – avversario"} ${T.bsScore.io}–${T.bsScore.lui}` + (B.phase === "place" && T.mode !== "cpu" && B.otherReady && !B.meReady ? " · l'avversario è pronto" : "");
+  if ($("#bsInfo")) $("#bsInfo").innerHTML = `Navi nemiche<br><b>${B.left}</b> / ${B.fleet.length}<br><br>Le tue navi<br><b>${B.myLeft}</b> / ${B.fleet.length}`;
+  if ($("#bsGo")) $("#bsGo").disabled = B.meReady || !T.ready;
+  if ($("#bsEn")) $("#bsEn").classList.toggle("off", !(B.phase === "play" && B.turn === "me" && !B.wait));
+  paintRoom();
+  $("#tttAgain").classList.toggle("hidden", !(B.phase === "end" && (T.mode === "cpu" || T.ready)));
+}
 function sportStop(){ clearInterval(spTimer); spMarkers.forEach(m => m.remove()); spMarkers = []; }
 function paintSport(){
   const list = SPEV.filter(e => !spCat || e.sport === spCat), ref = refPoint();
