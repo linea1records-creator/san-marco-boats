@@ -58,6 +58,10 @@
   .maplibregl-popup-tip{border-top-color:#111!important;border-bottom-color:#111!important}
   .maplibregl-popup-close-button{color:#aaa;font-size:18px}
   #searchBox{position:absolute;z-index:20;left:10px;right:10px;top:calc(10px + var(--safe-t))}
+  #strikeBar{position:absolute;z-index:19;left:50%;transform:translateX(-50%);top:calc(66px + var(--safe-t));max-width:calc(100% - 120px);padding:6px 12px;border-radius:999px;border:0;
+    background:#e8710a;color:#fff;font-weight:800;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+  #strikeBar.oggi{background:#c0392b}
+  body.mode-market #strikeBar, body.mode-incontra #strikeBar, body.mode-sport #strikeBar, body.mode-trasporti #strikeBar, body.nav #strikeBar{display:none}
   .sbar{display:flex;align-items:center;background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.35);padding:0 6px 0 12px}
   .sbar .sic{font-size:16px;opacity:.6}
   .sbar input{background:none;border:0;color:#111;font-size:17px;padding:14px 8px;outline:none}
@@ -973,6 +977,7 @@
     <div id="map"></div>
 
     <!-- ricerca (come Google Maps) -->
+    <button id="strikeBar" class="hidden"></button>
     <div id="searchBox">
       <div class="sbar">
         <span class="sic">🔍</span>
@@ -4378,6 +4383,7 @@ function paintTravel(fit){
       more.innerHTML = `<p class="trnote" style="margin-top:0">Da <b>${esc(j.da)}</b> a <b>${esc(j.a)}</b></p>` + j.opzioni.map((op, k) => tripOptHtml(op, k) .replace(/<\/div>$/, ((op.fine_min ?? j.endWalk) ? `<div class="leg">🚶 poi a piedi fino a ${esc(PLAN.to.name)} · ${op.fine_min ?? j.endWalk} min</div>` : "") + "</div>")).join("") + orarioNote(j.orario_del);
       more.classList.remove("hidden");
       go.textContent = "🚶 Vai alla fermata";
+      { const st = strikeToday(); if (st) more.insertAdjacentHTML("beforeend", `<p class="trnote" style="color:#e8710a;font-weight:700">\u26a0\ufe0e Oggi ${esc(strikeName(st).toLowerCase())}: questa corsa potrebbe non esserci se è fuori dalle fasce garantite.</p>`); }
       if (!PLAN.tripGeo && PLAN.tripGeoFor !== j){ PLAN.tripGeoFor = j; const pl = PLAN; tripPreview(j, planFrom(), PLAN.to).then(F => { if (PLAN !== pl || pl.trip !== j) return; pl.tripGeo = F; drawRoute(); if (pl.mode === "mezzi") fitFeats(F); }); }
       else if (fit && PLAN.tripGeo) fitFeats(PLAN.tripGeo);
     }
@@ -6143,6 +6149,34 @@ function closeCorsa(){ drawStop(true); corsaSeq++; const was = !!TRK; trkStop();
   try{ if (lastPos && watchId !== null){ setFollow(true); map.easeTo({ center: [lastPos.lng, lastPos.lat], padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 600 }); }
     else if (was) map.easeTo({ padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 400 }); }catch(e){}
   const b = $("#corsaBox"); if (b) b.classList.add("hidden"); if (map && map.getSource("corsa")) map.getSource("corsa").setData({ type: "FeatureCollection", features: [] }); }
+/* ---------- scioperi che toccano i mezzi di Venezia (calendario del Ministero, controllato due volte al giorno dal server) ---------- */
+let STRIKES = store.get("ln_strikes", []), strikesAt = 0;
+const romeYmd = (d = new Date()) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(d);
+const strikeDay = g => { const t = romeYmd(), dm = romeYmd(new Date(Date.now() + 864e5)); return g === t ? "oggi" : g === dm ? "domani" : new Date(g + "T12:00:00").toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" }); };
+const strikeName = x => /^generale/i.test(x.settore || "") ? "Sciopero generale" : /pubblico locale/i.test(x.settore || "") ? "Sciopero dei mezzi" : "Sciopero " + String(x.settore || "").toLowerCase();
+async function loadStrikes(){
+  if (Date.now() - strikesAt < 30 * 60000) return paintStrikes(); strikesAt = Date.now();
+  try{ const j = await api("rpc/strikes_list", { method: "POST", body: {} }); if (Array.isArray(j)){ STRIKES = j; store.set("ln_strikes", j); } }catch(e){}
+  paintStrikes();
+}
+const strikesSoon = days => { const t = romeYmd(), lim = romeYmd(new Date(Date.now() + days * 864e5)); return (STRIKES || []).filter(x => x.giorno >= t && x.giorno <= lim); };
+const strikeToday = () => (STRIKES || []).find(x => x.giorno === romeYmd());
+function paintStrikes(){
+  const b = $("#strikeBar"); if (!b) return; const L = strikesSoon(7);
+  b.classList.toggle("hidden", !L.length); if (!L.length) return;
+  const x = L[0]; b.classList.toggle("oggi", x.giorno === romeYmd());
+  b.textContent = `${strikeName(x)} ${strikeDay(x.giorno)}${L.length > 1 ? " · +" + (L.length - 1) : ""} ›`;
+}
+function openStrikes(){
+  const L = strikesSoon(45);
+  openSheet(`<h3>Scioperi in arrivo</h3>${L.length ? L.map(x => `<div class="card" style="padding:12px;margin-bottom:8px"><b>${esc(strikeName(x))} · ${esc(strikeDay(x.giorno))}</b>
+      <p style="margin:4px 0;line-height:1.4">${esc(x.azienda || "")}</p><p class="muted" style="margin:0;line-height:1.4">${esc(x.orari || "")}${x.sindacati ? "<br>Sindacati: " + esc(x.sindacati) : ""}</p></div>`).join("")
+    : `<p class="muted">Nessuno sciopero dei mezzi nei prossimi giorni.</p>`}
+    <p class="muted" style="font-size:12px;line-height:1.4">Dal calendario del Ministero dei Trasporti. Durante gli scioperi ACTV garantisce comunque alcune fasce di servizio: controlla gli avvisi ACTV per gli orari precisi.</p>
+    <button class="btn ghost" onclick="closeSheet()">Chiudi</button>`);
+}
+$("#strikeBar").onclick = openStrikes;
+setTimeout(loadStrikes, 4000); setInterval(() => { if (!document.hidden) loadStrikes(); }, 30 * 60000);
 /* scheda dell'imbarcadero: subito le prossime partenze, col tasto per arrivarci (niente taxi qui) */
 let fmTimer = null;
 const PIN_IC = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg>`;
@@ -6153,7 +6187,7 @@ async function openFermata(nm, lat, lng){
   $("#cbHead").innerHTML = `<span class="cbDir">${esc(nm)}</span><button id="cbPin" aria-label="Portami qui" title="Portami qui">${PIN_IC}</button><button id="cbClose" aria-label="Chiudi">\u00d7</button>`;
   $("#cbClose").onclick = () => { clearInterval(fmTimer); closeCorsa(); };
   $("#cbPin").onclick = () => { clearInterval(fmTimer); closeCorsa(); openPlan({ name: nm, lat, lng }); };
-  $("#cbNote").textContent = "Orari ufficiali ACTV e Alilaguna, senza ritardi";
+  { const st = strikesSoon(1)[0]; $("#cbNote").textContent = st ? `\u26a0\ufe0e ${strikeName(st)} ${strikeDay(st.giorno)}: corse a rischio fuori dalle fasce garantite` : "Orari ufficiali ACTV e Alilaguna, senza ritardi"; }
   $("#cbList").innerHTML = `<div class="cbMsg">Carico le partenze\u2026</div>`;
   const load = async () => {
     let j; try{ j = await ACTV("azione=partenze&n=12&pontile=" + encodeURIComponent(lat.toFixed(6) + "," + lng.toFixed(6))); }catch(e){ j = null; }
