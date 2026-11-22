@@ -7207,25 +7207,33 @@ function rtConnect(){
   if (RT.ws && (RT.ws.readyState === 0 || RT.ws.readyState === 1)) return;
   const u = CONFIG.SUPABASE_URL.replace(/^http/, "ws") + "/realtime/v1/websocket?apikey=" + encodeURIComponent(CONFIG.SUPABASE_KEY) + "&vsn=1.0.0";
   const ws = new WebSocket(u); RT.ws = ws; RT.open = false;
-  ws.onopen = () => { RT.open = true; RT.topics.forEach((t, k) => rtJoinRaw(k)); const q = RT.queue; RT.queue = []; q.forEach(m => ws.send(m));
+  ws.onopen = () => { RT.open = true; RT.topics.forEach((t, k) => rtJoinRaw(k));
     clearInterval(RT.hb); RT.hb = setInterval(() => { try{ ws.send(JSON.stringify({ topic: "phoenix", event: "heartbeat", payload: {}, ref: String(++RT.ref) })); }catch(e){} }, 25000); };
   ws.onmessage = e => { let m; try{ m = JSON.parse(e.data); }catch(_){ return; }
-    if (m.event === "broadcast"){ const t = RT.topics.get(m.topic); if (t && m.payload) t.cb(m.payload.payload, m.payload.event); } };
-  ws.onclose = () => { RT.open = false; clearInterval(RT.hb); if (RT.topics.size) setTimeout(rtConnect, 1500); };
+    const t = RT.topics.get(m.topic);
+    // si può scrivere in un canale solo dopo esserci entrati: i messaggi aspettano la conferma d'ingresso
+    if (m.event === "phx_reply" && t && m.ref === t.jr){ if (m.payload && m.payload.status === "ok"){ t.ok = true; const q = t.pending.splice(0); q.forEach(x => ws.send(typeof x === "function" ? x() : String(x))); } return; }
+    if (m.event === "broadcast"){ if (t && m.payload) t.cb(m.payload.payload, m.payload.event); } };
+  ws.onclose = () => { RT.open = false; clearInterval(RT.hb); RT.topics.forEach(t => t.ok = false); if (RT.topics.size) setTimeout(rtConnect, 1500); };
   ws.onerror = () => { try{ ws.close(); }catch(e){} };
 }
 function rtJoinRaw(topic){
   const ref = String(++RT.ref);
   RT.ws.send(JSON.stringify({ topic, event: "phx_join", ref, join_ref: ref, payload: { config: { broadcast: { self: false, ack: false }, presence: { key: "" }, postgres_changes: [], private: false } } }));
-  RT.topics.get(topic).jr = ref;
+  const t = RT.topics.get(topic); t.jr = ref; t.ok = false;
 }
-function rtJoin(name, cb){ const topic = "realtime:" + name; RT.topics.set(topic, { cb }); rtConnect(); if (RT.open) rtJoinRaw(topic); return topic; }
+function rtJoin(name, cb){ const topic = "realtime:" + name, old = RT.topics.get(topic);
+  if (old){ old.cb = cb; old.tmp = false; return topic; }
+  RT.topics.set(topic, { cb, pending: [], ok: false }); rtConnect(); if (RT.open && RT.ws.readyState === 1) rtJoinRaw(topic); return topic; }
 function rtLeave(name){ const topic = "realtime:" + name; const t = RT.topics.get(topic); if (!t) return; RT.topics.delete(topic);
   try{ if (RT.open) RT.ws.send(JSON.stringify({ topic, event: "phx_leave", payload: {}, ref: String(++RT.ref), join_ref: t.jr })); }catch(e){} }
 function rtSend(name, event, payload){
-  const topic = "realtime:" + name, t = RT.topics.get(topic);
-  const m = JSON.stringify({ topic, event: "broadcast", ref: String(++RT.ref), join_ref: t && t.jr, payload: { type: "broadcast", event, payload } });
-  if (RT.open && RT.ws.readyState === 1) RT.ws.send(m); else { RT.queue.push(m); rtConnect(); }
+  const topic = "realtime:" + name;
+  if (!RT.topics.has(topic)){ rtJoin(name, () => {}); RT.topics.get(topic).tmp = true; setTimeout(() => { const t = RT.topics.get(topic); if (t && t.tmp) rtLeave(name); }, 20000); }   // canale di un amico: ci entro solo per mandare l'invito
+  const t = RT.topics.get(topic);
+  const mk = () => JSON.stringify({ topic, event: "broadcast", ref: String(++RT.ref), join_ref: t.jr, payload: { type: "broadcast", event, payload } });
+  if (t.ok && RT.open && RT.ws.readyState === 1) RT.ws.send(mk());
+  else { t.pending.push(mk); rtConnect(); }   // parte appena il canale conferma l'ingresso
 }
 // il mio canale personale: qui arrivano gli inviti degli amici a giocare (solo da amici)
 const myRtName = () => PROFILE && PROFILE.clickname ? "u-" + norm(PROFILE.clickname).replace(/ /g, "_") : null;
@@ -7233,9 +7241,11 @@ const rtNameOf = nome => "u-" + norm(nome).replace(/ /g, "_");
 let MY_RT = null;
 function rtMine(){
   const n = myRtName(); if (!n || MY_RT === n) return; if (MY_RT) rtLeave(MY_RT); MY_RT = n;
-  rtJoin(n, (d, ev) => { if (ev === "no" && d && d.from){ toast(`@${d.from} non può giocare adesso`); return; }
+  rtJoin(n, async (d, ev) => { if (ev === "no" && d && d.from){ toast(`@${d.from} non può giocare adesso`); return; }
     if (ev !== "inv" || !d || !d.code || !d.from) return;
-    const amico = ((MY && MY.amici) || []).some(a => norm(a.nome) === norm(d.from)); if (!amico) return;
+    let amico = ((MY && MY.amici) || []).some(a => norm(a.nome) === norm(d.from));
+    if (!amico){ try{ const j = await rpc("friend_list", {}); if (j && !j.errore){ MY = j; store.set("ln_my", j); amico = (j.amici || []).some(a => norm(a.nome) === norm(d.from)); } }catch(e){} }
+    if (!amico) return;
     if (TTT && TTT.ready) return;   // stai già giocando
     haptic(); buzz([60, 40, 60]);
     openSheet(`<h3>✕◯ @${esc(d.from)} ti invita a tris</h3><p class="muted">Partita dal vivo: entri subito nella sua stanza.</p>
@@ -7244,7 +7254,7 @@ function rtMine(){
     $("#invNo").onclick = () => { rtSend(rtNameOf(d.from), "no", { from: PROFILE.clickname, code: d.code }); closeSheet(); }; });
 }
 document.addEventListener("visibilitychange", () => { if (!document.hidden && RT.topics.size) rtConnect(); });
-setTimeout(() => { try{ rtMine(); }catch(e){} }, 3000);
+setTimeout(() => { try{ rtMine(); }catch(e){} }, 3000); setInterval(() => { try{ rtMine(); }catch(e){} }, 20000);   // anche dopo l'accesso
 /* ---------- Gioca: tris dal vivo, telefono contro telefono (PeerJS / WebRTC) o contro la CPU ----------
    Nessun server per le mosse: i due telefoni si parlano direttamente. La mossa si disegna nello stesso tocco
    e all'altro parte solo {"g":"ttt","i":4}. PeerJS si scarica solo quando apri una stanza. */
