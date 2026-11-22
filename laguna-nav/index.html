@@ -5511,7 +5511,7 @@ function keepSimple(l){
 const WATER_DEFAULT = "#3dc991";   // acqua verde di default (tropss può cambiarla per tutti)
 let WATER_COL = store.get("ln_water_col", null), WATER_ORIG = null;
 // terra bianca (fondamenta, campi, pavimenti) e case color mattone
-const LAND_COL = "#c98b6f", BRICK = "#b5533c";
+const LAND_COL = "#ffffff", LAND_FAR = "#c98b6f", BRICK = "#b5533c";   // dove si cammina (calli, campi, fondamenta) è bianco
 function applyLandColors(){
   if (!map || !BASE_LAYERS.length) return; const base = new Set(BASE_LAYERS.map(l => l.id));
   BASE_LAYERS.forEach(l => { const id = l.id, water = /water|river|canal|ocean|sea|lake/i.test(id); if (!map.getLayer(id)) return;
@@ -5520,7 +5520,7 @@ function applyLandColors(){
       else if (l.type === "fill-extrusion" && /building/i.test(id)) map.setPaintProperty(id, "fill-extrusion-color", BRICK);
       else if (l.type === "fill" && /building/i.test(id)){ map.setPaintProperty(id, "fill-color", BRICK); try{ map.setPaintProperty(id, "fill-outline-color", "#8f3f2c"); }catch(e){}
         try{ map.setLayerZoomRange(id, 13, 24); }catch(e){} }   // case piatte a ogni zoom: restano mattone anche col 3D nascosto (2D o Secca)
-      else if (l.type === "fill" && /landuse_residential/i.test(id)){ map.setPaintProperty(id, "fill-color", LAND_COL); try{ map.setPaintProperty(id, "fill-opacity", 1); map.setLayerZoomRange(id, 0, 13.6); }catch(e){} }   // da lontano: zone abitate mattone chiaro
+      else if (l.type === "fill" && /landuse_residential/i.test(id)){ map.setPaintProperty(id, "fill-color", LAND_FAR); try{ map.setPaintProperty(id, "fill-opacity", 1); map.setLayerZoomRange(id, 0, 13.6); }catch(e){} }   // da lontano: zone abitate mattone chiaro
       else if (l.type === "fill" && !water) map.setPaintProperty(id, "fill-color", LAND_COL);
     }catch(e){} });
 }
