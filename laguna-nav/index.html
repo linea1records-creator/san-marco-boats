@@ -745,24 +745,29 @@
   .tstate{text-align:center;font-size:16px;font-weight:700;margin:4px 0}
   .tsub{text-align:center;color:var(--muted);font-size:13px}
   /* schei: saldo sempre in alto a destra */
-  /* registrazione: finestra sopra la mappa, Venezia dall'alto si vede già */
-  #regPop{position:fixed;inset:0;z-index:4800;background:linear-gradient(rgba(0,0,0,0) 0%,rgba(0,0,0,.35) 45%);display:flex;align-items:flex-end;justify-content:center}
+  /* registrazione: un piccolo riquadro al centro della mappa, il resto dell'app resta visibile */
+  #regPop{position:fixed;inset:0;z-index:3900;display:flex;align-items:center;justify-content:center;pointer-events:none;padding:0 18px}
   #regPop.hidden{display:none}
-  .rpCard{width:100%;max-width:520px;background:#fff;color:#111;border-radius:24px 24px 0 0;padding:18px 20px calc(16px + var(--safe-b, 0px));box-shadow:0 -10px 40px rgba(0,0,0,.3);animation:obIn .35s ease;
-    --panel:#fff;--panel2:#f1f3f1;--line:#d6dcdf;--text:#111;--muted:#5c7282}
-  .rpCard input{color:#111} .rpCard .cn span{color:var(--coral, #ff6446)}
-  .rpLogo{display:block;width:150px;margin:0 auto 6px}
-  .rpSub{text-align:center;color:#5c7282;font-size:14px;margin:0 0 12px;line-height:1.4}
-  .rpLbl{font-size:13px;font-weight:700;color:#5c7282;margin:10px 0 6px}
-  .pinrow{position:relative;display:flex;gap:10px;justify-content:center;margin-bottom:12px}
+  .rpCard{pointer-events:auto;width:100%;max-width:330px;background:rgba(255,255,255,.97);color:#111;border-radius:22px;padding:14px 16px 10px;box-shadow:0 12px 40px rgba(0,0,0,.35);animation:obIn .3s ease;
+    --panel:#fff;--panel2:#f1f3f1;--line:#d6dcdf;--text:#111;--muted:#5c7282;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  .rpHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .rpLogo{height:34px;width:auto}
+  .rpSw{border:0;background:#eef2ef;color:#0a8f4e;font-weight:800;font-size:13px;border-radius:999px;padding:7px 12px}
+  .rpT{font-weight:800;font-size:17px;margin:2px 0 10px;text-align:center}
+  .rpName{display:flex;align-items:center;gap:4px;border:2px solid #d6dcdf;border-radius:14px;padding:0 12px;height:50px;background:#f6f7f6}
+  .rpName span{color:#ff6446;font-weight:800;font-size:18px} .rpName input{flex:1;border:0;background:transparent;font-size:18px;color:#111;outline:none;min-width:0;height:100%}
+  .rpCard .hint{min-height:1.1em;margin:5px 2px 8px;font-size:12.5px;text-align:center}
+  .rpBack{border:0;background:none;color:#5c7282;font-weight:700;font-size:14px;padding:0;margin:-2px 0 2px}
+  .rpOld{display:block;text-align:center;color:#0a8f4e;font-weight:700;font-size:13px;margin-bottom:4px}
+  .pinrow{position:relative;display:flex;gap:10px;justify-content:center;margin-bottom:2px}
   .pinrow input{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px;border:0;z-index:2;caret-color:transparent}
-  .pinrow i{width:54px;height:58px;border-radius:14px;border:2px solid #d6dcdf;background:#f6f7f6;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:30px;line-height:1}
+  .pinrow i{width:52px;height:56px;border-radius:14px;border:2px solid #d6dcdf;background:#f6f7f6;display:flex;align-items:center;justify-content:center;font-style:normal}
   .pinrow i.f::after{content:"";width:14px;height:14px;border-radius:50%;background:#111}
   .pinrow i.cur{border-color:#111}
   .pinrow.ko i{border-color:#e5322d;animation:pinShake .35s}
   @keyframes pinShake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
-  .rpLinks{display:flex;justify-content:center;gap:16px;margin:6px 0 4px;font-size:14px} .rpLinks a{color:#0a8f4e;font-weight:700}
-  .rpLegal{font-size:11px;color:#8a99a3;text-align:center;margin:6px 0 0;line-height:1.35}
+  .rpLegal{font-size:10.5px;color:#8a99a3;text-align:center;margin:6px 0 0;line-height:1.3}
+  .tttFriend{margin:6px 0}
   #hud{position:fixed;z-index:40;top:calc(10px + var(--safe-t));right:10px;display:flex;gap:6px;align-items:center}
   #hud button{height:34px;border:0;border-radius:999px;background:rgba(17,17,17,.9);color:#fff;font-weight:800;font-size:15px;display:flex;align-items:center;gap:5px;padding:0 12px 0 4px;box-shadow:0 2px 8px rgba(0,0,0,.28);font-variant-numeric:tabular-nums}
   #hud .scheo{width:26px;height:26px;flex:0 0 auto}
@@ -1481,17 +1486,22 @@
     <div id="tabs" role="tablist" aria-label="Modalità"></div>
     <div id="verMark" class="hidden"></div>
     <div id="regPop" class="hidden"><div class="rpCard">
-      <img class="rpLogo" src="logo.png" alt="unClick">
-      <p class="rpSub" id="rpSub">Crea il tuo account in 10 secondi: naviga, gioca e guadagna schei a Venezia.</p>
-      <div class="field" style="margin:0 0 4px"><div class="cn"><span>@</span><input id="rpName" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="20" placeholder="nome utente"></div>
-        <div class="hint" id="rpNameHint"></div></div>
-      <div class="rpLbl" id="rpPinLbl">Scegli un PIN di 4 numeri</div>
-      <label class="pinrow" id="rpPinRow"><input id="rpPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="new-password"><i></i><i></i><i></i><i></i></label>
-      <div class="field hidden" id="rpPassBox" style="margin:0"><input id="rpPass" type="password" autocomplete="current-password" maxlength="72" placeholder="La tua password"></div>
-      <button class="btn" id="rpGo" disabled>Crea l'account</button>
-      <p class="hint" id="rpMsg" style="text-align:center;margin:8px 0 0;min-height:1em"></p>
-      <p class="rpLinks"><a href="#" id="rpMode">Hai già un account? Accedi</a><a href="#" id="rpOld" class="hidden">Usi ancora una password?</a></p>
-      <p class="rpLegal">Entrando accetti che la parte nautica è indicativa e non sostituisce la carta nautica né gli avvisi ufficiali.</p>
+      <div class="rpHead"><img class="rpLogo" src="logo.png" alt="unClick"><button id="rpMode" class="rpSw">Accedi</button></div>
+      <div id="rpS1">
+        <div class="rpT" id="rpT1">Scegli il tuo nome utente</div>
+        <div class="cn rpName"><span>@</span><input id="rpName" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="20" placeholder="nome utente" enterkeyhint="next"></div>
+        <div class="hint" id="rpNameHint"></div>
+        <button class="btn" id="rpNext" disabled>Avanti</button>
+      </div>
+      <div id="rpS2" class="hidden">
+        <button class="rpBack" id="rpBack">‹ <span id="rpWho"></span></button>
+        <div class="rpT" id="rpT2">Scegli un PIN di 4 numeri</div>
+        <label class="pinrow" id="rpPinRow"><input id="rpPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="new-password"><i></i><i></i><i></i><i></i></label>
+        <div class="hidden" id="rpPassBox"><div class="cn rpName"><input id="rpPass" type="password" autocomplete="current-password" maxlength="72" placeholder="La tua password"></div><button class="btn" id="rpGo">Entra</button></div>
+        <p class="hint" id="rpMsg"></p>
+        <a href="#" id="rpOld" class="rpOld hidden">Usi ancora una password?</a>
+      </div>
+      <p class="rpLegal">La parte nautica è indicativa: non sostituisce carta nautica e avvisi ufficiali.</p>
     </div></div>
     <div id="hud" class="hidden"><button id="hudAdm" class="hidden" aria-label="Valida segnalazioni" title="Valida segnalazioni">✓ Valida<i class="hidden"></i></button><button id="hudCoin" aria-label="I tuoi schei"></button></div>
     <button id="tesBtn" class="hidden"></button>
@@ -1687,66 +1697,67 @@ function openApp(){
   enablePush();
 }
 
-/* ---------- registrazione veloce: nome utente + PIN di 4 numeri, in una finestra sopra la mappa ---------- */
+/* ---------- registrazione veloce: un riquadro al centro della mappa. Prima il nome utente, poi il PIN di 4 numeri ---------- */
 let rpMode = "reg", rpNameOk = false, rpTimer = null, rpPassMode = false, rpBusy = false;
 function regOpen(mode){
-  rpMode = mode || "reg"; rpPassMode = false; $("#regPop").classList.remove("hidden");
-  $("#rpSub").textContent = rpMode === "reg" ? "Crea il tuo account in 10 secondi: naviga, gioca e guadagna schei a Venezia." : "Bentornato! Entra con il tuo nome utente e il PIN.";
-  $("#rpPinLbl").textContent = rpMode === "reg" ? "Scegli un PIN di 4 numeri" : "Il tuo PIN";
-  $("#rpGo").textContent = rpMode === "reg" ? "Crea l'account" : "Entra";
-  $("#rpMode").textContent = rpMode === "reg" ? "Hai già un account? Accedi" : "Non hai un account? Registrati";
-  $("#rpOld").classList.toggle("hidden", rpMode !== "login");
-  $("#rpPin").autocomplete = rpMode === "reg" ? "new-password" : "current-password";
-  $("#rpPinRow").classList.remove("hidden"); $("#rpPassBox").classList.add("hidden"); $("#rpOld").textContent = "Usi ancora una password?";
-  $("#rpMsg").textContent = ""; rpNameCheck(); rpPinPaint();
+  rpMode = mode || "reg"; $("#regPop").classList.remove("hidden");
+  $("#rpMode").textContent = rpMode === "reg" ? "Accedi" : "Registrati";
+  $("#rpT1").textContent = rpMode === "reg" ? "Scegli il tuo nome utente" : "Il tuo nome utente";
+  rpStep(1); rpNameCheck();
+}
+function rpStep(n){
+  $("#rpS1").classList.toggle("hidden", n !== 1); $("#rpS2").classList.toggle("hidden", n !== 2);
+  if (n === 2){ rpPassMode = false; $("#rpWho").textContent = "@" + $("#rpName").value.trim();
+    $("#rpT2").textContent = rpMode === "reg" ? "Scegli un PIN di 4 numeri" : "Il tuo PIN";
+    $("#rpPin").autocomplete = rpMode === "reg" ? "new-password" : "current-password"; $("#rpPin").value = "";
+    $("#rpPinRow").classList.remove("hidden", "ko"); $("#rpPassBox").classList.add("hidden");
+    $("#rpOld").classList.toggle("hidden", rpMode !== "login"); $("#rpOld").textContent = "Usi ancora una password?";
+    $("#rpMsg").textContent = ""; rpPinPaint(); setTimeout(() => $("#rpPin").focus(), 60); }
 }
 function rpPinPaint(){ const v = $("#rpPin").value; $("#rpPinRow").querySelectorAll("i").forEach((d, k) => { d.classList.toggle("f", k < v.length); d.classList.toggle("cur", k === v.length && document.activeElement === $("#rpPin")); }); }
-function rpCheck(){
-  const n = $("#rpName").value.trim(), pin = $("#rpPin").value, pw = $("#rpPass").value;
-  const okPass = rpPassMode ? pw.length >= 6 : /^\d{4}$/.test(pin);
-  $("#rpGo").disabled = rpBusy || !(NAME_RX.test(n) && okPass && (rpMode !== "reg" || rpNameOk));
-  return !$("#rpGo").disabled;
-}
+function rpNameReady(){ const v = $("#rpName").value.trim(); const ok = NAME_RX.test(v) && (rpMode !== "reg" || rpNameOk); $("#rpNext").disabled = !ok; return ok; }
 function rpNameCheck(){
   const v = $("#rpName").value.trim(), h = $("#rpNameHint"); rpNameOk = false; h.className = "hint"; h.textContent = "";
-  if (rpMode !== "reg"){ rpCheck(); return; }
-  if (!NAME_RX.test(v)){ h.textContent = v ? "Da 3 a 20 caratteri: lettere, numeri, punto o trattino basso." : ""; rpCheck(); return; }
+  if (!NAME_RX.test(v)){ h.textContent = v ? "Da 3 a 20 caratteri: lettere, numeri, punto o _" : ""; rpNameReady(); return; }
+  if (rpMode !== "reg"){ rpNameReady(); return; }
   h.textContent = "Controllo…"; clearTimeout(rpTimer);
   rpTimer = setTimeout(async () => {
     try{ const free = await api("rpc/clickname_free", { method: "POST", body: { p_clickname: v }, ret: true }); if ($("#rpName").value.trim() !== v) return;
-      rpNameOk = !!free; h.textContent = free ? "@" + v + " è libero ✓" : "@" + v + " è già preso: se è tuo, tocca «Accedi»"; h.className = "hint " + (free ? "ok" : "ko"); }
+      rpNameOk = !!free; h.textContent = free ? "@" + v + " è libero ✓" : "@" + v + " è già preso: se è tuo tocca «Accedi»"; h.className = "hint " + (free ? "ok" : "ko"); }
     catch(e){ rpNameOk = true; h.textContent = ""; }
-    rpCheck(); }, 350);
+    rpNameReady(); }, 350);
 }
 $("#rpName").addEventListener("input", rpNameCheck);
-$("#rpName").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); $("#rpPin").focus(); } });
+$("#rpName").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); if (rpNameReady()) rpStep(2); } });
+$("#rpNext").onclick = () => { if (rpNameReady()){ haptic(); rpStep(2); } };
+$("#rpBack").onclick = () => { rpStep(1); setTimeout(() => $("#rpName").focus(), 60); };
+$("#rpMode").onclick = () => { haptic(); regOpen(rpMode === "reg" ? "login" : "reg"); };
 $("#rpPin").addEventListener("input", () => { const el = $("#rpPin"); el.value = el.value.replace(/\D/g, "").slice(0, 4); rpPinPaint(); $("#rpPinRow").classList.remove("ko");
-  if (rpCheck() && el.value.length === 4) setTimeout(rpSubmit, 120); });   // quarta cifra: si entra da soli
+  if (el.value.length === 4) setTimeout(rpSubmit, 120); });   // quarta cifra: si entra da soli
 ["focus", "blur"].forEach(ev => $("#rpPin").addEventListener(ev, rpPinPaint));
-$("#rpPass").addEventListener("input", rpCheck);
-$("#rpPass").addEventListener("keydown", e => { if (e.key === "Enter" && rpCheck()) rpSubmit(); });
-$("#rpMode").onclick = e => { e.preventDefault(); $("#rpPin").value = ""; regOpen(rpMode === "reg" ? "login" : "reg"); };
-$("#rpOld").onclick = e => { e.preventDefault(); rpPassMode = !rpPassMode; $("#rpPinRow").classList.toggle("hidden", rpPassMode); $("#rpPassBox").classList.toggle("hidden", !rpPassMode);
-  $("#rpPinLbl").textContent = rpPassMode ? "La tua password" : "Il tuo PIN"; $("#rpOld").textContent = rpPassMode ? "Entra con il PIN" : "Usi ancora una password?"; rpCheck(); (rpPassMode ? $("#rpPass") : $("#rpPin")).focus(); };
+$("#rpPass").addEventListener("keydown", e => { if (e.key === "Enter") rpSubmit(); });
 $("#rpGo").onclick = () => rpSubmit();
+$("#rpOld").onclick = e => { e.preventDefault(); rpPassMode = !rpPassMode; $("#rpPinRow").classList.toggle("hidden", rpPassMode); $("#rpPassBox").classList.toggle("hidden", !rpPassMode);
+  $("#rpT2").textContent = rpPassMode ? "La tua password" : "Il tuo PIN"; $("#rpOld").textContent = rpPassMode ? "Entra con il PIN" : "Usi ancora una password?"; (rpPassMode ? $("#rpPass") : $("#rpPin")).focus(); };
 async function rpSubmit(){
-  if (rpBusy || !rpCheck()) return;
   const name = $("#rpName").value.trim(), pass = rpPassMode ? $("#rpPass").value : $("#rpPin").value;
-  rpBusy = true; rpCheck(); $("#rpMsg").textContent = rpMode === "reg" ? "Creo l'account…" : "Accesso…";
+  if (rpBusy || !NAME_RX.test(name) || (rpPassMode ? pass.length < 6 : !/^\d{4}$/.test(pass))) return;
+  rpBusy = true; $("#rpMsg").className = "hint"; $("#rpMsg").textContent = rpMode === "reg" ? "Creo l'account…" : "Accesso…";
   let r;
   try{ r = rpMode === "reg"
       ? await api("rpc/account_register", { method: "POST", ret: true, body: { p_token: TOKEN, p_clickname: name, p_password: pass, p_city: store.get("ln_city", "venezia") } })
       : await api("rpc/account_login", { method: "POST", ret: true, body: { p_clickname: name, p_password: pass } }); }
-  catch(e){ rpBusy = false; $("#rpMsg").textContent = "Serve la connessione internet."; rpCheck(); return; }
+  catch(e){ rpBusy = false; $("#rpMsg").textContent = "Serve la connessione internet."; return; }
   rpBusy = false;
-  if (!r || !r.ok){ $("#rpMsg").textContent = AUTH_ERR[r && r.errore] || "Qualcosa è andato storto, riprova.";
+  if (!r || !r.ok){ $("#rpMsg").className = "hint ko"; $("#rpMsg").textContent = AUTH_ERR[r && r.errore] || "Qualcosa è andato storto, riprova.";
+    if (r && r.errore === "preso"){ rpStep(1); rpNameCheck(); return; }
     if (!rpPassMode){ $("#rpPin").value = ""; rpPinPaint(); const row = $("#rpPinRow"); row.classList.remove("ko"); void row.offsetWidth; row.classList.add("ko"); buzz([60, 40, 60]); }
-    rpCheck(); return; }
+    return; }
   PROFILE = { clickname: r.clickname, city: store.get("ln_city", "venezia") }; store.set("ln_profile", PROFILE); store.set("ln_agree", Date.now());
   if (r.token && r.token !== TOKEN){ store.set("ln_token", r.token); store.set("ln_mine", { zones: [], depths: [] }); location.reload(); return; }
-  $("#regPop").classList.add("hidden"); haptic(); try{ $("#rpPin").blur(); }catch(e){}
-  toast(rpMode === "reg" ? `Benvenuto @${r.clickname}! Personalizza il profilo da myClick ⚙️` : `Bentornato @${r.clickname}!`);
-  try{ renderProfile(); enablePush(); scheiLoad(); tesLoad(); pendTris(); }catch(e){}
+  try{ $("#rpPin").blur(); }catch(e){} $("#regPop").classList.add("hidden"); haptic();
+  toast(rpMode === "reg" ? `Benvenuto @${r.clickname}! Il profilo si sistema da myClick ⚙️` : `Bentornato @${r.clickname}!`);
+  try{ renderProfile(); enablePush(); scheiLoad(); tesLoad(); }catch(e){} setTimeout(pendTris, 300);
 }
 
 /* ---------- notifiche push (messaggi, emoji, richieste di amicizia) ---------- */
@@ -7564,7 +7575,7 @@ function tttSheet(){
   const T = TTT; if (!T) return;
   openSheet(`<h3>✕◯ Tris ${T.mode === "cpu" ? "contro la CPU" : "dal vivo"}</h3>
     ${gameSwitch()}
-    <div class="tstate" id="tttState"></div><div class="tsub" id="tttSub"></div><div id="betBox" class="betbox hidden"></div>
+    <div class="tstate" id="tttState"></div><div class="tsub" id="tttSub"></div><div id="betBox" class="betbox hidden"></div><div id="tttFriend" class="tttFriend hidden"></div>
     ${roomBox()}
     <div class="tboard" id="tttBoard">${[...T.b].map((c, i) => `<button data-tc="${i}" class="${c === "O" ? "o" : ""}">${c === "X" ? "✕" : c === "O" ? "◯" : ""}</button>`).join("")}</div>
     <button class="btn hidden" id="tttAgain">↻ Rivincita</button>
@@ -7584,12 +7595,24 @@ function roomBox(){
 function wireRoom(){
   const T = TTT; if (!T || !$("#tttRoom")) return;
   $("#tttCopy").onclick = async () => { try{ await navigator.clipboard.writeText(T.code); toast("Codice copiato: " + T.code); }catch(e){ toast("Codice: " + T.code); } };
-  $("#tttShare").onclick = async () => { const url = location.origin + location.pathname + "#tris=" + T.code, txt = "Giochiamo su unClick! Codice " + T.code;
+  $("#tttShare").onclick = async () => { const url = location.origin + location.pathname + "#tris=" + T.code + (myName() ? "&da=" + encodeURIComponent(myName()) : ""), txt = "Giochiamo su unClick! Codice " + T.code;
     try{ if (navigator.share){ await navigator.share({ title: "Gioca su unClick", text: txt, url }); return; } }catch(e){ return; }
     try{ await navigator.clipboard.writeText(txt + " " + url); toast("Link copiato: mandalo al tuo amico"); }catch(e){ toast(url); } };
   $("#tttInv").onclick = () => tttInvite();
 }
-function paintRoom(){ const T = TTT, r = $("#tttRoom"); if (r) r.classList.toggle("hidden", !(T.mode === "host" && !T.ready && !T.err)); }
+function paintRoom(){ const T = TTT, r = $("#tttRoom"); if (r) r.classList.toggle("hidden", !(T.mode === "host" && !T.ready && !T.err)); paintTttFriend(); }
+// se l'altro giocatore (o chi ti ha mandato il link) non è ancora tuo amico, un tasto per diventarlo
+function paintTttFriend(){
+  const T = TTT, box = $("#tttFriend"); if (!box || !T) return;
+  const who = T.otherName || T.invFrom, M = MY || {}, has = l => (l || []).some(a => norm(a.nome) === norm(who || ""));
+  const show = !!(who && PROFILE && T.mode !== "cpu" && !T.frSent && norm(who) !== norm(myName()) && !has(M.amici) && !has(M.inviate));
+  box.classList.toggle("hidden", !show); if (!show){ box.dataset.w = ""; return; } if (box.dataset.w === who) return; box.dataset.w = who;
+  const inv = has(M.ricevute);
+  box.innerHTML = `<button class="btn small ghost" id="tttFrBtn">➕ ${inv ? "Accetta l'amicizia di" : "Diventa amico di"} @${esc(who)}</button>`;
+  $("#tttFrBtn").onclick = () => { T.frSent = true; paintTttFriend();
+    if (inv) friendDo("friend_answer", { p_nome: who, p_ok: true }, "Ora siete amici ✓");
+    else friendDo("friend_request", { p_nome: who }, j => j.stato === "amici" ? "Ora siete amici ✓" : "Richiesta di amicizia mandata a @" + who + " ✓"); };
+}
 function gameSwitch(){
   const T = TTT, bs = T.game === "bs";
   return `<div class="mkcats dg gsw"><button data-sg="ttt" class="${bs ? "" : "on"}">✕◯ Tris</button><button data-sg="bs" class="${bs ? "on" : ""}">⚓ Battaglia navale</button>${bs ? `<button data-ss="${T.bs.n === 6 ? 10 : 6}">${T.bs.n === 6 ? "10×10" : "Rapida 6×6"}</button>` : ""}</div>`;
@@ -7638,8 +7661,10 @@ new MutationObserver(() => { if (TTT && $("#sheet").classList.contains("hidden")
 function trisBadge(){}   // le sfide a turni via server non ci sono più
 
 // link d'invito: unClick aperto con #tris=ABCD entra subito nella stanza
-function pendTris(){ const c = store.get("ln_pend_tris", null); if (!c || !PROFILE) return; store.set("ln_pend_tris", null); try{ setMode("sport"); }catch(e){} tttJoin(c); }
-setTimeout(() => { const m = /tris=([A-Za-z]{4})/.exec(location.hash || ""); if (m){ history.replaceState(null, "", location.pathname + location.search); store.set("ln_pend_tris", m[1].toUpperCase()); } pendTris(); }, 1500);
+function pendTris(){ const c = store.get("ln_pend_tris", null), da = store.get("ln_pend_da", null); if (!c || !PROFILE) return; store.set("ln_pend_tris", null); store.set("ln_pend_da", null);
+  try{ setMode("sport"); }catch(e){} tttJoin(c); if (TTT && da && norm(da) !== norm(myName())) TTT.invFrom = da; }
+setTimeout(() => { const m = /tris=([A-Za-z]{4})/.exec(location.hash || ""); if (m){ const da = /da=([A-Za-z0-9_.]{3,20})/.exec(location.hash || ""); history.replaceState(null, "", location.pathname + location.search);
+  store.set("ln_pend_tris", m[1].toUpperCase()); store.set("ln_pend_da", da ? da[1] : null); } pendTris(); }, 1500);
 /* ---------- Battaglia navale: stessa stanza, stesso canale istantaneo del tris ----------
    Ognuno tiene segreta la sua flotta. Chi spara manda solo {"g":"bs","x":3,"y":5}; chi viene colpito risponde
    con l'esito {"g":"bs","x":3,"y":5,"res":"a|c|f"} (acqua, colpito, affondato). Il tocco si vede subito (0 ms). */
@@ -7806,7 +7831,7 @@ function bsSheet(){
   const T = TTT; if (!T || !T.bs) return; const B = T.bs, play = B.phase !== "place";
   openSheet(`<h3>⚓ Battaglia navale ${T.mode === "cpu" ? "contro la CPU" : "dal vivo"}</h3>
     ${gameSwitch()}
-    <div class="tstate" id="tttState"></div><div class="tsub" id="tttSub"></div><div id="betBox" class="betbox hidden"></div>
+    <div class="tstate" id="tttState"></div><div class="tsub" id="tttSub"></div><div id="betBox" class="betbox hidden"></div><div id="tttFriend" class="tttFriend hidden"></div>
     ${roomBox()}
     ${play ? bsGridHtml("bsEn", B.n) + `<div class="bsfoot"><div><small>La tua flotta</small>${bsGridHtml("bsMe", B.n, true)}</div><div class="bsinfo" id="bsInfo"></div></div>`
       : bsGridHtml("bsMe", B.n) + `<div class="bsbar"><button class="btn small ghost" id="bsRot">↻ Ruota</button><button class="btn small ghost" id="bsRnd">Posiziona a caso</button><button class="btn small" id="bsGo">Pronto</button></div>`}
@@ -8847,8 +8872,7 @@ new MutationObserver(ms => ms.forEach(m => { if (m.type === "characterData") deE
 if (PROFILE && PROFILE.age !== undefined){
   // profilo della prima versione (con l'età, senza password): si sceglie la password tenendo lo stesso clickname
   const old = PROFILE.clickname; PROFILE = null; try{ localStorage.removeItem("ln_profile"); localStorage.removeItem("ln_schei"); }catch(e){} try{ SCHEI.saldo = null; hudPaint(); }catch(e){}
-  openApp(); regOpen("reg"); $("#rpName").value = old; rpNameOk = true;
-  $("#rpNameHint").textContent = "Il tuo nome utente: scegli un PIN per proteggerlo"; $("#rpNameHint").className = "hint ok"; rpCheck();
+  openApp(); regOpen("reg"); $("#rpName").value = old; rpNameOk = true; rpStep(2); $("#rpMsg").textContent = "Scegli un PIN per proteggere @" + old;
 } else if (PROFILE){ openApp(); } else { openApp(); setTimeout(() => regOpen("reg"), 400); }   // chi arriva da un link vede subito Venezia, con la registrazione sopra
 </script>
 </body>
