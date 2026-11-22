@@ -2317,7 +2317,7 @@ function initMap(){
   const fallback = setTimeout(() => { if (!styled) map.setStyle(STYLE_RASTER); }, 9000);
   map.on("error", e => { if (!styled && e && e.error && /style|json/i.test(String(e.error.message || ""))) { clearTimeout(fallback); map.setStyle(STYLE_RASTER); } });
   map.on("style.load", () => { styled = true; clearTimeout(fallback); addLayers(); });
-  map.on("dragstart", e => { if (e.originalEvent && !view3d) setFollow(false); if (e.originalEvent && TRK && TRK.follow){ TRK.follow = false; paintTrkBtn(); } });
+  map.on("dragstart", e => { if (e.originalEvent && !view3d) setFollow(false); if (e.originalEvent && TRK){ TRK.touched = true; if (TRK.follow){ TRK.follow = false; paintTrkBtn(); } } });
   map.on("pitch", rotMe); map.on("zoom", rotMe);
   map.on("zoomend", e => { if (view3d && e.originalEvent && map.getZoom() < 14.5) setFirstPerson(false); });
   map.on("click", e => {
@@ -6084,7 +6084,7 @@ function corsaList(){
 }
 function corsaPaint(){
   const st = CORSA_ST; if (!st || !map || !map.getSource("corsa")) return; const feats = [];
-  actvBudget = 400; actvDeadline = performance.now() + 2500;
+  actvBudget = 6; actvDeadline = performance.now() + 120;   // i tratti sono già salvati: al massimo qualche tratto nuovo, senza bloccare
   for (let i = 1; i < (st.past || []).length; i++){ const a = st.past[i - 1], b = st.past[i], P = actvPath(a[0], a[1], b[0], b[1]);   // già fatto: grigio
     if (P) feats.push({ type: "Feature", properties: { c: "#9aa0a8", g: 1 }, geometry: { type: "LineString", coordinates: P.pts.map(p => [p[1], p[0]]) } }); }
   for (let i = 1; i < st.pts.length; i++){ const a = st.pts[i - 1], b = st.pts[i], k = vpKey(a[0], a[1], b[0], b[1]); if (k === st.hide) continue;
@@ -6215,6 +6215,9 @@ async function openCorsa(o){
   let j; try{ j = await CORSA(`linea=${encodeURIComponent(o.linea)}&dir=${encodeURIComponent(o.dir)}&la=${o.la}&lo=${o.lng}&t=${o.t}&tol=${o.tol || 60}&tutto=1${o.nx ? "&nx=" + encodeURIComponent(o.nx) : ""}`); }catch(e){ j = { errore: "rete" }; }
   // tutto il giro del battello: la parte già fatta resta in grigio, sotto si elencano le fermate che mancano
   let PAST = [];
+  // i tratti arrivano già pronti dal server: si mettono in memoria, così non si calcola niente sul telefono
+  if (j && Array.isArray(j.fermate) && Array.isArray(j.tratti)) j.tratti.forEach((pts, i) => { const a = j.fermate[i], b = j.fermate[i + 1];
+    if (a && b && Array.isArray(pts) && pts.length > 1){ const k = vpKey(a.lat, a.lng, b.lat, b.lng); ACTV_PATH.set(k, mkPath(pts)); VP_CACHE[k] = pts; } });
   if (j && Array.isArray(j.fermate) && j.qui > 0){ PAST = j.fermate.slice(0, j.qui + 1).map(f => [f.lat, f.lng]); j.fermate = j.fermate.slice(j.qui); }
   if (seq !== corsaSeq) return;
   if (!j || !Array.isArray(j.fermate) || !j.fermate.length){ $("#cbList").innerHTML = `<div class="cbMsg">${j && j.errore === "corsa_non_trovata" ? "Non trovo questa corsa negli orari." : "Fermate non disponibili: controlla la connessione."}</div>`; return; }
@@ -6225,7 +6228,12 @@ async function openCorsa(o){
   corsaList();
   const nf = F.length - 1; $("#cbNote").textContent = (nf === 1 ? "1 fermata" : nf + " fermate") + " fino al capolinea \u00b7 orari ufficiali, senza ritardi";
   if (!map) return; corsaLayers(); corsaPaint();
-  if (o.k && TRK && TRK.k === o.k){ trkList(); return; }   // battello seguito: la visuale resta su di lui, l'elenco si aggiorna da solo
+  if (o.k && TRK && TRK.k === o.k){   // battello seguito: prima si vede tutto il giro, poi la visuale va sul battello e lo segue
+    trkList(); TRK.follow = false; paintTrkBtn();
+    try{ setFollow(false); const bb = new maplibregl.LngLatBounds(); (PAST || []).concat(pts).forEach(p => bb.extend([p[1], p[0]]));
+      map.fitBounds(bb, { padding: { top: 70, left: 40, right: 40, bottom: Math.round(innerHeight * 0.45) + 20 }, maxZoom: 15.5, pitch: 0, bearing: 0, duration: 700 }); }catch(e){}
+    const kk = o.k; setTimeout(() => { if (TRK && TRK.k === kk && !TRK.follow && !TRK.touched){ TRK.follow = true; paintTrkBtn(); trkFocus(false); } }, 3500);
+    return; }
   try{ setFollow(false); const bb = new maplibregl.LngLatBounds(); pts.forEach(p => bb.extend([p[1], p[0]]));
     map.fitBounds(bb, { padding: { top: 70, left: 40, right: 40, bottom: Math.round(innerHeight * 0.45) + 20 }, maxZoom: 16, duration: 700 }); }catch(e){}
 }
@@ -6265,7 +6273,7 @@ function trkTick(force){
 function trackBoat(b){
   if (!map || !b || !b.raw) return;
   trkStop(true); trkLayer(); TRK = { kind: "boat", k: b.k, raw: b.raw, img: b.img, follow: true };
-  setBattelliFilter(); trkTick(true); trkFocus(true);
+  setBattelliFilter(); trkTick(true);   // la visuale si sposta dopo aver mostrato tutto il giro
   trkT = setInterval(() => { if (!TRK || TRK.kind !== "boat") return;   // i dati delle corse si aggiornano ogni minuto: tiene la stessa corsa
     const nb = BOATS_ACTV.find(x => x.k === TRK.k); if (nb) TRK.raw = nb.raw; trkList(); }, 15000);
 }

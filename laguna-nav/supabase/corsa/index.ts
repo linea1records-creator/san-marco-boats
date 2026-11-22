@@ -60,7 +60,19 @@ Deno.serve(async (req) => {
       // coordinate arrotondate come nelle posizioni dei battelli: così i tratti tra fermate hanno la stessa chiave
       out.push({ n: base(String(s[1])), lat: +(+s[2]).toFixed(5), lng: +(+s[3]).toFixed(5), arr: hhmm(ar), dep: Math.round(dp * 10) / 10, ar: Math.round(ar * 10) / 10 });
     }
-    return json({ linea, dir: best.tr.dir, fermate: out, qui: tutto ? best.k : 0 });
+    // percorso già pronto sui canali tra una fermata e l'altra (salvato una volta per tutte nel database): il telefono lo disegna e basta
+    let tratti: unknown[] | null = null;
+    if (tutto) {
+      const k5 = (x: number) => x.toFixed(5), F = out as any[], keys: string[] = [];
+      for (let i = 1; i < F.length; i++) keys.push(`${k5(F[i - 1].lat)},${k5(F[i - 1].lng)}>${k5(F[i].lat)},${k5(F[i].lng)}`);
+      try {
+        const url = Deno.env.get('SUPABASE_URL')!, srv = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const r = await fetch(`${url}/rest/v1/vap_paths?select=key,pts&key=in.(${keys.map((k) => '"' + k + '"').map(encodeURIComponent).join(',')})`, { headers: { apikey: srv, Authorization: 'Bearer ' + srv } });
+        const rows = r.ok ? await r.json() : [], m = new Map((rows as any[]).map((x) => [x.key, x.pts]));
+        tratti = keys.map((k) => m.get(k) || null);
+      } catch (_) { tratti = null; }
+    }
+    return json({ linea, dir: best.tr.dir, fermate: out, qui: tutto ? best.k : 0, tratti });
   } catch (e) {
     return json({ errore: String(e) }, 500);
   }
