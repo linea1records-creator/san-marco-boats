@@ -8408,7 +8408,7 @@ async function shopDoBuy(i, nome){
 let GM = null;
 document.body.appendChild($("#gmUi"));   // fuori dalla barra in basso, che nel gioco sparisce
 const GM_K = 0.35;                       // nel gioco omino e barca in scala più realistica (circa 4,5 m)
-const GM_WALK = 40 / 3.6, GM_BOAT = 200 / 3.6;   // velocità massime: a piedi 40 km/h, in barca 200 km/h
+const GM_WALK = 40 / 3.6, GM_BOAT = 200 / 3.6, GM_SWIM = 10 / 3.6;   // a nuoto 10 km/h   // velocità massime: a piedi 40 km/h, in barca 200 km/h
 const gmM = lat => ({ y: 111320, x: 111320 * Math.cos(lat * Math.PI / 180) });
 function gmOff(p, hdg, dist){ const r = hdg * Math.PI / 180, k = gmM(p.lat); return { lat: p.lat + Math.cos(r) * dist / k.y, lng: p.lng + Math.sin(r) * dist / k.x }; }
 /* mappa di collisione del gioco: per ogni tessera (circa 2,4 km) si disegna UNA volta un'immagine di 1536×1536 punti (1,6 m l'uno)
@@ -8458,6 +8458,9 @@ const gmKnown = p => gmBits(p) !== null;
 const gmWater = p => { const b = gmBits(p); return b !== null && !!(b & 1); };
 function gmWalkable(p){ const b = gmBits(p); if (b === null) return false; if (b & 4) return true; return !(b & 1) && !(b & 2); }
 function gmBoatable(p){ const b = gmBits(p); return b !== null && !!(b & 1); }
+// a piedi si può anche nuotare: l'acqua va bene, le case no (tranne i sottoporteghi)
+function gmSwimOk(p){ const b = gmBits(p); if (b === null) return false; if (b & 4) return true; return !(b & 2); }
+const gmInWater = p => { const b = gmBits(p); return b !== null && !!(b & 1) && !(b & 4); };   // sopra un ponte non si nuota
 // punto più vicino dove si può stare (a piedi o in barca) entro un raggio
 function gmFind(p, ok, rMax){ for (let r = 0; r <= (rMax || 25); r += 1.5) for (let a = 0; a < 360; a += r ? Math.max(12, 90 / r) : 360){ const q = gmOff(p, a, r); if (ok(q)) return Object.assign(q, { a }); } return null; }
 
@@ -8532,6 +8535,10 @@ function gmPrisms(){
   const poly = (P, b, t, c) => L.push({ P, b, t, c: C[c] || c });
   const box = (q, k) => poly([[q[0] * k, q[2] * k], [q[1] * k, q[2] * k], [q[1] * k, q[3] * k], [q[0] * k, q[3] * k]], q[4] * k, q[5] * k, q[6]);
   if (GM.mode === "boat"){ boatFeatures((P, b, t, c) => poly(P.map(q => [q[0] * sb, q[1] * sb]), b * sb, t * sb, c)); seatedMan(poly, C, girl, sm, sb, av); petBoxes(av, true, sm, sb).forEach(q => box(q, 1)); }
+  else if (GM.swim){ const sw = Math.sin(GM.ph * 1.6) * 1.2, dz = -6.6;   // a nuoto: fuori dall'acqua solo testa, spalle e una bracciata
+    manStandBoxes(girl).concat(wearBoxes(av, girl, false)).forEach(q => { if (q[5] + dz <= 0.05) return; const arm = q[0] <= -1.6 || q[1] >= 1.6, s = arm ? (q[0] < 0 ? sw : -sw) : 0;
+      box([q[0], q[1], q[2] + s, q[3] + s, Math.max(0, q[4] + dz), q[5] + dz, q[6]], sm); });
+    petBoxes(av, false, sm, sb).forEach(q => { if (q[5] - 1.4 * sm > 0) box([q[0], q[1], q[2], q[3], Math.max(0, q[4] - 1.4 * sm), q[5] - 1.4 * sm, q[6]], 1); }); }
   else { const sw = Math.abs(GM.v) > 0.3 ? Math.sin(GM.ph) * 0.7 : 0;   // camminando le gambe vanno avanti e indietro
     manStandBoxes(girl).forEach((q, i) => { const leg = q[4] < 3.9 && q[5] <= 4.6 && q[1] - q[0] < 1.5, s = leg ? (q[0] < 0 ? sw : -sw) : 0; box([q[0], q[1], q[2] + s, q[3] + s, q[4], q[5], q[6]], sm); });
     wearBoxes(av, girl, false).forEach(q => box(q, sm)); petBoxes(av, false, sm, sb).forEach(q => box([q[0], q[1], q[2] + sw * 0.4, q[3] + sw * 0.4, q[4], q[5], q[6]], 1)); }
@@ -8543,11 +8550,13 @@ function gmAvDraw(){
   const W = 360, H = 360, ox = W / 2, oy = H * 0.78;
   cv.style.transform = `translate(${Math.round(p0.x - ox)}px, ${Math.round(p0.y - oy)}px)`;
   const pit = map.getPitch() * Math.PI / 180, sp = Math.sin(pit), cp = Math.cos(pit), s = MAN_U * pxm;
-  const key = [GM.mode, Math.round(s * 20), Math.round(map.getPitch()), Math.round(GM.off / 2), Math.abs(GM.v) > 0.3 ? Math.round(GM.ph * 3) : 0, gmAvKey()].join();
+  const key = [GM.mode, GM.swim ? 1 : 0, Math.round(s * 20), Math.round(map.getPitch()), Math.round(GM.off / 2), Math.abs(GM.v) > 0.3 ? Math.round(GM.ph * 3) : 0, gmAvKey()].join();
   if (key === GM.avKey) return; GM.avKey = key;
   const dpr = Math.min(2, devicePixelRatio || 1); if (cv.width !== W * dpr){ cv.width = W * dpr; cv.height = H * dpr; }
   const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
   const pr = (x, y, z) => [ox + x * s, oy - (y * cp + z * sp) * s];
+  if (GM.swim){ const r = 3.4 * avSizes().man * s; g.strokeStyle = "rgba(255,255,255,.85)"; g.lineWidth = 2;   // cerchi nell'acqua intorno a chi nuota
+    [1, 1.45].forEach((k, i) => { g.globalAlpha = i ? 0.45 : 0.9; g.beginPath(); g.ellipse(ox, oy, r * k, r * k * cp, 0, 0, Math.PI * 2); g.stroke(); }); g.globalAlpha = 1; }
   const shade = (hex, f) => { if (hex[0] !== "#") return hex; const n = parseInt(hex.slice(1), 16), c = v => Math.max(0, Math.min(255, Math.round(v * f))); return `rgb(${c(n >> 16)},${c((n >> 8) & 255)},${c(n & 255)})`; };
   const F = [];
   const dr = -GM.off * Math.PI / 180, cd = Math.cos(dr), sd = Math.sin(dr);   // la telecamera girata vede l'omino di lato
@@ -8661,13 +8670,14 @@ async function friendGift(nome){
 function gmTick(){
   const now = performance.now(), dt = Math.min(0.05, (now - GM.t) / 1000); GM.t = now; GM.n++;
   gmNeed();
-  const boat = GM.mode === "boat", vmax = boat ? GM_BOAT : GM_WALK, target = GM.f * vmax * (GM.f < 0 ? 0.5 : 1);
+  const boat = GM.mode === "boat"; GM.swim = !boat && gmInWater(GM);
+  const vmax = boat ? GM_BOAT : GM.swim ? GM_SWIM : GM_WALK, target = GM.f * vmax * (GM.f < 0 ? 0.5 : 1);
   if (boat){ const a = (Math.abs(target) > Math.abs(GM.v) ? 16 : 20) * dt; GM.v += Math.max(-a, Math.min(a, target - GM.v)); }   // la barca ha un po' di abbrivio
   else GM.v += (target - GM.v) * Math.min(1, 12 * dt);
   const rate = boat ? 25 + 75 * Math.min(1, Math.abs(GM.v) / 4) : 190;
   GM.hdg = (GM.hdg + GM.tr * rate * dt * (boat && GM.v < -0.3 ? -1 : 1) + 360) % 360;
   if (Math.abs(GM.v) > 0.05){
-    const ok = boat ? gmBoatable : gmWalkable, total = GM.v * dt, n = Math.max(1, Math.ceil(Math.abs(total) / 0.8)), step = total / n;
+    const ok = boat ? gmBoatable : gmSwimOk, total = GM.v * dt, n = Math.max(1, Math.ceil(Math.abs(total) / 0.8)), step = total / n;
     const probe = q => ok(q) && (!boat || (ok(gmOff(q, GM.hdg, Math.sign(GM.v) * 2.2)) && ok(gmOff(q, GM.hdg, Math.sign(GM.v) * 1.1))));   // in barca controllo anche la prua
     for (let i = 0; i < n; i++){ const nx = gmOff(GM, GM.hdg, step);
       if (probe(nx)){ GM.lat = nx.lat; GM.lng = nx.lng; continue; }
@@ -8685,7 +8695,7 @@ function gmTick(){
   if (GM.n % 90 === 0) gmSave();
   if (now - (GM.pushT || 0) > 3000 && PROFILE){ GM.pushT = now; rpc("game_push", { p_lat: GM.lat, p_lng: GM.lng, p_hdg: Math.round(GM.hdg), p_boat: GM.mode === "boat" }).catch(() => {}); }
   gmAvDraw(); if (GM.n % 10 === 0) gmDraw(); if (GM.n % 2 === 0) gmMiniTick();
-  if (now - GM.actT > 300){ GM.actT = now; gmRivaBoats(); gmCheckAct(); gmDestTick(); $("#gmSpd").textContent = !gmKnown(gmOff(GM, GM.hdg, 8)) ? "Carico la mappa…" : Math.round(Math.abs(GM.v) * 3.6) + " km/h"; }
+  if (now - GM.actT > 300){ GM.actT = now; gmRivaBoats(); gmCheckAct(); gmDestTick(); gmPaintUi(); $("#gmSpd").textContent = !gmKnown(gmOff(GM, GM.hdg, 8)) ? "Carico la mappa…" : Math.round(Math.abs(GM.v) * 3.6) + " km/h"; }
 }
 // tasto d'azione: ruba / sali / scendi
 function gmCheckAct(){
@@ -8711,7 +8721,7 @@ function gmDoAct(){
     GM.mode = "boat"; GM.v = 0; GM.lat = b.lat; GM.lng = b.lng; GM.hdg = b.hdg; buzz([40, 30, 80]); }
   GM.boatsKey = ""; GM.avKey = ""; gmDraw(); gmPaintUi(); gmCheckAct();
 }
-function gmPaintUi(){ if (!GM) return; $("#gmMode").textContent = GM.mode === "boat" ? "🛥️ In barca" : "🚶 A piedi"; }
+function gmPaintUi(){ if (!GM) return; $("#gmMode").textContent = GM.mode === "boat" ? "🛥️ In barca" : GM.swim ? "🏊 A nuoto" : "🚶 A piedi"; }
 // levette: la sinistra va su e giù (avanti/indietro), la destra a sinistra e destra (gira); si usano insieme con due dita
 (() => {
   const pad = (el, set) => { const knob = el.querySelector("i"); let id = null;
