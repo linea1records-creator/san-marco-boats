@@ -784,6 +784,13 @@
   body.gm .maplibregl-ctrl-bottom-right, body.gm .maplibregl-ctrl-bottom-left{display:none}
   #gmUi{position:fixed;inset:0;z-index:3500;touch-action:none;user-select:none;-webkit-user-select:none}
   #gmUi.hidden{display:none}
+  #gmAv{position:absolute;left:0;top:0;width:360px;height:360px;pointer-events:none;will-change:transform}
+  #gmSet{position:absolute;top:calc(60px + var(--safe-t));right:10px;width:42px;height:42px;border-radius:50%;border:0;background:rgba(17,17,17,.85);display:flex;align-items:center;justify-content:center}
+  #gmSet svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:1.6;stroke-linejoin:round}
+  body.gm #setPanel{position:fixed;z-index:3600;top:calc(110px + var(--safe-t));right:10px;bottom:auto;max-height:calc(100vh - 140px)}
+  body.gm #setPanel:not(.hidden){display:block!important}
+  body.gm #setPanel.hidden{display:none!important}
+  body.hide-tesori .tesMk, body.hide-segnal .segMk{display:none!important}
   .gmTop{position:absolute;top:calc(10px + var(--safe-t));left:10px;right:10px;display:flex;align-items:center;gap:8px}
   .gmTop span{background:rgba(17,17,17,.82);color:#fff;font-weight:800;font-size:14px;border-radius:999px;padding:8px 12px}
   #gmX{margin-left:auto;width:42px;height:42px;border-radius:50%;border:0;background:rgba(17,17,17,.85);color:#fff;font-size:20px;font-weight:800}
@@ -1266,6 +1273,8 @@
       <button class="srow" data-set="d3"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>Vista 3D</span><i class="sw"></i></button>
       <button class="srow" data-set="sat"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.8 5.4 3.8 8.5s-1.3 5.9-3.8 8.5c-2.5-2.6-3.8-5.4-3.8-8.5S9.5 6.1 12 3.5z"/></svg><span>Satellitare</span><i class="sw"></i></button>
       <label class="srow hidden" id="waterColRow"><svg viewBox="0 0 24 24"><path d="M3 15c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/><path d="M3 19c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/><path d="M12 3.5c2.4 3 4 5.2 4 7a4 4 0 0 1-8 0c0-1.8 1.6-4 4-7z"/></svg><span>Colore dell'acqua</span><input type="color" id="waterCol" value="#3dc991"><button type="button" id="waterColReset" title="Colore di default">↺</button></label>
+      <button class="srow" data-set="tesori"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 9.5h6M9 14.5h6M12 7v10"/></svg><span>Tesori</span><i class="sw"></i></button>
+      <button class="srow" data-set="segnal"><svg viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg><span>Segnalazioni</span><i class="sw"></i></button>
       <button class="srow" data-set="boat"><svg viewBox="0 0 24 24"><path d="M3 15.5h18l-2.6 4.5H5.6z"/><path d="M12 3v12.5M12 4.5l6 9h-6"/></svg><span>La tua barca</span><i class="sw"></i></button>
       <div class="sh">DIMENSIONI</div>
       <label class="srng"><span>Avatar <b id="szManV">100%</b></span><input type="range" id="szMan" min="0.4" max="3" step="0.1" value="1"></label>
@@ -1540,10 +1549,12 @@
       <p class="rpLegal">La parte nautica è indicativa: non sostituisce carta nautica e avvisi ufficiali.</p>
     </div></div>
     <div id="gmUi" class="hidden">
+      <canvas id="gmAv" width="360" height="360"></canvas>
       <div class="gmTop"><span id="gmMode">🚶 A piedi</span><span id="gmSpd">0 km/h</span><button id="gmX" aria-label="Esci dal gioco">✕</button></div>
       <div class="gmStick v" id="gmL"><i></i><small>avanti · indietro</small></div>
       <div class="gmStick h" id="gmR"><i></i><small>gira</small></div>
       <button id="gmAct" class="hidden"></button>
+      <button id="gmSet" aria-label="Cosa vedere sulla mappa"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.4 7.4 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.4 7.4 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.4 7.4 0 0 0 1.7-1l2.4 1 2-3.4z"/></svg></button>
     </div>
     <div id="hud" class="hidden"><button id="hudAdm" class="hidden" aria-label="Valida segnalazioni" title="Valida segnalazioni">✓ Valida<i class="hidden"></i></button><button id="hudCoin" aria-label="I tuoi schei"></button></div>
     <button id="tesBtn" class="hidden"></button>
@@ -5619,16 +5630,18 @@ function apply3d(anim){
 }
 $("#fabSet").onclick = e => { e.stopPropagation(); $("#menu").classList.add("hidden"); paintSet(); try{ paintWaterRow(); }catch(e){}
   const hid = $("#setPanel").classList.toggle("hidden"); $("#fabSet").classList.toggle("on", !hid); };
-document.addEventListener("click", e => { if (!e.target.closest("#setPanel") && !e.target.closest("#fabSet")){ $("#setPanel").classList.add("hidden"); $("#fabSet").classList.remove("on"); } });
+document.addEventListener("click", e => { if (!e.target.closest("#setPanel") && !e.target.closest("#fabSet") && !e.target.closest("#gmSet")){ $("#setPanel").classList.add("hidden"); $("#fabSet").classList.remove("on"); } });
 document.querySelectorAll("#setPanel [data-set]").forEach(b => b.onclick = () => {
   const k = b.dataset.set;
   if (k === "water"){ INST.water = !INST.water; store.set("ln_inst", INST); paintInst(); applyMapMode(); if (INST.water){ loadTide(); loadChart(); drawFondo(); } }
   else if (k === "sat"){ mapMode = mapMode === "sat" ? "simple" : "sat"; store.set("ln_mapmode", mapMode); applyMapMode(); }
-  else { LY[k] = !setGet(k); store.set("ln_layers", LY); if (k === "d3") apply3d(true); else layerVis();
+  else { LY[k] = !setGet(k); store.set("ln_layers", LY); if (k === "d3") apply3d(true); else layerVis(); mkVis();
     if (k === "actv" || k === "alilaguna"){ if (appMode === "nautica" && (LY.actv || LY.alilaguna)){ if (LY.actv) loadFermate(); actvStart(); } else actvStop(); setBattelliFilter(); } }
   paintSet(); try{ haptic(); }catch(e){}
 });
 paintSet();
+function mkVis(){ document.body.classList.toggle("hide-tesori", LY.tesori === false); document.body.classList.toggle("hide-segnal", LY.segnal === false); }
+mkVis();
 // ogni tocco cambia mappa: semplice ⇄ satellite
 $("#fabSat").onclick = e => { e.stopPropagation(); mapMode = mapMode === "sat" ? "simple" : "sat";
   store.set("ln_mapmode", mapMode); $("#modes").classList.add("hidden"); applyMapMode(); toast(mapMode === "sat" ? "🛰 Satellite" : "🗺️ Mappa semplice"); };
@@ -8392,6 +8405,7 @@ function gmStart(){
   }
   map.jumpTo({ center: [GM.lng, GM.lat], zoom: 19.6, pitch: 62, bearing: GM.hdg, padding: { top: Math.round(innerHeight * 0.42), bottom: 0, left: 0, right: 0 } });
   document.body.classList.add("gm"); $("#gmUi").classList.remove("hidden"); buzz([60, 40, 120]);
+  document.body.appendChild($("#setPanel")); $("#setPanel").classList.add("hidden");   // il pannello di cosa vedere va sopra i comandi del gioco
   // dopo un attimo le tessere sono pronte: se sei in acqua parti in barca (la tua), se sei dentro una casa esci in calle
   setTimeout(() => { if (!GM) return; gmIndex();
     if (gmWater(GM) && !gmWalkable(GM)){ GM.mode = "boat"; GM.using = { kind: "mine" }; GM.mine = null; }
@@ -8402,6 +8416,7 @@ function gmStart(){
 function gmStop(){
   if (!GM) return; const c = GM.cam; GM = null;
   document.body.classList.remove("gm"); $("#gmUi").classList.add("hidden");
+  $("#setPanel").classList.add("hidden"); $("#v-map").insertBefore($("#setPanel"), $("#modes"));
   ["dragPan", "scrollZoom", "boxZoom", "dragRotate", "keyboard", "doubleClickZoom", "touchZoomRotate", "touchPitch"].forEach(k => { try{ map[k].enable(); }catch(e){} });
   try{ map.getSource("gmman").setData({ type: "FeatureCollection", features: [] }); map.getSource("gmboats").setData({ type: "FeatureCollection", features: [] }); }catch(e){}
   try{ if (map.getLayer("meman")) map.setLayoutProperty("meman", "visibility", "visible"); }catch(e){} try{ if (meMarker) meMarker.getElement().style.display = ""; }catch(e){}
@@ -8425,13 +8440,49 @@ function gmBoatGeo(b, out){
   const pt = (x, y) => { const E = (x * cs + y * sn) * u, N = (-x * sn + y * cs) * u; return [b.lng + E * kLng, b.lat + N * kLat]; };
   boatFeatures((P, bb, t, c) => out.push({ type: "Feature", properties: { c, b: bb * sb * u, h: t * sb * u }, geometry: { type: "Polygon", coordinates: [P.concat([P[0]]).map(q => pt(q[0] * sb, q[1] * sb))] } }));
 }
+// l'omino del gioco non passa più dalla mappa (troppo lenta ad aggiornarsi): è disegnato su una tela sopra la mappa,
+// sempre visto da dietro perché la telecamera gira con lui. Così si muove insieme alla telecamera, senza ritardi.
+function gmPrisms(){
+  const av = myAvatar(), girl = av.sex === "f", SZ = avSizes(), sm = SZ.man, sb = SZ.boat, L = [], C = Object.assign({}, MAN_C);
+  ["shirt", "legs", "shoe", "hair"].forEach(k => { if (/^#[0-9a-f]{6}$/i.test(av[k] || "")) C[k] = av[k]; });
+  const poly = (P, b, t, c) => L.push({ P, b, t, c: C[c] || c });
+  const box = (q, k) => poly([[q[0] * k, q[2] * k], [q[1] * k, q[2] * k], [q[1] * k, q[3] * k], [q[0] * k, q[3] * k]], q[4] * k, q[5] * k, q[6]);
+  if (GM.mode === "boat"){ boatFeatures((P, b, t, c) => poly(P.map(q => [q[0] * sb, q[1] * sb]), b * sb, t * sb, c)); seatedMan(poly, C, girl, sm, sb, av); petBoxes(av, true, sm, sb).forEach(q => box(q, 1)); }
+  else { const sw = Math.abs(GM.v) > 0.3 ? Math.sin(GM.ph) * 0.7 : 0;   // camminando le gambe vanno avanti e indietro
+    manStandBoxes(girl).forEach((q, i) => { const leg = q[4] < 3.9 && q[5] <= 4.6 && q[1] - q[0] < 1.5, s = leg ? (q[0] < 0 ? sw : -sw) : 0; box([q[0], q[1], q[2] + s, q[3] + s, q[4], q[5], q[6]], sm); });
+    wearBoxes(av, girl, false).forEach(q => box(q, sm)); petBoxes(av, false, sm, sb).forEach(q => box([q[0], q[1], q[2] + sw * 0.4, q[3] + sw * 0.4, q[4], q[5], q[6]], 1)); }
+  return L;
+}
+function gmAvDraw(){
+  const cv = $("#gmAv"); if (!cv || !GM) return;
+  const p0 = map.project([GM.lng, GM.lat]), q = gmOff(GM, GM.hdg + 90, 1), p1 = map.project([q.lng, q.lat]), pxm = Math.hypot(p1.x - p0.x, p1.y - p0.y) || 1;
+  const W = 360, H = 360, ox = W / 2, oy = H * 0.78;
+  cv.style.transform = `translate(${Math.round(p0.x - ox)}px, ${Math.round(p0.y - oy)}px)`;
+  const pit = map.getPitch() * Math.PI / 180, sp = Math.sin(pit), cp = Math.cos(pit), s = MAN_U * pxm;
+  const key = [GM.mode, Math.round(s * 20), Math.round(map.getPitch()), Math.abs(GM.v) > 0.3 ? Math.round(GM.ph * 3) : 0, gmAvKey()].join();
+  if (key === GM.avKey) return; GM.avKey = key;
+  const dpr = Math.min(2, devicePixelRatio || 1); if (cv.width !== W * dpr){ cv.width = W * dpr; cv.height = H * dpr; }
+  const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  const pr = (x, y, z) => [ox + x * s, oy - (y * cp + z * sp) * s];
+  const shade = (hex, f) => { if (hex[0] !== "#") return hex; const n = parseInt(hex.slice(1), 16), c = v => Math.max(0, Math.min(255, Math.round(v * f))); return `rgb(${c(n >> 16)},${c((n >> 8) & 255)},${c(n & 255)})`; };
+  const F = [];
+  gmPrisms().forEach(({ P, b, t, c }) => {
+    let ar = 0; for (let i = 0; i < P.length; i++){ const A = P[i], B = P[(i + 1) % P.length]; ar += A[0] * B[1] - B[0] * A[1]; } const o = ar >= 0 ? 1 : -1;
+    const cx = P.reduce((a, p) => a + p[0], 0) / P.length, cy = P.reduce((a, p) => a + p[1], 0) / P.length;
+    F.push({ Q: P.map(p => pr(p[0], p[1], t)), col: shade(c, 1.06), d: cy * sp - t * cp });                       // tetto, sempre visibile dall'alto
+    for (let i = 0; i < P.length; i++){ const A = P[i], B = P[(i + 1) % P.length], nx = (B[1] - A[1]) * o, ny = -(B[0] - A[0]) * o, l = Math.hypot(nx, ny) || 1;
+      if (-ny / l * sp <= 0.001) continue;                                                                      // faccia girata dall'altra parte
+      F.push({ Q: [pr(A[0], A[1], b), pr(B[0], B[1], b), pr(B[0], B[1], t), pr(A[0], A[1], t)], col: shade(c, 0.78 + 0.14 * (nx / l)), d: (A[1] + B[1]) / 2 * sp - (b + t) / 2 * cp }); } });
+  F.sort((a, b) => b.d - a.d).forEach(f => { g.beginPath(); f.Q.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.closePath(); g.fillStyle = f.col; g.fill(); });
+}
+const gmAvKey = () => JSON.stringify(myAvatar()) + JSON.stringify(avSizes());
 function gmDraw(){
-  try{ map.getSource("gmman").setData(manFeatures(GM.lat, GM.lng, GM.hdg, myAvatar(), null, GM.mode === "boat" && Math.abs(GM.v) > 4 ? 0.08 : 0, GM.mode === "boat")); }catch(e){}
-  if (GM.n % 15 === 0){ const out = []; gmBoats().forEach(b => gmBoatGeo(b, out)); try{ map.getSource("gmboats").setData({ type: "FeatureCollection", features: out }); }catch(e){}
-    // etichetta sopra la tua barca
-    if (GM.mine){ let el = $("#gmMine"); if (!el){ el = document.createElement("div"); el.id = "gmMine"; el.className = "gmMine"; el.textContent = "⚓ La tua barca"; GM.mineMk = new maplibregl.Marker({ element: el, anchor: "bottom", offset: [0, -30] }).setLngLat([GM.mine.lng, GM.mine.lat]).addTo(map); }
-      else GM.mineMk && GM.mineMk.setLngLat([GM.mine.lng, GM.mine.lat]); }
-    else { try{ GM.mineMk && GM.mineMk.remove(); }catch(e){} GM.mineMk = null; } }
+  // barche ferme: si ridisegnano solo quando cambia qualcosa
+  const B = gmBoats(), k = B.map(b => b.lat.toFixed(6) + b.lng.toFixed(6) + Math.round(b.hdg)).join("|");
+  if (k !== GM.boatsKey){ GM.boatsKey = k; const out = []; B.forEach(b => gmBoatGeo(b, out)); try{ map.getSource("gmboats").setData({ type: "FeatureCollection", features: out }); }catch(e){} }
+  if (GM.mine){ let el = $("#gmMine"); if (!el){ el = document.createElement("div"); el.id = "gmMine"; el.className = "gmMine"; el.textContent = "⚓ La tua barca"; GM.mineMk = new maplibregl.Marker({ element: el, anchor: "bottom", offset: [0, -30] }).setLngLat([GM.mine.lng, GM.mine.lat]).addTo(map); }
+    else GM.mineMk && GM.mineMk.setLngLat([GM.mine.lng, GM.mine.lat]); }
+  else { try{ GM.mineMk && GM.mineMk.remove(); }catch(e){} GM.mineMk = null; try{ $("#gmMine").remove(); }catch(e){} }
 }
 function gmTick(){
   const now = performance.now(), dt = Math.min(0.05, (now - GM.t) / 1000); GM.t = now; GM.n++;
@@ -8449,8 +8500,9 @@ function gmTick(){
       if (ok(a)){ GM.lat = a.lat; GM.v *= 0.85; } else if (ok(b)){ GM.lng = b.lng; GM.v *= 0.85; }
       else { if (boat && Math.abs(GM.v) > 3 && now - GM.bumpT > 600){ buzz([50]); GM.bumpT = now; } GM.v = boat ? -GM.v * 0.15 : 0; } }
   }
-  if (GM.n % 2 === 0) gmDraw();
+  GM.ph = (GM.ph || 0) + Math.abs(GM.v) * dt * 2.2;
   map.jumpTo({ center: [GM.lng, GM.lat], bearing: GM.hdg, pitch: 62, zoom: boat ? 19 : 19.6 });
+  gmAvDraw(); if (GM.n % 10 === 0) gmDraw();
   if (now - GM.actT > 300){ GM.actT = now; gmRivaBoats(); gmCheckAct(); $("#gmSpd").textContent = Math.round(Math.abs(GM.v) * 3.6) + " km/h"; }
 }
 // tasto d'azione: ruba / sali / scendi
@@ -8475,7 +8527,7 @@ function gmDoAct(){
     else if (b.kind === "left"){ GM.left.splice(b.i, 1); GM.using = { kind: "left" }; }
     else { GM.stolen[b.id] = true; GM.using = { kind: "riva", id: b.id }; toast("🔑 Barca rubata alla riva " + (b.n || "")); }
     GM.mode = "boat"; GM.v = 0; GM.lat = b.lat; GM.lng = b.lng; GM.hdg = b.hdg; buzz([40, 30, 80]); }
-  GM.n = 14; gmPaintUi(); gmCheckAct();
+  GM.boatsKey = ""; GM.avKey = ""; gmDraw(); gmPaintUi(); gmCheckAct();
 }
 function gmPaintUi(){ if (!GM) return; $("#gmMode").textContent = GM.mode === "boat" ? "🛥️ In barca" : "🚶 A piedi"; }
 // levette: la sinistra va su e giù (avanti/indietro), la destra a sinistra e destra (gira); si usano insieme con due dita
@@ -8492,6 +8544,7 @@ function gmPaintUi(){ if (!GM) return; $("#gmMode").textContent = GM.mode === "b
   stick($("#gmL"), "y", v => { if (GM) GM.f = Math.abs(v) < 0.08 ? 0 : v; });
   stick($("#gmR"), "x", v => { if (GM) GM.tr = Math.abs(v) < 0.08 ? 0 : v; });
   $("#gmAct").onclick = gmDoAct; $("#gmX").onclick = gmStop;
+  $("#gmSet").onclick = e => { e.stopPropagation(); paintSet(); $("#setPanel").classList.toggle("hidden"); };
   ["touchstart", "touchmove"].forEach(ev => $("#gmUi").addEventListener(ev, e => { if (e.target.closest("button")) return; e.preventDefault(); }, { passive: false }));
   // da tastiera (computer): frecce o WASD, spazio per l'azione, Esc per uscire
   const K = {}; addEventListener("keydown", e => { if (!GM) return; K[e.key.toLowerCase()] = 1; if (e.key === " ") gmDoAct(); if (e.key === "Escape") gmStop(); kk(); });
