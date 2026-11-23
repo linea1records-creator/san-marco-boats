@@ -3182,6 +3182,7 @@ const BOAT_M = {   // barche del cantiere: lunghezza e larghezza (rispetto al ba
   b_motoscafo: { L: 1.3, W: 1.1, h: "#ffffff", r: "#7a1f1f", d: "#c89b62", fd: "#6b3a1e", ws: 1 } };
 const MOTOR_CV = { m_25: 25, m_60: 60, m_115: 115, m_200: 200, m_300: 300 };
 function boatFeatures(poly, av){
+  if (av && av.boatm === "b_gondola"){ const k = 1.35; gondolaShape((P, b, t, c) => poly(P.map(q => [q[0] * k * 1.6, q[1] * k]), b * k, t * k, c), { seats: true, men: 0 }); return; }   // gondola: niente motore
   const M = BOAT_M[av && av.boatm] || { L: 1, W: 1, h: "#f4f6f8", r: "#050706", d: "#c89b62" }, cv = MOTOR_CV[av && av.motor] || 10;
   const T = P => P.map(([x, y]) => [x * M.W, y > -3 ? -3 + (y + 3) * M.L : y]), OUT = T(BOAT_OUT), IN = T(BOAT_IN), yMax = -3 + 10 * M.L;   // la poppa (panca e motore) resta uguale
   for (let y = -7; y < yMax; y += 1.2){                                     // scafo e pagliolo a fette, così si inclinano in planata
@@ -8417,7 +8418,7 @@ function shopPaint(){
   document.querySelectorAll("[data-sht]").forEach(b => b.classList.toggle("on", b.dataset.sht === SHOP.tab));
   $("#shAdm").innerHTML = SHOP.admin ? `<button class="btn small ghost" id="shEdit" style="margin:4px 0 8px">${SHOP.edit ? "✓ Fine prezzi" : "✏️ Decidi i prezzi (solo Trops)"}</button>` : "";
   if ($("#shEdit")) $("#shEdit").onclick = () => { SHOP.edit = !SHOP.edit; shopPaint(); };
-  const L = SHOP.luogo ? SHOP.items.filter(i => i.luogo === SHOP.luogo) : SHOP.items.filter(i => !i.luogo && i.tipo === SHOP.tab);
+  const L = SHOP.luogo ? SHOP.items.filter(i => i.luogo === SHOP.luogo || (SHOP.luogo === "squero" && i.luogo === "cantiere")) : SHOP.items.filter(i => !i.luogo && i.tipo === SHOP.tab);
   if (!L.length){ g.innerHTML = `<p class="muted">Niente qui per ora.</p>`; return; }
   g.innerHTML = L.map(i => { const mine = shopMine(i.id), worn = av[i.slot] === i.id, pet = i.tipo === "mascotte";
     let act;
@@ -8547,6 +8548,74 @@ function gondStazio(s){
   if ($("#gonDel")) $("#gonDel").onclick = () => extraDel(s[3]).then(gondDraw);
 }
 
+/* ---------- Gondole in 3D: quelle dei traghetti fanno avanti e indietro, 5 gondole girano per i canali, 2 sono in secca allo squero di San Trovaso ---------- */
+// forma della gondola in metri (y: da poppa -5,4 a prua +5,4), nera con il ferro di prua, il gondoliere in piedi a poppa
+function gondolaShape(add, o){
+  const L = 5.4;
+  for (let y = -L; y < L - 0.01; y += 0.45){ const yc = y + 0.225, t = Math.min(1, Math.abs(yc) / L);
+    const hw = 0.7 * Math.sqrt(Math.max(0.03, 1 - Math.pow(t, 2.2))), b = 0.05 + 0.75 * Math.pow(t, 4), h = 0.45 + 0.9 * Math.pow(t, 3.2);
+    add([[-hw, y], [hw, y], [hw, y + 0.45], [-hw, y + 0.45]], b, h, "#0c0c0c"); }
+  const box = (x0, x1, y0, y1, b, t, c) => add([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], b, t, c);
+  box(-0.05, 0.05, 5.2, 5.75, 0.9, 1.95, "#d9dde2");                                 // ferro di prua
+  [1.0, 1.2, 1.4].forEach(z => box(-0.18, 0.18, 5.4, 5.62, z, z + 0.1, "#d9dde2"));  // i denti del ferro
+  box(-0.05, 0.05, -5.65, -5.3, 0.8, 1.25, "#d9dde2");                               // riccio di poppa
+  if (o.seats){ box(-0.45, 0.45, -0.9, 0.6, 0.45, 0.7, "#8b1a1a"); box(-0.45, 0.45, -1.05, -0.85, 0.45, 1.0, "#8b1a1a"); box(-0.47, 0.47, -1.07, -0.83, 1.0, 1.05, "#d4a017"); }
+  const man = (x, y) => { box(x - 0.2, x + 0.2, y - 0.15, y + 0.15, 0.75, 1.55, "#111111");
+    box(x - 0.25, x + 0.25, y - 0.2, y + 0.2, 1.55, 2.25, "#ffffff"); box(x - 0.26, x + 0.26, y - 0.21, y + 0.21, 1.78, 2.0, "#0b1f4b");
+    box(x - 0.15, x + 0.15, y - 0.15, y + 0.15, 2.25, 2.55, "#e9b48f");
+    box(x - 0.32, x + 0.32, y - 0.32, y + 0.32, 2.55, 2.6, "#e9c46a"); box(x - 0.17, x + 0.17, y - 0.17, y + 0.17, 2.6, 2.78, "#e9c46a"); box(x - 0.18, x + 0.18, y - 0.18, y + 0.18, 2.6, 2.66, "#c8102e");
+    box(x + 0.3, x + 0.36, y - 0.05, y + 2.0, 0.85, 0.93, "#8a6a45"); };                // remo
+  if (o.men !== 0) man(0.25, -4.2);
+  if (o.men === 2) man(-0.25, 3.6);
+}
+const GOND_K = 1.5;
+function gondGeo(lng, lat, hdg, out, o){
+  const r = (hdg || 0) * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r), kLat = 1 / 111320, kLng = 1 / (111320 * Math.cos(lat * Math.PI / 180)), K = GOND_K;
+  const pt = (x, y) => { x *= K; y *= K; return [lng + (x * cs + y * sn) * kLng, lat + (-x * sn + y * cs) * kLat]; };
+  gondolaShape((P, b, h, c) => out.push({ type: "Feature", properties: { c, b: b * K, h: h * K }, geometry: { type: "Polygon", coordinates: [P.concat([P[0]]).map(q => pt(q[0], q[1]))] } }), o);
+}
+const SQUERO = { lat: 45.43065, lng: 12.32655 };
+const GOND_PARK = [[45.43058, 12.32640, 95], [45.43049, 12.32643, 88]];   // due gondole in secca sullo squero, a terra
+let GOND_NPC = null;
+// 5 gondole che girano: percorsi in acqua tra stazi, avanti e indietro, con una sosta a ogni capo
+function gondNpcBuild(){
+  if (GOND_NPC || !G.done) return; const S = Object.fromEntries(STAZI.map(s => [s[0], { lat: s[1], lng: s[2] }])), L = [];
+  [["Bacino Orseolo", "Rialto · Riva del Carbon"], ["Danieli · Riva degli Schiavoni", "Bacino Orseolo"], ["Santa Sofia", "San Tomà"], ["Accademia", "San Moisè · Vallaresso"], ["Ferrovia", "Piazzale Roma"], ["San Tomà", "Accademia"], ["Molo · Palazzo Ducale", "Santa Maria del Giglio"]]
+    .forEach(([a, b], i) => { if (L.length >= 5) return; let R = null; try{ R = computeRoute(S[a], S[b]); }catch(e){} if (!R || !R.pts || R.pts.length < 2) return;
+      const P = R.pts, cum = [0]; for (let k = 1; k < P.length; k++) cum.push(cum[k - 1] + hav(P[k - 1][0], P[k - 1][1], P[k][0], P[k][1]));
+      L.push({ P, cum, len: cum[cum.length - 1], off: i * 97 }); });
+  GOND_NPC = L;
+}
+function gondAt(g, tSec){
+  const v = 1.4, travel = g.len / v, pause = 25, cyc = 2 * (travel + pause); let t = (tSec + g.off) % cyc, back = false;
+  if (t < pause) t = 0; else if (t < pause + travel) t = (t - pause) * v; else if (t < 2 * pause + travel) t = g.len; else { back = true; t = g.len - (t - 2 * pause - travel) * v; }
+  let i = 1; while (i < g.cum.length - 1 && g.cum[i] < t) i++;
+  const a = g.P[i - 1], b = g.P[i], u = Math.max(0, Math.min(1, (t - g.cum[i - 1]) / ((g.cum[i] - g.cum[i - 1]) || 1)));
+  const hd = Math.atan2((b[1] - a[1]) * Math.cos(a[0] * Math.PI / 180), b[0] - a[0]) * 180 / Math.PI;
+  return { lat: a[0] + (b[0] - a[0]) * u, lng: a[1] + (b[1] - a[1]) * u, hdg: back ? hd + 180 : hd };
+}
+// traghetto: 20 s ferma, 15 s di traversata, e ritorno
+function traghAt(tr, k, tSec){
+  const cyc = 70, t = (tSec + k * 23) % cyc, A = tr.a, B = tr.b, hd = Math.atan2((B[1] - A[1]) * Math.cos(A[0] * Math.PI / 180), B[0] - A[0]) * 180 / Math.PI;
+  const lerp = u => ({ lat: A[0] + (B[0] - A[0]) * u, lng: A[1] + (B[1] - A[1]) * u });
+  if (t < 20) return Object.assign(lerp(0), { hdg: hd + 90 }); if (t < 35) return Object.assign(lerp((t - 20) / 15), { hdg: hd });
+  if (t < 55) return Object.assign(lerp(1), { hdg: hd + 90 }); return Object.assign(lerp(1 - (t - 55) / 15), { hdg: hd + 180 });
+}
+function gond3dTick(){
+  if (!map || !map.getStyle() || document.hidden) return;
+  if (!map.getSource("gondole3d")){ map.addSource("gondole3d", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addLayer({ id: "gondole3d", type: "fill-extrusion", source: "gondole3d", minzoom: 15, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true } }); }
+  const on = appMode === "nautica" && LY.gondole !== false && map.getZoom() >= 14.8;
+  if (!on){ if (gond3dTick.had){ map.getSource("gondole3d").setData({ type: "FeatureCollection", features: [] }); gond3dTick.had = false; } return; }
+  gondNpcBuild();
+  const B = map.getBounds(), t = Date.now() / 1000, out = [], vis = p => B.contains([p.lng, p.lat]);
+  TRAGHETTI.forEach((tr, k) => { const p = traghAt(tr, k, t); if (vis(p)) gondGeo(p.lng, p.lat, p.hdg, out, { men: 2 }); });
+  (GOND_NPC || []).forEach(g => { const p = gondAt(g, t); if (vis(p)) gondGeo(p.lng, p.lat, p.hdg, out, { seats: true, men: 1 }); });
+  GOND_PARK.forEach(([la, lo, h]) => { if (vis({ lat: la, lng: lo })) gondGeo(lo, la, h, out, { seats: true, men: 0 }); });
+  map.getSource("gondole3d").setData({ type: "FeatureCollection", features: out }); gond3dTick.had = true;
+}
+setInterval(gond3dTick, 500);
+
 /* ---------- Luoghi aggiunti da tropss: tabaccherie, ristoranti, bar, barbieri… che mancano sulla mappa ----------
    Compaiono nel Delivery (col loro colore) e, se sono barbieri, cantieri o tabaccherie, valgono anche per entrare nei negozi dei luoghi veri. */
 const EXTRA_T = {   // tipo → categoria del Delivery, tipo come OpenStreetMap, luogo vero del gioco
@@ -8592,7 +8661,8 @@ const LUOGO_T = {
   tabacchi: { e: "🚬", n: "in tabaccheria", t: "Tabaccheria", r: 30 },
   santamargherita: { e: "🧥", n: "dal Cappuccio", t: "Il Cappuccio · Campo Santa Margherita", r: 80, fix: { lat: 45.43429, lng: 12.32372, nome: "Il Cappuccio" } },
   marghera: { e: "🛴", n: "da Monopattino", t: "Monopattino · Marghera", r: 1400, fix: { lat: 45.47370, lng: 12.22355, nome: "Monopattino" } },
-  stadio: { e: "⚽", n: "allo stadio", t: "Stadio Penzo", r: 180, fix: { lat: 45.42771, lng: 12.36402, nome: "Stadio Penzo" } }
+  stadio: { e: "⚽", n: "allo stadio", t: "Stadio Penzo", r: 180, fix: { lat: 45.42771, lng: 12.36402, nome: "Stadio Penzo" } },
+  squero: { e: "🛶", n: "nello squero", t: "Squero di San Trovaso", r: 45, fix: { lat: 45.43065, lng: 12.32655, nome: "Squero di San Trovaso" } }
 };
 let LUOGHI = store.get("ln_luoghi", null), LUOGO_QUI = null;
 // barbieri e tabaccherie dalla mappa (OpenStreetMap), i cantieri dal nostro elenco; tenuti 7 giorni
@@ -8806,7 +8876,7 @@ function gmBoats(){ const L = []; if (GM.mine) L.push(Object.assign({ kind: "min
   Object.values(GM.rb).forEach(b => { if (b && !GM.stolen[b.id]) L.push(Object.assign({ kind: "riva" }, b)); }); return L; }
 // velocità della barca: la tua secondo il motore comprato in cantiere (senza: 30 km/h), quelle rubate 50 km/h
 const MOTOR_KMH = { m_25: 50, m_60: 80, m_115: 120, m_200: 160, m_300: 200 };
-function gmBoatMax(){ if (!GM.using || GM.using.kind !== "mine") return 50 / 3.6; return (MOTOR_KMH[myAvatar().motor] || 30) / 3.6; }
+function gmBoatMax(){ if (!GM.using || GM.using.kind !== "mine") return 50 / 3.6; const av = myAvatar(); if (av.boatm === "b_gondola") return 14 / 3.6; return (MOTOR_KMH[av.motor] || 30) / 3.6; }   // la gondola va a remi
 function gmBoatGeo(b, out){
   const u = MAN_U, sb = avSizes().boat, r = b.hdg * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r), kLat = 1 / 111320, kLng = 1 / (111320 * Math.cos(b.lat * Math.PI / 180));
   const pt = (x, y) => { const E = (x * cs + y * sn) * u, N = (-x * sn + y * cs) * u; return [b.lng + E * kLng, b.lat + N * kLat]; };
