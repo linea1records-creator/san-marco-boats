@@ -1482,6 +1482,7 @@
         <button class="card rowbtn" id="pfShare">📍 Posizione agli amici <span id="pfShareSub">No ›</span></button>
         <button class="card rowbtn" data-go="boat">⛵ La mia barca <span>›</span></button>
         <button class="card rowbtn" id="pfPark">⚓ Parcheggio della barca nel gioco <span id="pfParkSub">Scegli ›</span></button>
+        <button class="card rowbtn hidden" id="pfLuogo">📍 Aggiungi un luogo (tabaccheria, ristorante…) <span>›</span></button>
         <button class="card rowbtn" data-go="rider">🚶 Rider <span>›</span></button>
         <button class="card rowbtn" data-go="info">ⓘ Impostazioni e info <span>›</span></button>
         <button class="card rowbtn" id="pfEdit">🔑 Cambia PIN <span>›</span></button>
@@ -2042,7 +2043,8 @@ $("#pfSetBtn").onclick = () => { haptic(); setPfTab("me"); };
 $("#pfShopBtn").onclick = () => { haptic(); shopOpen(); };
 $("#pfBagBtn").onclick = () => { haptic(); zainoOpen(); };
 $("#pfShop2").onclick = () => shopOpen();
-$("#pfPark").onclick = () => gmParkPick(); setTimeout(() => { try{ paintGmPark(); }catch(e){} }, 0);
+$("#pfPark").onclick = () => gmParkPick();
+$("#pfLuogo").onclick = () => extraPick(); setTimeout(() => { try{ $("#pfLuogo").classList.toggle("hidden", !isTropss()); }catch(e){} }, 1500); setTimeout(() => { try{ paintGmPark(); }catch(e){} }, 0);
 $("#pfMeBack").onclick = () => setPfTab("home");
 $("#pfAmBtn").onclick = () => setPfTab("friends");
 $("#pfCmBtn").onclick = () => openMeet("match");
@@ -2585,6 +2587,7 @@ function initMap(){
     if ($("#sheet") && !$("#sheet").classList.contains("hidden")) return;   // appena dopo il tocco lungo si apre la scheda: il rilascio non conta
     if (GM){ const fr = map.queryRenderedFeatures([[e.point.x - 16, e.point.y - 16], [e.point.x + 16, e.point.y + 16]], { layers: ["frman", "frdot"].filter(l => map.getLayer(l)) })[0];
       if (fr && fr.properties.n) friendMenu(fr.properties.n); return; }
+    if (addMode === "luogoadd"){ addMode = null; $("#modeHint").classList.add("hidden"); return extraForm(e.lngLat); }
     if (addMode === "gmpark"){ addMode = null; $("#modeHint").classList.add("hidden"); return gmParkSet(e.lngLat); }
     if (addMode === "segpick"){ addMode = null; $("#modeHint").classList.add("hidden"); return segForm(e.lngLat.lat, e.lngLat.lng); }
     if (appMode === "market" && map.getLayer("dlv")){ const d = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["dlv"] })[0]; if (d) return openDlv(d.properties.i); }
@@ -6832,6 +6835,7 @@ function dlvItems(){
   const L = [];
   if (DLV.food) (POI || []).forEach(x => L.push({ n: x.n, k: "food", lat: x.lat, lng: x.lng, s: x.k }));
   ((NEGOZI && NEGOZI.p) || []).forEach(a => { const k = DLV_FOODSHOP.has(a[4]) ? "food" : a[1]; if (DLV[k] && a[0]) L.push({ n: a[0], k, lat: a[2], lng: a[3], s: a[4] }); });
+  (EXTRA || []).forEach(x => { const T = EXTRA_T[x.t]; if (T && DLV[T.k]) L.push({ n: x.n, k: T.k, lat: x.lat, lng: x.lng, s: T.s, extra: x.id }); });
   return L;
 }
 let DLV_L = [];
@@ -6870,8 +6874,9 @@ async function openDlv(i){
   openSheet(`<h3 style="margin-bottom:2px">${esc(x.n)}</h3><p class="muted" style="margin:0 0 6px">${esc(dlvType(x))}</p>
     <div id="dlvRev" class="muted" style="margin-bottom:10px">Carico le recensioni…</div>
     ${food ? `<div class="row" style="gap:8px"><button class="btn" id="dlvOrd" style="flex:1">Ordina delivery</button><button class="btn" id="dlvBook" style="flex:1;background:#b5533c;color:#fff">Prenota</button></div>` : ""}
-    <button class="btn ghost" id="dlvGo" style="margin-top:10px">Portami qui</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
+    <button class="btn ghost" id="dlvGo" style="margin-top:10px">Portami qui</button>${x.extra && isTropss() ? `<button class="btn small ghost" id="dlvDel" style="margin-top:10px">🗑️ Togli questo luogo (solo Trops)</button>` : ""}<button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
   $("#dlvGo").onclick = () => { closeSheet(); setMode("nautica"); openPlan({ name: x.n, lat: x.lat, lng: x.lng }); };
+  if ($("#dlvDel")) $("#dlvDel").onclick = () => extraDel(x.extra);
   if (food){
     $("#dlvOrd").onclick = () => { if (partner && partner.order_rest && CONFIG.RISTORANTI.some(r => r.id === partner.order_rest)){ closeSheet(); showView("order"); openMenu(partner.order_rest); }
       else toast("Questo locale non fa ancora consegne con clickVenice."); };
@@ -8183,11 +8188,12 @@ async function scheiSheet(){
     ${adm ? `<button class="btn" id="schAdm" style="background:#0a8f4e">✓ Valida segnalazioni${SCHEI.pending ? ` <span class="schBdg">${SCHEI.pending}</span>` : ""}</button>` : ""}
     <div class="row" style="gap:8px;margin-top:8px"><button class="btn small" id="schSeg" style="flex:1">📸 Segnala</button><button class="btn small" id="schSfida" style="flex:1">⚔️ Sfida un amico</button></div>
     <button class="btn small" id="schShop" style="margin-top:8px">🛍️ Spendi gli schei nel negozio</button>
-    ${adm ? `<button class="btn small ghost" id="schTesAdd" style="margin-top:8px">💰 Metti un tesoro sulla mappa (solo Trops)</button>` : ""}
+    ${adm ? `<button class="btn small ghost" id="schTesAdd" style="margin-top:8px">💰 Metti un tesoro sulla mappa (solo Trops)</button><button class="btn small ghost" id="schLuogo" style="margin-top:8px">📍 Aggiungi un luogo (solo Trops)</button>` : ""}
     <h4 class="schH">Tesori</h4><div id="schTes"></div>
     <h4 class="schH">Le tue sfide</h4><div id="schSf"><p class="muted">Carico…</p></div>
     <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
   if ($("#schAdm")) $("#schAdm").onclick = segAdmin;
+  if ($("#schLuogo")) $("#schLuogo").onclick = extraPick;
   $("#schSeg").onclick = segStart;
   $("#schShop").onclick = () => shopOpen();
   $("#schSfida").onclick = () => { closeSheet(); setMode("sport"); tttHost(); toast("Invita un amico nella stanza, poi puntate gli schei"); };
@@ -8480,6 +8486,43 @@ async function shopDoBuy(i, nome){
   if (i.luogo) shopOpen(null, i.luogo); else shopOpen(i.tipo);
 }
 
+/* ---------- Luoghi aggiunti da tropss: tabaccherie, ristoranti, bar, barbieri… che mancano sulla mappa ----------
+   Compaiono nel Delivery (col loro colore) e, se sono barbieri, cantieri o tabaccherie, valgono anche per entrare nei negozi dei luoghi veri. */
+const EXTRA_T = {   // tipo → categoria del Delivery, tipo come OpenStreetMap, luogo vero del gioco
+  ristorante: { n: "Ristorante", k: "food", s: "restaurant" }, pizzeria: { n: "Pizzeria", k: "food", s: "restaurant" }, bar: { n: "Bar", k: "food", s: "cafe" },
+  bacaro: { n: "Bacaro", k: "food", s: "bar" }, pasticceria: { n: "Pasticceria", k: "food", s: "pastry" }, panificio: { n: "Panificio", k: "food", s: "bakery" },
+  gelateria: { n: "Gelateria", k: "food", s: "ice_cream" }, fast_food: { n: "Fast food", k: "food", s: "fast_food" },
+  tabaccheria: { n: "Tabaccheria", k: "tabacchi", s: "tobacco", l: "tabacchi" }, farmacia: { n: "Farmacia", k: "farmacie", s: "pharmacy" },
+  barbiere: { n: "Barbiere", k: "negozi", s: "hairdresser", l: "barbiere" }, cantiere: { n: "Cantiere", k: "negozi", s: "boat", l: "cantiere" },
+  alimentari: { n: "Alimentari", k: "negozi", s: "convenience" }, supermercato: { n: "Supermercato", k: "negozi", s: "supermarket" }, negozio: { n: "Negozio", k: "negozi", s: "shop" }
+};
+let EXTRA = store.get("ln_extra", []);
+async function extraLoad(){ try{ const j = await rpc("luoghi_extra_list", {}); if (Array.isArray(j)){ EXTRA = j; store.set("ln_extra", j); try{ drawDlv(); }catch(e){} } }catch(e){} }
+setTimeout(extraLoad, 2500);
+function extraPick(){
+  if (!isTropss()) return; closeSheet(); try{ setMode("nautica"); }catch(e){}
+  addMode = "luogoadd"; const h = $("#modeHint"); h.textContent = "📍 Tocca la mappa dove si trova il luogo da aggiungere"; h.classList.remove("hidden");
+}
+function extraForm(ll){
+  let tipo = null;
+  openSheet(`<h3>📍 Nuovo luogo</h3><p class="muted" style="margin-top:-4px">${ll.lat.toFixed(5)}, ${ll.lng.toFixed(5)}</p>
+    <div class="field"><input id="exNome" maxlength="60" placeholder="Nome (es. Tabacchi Rialto)"></div>
+    <div class="segcats" id="exTipi">${Object.entries(EXTRA_T).map(([k, t]) => `<button data-ext="${k}">${esc(t.n)}</button>`).join("")}</div>
+    <button class="btn" id="exGo" style="margin-top:10px" disabled>Aggiungi</button><button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">Annulla</button>`);
+  const ok = () => { $("#exGo").disabled = !(tipo && $("#exNome").value.trim()); };
+  $("#exNome").oninput = ok; setTimeout(() => $("#exNome").focus(), 80);
+  document.querySelectorAll("[data-ext]").forEach(b => b.onclick = () => { tipo = b.dataset.ext; document.querySelectorAll("[data-ext]").forEach(x => x.classList.toggle("on", x === b)); ok(); });
+  $("#exGo").onclick = async () => { $("#exGo").disabled = true;
+    const j = await rpc("luogo_add", { p_nome: $("#exNome").value.trim(), p_tipo: tipo, p_lat: ll.lat, p_lng: ll.lng }).catch(() => null);
+    if (!j || !j.ok){ $("#exGo").disabled = false; return toast(j && j.errore === "fuori_zona" ? "Il punto è fuori dalla zona" : "Non aggiunto, riprova."); }
+    closeSheet(); haptic(); toast("📍 Luogo aggiunto per tutti"); await extraLoad(); };
+}
+async function extraDel(id){
+  if (!confirm("Togliere questo luogo per tutti?")) return;
+  const j = await rpc("luogo_del", { p_id: id }).catch(() => null);
+  if (j && j.ok){ closeSheet(); toast("Luogo tolto"); EXTRA = EXTRA.filter(x => x.id !== id); store.set("ln_extra", EXTRA); try{ drawDlv(); }catch(e){} } else toast("Non riuscito");
+}
+
 /* ---------- Luoghi veri: se ci vai di persona (GPS vero) puoi comprare cose che altrove non trovi ----------
    barbiere → acconciature · cantiere → barche e motori · tabaccheria → sigarette, cartine, filtri, accendino, biglietto ACTV
    Campo Santa Margherita e Marghera → due personaggi inventati (solo per maggiorenni) · stadio Penzo → maglia arancioneroverde */
@@ -8512,6 +8555,7 @@ function luogoTick(p){
   let best = null;
   Object.entries(LUOGO_T).forEach(([k, T]) => { if (!T.fix) return; const d = dist(p, T.fix); if (d <= T.r && (!best || d < best.d)) best = { k, n: T.fix.nome, d }; });
   if (!best && LUOGHI) LUOGHI.p.forEach(x => { const d = dist(p, x); if (d <= LUOGO_T[x.k].r && (!best || d < best.d)) best = { k: x.k, n: x.n, d }; });
+  if (!best) (EXTRA || []).forEach(x => { const T = EXTRA_T[x.t]; if (!T || !T.l) return; const d = dist(p, x); if (d <= LUOGO_T[T.l].r && (!best || d < best.d)) best = { k: T.l, n: x.n, d }; });
   luogoShow(best);
 }
 function luogoShow(b){
