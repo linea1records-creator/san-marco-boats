@@ -3400,7 +3400,8 @@ function onPos(pos){
     else if (!disp) meMarker.setLngLat([p.lng, p.lat]);
     drawMan(); pushMyLoc(p);
   }
-  checkZones(p, kmh); checkShallow(p); navTick(p); recPoint(p); updateDepth(p); veloxTick(p, kmh); bridgeTick(p);
+  recPoint(p);
+  if (!GM){ checkZones(p, kmh); checkShallow(p); navTick(p); updateDepth(p); if (LY.velox !== false) veloxTick(p, kmh); bridgeTick(p); }
   try{ scheiWalk(p); tesTick(p); }catch(e){}
 }
 // direzione da seguire in questo momento
@@ -3416,7 +3417,7 @@ function frame(){
   if (!map) return;
   if (GM){ try{ gmTick(); }catch(e){}   // modalità gioco: comanda lei la telecamera, ma il tuo omino vero (GPS) resta sulla mappa
     try{ dispTick(); if (manPend && Date.now() - manPend.t >= 400){ manShown = manPend.P; manPend = null; } const D = manShown || disp; if (D && meMarker) meMarker.setLngLat([D.lng, D.lat]);
-      frame.n = (frame.n || 0) + 1; if (frame.n % 3 === 0) drawMan(); }catch(e){}
+      frame.n = (frame.n || 0) + 1; if (frame.n % 12 === 0) drawMan(); }catch(e){}
     return; }
   const t = targetHeading();
   if (t !== null) heading = (heading + angDiff(heading, t) * 0.22 + 360) % 360;
@@ -6238,7 +6239,7 @@ function boatPos(b, t0){
   return null;
 }
 function actvPaint(){
-  if (!map || !map.getSource("battelli") || !actvRaw) return;
+  if (!map || !map.getSource("battelli") || !actvRaw || appMode !== "nautica" || !(LY.actv || LY.alilaguna)) return;
   actvBudget = 6; actvDeadline = performance.now() + 25;   // pochi calcoli per volta: la mappa e la tua posizione restano fluide
   const t0 = romeMinNow(), feats = []; BOATS_ACTV = [];
   actvRaw.forEach(b => { const st = b[4]; if (!st || !st.length) return;
@@ -6571,7 +6572,7 @@ function trkStop(keepBox){
 }
 function actvStart(){
   if (typeof loadGraph === "function") loadGraph();
-  if (!map) return; addBoatsLayer(); if (!actvFetchT){ vpSync(); setTimeout(vpLoadAll, 8000); setInterval(() => { if (!document.hidden) vpSync(); }, 5 * 60000); actvFetch(); actvFetchT = setInterval(() => { if (!document.hidden) actvFetch(); }, 60000); }
+  if (!map) return; addBoatsLayer(); if (!actvFetchT){ vpSync(); if (!actvStart.vp){ actvStart.vp = 1; setTimeout(vpLoadAll, 8000); setInterval(() => { if (!document.hidden && actvFetchT) vpSync(); }, 5 * 60000); } actvFetch(); actvFetchT = setInterval(() => { if (!document.hidden) actvFetch(); }, 60000); }
   if (!actvAnimT) actvAnimT = setInterval(() => { if (!document.hidden) actvPaint(); }, 2000);
 }
 function actvStop(){ clearInterval(actvFetchT); clearInterval(actvAnimT); actvFetchT = actvAnimT = null; }
@@ -7262,7 +7263,7 @@ function layerVis(){
   const want = {
     "bricole": n && LY.bricole, "bric3d": n && LY.bricole && d3,
     "velox": n && LY.velox, "velox-tratte": n && LY.velox,
-    "meman": me && d3, "medot": me, "frman": d3,
+    "meman": me && (d3 || !!GM), "medot": me, "frman": d3 || !!GM,   // nel gioco gli omini si vedono anche in 2D
     "cantieri": n && LY.cantieri, "cantieri-lbl": n && LY.cantieri,
     "rive": n && LY.rive === true, "rive-lbl": n && LY.rive === true,
     "canali": n && LY.canali, "canali-lbl": n && LY.canali,
@@ -7420,7 +7421,7 @@ function paintMeteo(){
   $("#mwMetI").textContent = ic; $("#mwMet").textContent = Math.round(METEO.t) + "°"; $("#mwMetL").textContent = nm + (METEO.w ? " · " + Math.round(METEO.w) + " km/h" : "");
 }
 function paintMini(){
-  const w = $("#miniW"); if (!w) return;
+  const w = $("#miniW"); if (!w || GM || document.hidden || !w.offsetParent) return;   // nascosti: niente calcoli
   const tx = id => (($("#" + id) || {}).textContent || "").trim();
   const st = id => { const c = $("#" + id); return c ? (c.classList.contains("alarm") ? "alarm" : c.classList.contains("warn") ? "warn" : "") : ""; };
   $("#mwSpd").textContent = tx("spd") || "–";
@@ -8467,7 +8468,7 @@ function gmStart(){
   if (SV){ GM.hdg = SV.hdg || 0; GM.mode = SV.mode === "boat" ? "boat" : "walk"; GM.using = SV.using || null; GM.left = SV.left || []; GM.stolen = SV.stolen || {};
     if (SV.mine !== undefined) GM.mine = SV.mine; GM.restored = true; }
   map.jumpTo({ center: [GM.lng, GM.lat], zoom: 20.2, pitch: 62, bearing: GM.hdg, padding: { top: Math.round(innerHeight * 0.42), bottom: 0, left: 0, right: 0 } });
-  document.body.classList.add("gm"); $("#gmUi").classList.remove("hidden"); buzz([60, 40, 120]); store.set("ln_gm_on", true);
+  document.body.classList.add("gm"); $("#gmUi").classList.remove("hidden"); buzz([60, 40, 120]); store.set("ln_gm_on", true); try{ layerVis(); }catch(e){}
   document.body.appendChild($("#setPanel")); $("#setPanel").classList.add("hidden");
   setTimeout(() => { if (GM){ gmMiniInit(); try{ GMINI && GMINI.resize(); }catch(e){} } }, 50);   // il pannello di cosa vedere va sopra i comandi del gioco
   // dopo un attimo le tessere sono pronte: se sei in acqua parti in barca (la tua), se sei dentro una casa esci in calle
@@ -8488,7 +8489,7 @@ function gmStop(){
   try{ if (map.getLayer("meman")) map.setLayoutProperty("meman", "visibility", "visible"); }catch(e){} try{ if (meMarker) meMarker.getElement().style.display = ""; }catch(e){}
   try{ $("#gmMine").remove(); }catch(e){}
   map.easeTo({ center: lastPos ? [lastPos.lng, lastPos.lat] : c.center, zoom: lastPos ? 17.5 : c.zoom, pitch: c.pitch, bearing: c.bearing, padding: c.padding, duration: 700 });
-  manKey = ""; try{ drawMan(true); apply3d(false); }catch(e){} paintCam(); modeFlash("Fine gioco");
+  manKey = ""; try{ drawMan(true); apply3d(false); layerVis(); }catch(e){} paintCam(); modeFlash("Fine gioco");
 }
 // barche ormeggiate nelle rive dei diportisti: la prima volta che ti avvicini cerco il punto d'acqua davanti alla riva
 function gmRivaBoats(){
