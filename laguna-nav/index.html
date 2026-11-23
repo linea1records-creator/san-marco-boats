@@ -8364,11 +8364,17 @@ function gmIndex(){
     const it = { bb: [a, b, c, d], rings }; for (let i = Math.floor(a / GM_CELL); i <= Math.floor(c / GM_CELL); i++) for (let j = Math.floor(b / GM_CELL); j <= Math.floor(d / GM_CELL); j++){ const k = i + "," + j; (M.get(k) || M.set(k, []).get(k)).push(it); } I.n++; };
   const putLine = (M, L) => { for (let s = 0; s < L.length - 1; s++){ const A = L[s], B = L[s + 1], seg = { A, B };
     for (let i = Math.floor(Math.min(A[0], B[0]) / GM_CELL); i <= Math.floor(Math.max(A[0], B[0]) / GM_CELL); i++) for (let j = Math.floor(Math.min(A[1], B[1]) / GM_CELL); j <= Math.floor(Math.max(A[1], B[1]) / GM_CELL); j++){ const k = i + "," + j; (M.get(k) || M.set(k, []).get(k)).push(seg); } } };
-  const polys = (sl, M) => { try{ map.querySourceFeatures("openmaptiles", { sourceLayer: sl }).forEach(f => { const g = f.geometry;
-    if (g.type === "Polygon") putPoly(M, g.coordinates); else if (g.type === "MultiPolygon") g.coordinates.forEach(r => putPoly(M, r)); }); }catch(e){} };
-  polys("water", I.water); polys("building", I.bld);
-  try{ map.querySourceFeatures("openmaptiles", { sourceLayer: "transportation" }).forEach(f => { const bn = f.properties && f.properties.brunnel, g = f.geometry; if (bn !== "bridge" && bn !== "tunnel") return;
-    const M = bn === "bridge" ? I.br : I.tun; if (g.type === "LineString") putLine(M, g.coordinates); else if (g.type === "MultiLineString") g.coordinates.forEach(l => putLine(M, l)); }); }catch(e){}
+  // solo quello che si vede intorno all'omino (le tessere intere sono troppo pesanti per il telefono)
+  if (!map.getLayer("gmbr")) try{ map.addLayer({ id: "gmbr", type: "line", source: "openmaptiles", "source-layer": "transportation", filter: ["in", "brunnel", "bridge", "tunnel"], paint: { "line-opacity": 0, "line-width": 12 } }); }catch(e){}
+  const ids = t => (map.getStyle().layers || []).filter(l => l.type === "fill" && l.layout?.visibility !== "none" && t(l.id)).map(l => l.id);
+  if (!GM.ly) GM.ly = { w: ids(id => /water/i.test(id) && !/name|label/i.test(id)), b: ids(id => /building/i.test(id)) };
+  const cv = map.getCanvas(), W = cv.clientWidth, H = cv.clientHeight, box = [[0, H * 0.22], [W, H]];
+  const q = L => { try{ return L.length ? map.queryRenderedFeatures(box, { layers: L }) : []; }catch(e){ return []; } };
+  const polys = (F, M) => F.forEach(f => { const g = f.geometry; if (g.type === "Polygon") putPoly(M, g.coordinates); else if (g.type === "MultiPolygon") g.coordinates.forEach(r => putPoly(M, r)); });
+  polys(q(GM.ly.w), I.water); polys(q(GM.ly.b), I.bld);
+  q(map.getLayer("gmbr") ? ["gmbr"] : []).forEach(f => { const bn = f.properties && f.properties.brunnel, g = f.geometry, M = bn === "bridge" ? I.br : I.tun;
+    if (g.type === "LineString") putLine(M, g.coordinates); else if (g.type === "MultiLineString") g.coordinates.forEach(l => putLine(M, l)); });
+  I.c = { lat: GM.lat, lng: GM.lng };
   GM.idx = I; GM.idxT = performance.now();
 }
 const gmKey = p => Math.floor(p.lng / GM_CELL) + "," + Math.floor(p.lat / GM_CELL);
@@ -8391,7 +8397,8 @@ function gmStart(){
   try{ if (typeof stopNav === "function" && document.body.classList.contains("nav")) stopNav(); }catch(e){}
   try{ if (TRK) trkStop(); }catch(e){} try{ setFollow(false); setFirstPerson(false); }catch(e){} closeSheet(); closePopups && closePopups();
   if (appMode !== "nautica") try{ setMode("nautica"); }catch(e){}
-  const start = lastPos ? { lat: lastPos.lat, lng: lastPos.lng } : { lat: 45.43405, lng: 12.33879 };   // senza GPS: Piazza San Marco
+  const SV = store.get("ln_gm_save", null);   // si riparte da dove eri rimasto; la prima volta dal GPS (o da San Marco)
+  const start = SV ? { lat: SV.lat, lng: SV.lng } : lastPos ? { lat: lastPos.lat, lng: lastPos.lng } : { lat: 45.43405, lng: 12.33879 };
   const park = store.get("ln_gm_park", null);
   GM = { lat: start.lat, lng: start.lng, hdg: heading || 0, mode: "walk", v: 0, f: 0, tr: 0, t: performance.now(), idx: null, idxT: 0, using: null,
     mine: park ? { lat: park.lat, lng: park.lng, hdg: park.hdg || 0 } : null, left: [], rb: {}, stolen: {}, n: 0, actT: 0, act: null, bumpT: 0,
@@ -8403,18 +8410,23 @@ function gmStart(){
     map.addSource("gmboats", { type: "geojson", data: { type: "FeatureCollection", features: [] } }); map.addLayer({ id: "gmboats", type: "fill-extrusion", source: "gmboats", paint });
     map.addSource("gmman", { type: "geojson", data: { type: "FeatureCollection", features: [] } }); map.addLayer({ id: "gmman", type: "fill-extrusion", source: "gmman", paint });
   }
-  map.jumpTo({ center: [GM.lng, GM.lat], zoom: 19.6, pitch: 62, bearing: GM.hdg, padding: { top: Math.round(innerHeight * 0.42), bottom: 0, left: 0, right: 0 } });
+  try{ map.setMaxPitch(80); }catch(e){}
+  if (SV){ GM.hdg = SV.hdg || 0; GM.mode = SV.mode === "boat" ? "boat" : "walk"; GM.using = SV.using || null; GM.left = SV.left || []; GM.stolen = SV.stolen || {};
+    if (SV.mine !== undefined) GM.mine = SV.mine; GM.restored = true; }
+  map.jumpTo({ center: [GM.lng, GM.lat], zoom: 20.2, pitch: 62, bearing: GM.hdg, padding: { top: Math.round(innerHeight * 0.42), bottom: 0, left: 0, right: 0 } });
   document.body.classList.add("gm"); $("#gmUi").classList.remove("hidden"); buzz([60, 40, 120]);
   document.body.appendChild($("#setPanel")); $("#setPanel").classList.add("hidden");   // il pannello di cosa vedere va sopra i comandi del gioco
   // dopo un attimo le tessere sono pronte: se sei in acqua parti in barca (la tua), se sei dentro una casa esci in calle
   setTimeout(() => { if (!GM) return; gmIndex();
+    if (GM.restored){ gmPaintUi(); return; }
     if (gmWater(GM) && !gmWalkable(GM)){ GM.mode = "boat"; GM.using = { kind: "mine" }; GM.mine = null; }
     else if (!gmWalkable(GM)){ const q = gmFind(GM, gmWalkable, 40); if (q){ GM.lat = q.lat; GM.lng = q.lng; } }
     gmPaintUi(); }, 900);
-  gmPaintUi(); toast("Modalità gioco: levetta sinistra per andare, destra per girare");
+  gmPaintUi(); toast(SV ? "Riprendi da dove eri rimasto" : "Modalità gioco: levetta sinistra per andare, destra per girare");
 }
+function gmSave(){ if (!GM) return; store.set("ln_gm_save", { lat: GM.lat, lng: GM.lng, hdg: GM.hdg, mode: GM.mode, using: GM.using, mine: GM.mine, left: GM.left.slice(-10), stolen: GM.stolen, t: Date.now() }); }
 function gmStop(){
-  if (!GM) return; const c = GM.cam; GM = null;
+  if (!GM) return; gmSave(); const c = GM.cam; GM = null;
   document.body.classList.remove("gm"); $("#gmUi").classList.add("hidden");
   $("#setPanel").classList.add("hidden"); $("#v-map").insertBefore($("#setPanel"), $("#modes"));
   ["dragPan", "scrollZoom", "boxZoom", "dragRotate", "keyboard", "doubleClickZoom", "touchZoomRotate", "touchPitch"].forEach(k => { try{ map[k].enable(); }catch(e){} });
@@ -8422,14 +8434,14 @@ function gmStop(){
   try{ if (map.getLayer("meman")) map.setLayoutProperty("meman", "visibility", "visible"); }catch(e){} try{ if (meMarker) meMarker.getElement().style.display = ""; }catch(e){}
   try{ $("#gmMine").remove(); }catch(e){}
   map.easeTo({ center: lastPos ? [lastPos.lng, lastPos.lat] : c.center, zoom: lastPos ? 17.5 : c.zoom, pitch: c.pitch, bearing: c.bearing, padding: c.padding, duration: 700 });
-  manKey = ""; try{ drawMan(true); }catch(e){} paintCam(); modeFlash("Fine gioco");
+  manKey = ""; try{ drawMan(true); apply3d(false); }catch(e){} paintCam(); modeFlash("Fine gioco");
 }
 // barche ormeggiate nelle rive dei diportisti: la prima volta che ti avvicini cerco il punto d'acqua davanti alla riva
 function gmRivaBoats(){
   if (!GM.idx || !RIVE.length) return; const k = gmM(GM.lat);
   RIVE.forEach(r => { if (GM.rb[r.id] !== undefined || GM.stolen[r.id]) return;
-    const d = Math.hypot((r.lat - GM.lat) * k.y, (r.lng - GM.lng) * k.x); if (d > 220) return;
-    const w = gmFind(r, gmBoatable, 22); if (!w){ GM.rb[r.id] = null; return; }
+    const d = Math.hypot((r.lat - GM.lat) * k.y, (r.lng - GM.lng) * k.x); if (d > 60) return;
+    const w = gmFind(r, gmBoatable, 22); if (!w){ if (d < 25) GM.rb[r.id] = null; return; }
     GM.rb[r.id] = { lat: w.lat, lng: w.lng, hdg: (w.a + 90) % 360, id: r.id, n: r.n }; });   // la barca sta parallela alla riva
 }
 function gmBoats(){ const L = []; if (GM.mine) L.push(Object.assign({ kind: "mine" }, GM.mine));
@@ -8486,7 +8498,7 @@ function gmDraw(){
 }
 function gmTick(){
   const now = performance.now(), dt = Math.min(0.05, (now - GM.t) / 1000); GM.t = now; GM.n++;
-  if (now - GM.idxT > 2500) gmIndex();
+  if (!GM.idx || now - GM.idxT > 4000 || (GM.idx.c && dist(GM, GM.idx.c) > 18)) gmIndex();
   const boat = GM.mode === "boat", vmax = boat ? GM_BOAT : GM_WALK, target = GM.f * vmax * (GM.f < 0 ? 0.5 : 1);
   if (boat){ const a = (Math.abs(target) > Math.abs(GM.v) ? 5 : 7) * dt; GM.v += Math.max(-a, Math.min(a, target - GM.v)); }   // la barca ha un po' di abbrivio
   else GM.v += (target - GM.v) * Math.min(1, 12 * dt);
@@ -8501,7 +8513,8 @@ function gmTick(){
       else { if (boat && Math.abs(GM.v) > 3 && now - GM.bumpT > 600){ buzz([50]); GM.bumpT = now; } GM.v = boat ? -GM.v * 0.15 : 0; } }
   }
   GM.ph = (GM.ph || 0) + Math.abs(GM.v) * dt * 2.2;
-  map.jumpTo({ center: [GM.lng, GM.lat], bearing: GM.hdg, pitch: 62, zoom: boat ? 19 : 19.6 });
+  map.jumpTo({ center: [GM.lng, GM.lat], bearing: GM.hdg, pitch: 62, zoom: boat ? 19.5 : 20.2 });
+  if (GM.n % 90 === 0) gmSave();
   gmAvDraw(); if (GM.n % 10 === 0) gmDraw();
   if (now - GM.actT > 300){ GM.actT = now; gmRivaBoats(); gmCheckAct(); $("#gmSpd").textContent = Math.round(Math.abs(GM.v) * 3.6) + " km/h"; }
 }
@@ -8552,13 +8565,15 @@ function gmPaintUi(){ if (!GM) return; $("#gmMode").textContent = GM.mode === "b
   function kk(){ if (!GM) return; GM.f = (K.arrowup || K.w ? 1 : 0) - (K.arrowdown || K.s ? 1 : 0); GM.tr = (K.arrowright || K.d ? 1 : 0) - (K.arrowleft || K.a ? 1 : 0); }
 })();
 // myClick: dove parcheggi la tua barca nel gioco
+addEventListener("pagehide", () => { try{ gmSave(); }catch(e){} });
+document.addEventListener("visibilitychange", () => { if (document.hidden) try{ gmSave(); }catch(e){} });
 function gmParkPick(){
   closeSheet(); try{ setMode("nautica"); }catch(e){}
   addMode = "gmpark"; const h = $("#modeHint"); h.textContent = "⚓ Tocca un punto d'acqua dove parcheggiare la tua barca"; h.classList.remove("hidden");
 }
 function gmParkSet(ll){
   if (!onWater(ll.lat, ll.lng)) return toast("Scegli un punto in acqua (un canale o la laguna)");
-  store.set("ln_gm_park", { lat: ll.lat, lng: ll.lng, hdg: 0 }); toast("⚓ La tua barca è parcheggiata qui"); try{ paintGmPark(); }catch(e){}
+  store.set("ln_gm_park", { lat: ll.lat, lng: ll.lng, hdg: 0, t: Date.now() }); const sv = store.get("ln_gm_save", null); if (sv){ delete sv.mine; store.set("ln_gm_save", sv); } toast("⚓ La tua barca è parcheggiata qui"); try{ paintGmPark(); }catch(e){}
 }
 function paintGmPark(){ const s = $("#pfParkSub"); if (s) s.textContent = (store.get("ln_gm_park", null) ? "Impostato" : "Scegli") + " ›"; }
 
