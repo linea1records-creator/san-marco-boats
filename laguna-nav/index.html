@@ -839,7 +839,12 @@
   body.nav #hud{display:none}
   #tesBtn{position:fixed;z-index:45;left:50%;transform:translateX(-50%);bottom:calc(96px + var(--safe-b, 0px));display:flex;align-items:center;gap:10px;border:0;border-radius:18px;padding:10px 16px 10px 10px;
     background:linear-gradient(#ffe066,#f2b705);color:#3b2600;box-shadow:0 6px 22px rgba(0,0,0,.35);animation:tesPulse 1.4s ease-in-out infinite;text-align:left;max-width:92vw}
-  #tesBtn.hidden{display:none} #tesBtn .scheo{width:40px;height:40px} #tesBtn small{display:block;font-size:12px;font-weight:600}
+  #tesBtn.hidden{display:none}
+  #luogoBtn{position:fixed;z-index:3550;left:50%;transform:translateX(-50%);top:calc(64px + var(--safe-t));display:grid;grid-template-columns:auto auto;column-gap:8px;align-items:center;border:0;border-radius:18px;padding:9px 16px 9px 12px;
+    background:#111;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.35);text-align:left;max-width:92vw}
+  #luogoBtn.hidden{display:none} #luogoBtn span{grid-row:1 / 3;font-size:26px} #luogoBtn b{font-size:15px} #luogoBtn small{font-size:12px;color:#c9cfd6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.gm #luogoBtn{top:calc(110px + var(--safe-t))}
+  .npcTag{background:#111;color:#fff;font-size:11px;font-weight:800;border-radius:999px;padding:3px 8px;white-space:nowrap;pointer-events:none} #tesBtn .scheo{width:40px;height:40px} #tesBtn small{display:block;font-size:12px;font-weight:600}
   @keyframes tesPulse{50%{transform:translateX(-50%) scale(1.04)}}
   .tesMk{width:30px;height:30px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45));cursor:pointer} .tesMk .scheo{width:100%;height:100%} .tesMk.used{opacity:.4;filter:grayscale(1)}
   .segMk{width:32px;height:32px;border-radius:50%;background:#fff;border:2px solid #111;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 2px 6px rgba(0,0,0,.35);cursor:pointer}
@@ -1414,6 +1419,7 @@
   <section class="view hidden" id="v-profile">
     <div class="scroll lightv" id="pfScroll">
       <div class="mchead igh"><h2>myClick</h2>
+        <button id="pfBagBtn" class="mcic" title="Zaino" aria-label="Zaino"><svg viewBox="0 0 24 24"><path d="M7 8a5 5 0 0 1 10 0v12H7z"/><path d="M9.5 8V6.5a2.5 2.5 0 0 1 5 0V8M9 13h6"/></svg></button>
         <button id="pfShopBtn" class="mcic" title="Negozio" aria-label="Negozio"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg></button>
         <button id="pfSetBtn" class="mcic" title="Impostazioni del profilo"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.4 7.4 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.4 7.4 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.4 7.4 0 0 0 1.7-1l2.4 1 2-3.4z"/></svg></button>
         <button id="pfRouBtn" class="mcic" style="display:none" title="Roulette video"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.3" cy="8.3" r="1.1" class="f"/><circle cx="15.7" cy="15.7" r="1.1" class="f"/><circle cx="12" cy="12" r="1.1" class="f"/><circle cx="15.7" cy="8.3" r="1.1" class="f"/><circle cx="8.3" cy="15.7" r="1.1" class="f"/></svg></button>
@@ -1582,6 +1588,7 @@
     </div>
     <div id="hud" class="hidden"><button id="hudAdm" class="hidden" aria-label="Valida segnalazioni" title="Valida segnalazioni">✓ Valida<i class="hidden"></i></button><button id="hudCoin" aria-label="I tuoi schei"></button></div>
     <button id="tesBtn" class="hidden"></button>
+    <button id="luogoBtn" class="hidden"></button>
   </nav>
 </div>
 
@@ -2033,6 +2040,7 @@ $("#pfLetBtn").onclick = () => openLetters(letUnread() ? "ricevute" : "scrivi");
 $("#pfRouBtn").onclick = () => openMeet("roulette");
 $("#pfSetBtn").onclick = () => { haptic(); setPfTab("me"); };
 $("#pfShopBtn").onclick = () => { haptic(); shopOpen(); };
+$("#pfBagBtn").onclick = () => { haptic(); zainoOpen(); };
 $("#pfShop2").onclick = () => shopOpen();
 $("#pfPark").onclick = () => gmParkPick(); setTimeout(() => { try{ paintGmPark(); }catch(e){} }, 0);
 $("#pfMeBack").onclick = () => setPfTab("home");
@@ -2354,12 +2362,12 @@ function avSave(ch){
   const n = Object.assign(avGet(), ch); store.set("ln_avatar", n); paintAvRow();
   try{ manKey = ""; drawMan(true); }catch(e){}
   clearTimeout(avSyncT); avSyncT = setTimeout(async () => {
-    try{ const r = await rpc("avatar_set2", { p_avatar: { sex: n.sex, shirt: n.shirt, legs: n.legs, shoe: n.shoe, hair: n.hair, hat: n.hat || null, eyes: n.eyes || null, top: n.top || null, pet: n.pet || null } }); if (r && !r.errore) return; }catch(e){}
+    try{ const r = await rpc("avatar_set2", { p_avatar: { sex: n.sex, shirt: n.shirt, legs: n.legs, shoe: n.shoe, hair: n.hair, hat: n.hat || null, eyes: n.eyes || null, top: n.top || null, pet: n.pet || null, hs: n.hs || null, boatm: n.boatm || null, motor: n.motor || null } }); if (r && !r.errore) return; }catch(e){}
     rpc("avatar_set", { p_sex: n.sex, p_shirt: n.shirt }).catch(() => {}); }, 800);
 }
 async function syncAvatar(){
   try{ const r = await rpc("loc_state", {}); if (!r || r.errore) return;
-    if (r.avatar && r.avatar.sex) store.set("ln_avatar", Object.assign(avGet(), { hat: null, eyes: null, top: null, pet: null, petn: null }, r.avatar));
+    if (r.avatar && r.avatar.sex) store.set("ln_avatar", Object.assign(avGet(), { hat: null, eyes: null, top: null, pet: null, petn: null, hs: null, boatm: null, motor: null }, r.avatar));
     else if (store.get("ln_avatar", null)){ avSave({}); }
     store.set("ln_share", !!r.share); paintAvRow(); try{ manKey = ""; drawMan(true); }catch(e){} }catch(e){}
 }
@@ -3149,32 +3157,42 @@ function manFeatures(lat, lng, hdg, av, out, tilt, boatHint){
   // sull'acqua l'omino sta in piedi dentro una barchetta grande come lui (un po' verso poppa, sopra il pagliolo)
   const wat = boatHint === true ? true : boatHint === false ? false : onWater(lat, lng);
   const SZ = avSizes(), sm = SZ.man, sb = SZ.boat;
-  if (wat){ boatFeatures((P, b, t, c) => poly(P.map(q => [q[0] * sb, q[1] * sb]), b * sb, t * sb, c)); seatedMan(poly, C, girl, sm, sb, av);
+  if (wat){ boatFeatures((P, b, t, c) => poly(P.map(q => [q[0] * sb, q[1] * sb]), b * sb, t * sb, c), av); seatedMan(poly, C, girl, sm, sb, av);
     petBoxes(av, true, sm, sb).forEach(q => poly([[q[0], q[2]], [q[1], q[2]], [q[1], q[3]], [q[0], q[3]]], q[4], q[5], q[6]));
     return { type: "FeatureCollection", features: out }; }
   const box = (x0, x1, y0, y1, b, t, c) => poly([[x0 * sm, y0 * sm], [x1 * sm, y0 * sm], [x1 * sm, y1 * sm], [x0 * sm, y1 * sm]], b * sm, t * sm, c);
   // x = destra, y = avanti (verso dove guarda), altezze in blocchetti; poi i vestiti comprati e la mascotte accanto
-  manStandBoxes(girl).concat(wearBoxes(av, girl, false)).forEach(q => box(q[0], q[1], q[2], q[3], q[4], q[5], q[6]));
+  manStandBoxes(girl, av).concat(wearBoxes(av, girl, false)).forEach(q => box(q[0], q[1], q[2], q[3], q[4], q[5], q[6]));
   petBoxes(av, false, sm, sb).forEach(q => poly([[q[0], q[2]], [q[1], q[2]], [q[1], q[3]], [q[0], q[3]]], q[4], q[5], q[6]));
   return { type: "FeatureCollection", features: out };
 }
 // barchetta vista dall'alto: scafo bianco, bordo blu, pagliolo di legno, consolle e motore fuoribordo (lunga quanto l'omino è alto)
 const BOAT_OUT = [[-3.0, -6.8], [3.0, -6.8], [3.2, -3], [3.2, 2.2], [2.7, 4.3], [1.6, 5.8], [0, 6.8], [-1.6, 5.8], [-2.7, 4.3], [-3.2, 2.2], [-3.2, -3]];
 const BOAT_IN = BOAT_OUT.map(([x, y]) => [x * 0.84, y > 0 ? y * 0.86 : y * 0.93]);
-function boatFeatures(poly){
-  for (let y = -7; y < 7; y += 1.2){                                     // scafo e pagliolo a fette, così si inclinano in planata
-    const a = clipBand(BOAT_OUT, y, y + 1.2), b = clipBand(BOAT_IN, y, y + 1.2);
-    if (a.length > 2) poly(a, 0, 0.85, "#f4f6f8"); if (b.length > 2) poly(b, 0.85, 0.9, "#c89b62"); }
-  for (let i = 0; i < BOAT_OUT.length; i++){                            // fiancate: bianche con il bordo blu in cima
-    const j = (i + 1) % BOAT_OUT.length, A = BOAT_OUT[i], B = BOAT_OUT[j], a = BOAT_IN[i], b = BOAT_IN[j];
+const BOAT_M = {   // barche del cantiere: lunghezza e larghezza (rispetto al barchino), colori, coperta a prua
+  b_sandolo: { L: 1.25, W: 0.7, h: "#1f2a2e", r: "#c89b62", d: "#8a6a45" }, b_sciopon: { L: 0.8, W: 0.75, h: "#2f5d3a", r: "#e9c46a", d: "#8a6a45" },
+  b_topa: { L: 1.15, W: 1.1, h: "#7a4a26", r: "#e9c46a", d: "#c89b62", fd: "#9a6a3a" }, b_cofano: { L: 1.1, W: 1.05, h: "#e9edf1", r: "#0a3d91", d: "#c89b62", fd: "#e9edf1", ws: 1 },
+  b_motoscafo: { L: 1.3, W: 1.1, h: "#ffffff", r: "#7a1f1f", d: "#c89b62", fd: "#6b3a1e", ws: 1 } };
+const MOTOR_CV = { m_25: 25, m_60: 60, m_115: 115, m_200: 200, m_300: 300 };
+function boatFeatures(poly, av){
+  const M = BOAT_M[av && av.boatm] || { L: 1, W: 1, h: "#f4f6f8", r: "#050706", d: "#c89b62" }, cv = MOTOR_CV[av && av.motor] || 10;
+  const T = P => P.map(([x, y]) => [x * M.W, y > -3 ? -3 + (y + 3) * M.L : y]), OUT = T(BOAT_OUT), IN = T(BOAT_IN), yMax = -3 + 10 * M.L;   // la poppa (panca e motore) resta uguale
+  for (let y = -7; y < yMax; y += 1.2){                                     // scafo e pagliolo a fette, così si inclinano in planata
+    const a = clipBand(OUT, y, y + 1.2), b = clipBand(IN, y, y + 1.2);
+    if (a.length > 2) poly(a, 0, 0.85, M.h); if (b.length > 2) poly(b, 0.85, 0.9, M.d); }
+  if (M.fd){ const f = clipBand(IN, 1.5 * M.L, yMax); if (f.length > 2) poly(f, 1.8, 2.3, M.fd);   // coperta a prua
+    if (M.ws){ const y0 = 1.2 * M.L; poly([[-2.2 * M.W, y0], [2.2 * M.W, y0], [2.2 * M.W, y0 + 0.25], [-2.2 * M.W, y0 + 0.25]], 2.3, 4.0, "#9fd3ff"); } }   // parabrezza
+  for (let i = 0; i < OUT.length; i++){                            // fiancate con il bordo colorato in cima
+    const j = (i + 1) % OUT.length, A = OUT[i], B = OUT[j], a = IN[i], b = IN[j];
     const n = Math.max(1, Math.ceil(Math.hypot(B[0] - A[0], B[1] - A[1]) / 1.2)), L = (P, Q, t) => [P[0] + (Q[0] - P[0]) * t, P[1] + (Q[1] - P[1]) * t];
     for (let k = 0; k < n; k++){ const t0 = k / n, t1 = (k + 1) / n, q = [L(A, B, t0), L(A, B, t1), L(a, b, t1), L(a, b, t0)];   // a pezzi, per inclinarsi in planata
-      poly(q, 0.85, 2.2, "#f4f6f8"); poly(q, 2.2, 2.55, "#050706"); } }
+      poly(q, 0.85, 2.2, M.h); poly(q, 2.2, 2.55, M.r); } }
   poly([[-2.7, -5.3], [2.7, -5.3], [2.7, -3.7], [-2.7, -3.7]], 0.9, 3.2, "#c89b62");    // panca di poppa
   // fuoribordo a barra: gambo nell'acqua, motore con la calandra, barra che sale verso la mano e manetta
   poly([[-0.35, -7.9], [0.35, -7.9], [0.35, -7.1], [-0.35, -7.1]], 0, 1.6, "#2a2a2a");
-  poly([[-0.85, -8.6], [0.85, -8.6], [0.85, -6.6], [-0.85, -6.6]], 1.6, 3.7, "#1d1d1d");
-  poly([[-0.85, -8.6], [0.85, -8.6], [0.85, -6.6], [-0.85, -6.6]], 3.7, 3.95, "#ff6446");
+  const mk = 0.85 + Math.min(0.9, cv / 300 * 0.9), mh = 3.7 + Math.min(1.4, cv / 300 * 1.4);   // più cavalli, motore più grosso
+  poly([[-mk, -8.6 - (mk - 0.85)], [mk, -8.6 - (mk - 0.85)], [mk, -6.6], [-mk, -6.6]], 1.6, mh, cv >= 200 ? "#111111" : "#1d1d1d");
+  poly([[-mk, -8.6 - (mk - 0.85)], [mk, -8.6 - (mk - 0.85)], [mk, -6.6], [-mk, -6.6]], mh, mh + 0.25, cv >= 300 ? "#d4a017" : "#ff6446");
   poly([[-0.75, -6.6], [-0.15, -6.6], [-0.15, -5.0], [-0.75, -5.0]], 3.2, 3.7, "#2a2a2a");
   poly([[-0.85, -5.0], [-0.25, -5.0], [-0.25, -3.5], [-0.85, -3.5]], 3.6, 4.2, "#2a2a2a");
   poly([[-0.95, -3.5], [-0.35, -3.5], [-0.35, -2.6], [-0.95, -2.6]], 4.1, 4.8, "#2a2a2a");
@@ -3205,8 +3223,7 @@ function seatedMan(poly, C, girl, sm, sb, av){
   box(-2.5, -1.6, -0.5, 0.5, 5.6, 7.4, "shirt");                                                 // braccio sinistro
   box(-2.5, -1.6, -0.5, 2.4, 5.0, 5.6, "shirt"); box(-2.5, -1.6, 2.4, 3.1, 4.8, 5.6, "skin");    // avambraccio avanti e mano sulla manetta
   box(-1.6, 1.6, -1.6, 1.6, 7.4, 10.6, "skin");                                                  // testa
-  box(-1.75, 1.75, -1.75, 1.2, 9.8, 11.3, "hair"); box(-1.75, 1.75, -1.75, -1.2, girl ? 5.0 : 8.0, 11.3, "hair");
-  if (girl){ box(-1.85, -1.6, -1.75, 0.6, 5.8, 11.3, "hair"); box(1.6, 1.85, -1.75, 0.6, 5.8, 11.3, "hair"); }
+  hairBoxes(av, girl).forEach(q => box(q[0], q[1], q[2], q[3], q[4] - 0.6, q[5] - 0.6, q[6]));
   box(-0.95, -0.45, 1.6, 1.9, 9.0, 9.6, "eye"); box(0.45, 0.95, 1.6, 1.9, 9.0, 9.6, "eye");
   box(-0.8, 0.8, 1.6, 1.85, 8.1, 8.4, "mouth"); box(-1.05, -0.75, 1.6, 1.85, 8.3, 8.65, "mouth"); box(0.75, 1.05, 1.6, 1.85, 8.3, 8.65, "mouth");
   if (av) wearBoxes(av, girl, true).forEach(q => box(q[0], q[1], q[2], q[3], q[4], q[5], q[6]));   // vestiti comprati anche in barca
@@ -3404,6 +3421,7 @@ function onPos(pos){
   }
   recPoint(p);
   if (!GM){ checkZones(p, kmh); checkShallow(p); navTick(p); updateDepth(p); if (LY.velox !== false) veloxTick(p, kmh); bridgeTick(p); }
+  if (Date.now() - (onPos.lt || 0) > 4000){ onPos.lt = Date.now(); try{ luogoTick(p); }catch(e){} }   // sei davvero da un barbiere, in un cantiere…?
   try{ scheiWalk(p); tesTick(p); }catch(e){}
 }
 // direzione da seguire in questo momento
@@ -8235,14 +8253,28 @@ function betLeave(){
 
 /* ---------- Negozio di myClick: vestiti per l'omino e mascotte 3D, si pagano in schei ---------- */
 // ogni blocchetto: [x0, x1, y0, y1, base, cima, colore] · x = destra, y = avanti, z = su (stesse misure dell'omino)
-function manStandBoxes(girl){
+// acconciature del barbiere (misure da in piedi; da seduto la testa è 0,6 più in basso)
+function hairBoxes(av, girl){
+  const st = (av && av.hs) || (girl ? "hs_lunghi" : "hs_corti"), H = "hair", top = [-1.75, 1.75, -1.75, 1.2, 10.4, 11.9, H];
+  switch (st){
+    case "hs_pelato": return [];
+    case "hs_rasato": return [[-1.65, 1.65, -1.65, 1.0, 11.2, 11.45, H], [-1.65, 1.65, -1.65, -1.55, 9.4, 11.45, H]];
+    case "hs_cresta": return [[-0.4, 0.4, -1.7, 1.3, 11.2, 13.1, H], [-1.62, 1.62, -1.62, 1.0, 11.2, 11.3, H]];
+    case "hs_ricci": return [[-2.1, 2.1, -2.1, 1.5, 10.2, 12.9, H], [-2.1, 2.1, -2.1, -1.4, 8.0, 12.9, H], [-1.2, -0.4, -0.8, 0.4, 12.9, 13.4, H], [0.4, 1.2, -1.2, 0.0, 12.9, 13.4, H]];
+    case "hs_lunghi": return [top, [-1.75, 1.75, -1.75, -1.2, 5.6, 11.9, H], [-1.85, -1.6, -1.75, 0.6, 6.4, 11.9, H], [1.6, 1.85, -1.75, 0.6, 6.4, 11.9, H]];
+    case "hs_coda": return [top, [-1.75, 1.75, -1.75, -1.2, 8.6, 11.9, H], [-0.5, 0.5, -2.7, -1.75, 9.0, 11.4, H], [-0.4, 0.4, -2.95, -2.4, 6.8, 9.2, H]];
+    case "hs_treccine": { const L = [[-1.75, 1.75, -1.75, 1.2, 10.6, 11.9, H]]; [-1.5, -0.9, -0.3, 0.3, 0.9, 1.5].forEach(x => L.push([x - 0.22, x + 0.22, -1.95, -1.6, 5.8, 11.9, H]));
+      L.push([-1.95, -1.7, -1.0, -0.6, 6.2, 11.5, H], [1.7, 1.95, -1.0, -0.6, 6.2, 11.5, H], [-1.95, -1.7, 0, 0.4, 6.6, 11.5, H], [1.7, 1.95, 0, 0.4, 6.6, 11.5, H]); return L; }
+    default: return [top, [-1.75, 1.75, -1.75, -1.2, 8.6, 11.9, H]];   // corti
+  }
+}
+function manStandBoxes(girl, av){
   const L = [[-1.4, -0.2, -0.6, 0.8, 0, 0.6, "shoe"], [0.2, 1.4, -0.6, 0.8, 0, 0.6, "shoe"]];
   if (girl) L.push([-1.2, -0.3, -0.45, 0.45, 0.6, 3, "skin"], [0.3, 1.2, -0.45, 0.45, 0.6, 3, "skin"], [-1.9, 1.9, -1.1, 1.1, 3, 4.6, "legs"]);
   else L.push([-1.3, -0.2, -0.5, 0.5, 0.6, 4, "legs"], [0.2, 1.3, -0.5, 0.5, 0.6, 4, "legs"]);
   L.push([-1.6, 1.6, -0.8, 0.8, 4, 8, "shirt"], [-2.5, -1.6, -0.5, 0.5, 4.6, 8, "shirt"], [1.6, 2.5, -0.5, 0.5, 4.6, 8, "shirt"],
-    [-2.5, -1.6, -0.5, 0.5, 4, 4.6, "skin"], [1.6, 2.5, -0.5, 0.5, 4, 4.6, "skin"], [-1.6, 1.6, -1.6, 1.6, 8, 11.2, "skin"],
-    [-1.75, 1.75, -1.75, 1.2, 10.4, 11.9, "hair"], [-1.75, 1.75, -1.75, -1.2, girl ? 5.6 : 8.6, 11.9, "hair"]);
-  if (girl) L.push([-1.85, -1.6, -1.75, 0.6, 6.4, 11.9, "hair"], [1.6, 1.85, -1.75, 0.6, 6.4, 11.9, "hair"]);
+    [-2.5, -1.6, -0.5, 0.5, 4, 4.6, "skin"], [1.6, 2.5, -0.5, 0.5, 4, 4.6, "skin"], [-1.6, 1.6, -1.6, 1.6, 8, 11.2, "skin"]);
+  hairBoxes(av, girl).forEach(q => L.push(q));
   L.push([-0.95, -0.45, 1.6, 1.9, 9.6, 10.2, "eye"], [0.45, 0.95, 1.6, 1.9, 9.6, 10.2, "eye"],
     [-0.8, 0.8, 1.6, 1.85, 8.7, 9.0, "mouth"], [-1.05, -0.75, 1.6, 1.85, 8.9, 9.25, "mouth"], [0.75, 1.05, 1.6, 1.85, 8.9, 9.25, "mouth"]);
   return L;
@@ -8259,7 +8291,11 @@ function wearBoxes(av, girl, seated){
     add([-1.72, -1.62, -0.6, 1.7, 9.95, 10.15, "#111111"], 1); add([1.62, 1.72, -0.6, 1.7, 9.95, 10.15, "#111111"], 1); }
   if (top === "righe"){ for (let z = 4; z < 8; z += 0.5){ const c = Math.round((z - 4) / 0.5) % 2 ? "#0b1f4b" : "#ffffff";
       L.push([-1.66, 1.66, -0.86, 0.86, tz(z), tz(z + 0.5), c]); if (!seated && z >= 4.6) L.push([-2.56, -1.55, -0.56, 0.56, z, z + 0.5, c], [1.55, 2.56, -0.56, 0.56, z, z + 0.5, c]); } }
+  else if (top === "maglia_arv"){ L.push([-1.66, 1.66, -0.86, 0.86, tz(4), tz(8), "#111111"], [-0.75, -0.25, 0.86, 0.9, tz(4), tz(8), "#f26722"], [0.25, 0.75, 0.86, 0.9, tz(4), tz(8), "#00843d"]);
+    if (!seated) L.push([-2.56, -1.55, -0.56, 0.56, 4.6, 8, "#111111"], [1.55, 2.56, -0.56, 0.56, 4.6, 8, "#111111"], [-2.56, -1.55, -0.56, 0.56, 4.6, 4.9, "#f26722"], [1.55, 2.56, -0.56, 0.56, 4.6, 4.9, "#00843d"]); }
   else if (top === "salvagente"){ L.push([-1.78, 1.78, -0.98, 0.98, tz(4.6), tz(7.7), "#ff6a00"], [-1.8, 1.8, -1.0, 1.0, tz(5.6), tz(5.95), "#f2f2f2"], [-0.12, 0.12, 0.98, 1.02, tz(4.6), tz(7.7), "#222222"]); }
+  if (av && av.smk > Date.now()){ const c = av.smkK === "c";   // in bocca, un po' di lato, con la brace accesa
+    add([0.45, c ? 0.9 : 0.75, 1.85, c ? 3.4 : 3.0, 8.72, c ? 9.08 : 8.95, c ? "#efe4c8" : "#ffffff"], 1); add([0.45, c ? 0.9 : 0.75, c ? 3.4 : 3.0, c ? 3.6 : 3.18, 8.72, c ? 9.08 : 8.95, "#ff6a1a"], 1); }
   return L;
 }
 const PET_BOX = {
@@ -8297,7 +8333,15 @@ function isoDraw(cv, boxes, C){
   const pr = (x, y, z) => { const X = x * ca - y * sa, D = x * sa + y * ca; return [X, -z + D * tilt, D]; };
   let mnx = 1e9, mxx = -1e9, mny = 1e9, mxy = -1e9; const F = [];
   const shade = (hex, f) => { const n = parseInt(hex.slice(1), 16), r = n >> 16, gg = (n >> 8) & 255, b = n & 255, s = v => Math.max(0, Math.min(255, Math.round(v * f))); return `rgb(${s(r)},${s(gg)},${s(b)})`; };
-  boxes.forEach(q => { const [x0, x1, y0, y1, b, t] = q, col = (C && C[q[6]]) || q[6];
+  boxes.forEach(q => { if (!Array.isArray(q)){   // forma qualsiasi: tetto più le fiancate rivolte verso chi guarda
+      const P = q.P, col = (C && C[q.c]) || q.c; let ar = 0; for (let i = 0; i < P.length; i++){ const A = P[i], B = P[(i + 1) % P.length]; ar += A[0] * B[1] - B[0] * A[1]; } const o = ar >= 0 ? 1 : -1;
+      const add = (Pts, f, top) => { const Q = Pts.map(p => pr(p[0], p[1], p[2])); Q.forEach(p => { mnx = Math.min(mnx, p[0]); mxx = Math.max(mxx, p[0]); mny = Math.min(mny, p[1]); mxy = Math.max(mxy, p[1]); });
+        const cz = Pts.reduce((s, p) => s + p[2], 0) / Pts.length, cD = Q.reduce((s, p) => s + p[2], 0) / Q.length; F.push({ Q, col: shade(col[0] === "#" ? col : "#888888", f), k: cD + cz * 0.02 + (top ? 0.01 : 0) }); };
+      add(P.map(p => [p[0], p[1], q.t]), 1.08, 1);
+      for (let i = 0; i < P.length; i++){ const A = P[i], B = P[(i + 1) % P.length], nx = (B[1] - A[1]) * o, ny = -(B[0] - A[0]) * o; if (nx * sa + ny * ca <= 0) continue;
+        add([[A[0], A[1], q.b], [B[0], B[1], q.b], [B[0], B[1], q.t], [A[0], A[1], q.t]], 0.8 + 0.12 * Math.sign(nx), 0); }
+      return; }
+    const [x0, x1, y0, y1, b, t] = q, col = (C && C[q[6]]) || q[6];
     const c = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
     const face = (P, n, f) => { const nD = n[0] * sa + n[1] * ca; if (n[2] === 0 && nD <= 0) return; if (n[2] < 0) return;
       const Q = P.map(p => pr(p[0], p[1], p[2])); Q.forEach(p => { mnx = Math.min(mnx, p[0]); mxx = Math.max(mxx, p[0]); mny = Math.min(mny, p[1]); mxy = Math.max(mxy, p[1]); });
@@ -8315,15 +8359,17 @@ function isoDraw(cv, boxes, C){
 let SHOP = { items: [], miei: [], admin: false, tab: "vestito", edit: false };
 const SHOP_EMO = { hat: "🎩", eyes: "🕶️", top: "👕", pet: "🐾" };
 const shopMine = id => SHOP.miei.find(m => m.id === id);
-async function shopOpen(tab){
+async function shopOpen(tab, luogo){
   if (!PROFILE || !PROFILE.clickname) return toast("Per il negozio serve l'account.");
-  if (tab) SHOP.tab = tab;
-  openSheet(`<h3>🛍️ Negozio</h3><div class="shSaldo">${SCHEO_SVG}<b id="shSaldo">${SCHEI.saldo == null ? "–" : SCHEI.saldo}</b> schei</div>
-    <div class="mkcats dg" id="shTabs"><button data-sht="vestito">👕 Vestiti</button><button data-sht="mascotte">🐾 Mascotte</button></div>
+  if (tab) SHOP.tab = tab; SHOP.luogo = luogo || null;
+  const LT = SHOP.luogo && LUOGO_T[SHOP.luogo];
+  openSheet(`<h3>${LT ? LT.e + " " + esc(LT.t) : "🛍️ Negozio"}</h3>${LT && LUOGO_QUI && LUOGO_QUI.k === SHOP.luogo && !LT.fix ? `<p class="muted" style="margin-top:-6px">${esc(LUOGO_QUI.n)}</p>` : ""}
+    <div class="shSaldo">${SCHEO_SVG}<b id="shSaldo">${SCHEI.saldo == null ? "–" : SCHEI.saldo}</b> schei</div>
+    <div class="mkcats dg${LT ? " hidden" : ""}" id="shTabs"><button data-sht="vestito">👕 Vestiti</button><button data-sht="mascotte">🐾 Mascotte</button></div>
     <div id="shAdm"></div><div id="shGrid" class="shgrid"><p class="muted">Carico…</p></div>
     <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
   document.querySelectorAll("[data-sht]").forEach(b => b.onclick = () => { SHOP.tab = b.dataset.sht; shopPaint(); });
-  try{ const j = await rpc("shop_list", {}); if (!j || !Array.isArray(j.items)) throw 0; SHOP.items = j.items; SHOP.miei = j.miei || []; SHOP.admin = !!j.admin;
+  try{ const j = await rpc("shop_list", {}); if (!j || !Array.isArray(j.items)) throw 0; SHOP.items = j.items; SHOP.miei = j.miei || []; SHOP.admin = !!j.admin; SHOP.adulto = !!j.adulto;
     if (j.saldo !== null && j.saldo !== undefined){ SCHEI.saldo = j.saldo; store.set("ln_schei", SCHEI); hudPaint(); } }
   catch(e){ const g = $("#shGrid"); if (g) g.innerHTML = `<p class="muted">Non riesco ad aprire il negozio: controlla la connessione.</p>`; return; }
   shopPaint();
@@ -8334,21 +8380,26 @@ function shopPaint(){
   document.querySelectorAll("[data-sht]").forEach(b => b.classList.toggle("on", b.dataset.sht === SHOP.tab));
   $("#shAdm").innerHTML = SHOP.admin ? `<button class="btn small ghost" id="shEdit" style="margin:4px 0 8px">${SHOP.edit ? "✓ Fine prezzi" : "✏️ Decidi i prezzi (solo Trops)"}</button>` : "";
   if ($("#shEdit")) $("#shEdit").onclick = () => { SHOP.edit = !SHOP.edit; shopPaint(); };
-  const L = SHOP.items.filter(i => i.tipo === SHOP.tab);
+  const L = SHOP.luogo ? SHOP.items.filter(i => i.luogo === SHOP.luogo) : SHOP.items.filter(i => !i.luogo && i.tipo === SHOP.tab);
   if (!L.length){ g.innerHTML = `<p class="muted">Niente qui per ora.</p>`; return; }
   g.innerHTML = L.map(i => { const mine = shopMine(i.id), worn = av[i.slot] === i.id, pet = i.tipo === "mascotte";
     let act;
     if (SHOP.edit) act = `<div class="shedit"><input type="number" inputmode="numeric" min="0" placeholder="prezzo" value="${i.prezzo ?? ""}" data-shp="${i.id}"><label><input type="checkbox" data-sha="${i.id}" ${i.attivo ? "checked" : ""}> in vendita</label><button class="btn small" data-shs="${i.id}">Salva</button></div>`;
+    else if (i.adulti && !SHOP.adulto) act = `<div class="shsoon">🔞 Solo per maggiorenni</div>`;
+    else if (mine && i.tipo === "consumo" && i.prezzo !== null && i.prezzo !== undefined) act = `<button class="btn small" data-shb="${i.id}">${SCHEO_SVG} ${i.prezzo}</button>`;
+    else if (mine && (i.tipo === "consumo" || i.tipo === "oggetto")) act = `<div class="shsoon">Nello zaino ✓</div>`;
     else if (mine) act = `<button class="btn small${worn ? " ghost" : ""}" data-shw="${i.id}">${worn ? (pet ? "Lascia a casa" : "Togli") : (pet ? "Porta con te" : "Indossa")}</button>${pet ? `<a href="#" class="shren" data-shr="${i.id}">✏️ rinomina</a>` : ""}<a href="#" class="shren" data-shg="${i.id}">🎁 regala a un amico</a>`;
     else if (i.prezzo === null || i.prezzo === undefined) act = `<div class="shsoon">Prezzo in arrivo</div>`;
     else act = `<button class="btn small" data-shb="${i.id}">${SCHEO_SVG} ${i.prezzo}</button>`;
     return `<div class="shcard${worn ? " worn" : ""}"><canvas width="220" height="190" data-shc="${i.id}"></canvas>
-      <b>${esc(pet && mine && mine.nome ? mine.nome : i.nome)}</b><small>${pet && mine && mine.nome ? esc(i.nome) : mine ? "Tuo ✓" : SHOP_EMO[i.slot] + " " + (pet ? "mascotte 3D" : "per il tuo omino")}</small>${act}</div>`; }).join("");
+      <b>${esc(pet && mine && mine.nome ? mine.nome : i.nome)}</b><small>${pet && mine && mine.nome ? esc(i.nome) : i.tipo === "consumo" ? (mine ? `Ne hai ${mine.qty} · ` : "") + (i.pacco > 1 ? i.pacco + " pezzi" : "1 pezzo") : i.tipo === "motore" ? (MOTOR_KMH[i.id] || "") + " km/h nel gioco" : mine ? "Tuo ✓" : i.tipo === "barca" ? "la tua barca" : i.tipo === "capelli" ? "acconciatura" : SHOP_EMO[i.slot] + " " + (pet ? "mascotte 3D" : "per il tuo omino")}</small>${act}</div>`; }).join("");
   // anteprime: i vestiti addosso al tuo omino, le mascotte da sole
   const C = Object.assign({}, MAN_C); ["shirt", "legs", "shoe", "hair"].forEach(k => { if (/^#[0-9a-f]{6}$/i.test(av[k] || "")) C[k] = av[k]; });
   g.querySelectorAll("[data-shc]").forEach(cv => { const i = SHOP.items.find(x => x.id === cv.dataset.shc); if (!i) return;
     if (i.tipo === "mascotte") isoDraw(cv, PET_BOX[i.id] || [], C);
-    else { const tryAv = Object.assign({}, av, { [i.slot]: i.id }); isoDraw(cv, manStandBoxes(girl).concat(wearBoxes(tryAv, girl, false)), C); } });
+    else if (i.tipo === "consumo" || i.tipo === "oggetto"){ const g2 = cv.getContext("2d"); g2.clearRect(0, 0, cv.width, cv.height); g2.font = "110px system-ui"; g2.textAlign = "center"; g2.textBaseline = "middle"; g2.fillText(ZAINO_E[i.id] || "🎁", cv.width / 2, cv.height / 2 + 6); }
+    else if (i.tipo === "barca" || i.tipo === "motore"){ const tryAv = Object.assign({}, av, { [i.slot]: i.id }), P = []; boatFeatures((Q, b, t, c) => P.push({ P: Q, b, t, c }), tryAv); isoDraw(cv, P, C); }
+    else { const tryAv = Object.assign({}, av, { [i.slot]: i.id }); isoDraw(cv, manStandBoxes(girl, tryAv).concat(wearBoxes(tryAv, girl, false)), C); } });
   g.querySelectorAll("[data-shb]").forEach(b => b.onclick = () => shopBuy(b.dataset.shb));
   g.querySelectorAll("[data-shw]").forEach(b => b.onclick = () => { const i = SHOP.items.find(x => x.id === b.dataset.shw); if (!i) return; const on = avGet()[i.slot] === i.id;
     const ch = { [i.slot]: on ? null : i.id }; if (i.slot === "pet") ch.petn = on ? null : (shopMine(i.id) || {}).nome || null; avSave(ch); haptic(); shopPaint(); });
@@ -8395,12 +8446,110 @@ async function shopGift(id){
     buzz([40, 30, 80]); toast(`🎁 Regalato a @${to}!`); shopOpen(i.tipo); });
 }
 async function shopDoBuy(i, nome){
-  const j = await rpc("shop_buy", { p_item: i.id, p_nome: nome }).catch(() => null);
-  if (!j || !j.ok) return toast(!j ? "Non comprato: controlla la connessione." : j.errore === "saldo" ? "Non hai abbastanza schei." : j.errore === "gia_tuo" ? "Ce l'hai già." : j.errore === "senza_prezzo" ? "Il prezzo non è ancora deciso." : "Non comprato, riprova.");
+  const P = lastPos || {}, j = await rpc("shop_buy", { p_item: i.id, p_nome: nome, p_luogo: i.luogo || null, p_lat: P.lat ?? null, p_lng: P.lng ?? null }).catch(() => null);
+  if (!j || !j.ok) return toast(!j ? "Non comprato: controlla la connessione." : j.errore === "luogo" ? "Devi essere lì di persona." : j.errore === "adulti" ? "Solo per maggiorenni." : j.errore === "saldo" ? "Non hai abbastanza schei." : j.errore === "gia_tuo" ? "Ce l'hai già." : j.errore === "senza_prezzo" ? "Il prezzo non è ancora deciso." : "Non comprato, riprova.");
   SCHEI.saldo = j.saldo; store.set("ln_schei", SCHEI); hudPaint(); scheiPlus(-i.prezzo); buzz([40, 30, 80]);
-  SHOP.miei.push({ id: i.id, nome }); const ch = { [i.slot]: i.id }; if (i.slot === "pet") ch.petn = nome; avSave(ch);
-  toast(i.tipo === "mascotte" ? `${nome} è con te! 🐾` : `${i.nome}: comprato e indossato ✓`);
-  shopOpen(i.tipo);
+  const mm = SHOP.miei.find(m => m.id === i.id); if (mm) mm.qty = j.qty; else SHOP.miei.push({ id: i.id, nome, qty: j.qty });
+  if (i.tipo === "consumo" || i.tipo === "oggetto") toast(`${ZAINO_E[i.id] || "🎒"} ${i.nome}: nello zaino`);
+  else { const ch = { [i.slot]: i.id }; if (i.slot === "pet") ch.petn = nome; avSave(ch);
+    toast(i.tipo === "mascotte" ? `${nome} è con te! 🐾` : i.tipo === "capelli" ? `💈 Nuova acconciatura: ${i.nome}` : i.tipo === "barca" ? `⚓ ${i.nome}: è la tua barca` : i.tipo === "motore" ? `⚙️ ${i.nome} montato` : `${i.nome}: comprato e indossato ✓`); }
+  if (i.luogo) shopOpen(null, i.luogo); else shopOpen(i.tipo);
+}
+
+/* ---------- Luoghi veri: se ci vai di persona (GPS vero) puoi comprare cose che altrove non trovi ----------
+   barbiere → acconciature · cantiere → barche e motori · tabaccheria → sigarette, cartine, filtri, accendino, biglietto ACTV
+   Campo Santa Margherita e Marghera → due personaggi inventati (solo per maggiorenni) · stadio Penzo → maglia arancioneroverde */
+const LUOGO_T = {
+  barbiere: { e: "💈", n: "dal barbiere", t: "Barbiere", r: 30 }, cantiere: { e: "⚓", n: "nel cantiere", t: "Cantiere", r: 45 },
+  tabacchi: { e: "🚬", n: "in tabaccheria", t: "Tabaccheria", r: 30 },
+  santamargherita: { e: "🧥", n: "dal Cappuccio", t: "Il Cappuccio · Campo Santa Margherita", r: 80, fix: { lat: 45.43429, lng: 12.32372, nome: "Il Cappuccio" } },
+  marghera: { e: "🛴", n: "da Monopattino", t: "Monopattino · Marghera", r: 1400, fix: { lat: 45.47370, lng: 12.22355, nome: "Monopattino" } },
+  stadio: { e: "⚽", n: "allo stadio", t: "Stadio Penzo", r: 180, fix: { lat: 45.42771, lng: 12.36402, nome: "Stadio Penzo" } }
+};
+let LUOGHI = store.get("ln_luoghi", null), LUOGO_QUI = null;
+// barbieri e tabaccherie dalla mappa (OpenStreetMap), i cantieri dal nostro elenco; tenuti 7 giorni
+async function luoghiLoad(){
+  if (LUOGHI && Date.now() - (LUOGHI.t || 0) < 7 * 864e5) return;
+  const L = { t: Date.now(), p: [] };
+  try{ const r = await fetch("cantieri.json", { cache: "no-cache" }); const j = await r.json(); (j.cantieri || []).forEach(c => L.p.push({ k: "cantiere", n: c.n, lat: c.lat, lng: c.lng })); }catch(e){}
+  const q = `[out:json][timeout:30];(node["shop"~"^(tobacco|hairdresser|barber)$"](45.38,12.18,45.52,12.45);way["shop"~"^(tobacco|hairdresser|barber)$"](45.38,12.18,45.52,12.45););out center tags;`;
+  for (const u of ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"]){
+    try{ const r = await fetchT(u, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "data=" + encodeURIComponent(q) }, 40000); if (!r.ok) continue;
+      const j = await r.json(); (j.elements || []).forEach(e => { const la = e.lat ?? (e.center && e.center.lat), lo = e.lon ?? (e.center && e.center.lon); if (la == null) return;
+        const sh = e.tags && e.tags.shop; L.p.push({ k: sh === "tobacco" ? "tabacchi" : "barbiere", n: (e.tags && e.tags.name) || (sh === "tobacco" ? "Tabaccheria" : "Barbiere"), lat: la, lng: lo }); });
+      break; }catch(e){}
+  }
+  if (L.p.length){ LUOGHI = L; store.set("ln_luoghi", L); }
+}
+setTimeout(luoghiLoad, 6000);
+// dove sono davvero adesso? (solo il GPS vero, il personaggio del gioco non conta)
+function luogoTick(p){
+  if (!p || !PROFILE || !(p.acc <= 60)) return luogoShow(null);
+  let best = null;
+  Object.entries(LUOGO_T).forEach(([k, T]) => { if (!T.fix) return; const d = dist(p, T.fix); if (d <= T.r && (!best || d < best.d)) best = { k, n: T.fix.nome, d }; });
+  if (!best && LUOGHI) LUOGHI.p.forEach(x => { const d = dist(p, x); if (d <= LUOGO_T[x.k].r && (!best || d < best.d)) best = { k: x.k, n: x.n, d }; });
+  luogoShow(best);
+}
+function luogoShow(b){
+  LUOGO_QUI = b; const el = $("#luogoBtn"); if (!el) return;
+  el.classList.toggle("hidden", !b); if (!b) return; const T = LUOGO_T[b.k];
+  el.innerHTML = `<span>${T.e}</span><b>Entra ${T.n}</b><small>${esc(b.n)}</small>`;
+}
+$("#luogoBtn").onclick = () => { if (LUOGO_QUI){ haptic(); shopOpen(null, LUOGO_QUI.k); } };
+// personaggi inventati, sempre fermi al loro posto
+function npcDraw(){
+  if (!map || !map.getStyle()) return setTimeout(npcDraw, 3000);
+  if (!map.getSource("npc")){ map.addSource("npc", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addLayer({ id: "npc", type: "fill-extrusion", source: "npc", minzoom: 15, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1 } }); }
+  const out = [];
+  manFeatures(45.43429, 12.32372, 200, { sex: "m", shirt: "#3a3f44", legs: "#1d2228", shoe: "#f2f2f2", hair: "#1a1a1a", hat: "berretto" }, out, 0, false);
+  manFeatures(45.47370, 12.22355, 140, { sex: "m", shirt: "#2e7d32", legs: "#3b3b3b", shoe: "#111111", hair: "#3b2416", hs: "hs_ricci", eyes: "occhiali" }, out, 0, false);
+  map.getSource("npc").setData({ type: "FeatureCollection", features: out });
+  if (!npcDraw.mk){ npcDraw.mk = [["Il Cappuccio", 45.43429, 12.32372], ["Monopattino", 45.47370, 12.22355]].map(([n, la, lo]) => { const el = document.createElement("div"); el.className = "npcTag"; el.textContent = n;
+    return new maplibregl.Marker({ element: el, anchor: "bottom", offset: [0, -38] }).setLngLat([lo, la]).addTo(map); }); }
+}
+setTimeout(npcDraw, 4000);
+
+/* ---------- Zaino: tutto quello che hai, e cosa ci puoi fare ---------- */
+const ZAINO_E = { sigarette: "🚬", cartine: "📜", filtri: "🧻", accendino: "🔥", biglietto: "🎫", hashish: "🟫", erba: "🌿" };
+const SMOKE_MIN = 5;
+async function zainoOpen(){
+  openSheet(`<h3>🎒 Zaino</h3><div id="znL"><p class="muted">Carico…</p></div><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
+  let j = null; try{ j = await rpc("shop_list", {}); }catch(e){}
+  const box = $("#znL"); if (!box) return; if (!j || !Array.isArray(j.items)){ box.innerHTML = `<p class="muted">Non riesco ad aprire lo zaino.</p>`; return; }
+  SHOP.items = j.items; SHOP.miei = j.miei || [];
+  const own = id => SHOP.miei.find(m => m.id === id), q = id => (own(id) || {}).qty | 0, av = avGet(), smk = (av.smk || 0) > Date.now();
+  const L = SHOP.miei.map(m => ({ m, i: SHOP.items.find(x => x.id === m.id) })).filter(x => x.i);
+  const grp = { capelli: "💈 Acconciature", barca: "⚓ Barche", motore: "⚙️ Motori", vestito: "👕 Vestiti", mascotte: "🐾 Mascotte", consumo: "🎒 Roba", oggetto: "🎒 Roba" };
+  let h = "";
+  // azioni rapide: sigaretta o canna (serve l'accendino)
+  if (own("accendino")){
+    h += `<div class="row" style="gap:8px;margin-bottom:8px">${q("sigarette") ? `<button class="btn small" id="znSig" style="flex:1">🚬 Fuma (${q("sigarette")})</button>` : ""}
+      ${q("cartine") && q("filtri") && (q("erba") || q("hashish")) ? `<button class="btn small" id="znCan" style="flex:1">🌿 Fatti una canna</button>` : ""}</div>`;
+    if (smk) h += `<p class="muted" style="margin-top:-4px">Stai fumando ancora per ${Math.max(1, Math.round((av.smk - Date.now()) / 60000))} min</p>`;
+  }
+  ["capelli", "barca", "motore", "vestito", "mascotte", "consumo"].forEach(g => {
+    const G = L.filter(x => x.i.tipo === g || (g === "consumo" && x.i.tipo === "oggetto")); if (!G.length) return;
+    h += `<h4 class="schH">${grp[g]}</h4>` + G.map(({ m, i }) => {
+      const worn = av[i.slot] === i.id, wearable = ["capelli", "barca", "motore", "vestito", "mascotte"].includes(i.tipo);
+      const lab = i.tipo === "mascotte" && m.nome ? `${esc(m.nome)} <small>(${esc(i.nome)})</small>` : esc(i.nome);
+      const right = wearable ? `<a href="#" data-znw="${i.id}">${worn ? (i.tipo === "barca" || i.tipo === "motore" ? "in uso ✓" : "togli") : "usa"}</a>` : i.tipo === "consumo" ? `× ${m.qty}` : "✓";
+      return `<div class="card rowbtn" style="width:100%">${ZAINO_E[i.id] || SHOP_EMO[i.slot] || ""} ${lab} <span>${right}</span></div>`; }).join("");
+  });
+  if (!L.length) h += `<p class="muted">Lo zaino è vuoto. Compra nel negozio di myClick, oppure vai di persona da un barbiere, in un cantiere o in tabaccheria.</p>`;
+  box.innerHTML = h;
+  box.querySelectorAll("[data-znw]").forEach(a => a.onclick = e => { e.preventDefault(); const i = SHOP.items.find(x => x.id === a.dataset.znw); if (!i) return; const on = avGet()[i.slot] === i.id;
+    if (on && (i.tipo === "barca" || i.tipo === "motore")) return;   // la barca e il motore si cambiano scegliendone un altro
+    const ch = { [i.slot]: on ? null : i.id }; if (i.slot === "pet") ch.petn = on ? null : (own(i.id) || {}).nome || null; avSave(ch); haptic(); zainoOpen(); });
+  if ($("#znSig")) $("#znSig").onclick = () => smoke(["sigarette"], "s");
+  if ($("#znCan")) $("#znCan").onclick = () => smoke(["cartine", "filtri", q("erba") ? "erba" : "hashish"], "c");
+}
+async function smoke(items, kind){
+  const j = await rpc("shop_use", { p_items: items }).catch(() => null);
+  if (!j || !j.ok) return toast("Ti manca qualcosa nello zaino.");
+  avSave({ smk: Date.now() + SMOKE_MIN * 60000, smkK: kind }); closeSheet(); haptic();
+  toast(kind === "c" ? "🌿 Ti sei fatto una canna (dura " + SMOKE_MIN + " min)" : "🚬 Accesa! Dura " + SMOKE_MIN + " minuti");
+  manKey = ""; try{ drawMan(true); }catch(e){}
 }
 
 /* ---------- Modalità videogioco: tieni premuto 5 s il tasto della telecamera ----------
@@ -8498,6 +8647,8 @@ function gmStart(){
     else if (!gmWalkable(GM)){ const q = gmFind(GM, gmWalkable, 40); if (q){ GM.lat = q.lat; GM.lng = q.lng; } }
     gmPaintUi(); };
   setTimeout(() => settle(0), 700);
+  rpc("shop_list", {}).then(j => { if (GM && j && Array.isArray(j.miei)) GM.tickets = ((j.miei.find(m => m.id === "biglietto") || {}).qty) | 0; }).catch(() => {});
+  if (GM.mode === "ride") GM.mode = "walk";
   gmPaintUi(); toast(SV ? "Riprendi da dove eri rimasto" : "Modalità gioco: levetta sinistra per andare, destra per girare");
 }
 function gmSave(){ if (!GM) return; store.set("ln_gm_save", { lat: GM.lat, lng: GM.lng, hdg: GM.hdg, mode: GM.mode, using: GM.using, mine: GM.mine, left: GM.left.slice(-10), stolen: GM.stolen, t: Date.now() }); }
@@ -8524,10 +8675,13 @@ function gmRivaBoats(){
 function gmBoats(){ const L = []; if (GM.mine) L.push(Object.assign({ kind: "mine" }, GM.mine));
   GM.left.forEach((b, i) => L.push(Object.assign({ kind: "left", i }, b)));
   Object.values(GM.rb).forEach(b => { if (b && !GM.stolen[b.id]) L.push(Object.assign({ kind: "riva" }, b)); }); return L; }
+// velocità della barca: la tua secondo il motore comprato in cantiere (senza: 30 km/h), quelle rubate 50 km/h
+const MOTOR_KMH = { m_25: 50, m_60: 80, m_115: 120, m_200: 160, m_300: 200 };
+function gmBoatMax(){ if (!GM.using || GM.using.kind !== "mine") return 50 / 3.6; return (MOTOR_KMH[myAvatar().motor] || 30) / 3.6; }
 function gmBoatGeo(b, out){
   const u = MAN_U, sb = avSizes().boat, r = b.hdg * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r), kLat = 1 / 111320, kLng = 1 / (111320 * Math.cos(b.lat * Math.PI / 180));
   const pt = (x, y) => { const E = (x * cs + y * sn) * u, N = (-x * sn + y * cs) * u; return [b.lng + E * kLng, b.lat + N * kLat]; };
-  boatFeatures((P, bb, t, c) => out.push({ type: "Feature", properties: { c, b: bb * sb * u, h: t * sb * u }, geometry: { type: "Polygon", coordinates: [P.concat([P[0]]).map(q => pt(q[0] * sb, q[1] * sb))] } }));
+  boatFeatures((P, bb, t, c) => out.push({ type: "Feature", properties: { c, b: bb * sb * u, h: t * sb * u }, geometry: { type: "Polygon", coordinates: [P.concat([P[0]]).map(q => pt(q[0] * sb, q[1] * sb))] } }), b.kind === "mine" ? myAvatar() : null);
 }
 // l'omino del gioco non passa più dalla mappa (troppo lenta ad aggiornarsi): è disegnato su una tela sopra la mappa,
 // sempre visto da dietro perché la telecamera gira con lui. Così si muove insieme alla telecamera, senza ritardi.
@@ -8536,13 +8690,13 @@ function gmPrisms(st){
   ["shirt", "legs", "shoe", "hair"].forEach(k => { if (/^#[0-9a-f]{6}$/i.test(av[k] || "")) C[k] = av[k]; });
   const poly = (P, b, t, c) => L.push({ P, b, t, c: C[c] || c });
   const box = (q, k) => poly([[q[0] * k, q[2] * k], [q[1] * k, q[2] * k], [q[1] * k, q[3] * k], [q[0] * k, q[3] * k]], q[4] * k, q[5] * k, q[6]);
-  if (st.mode === "boat"){ boatFeatures((P, b, t, c) => poly(P.map(q => [q[0] * sb, q[1] * sb]), b * sb, t * sb, c)); seatedMan(poly, C, girl, sm, sb, av); petBoxes(av, true, sm, sb).forEach(q => box(q, 1)); }
+  if (st.mode === "boat"){ st.boatAv = st === GM && !(GM.using && GM.using.kind === "mine") ? {} : null; boatFeatures((P, b, t, c) => poly(P.map(q => [q[0] * sb, q[1] * sb]), b * sb, t * sb, c), st.boatAv || av); seatedMan(poly, C, girl, sm, sb, av); petBoxes(av, true, sm, sb).forEach(q => box(q, 1)); }
   else if (st.swim){ const sw = Math.sin(st.ph * 1.6) * 1.2, dz = -6.6;   // a nuoto: fuori dall'acqua solo testa, spalle e una bracciata
-    manStandBoxes(girl).concat(wearBoxes(av, girl, false)).forEach(q => { if (q[5] + dz <= 0.05) return; const arm = q[0] <= -1.6 || q[1] >= 1.6, s = arm ? (q[0] < 0 ? sw : -sw) : 0;
+    manStandBoxes(girl, av).concat(wearBoxes(av, girl, false)).forEach(q => { if (q[5] + dz <= 0.05) return; const arm = q[0] <= -1.6 || q[1] >= 1.6, s = arm ? (q[0] < 0 ? sw : -sw) : 0;
       box([q[0], q[1], q[2] + s, q[3] + s, Math.max(0, q[4] + dz), q[5] + dz, q[6]], sm); });
     petBoxes(av, false, sm, sb).forEach(q => { if (q[5] - 1.4 * sm > 0) box([q[0], q[1], q[2], q[3], Math.max(0, q[4] - 1.4 * sm), q[5] - 1.4 * sm, q[6]], 1); }); }
   else { const sw = Math.abs(st.v) > 0.3 ? Math.sin(st.ph) * 0.7 : 0;   // camminando le gambe vanno avanti e indietro
-    manStandBoxes(girl).forEach((q, i) => { const leg = q[4] < 3.9 && q[5] <= 4.6 && q[1] - q[0] < 1.5, s = leg ? (q[0] < 0 ? sw : -sw) : 0; box([q[0], q[1], q[2] + s, q[3] + s, q[4], q[5], q[6]], sm); });
+    manStandBoxes(girl, av).forEach((q, i) => { const leg = q[4] < 3.9 && q[5] <= 4.6 && q[1] - q[0] < 1.5, s = leg ? (q[0] < 0 ? sw : -sw) : 0; box([q[0], q[1], q[2] + s, q[3] + s, q[4], q[5], q[6]], sm); });
     wearBoxes(av, girl, false).forEach(q => box(q, sm)); petBoxes(av, false, sm, sb).forEach(q => box([q[0], q[1], q[2] + sw * 0.4, q[3] + sw * 0.4, q[4], q[5], q[6]], 1)); }
   return L;
 }
@@ -8682,13 +8836,15 @@ async function friendGift(nome){
 function gmTick(){
   const now = performance.now(), dt = Math.min(0.05, (now - GM.t) / 1000); GM.t = now; GM.n++;
   gmNeed();
-  const boat = GM.mode === "boat"; GM.swim = !boat && gmInWater(GM);
-  const vmax = boat ? GM_BOAT : GM.swim ? GM_SWIM : GM_WALK, target = GM.f * vmax * (GM.f < 0 ? 0.5 : 1);
+  const ride = GM.mode === "ride"; if (ride) gmRideStep();
+  const boat = GM.mode === "boat"; GM.swim = !boat && !ride && gmInWater(GM);
+  const vmax = boat ? gmBoatMax() : GM.swim ? GM_SWIM : GM_WALK, target = GM.f * vmax * (GM.f < 0 ? 0.5 : 1);
   if (boat){ const a = (Math.abs(target) > Math.abs(GM.v) ? 16 : 20) * dt; GM.v += Math.max(-a, Math.min(a, target - GM.v)); }   // la barca ha un po' di abbrivio
   else GM.v += (target - GM.v) * Math.min(1, 12 * dt);
   const rate = boat ? 25 + 75 * Math.min(1, Math.abs(GM.v) / 4) : 190;
   GM.hdg = (GM.hdg + GM.tr * rate * dt * (boat && GM.v < -0.3 ? -1 : 1) + 360) % 360;
-  if (Math.abs(GM.v) > 0.05){
+  if (ride) GM.v = 0;
+  else if (Math.abs(GM.v) > 0.05){
     const ok = boat ? gmBoatable : gmSwimOk, total = GM.v * dt, n = Math.max(1, Math.ceil(Math.abs(total) / 0.8)), step = total / n;
     const probe = q => ok(q) && (!boat || (ok(gmOff(q, GM.hdg, Math.sign(GM.v) * 2.2)) && ok(gmOff(q, GM.hdg, Math.sign(GM.v) * 1.1))));   // in barca controllo anche la prua
     for (let i = 0; i < n; i++){ const nx = gmOff(GM, GM.hdg, step);
@@ -8707,20 +8863,42 @@ function gmTick(){
   if (GM.n % 90 === 0) gmSave();
   if (now - (GM.pushT || 0) > 3000 && PROFILE){ GM.pushT = now; rpc("game_push", { p_lat: GM.lat, p_lng: GM.lng, p_hdg: Math.round(GM.hdg), p_boat: GM.mode === "boat" }).catch(() => {}); }
   gmAvDraw(); try{ gmRealDraw(); }catch(e){} if (GM.n % 10 === 0) gmDraw(); if (GM.n % 2 === 0) gmMiniTick();
-  if (now - GM.actT > 300){ GM.actT = now; gmRivaBoats(); gmCheckAct(); gmDestTick(); gmPaintUi(); $("#gmSpd").textContent = !gmKnown(gmOff(GM, GM.hdg, 8)) ? "Carico la mappa…" : Math.round(Math.abs(GM.v) * 3.6) + " km/h"; }
+  if (now - GM.actT > 300){ GM.actT = now; gmRivaBoats(); gmCheckAct(); gmDestTick(); gmPaintUi(); $("#gmSpd").textContent = GM.mode === "ride" ? Math.round((GM.rideV || 0) * 3.6) + " km/h" : !gmKnown(gmOff(GM, GM.hdg, 8)) ? "Carico la mappa…" : Math.round(Math.abs(GM.v) * 3.6) + " km/h"; }
+}
+// vaporetto vero: col biglietto ci sali a una fermata e lui ti porta lungo la sua linea; scendi quando si ferma
+function gmRideStep(){
+  const q = GM.ride && boatPos(GM.ride, romeMinNow());
+  if (!q){ gmRideOff(); return; }
+  const prev = { lat: GM.lat, lng: GM.lng }; GM.lat = q.pos[1]; GM.lng = q.pos[0]; GM.hdg = (q.ang + 360) % 360; GM.rideAt = q.at;
+  GM.rideV = dist(prev, GM) / Math.max(0.016, (performance.now() - (GM.rideT || performance.now())) / 1000); GM.rideT = performance.now();
+}
+function gmRideOff(){
+  const q = gmFind(GM, gmWalkable, 40); GM.mode = "walk"; GM.ride = null; if (q){ GM.lat = q.lat; GM.lng = q.lng; }
+  GM.avKey = ""; gmPaintUi(); toast("Sei sceso dal vaporetto");
+}
+function gmRideNear(){
+  if (!actvRaw || !FERMATE.length || !(GM.tickets > 0)) return null;
+  const f = FERMATE.find(x => dist(GM, x) < 35); if (!f) return null; const t0 = romeMinNow(); let best = null;
+  actvRaw.forEach(b => { const q = boatPos(b, t0); if (!q || q.at !== Math.floor(q.at)) return; const d = dist(GM, { lat: q.pos[1], lng: q.pos[0] }); if (d < 70 && (!best || d < best.d)) best = { b, d }; });
+  return best && { t: "ride", b: best.b, f };
 }
 // tasto d'azione: ruba / sali / scendi
 function gmCheckAct(){
   let act = null; const k = gmM(GM.lat);
-  if (GM.mode === "walk"){ let best = null;
+  if (GM.mode === "ride"){ act = GM.rideAt === Math.floor(GM.rideAt) ? { t: "alight" } : null; }
+  else if (GM.mode === "walk"){ let best = null;
     gmBoats().forEach(b => { const d = Math.hypot((b.lat - GM.lat) * k.y, (b.lng - GM.lng) * k.x); if (d < 9 && (!best || d < best.d)) best = { b, d }; });
-    if (best) act = { t: best.b.kind === "mine" ? "board" : "steal", b: best.b }; }
+    if (best) act = { t: best.b.kind === "mine" ? "board" : "steal", b: best.b };
+    if (!act && !GM.swim) act = gmRideNear(); }
   else { const land = gmFind(GM, q => gmKnown(q) && !gmWater(q) && gmWalkable(q), 8); if (land) act = { t: "off", q: land }; }
   GM.act = act; const b = $("#gmAct");
-  b.classList.toggle("hidden", !act); if (act) b.textContent = act.t === "board" ? "⚓ Sali sulla tua barca" : act.t === "steal" ? "🔑 Ruba la barca" : "🚶 Scendi a terra";
+  b.classList.toggle("hidden", !act); if (act) b.textContent = act.t === "board" ? "⚓ Sali sulla tua barca" : act.t === "steal" ? "🔑 Ruba la barca" : act.t === "ride" ? `🎫 Sali sul vaporetto ${act.b[0]} (${GM.tickets} bigl.)` : act.t === "alight" ? "🚶 Scendi a questa fermata" : "🚶 Scendi a terra";
 }
 function gmDoAct(){
   const a = GM && GM.act; if (!a) return; haptic();
+  if (a.t === "alight"){ gmRideOff(); gmCheckAct(); return; }
+  if (a.t === "ride"){ GM.act = null; rpc("shop_use", { p_items: ["biglietto"] }).then(j => { if (!j || !j.ok) return toast("Non hai più biglietti: comprali in tabaccheria");
+      GM.tickets = Math.max(0, (GM.tickets | 0) - 1); GM.mode = "ride"; GM.ride = a.b; GM.rideT = 0; GM.avKey = ""; gmPaintUi(); toast(`🎫 Biglietto timbrato: sei sul ${a.b[0]} per ${cleanDir(a.b[2])}`); }).catch(() => toast("Riprova")); return; }
   if (a.t === "off"){
     const boatPos = { lat: GM.lat, lng: GM.lng, hdg: GM.hdg };
     if (GM.using && GM.using.kind === "mine") GM.mine = boatPos; else GM.left.push(boatPos);   // la barca resta dove l'hai lasciata
@@ -8733,7 +8911,7 @@ function gmDoAct(){
     GM.mode = "boat"; GM.v = 0; GM.lat = b.lat; GM.lng = b.lng; GM.hdg = b.hdg; buzz([40, 30, 80]); }
   GM.boatsKey = ""; GM.avKey = ""; gmDraw(); gmPaintUi(); gmCheckAct();
 }
-function gmPaintUi(){ if (!GM) return; $("#gmMode").textContent = GM.mode === "boat" ? "🛥️ In barca" : GM.swim ? "🏊 A nuoto" : "🚶 A piedi"; }
+function gmPaintUi(){ if (!GM) return; $("#gmMode").textContent = GM.mode === "boat" ? "🛥️ In barca" : GM.mode === "ride" ? "⛴️ In vaporetto" : GM.swim ? "🏊 A nuoto" : "🚶 A piedi"; }
 // levette: la sinistra va su e giù (avanti/indietro), la destra a sinistra e destra (gira); si usano insieme con due dita
 (() => {
   const pad = (el, set) => { const knob = el.querySelector("i"); let id = null;
