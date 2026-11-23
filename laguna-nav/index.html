@@ -109,7 +109,9 @@
   body.fp .me:not(.fr) .meTag{display:none}
   .me.fr .meTag{background:#ff6446}
   .me .meTag.on,.me:not(.fr) .meTag{background:#1fae5b}   /* online: banner verde */
+  .me.fr .meTag.game{background:#7c3aed;color:#fff}   /* amico che sta giocando: nome viola */
   .meTag small{font-weight:500;opacity:.8}
+  .meTag.game{background:#7c3aed!important;color:#fff!important;border-color:#5b21b6!important}
   .meTag{position:absolute;left:50%;bottom:0;transform:translateX(-50%);white-space:nowrap;background:#111;color:#fff;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.35)}
   .dest{width:22px;height:22px;border-radius:50%;background:#d32f2f;border:4px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5)}
   /* ===== Tema: blu per la navigazione, rosso e bianco (trattoria) per i ristoranti ===== */
@@ -2599,16 +2601,24 @@ function addManLayer(){
   manKey = ""; drawMan(true); drawFriends(); apply3d(false); hookManWater();
 }
 /* amici che condividono la posizione: omino 3D (o puntino da lontano) e il loro clickname */
-let FR_LOC = [], FR_MK = [], frPush = 0;
+let FR_LOC = [], FR_MK = [], frPush = 0, FR_GAME = [];
+// amici che giocano: si aggiornano spesso, così il loro personaggio si muove quasi dal vivo
+async function loadFriendsGame(){
+  if (typeof PROFILE === "undefined" || !PROFILE || document.hidden || appMode !== "nautica") return;
+  let r; try{ r = await rpc("game_friends", {}); }catch(e){ return; } const L = Array.isArray(r) ? r : [];
+  const k = JSON.stringify(L.map(g => [g.nome, g.lat.toFixed(6), g.lng.toFixed(6), Math.round(g.hdg || 0), g.barca]));
+  if (k === loadFriendsGame.k) return; loadFriendsGame.k = k; FR_GAME = L; drawFriends();
+}
+setInterval(loadFriendsGame, 4000);
 function drawFriends(){
   if (!map || !map.getSource("frman")) return;
-  const list = appMode === "nautica" ? FR_LOC : [], feats = [];
+  const list = appMode === "nautica" ? FR_LOC.concat(FR_GAME.map(g => Object.assign({ gioco: true, minuti: 0 }, g))) : [], feats = [];
   list.forEach(f => { const k = feats.length; manFeatures(f.lat, f.lng, f.hdg || 0, f.avatar || {}, feats, 0, f.barca === true); for (let i = k; i < feats.length; i++) feats[i].properties.n = f.nome; });
   map.getSource("frman").setData({ type: "FeatureCollection", features: feats });
   map.getSource("frdot").setData({ type: "FeatureCollection", features: list.map(f => ({ type: "Feature", properties: { c: (f.avatar && f.avatar.shirt) || "#ff6446", n: f.nome }, geometry: { type: "Point", coordinates: [f.lng, f.lat] } })) });
   FR_MK.forEach(m => m.remove()); FR_MK = list.map(f => { const el = document.createElement("div"); el.className = "me fr";
-    el.innerHTML = `<div class="meTag${f.minuti < 3 ? " on" : ""}">${esc(f.nome)}${f.minuti >= 2 ? ` <small>${agoMin(f.minuti)}</small>` : ""}</div>`;
-    el.querySelector(".meTag").onclick = ev => { ev.stopPropagation(); trackFriend(f.nome); };
+    el.innerHTML = f.gioco ? `<div class="meTag game">🎮 ${esc(f.nome)}</div>` : `<div class="meTag${f.minuti < 3 ? " on" : ""}">${esc(f.nome)}${f.minuti >= 2 ? ` <small>${agoMin(f.minuti)}</small>` : ""}</div>`;
+    el.querySelector(".meTag").onclick = ev => { ev.stopPropagation(); if (f.gioco) toast(`🎮 @${f.nome} sta giocando qui`); else trackFriend(f.nome); };
     return new maplibregl.Marker({ element: el, anchor: "bottom", offset: [0, meOff || -12] }).setLngLat([f.lng, f.lat]).addTo(map); });
 }
 async function loadFriendsLoc(){
@@ -5627,8 +5637,9 @@ function paintSet(){ document.querySelectorAll("#setPanel [data-set]").forEach(b
 // 2D: mappa piatta, niente rilievi (edifici, bricole 3D, omino) · 3D: mappa inclinabile con i rilievi
 function apply3d(anim){
   if (!map) return; const d3 = LY.d3 !== false;
-  try{ map.setMaxPitch(d3 ? 80 : 0); }catch(e){}
-  if (!d3 && map.getPitch() > 0) map.easeTo({ pitch: 0, duration: anim ? 500 : 0 });
+  try{ map.setMaxPitch(d3 || GM ? 80 : 0); }catch(e){}
+  if (GM){}   // nel gioco la telecamera resta alle spalle dell'omino
+  else if (!d3 && map.getPitch() > 0) map.easeTo({ pitch: 0, duration: anim ? 500 : 0 });
   else if (d3 && anim && map.getPitch() < 5) map.easeTo({ pitch: view3d ? 72 : 50, duration: 500 });
   ["medot", "frdot"].forEach(id => { if (map.getLayer(id)) map.setLayerZoomRange(id, 0, d3 ? MAN_MINZ : 24); });
   applyMapMode();
@@ -8304,7 +8315,7 @@ function shopPaint(){
   g.innerHTML = L.map(i => { const mine = shopMine(i.id), worn = av[i.slot] === i.id, pet = i.tipo === "mascotte";
     let act;
     if (SHOP.edit) act = `<div class="shedit"><input type="number" inputmode="numeric" min="0" placeholder="prezzo" value="${i.prezzo ?? ""}" data-shp="${i.id}"><label><input type="checkbox" data-sha="${i.id}" ${i.attivo ? "checked" : ""}> in vendita</label><button class="btn small" data-shs="${i.id}">Salva</button></div>`;
-    else if (mine) act = `<button class="btn small${worn ? " ghost" : ""}" data-shw="${i.id}">${worn ? (pet ? "Lascia a casa" : "Togli") : (pet ? "Porta con te" : "Indossa")}</button>${pet ? `<a href="#" class="shren" data-shr="${i.id}">✏️ rinomina</a>` : ""}`;
+    else if (mine) act = `<button class="btn small${worn ? " ghost" : ""}" data-shw="${i.id}">${worn ? (pet ? "Lascia a casa" : "Togli") : (pet ? "Porta con te" : "Indossa")}</button>${pet ? `<a href="#" class="shren" data-shr="${i.id}">✏️ rinomina</a>` : ""}<a href="#" class="shren" data-shg="${i.id}">🎁 regala a un amico</a>`;
     else if (i.prezzo === null || i.prezzo === undefined) act = `<div class="shsoon">Prezzo in arrivo</div>`;
     else act = `<button class="btn small" data-shb="${i.id}">${SCHEO_SVG} ${i.prezzo}</button>`;
     return `<div class="shcard${worn ? " worn" : ""}"><canvas width="220" height="190" data-shc="${i.id}"></canvas>
@@ -8318,6 +8329,7 @@ function shopPaint(){
   g.querySelectorAll("[data-shw]").forEach(b => b.onclick = () => { const i = SHOP.items.find(x => x.id === b.dataset.shw); if (!i) return; const on = avGet()[i.slot] === i.id;
     const ch = { [i.slot]: on ? null : i.id }; if (i.slot === "pet") ch.petn = on ? null : (shopMine(i.id) || {}).nome || null; avSave(ch); haptic(); shopPaint(); });
   g.querySelectorAll("[data-shr]").forEach(a => a.onclick = e => { e.preventDefault(); shopName(a.dataset.shr, true); });
+  g.querySelectorAll("[data-shg]").forEach(a => a.onclick = e => { e.preventDefault(); shopGift(a.dataset.shg); });
   g.querySelectorAll("[data-shs]").forEach(b => b.onclick = async () => { const id = b.dataset.shs, v = g.querySelector(`[data-shp="${id}"]`).value.trim(), on = g.querySelector(`[data-sha="${id}"]`).checked;
     const prezzo = v === "" ? null : Math.max(0, Math.round(+v)); b.disabled = true;
     const j = await rpc("shop_admin", { p_item: id, p_prezzo: prezzo, p_attivo: on }).catch(() => null); b.disabled = false;
@@ -8341,6 +8353,22 @@ function shopName(id, rename){
     if (!rename) return shopDoBuy(i, n);
     const j = await rpc("shop_rename", { p_item: id, p_nome: n }).catch(() => null);
     if (j && j.ok){ mine.nome = n; if (avGet().pet === id) avSave({ petn: n }); toast("Ora si chiama " + n); shopOpen("mascotte"); } else toast("Non salvato, riprova."); };
+}
+// regalo: l'oggetto passa al tuo amico (a te non resta più)
+async function shopGift(id){
+  const i = SHOP.items.find(x => x.id === id); if (!i) return; const mine = shopMine(id);
+  if (!MY || !Array.isArray(MY.amici)) try{ await loadFriends(); }catch(e){}
+  const A = (MY && MY.amici) || [];
+  openSheet(`<h3>🎁 Regala ${esc(i.tipo === "mascotte" && mine && mine.nome ? mine.nome : i.nome)}</h3><p class="trnote" style="margin-top:0">Passa al tuo amico: a te non resta più.</p>
+    <div id="shGiftL">${A.length ? A.map(a => `<button class="card rowbtn" data-gto="${esc(a.nome)}" style="width:100%">${esc(a.emoji || "👤")} @${esc(a.nome)} <span>›</span></button>`).join("") : `<p class="muted">Non hai ancora amici su myClick.</p>`}</div>
+    <button class="btn ghost" id="shGiftX" style="margin-top:8px">Indietro</button>`);
+  $("#shGiftX").onclick = () => shopOpen(i.tipo);
+  document.querySelectorAll("[data-gto]").forEach(b => b.onclick = async () => { const to = b.dataset.gto;
+    if (!confirm(`Regalare ${i.nome} a @${to}?`)) return; b.disabled = true;
+    const j = await rpc("shop_give", { p_item: id, p_amico: to }).catch(() => null);
+    if (!j || !j.ok){ b.disabled = false; return toast(j && j.errore === "ce_l_ha" ? `@${to} ce l'ha già` : j && j.errore === "non_amici" ? "Si può regalare solo agli amici" : "Regalo non riuscito, riprova."); }
+    SHOP.miei = SHOP.miei.filter(m => m.id !== id); if (avGet()[i.slot] === id){ const ch = { [i.slot]: null }; if (i.slot === "pet") ch.petn = null; avSave(ch); }
+    buzz([40, 30, 80]); toast(`🎁 Regalato a @${to}!`); shopOpen(i.tipo); });
 }
 async function shopDoBuy(i, nome){
   const j = await rpc("shop_buy", { p_item: i.id, p_nome: nome }).catch(() => null);
@@ -8419,7 +8447,7 @@ function gmStart(){
   if (SV){ GM.hdg = SV.hdg || 0; GM.mode = SV.mode === "boat" ? "boat" : "walk"; GM.using = SV.using || null; GM.left = SV.left || []; GM.stolen = SV.stolen || {};
     if (SV.mine !== undefined) GM.mine = SV.mine; GM.restored = true; }
   map.jumpTo({ center: [GM.lng, GM.lat], zoom: 20.2, pitch: 62, bearing: GM.hdg, padding: { top: Math.round(innerHeight * 0.42), bottom: 0, left: 0, right: 0 } });
-  document.body.classList.add("gm"); $("#gmUi").classList.remove("hidden"); buzz([60, 40, 120]);
+  document.body.classList.add("gm"); $("#gmUi").classList.remove("hidden"); buzz([60, 40, 120]); store.set("ln_gm_on", true);
   document.body.appendChild($("#setPanel")); $("#setPanel").classList.add("hidden");
   setTimeout(() => { if (GM){ gmMiniInit(); try{ GMINI && GMINI.resize(); }catch(e){} } }, 50);   // il pannello di cosa vedere va sopra i comandi del gioco
   // dopo un attimo le tessere sono pronte: se sei in acqua parti in barca (la tua), se sei dentro una casa esci in calle
@@ -8432,7 +8460,7 @@ function gmStart(){
 }
 function gmSave(){ if (!GM) return; store.set("ln_gm_save", { lat: GM.lat, lng: GM.lng, hdg: GM.hdg, mode: GM.mode, using: GM.using, mine: GM.mine, left: GM.left.slice(-10), stolen: GM.stolen, t: Date.now() }); }
 function gmStop(){
-  if (!GM) return; gmSave(); const c = GM.cam; GM = null;
+  if (!GM) return; gmSave(); store.set("ln_gm_on", false); rpc("game_stop", {}).catch(() => {}); const c = GM.cam; GM = null;
   document.body.classList.remove("gm"); $("#gmUi").classList.add("hidden");
   $("#setPanel").classList.add("hidden"); $("#v-map").insertBefore($("#setPanel"), $("#modes"));
   ["dragPan", "scrollZoom", "boxZoom", "dragRotate", "keyboard", "doubleClickZoom", "touchZoomRotate", "touchPitch"].forEach(k => { try{ map[k].enable(); }catch(e){} });
@@ -8536,6 +8564,7 @@ function gmTick(){
   GM.ph = (GM.ph || 0) + Math.abs(GM.v) * dt * 2.2;
   map.jumpTo({ center: [GM.lng, GM.lat], bearing: GM.hdg, pitch: 62, zoom: boat ? 19.5 : 20.2 });
   if (GM.n % 90 === 0) gmSave();
+  if (now - (GM.pushT || 0) > 3000 && PROFILE){ GM.pushT = now; rpc("game_push", { p_lat: GM.lat, p_lng: GM.lng, p_hdg: Math.round(GM.hdg), p_boat: GM.mode === "boat" }).catch(() => {}); }
   gmAvDraw(); if (GM.n % 10 === 0) gmDraw(); if (GM.n % 2 === 0) gmMiniTick();
   if (now - GM.actT > 300){ GM.actT = now; gmRivaBoats(); gmCheckAct(); $("#gmSpd").textContent = Math.round(Math.abs(GM.v) * 3.6) + " km/h"; }
 }
@@ -8587,6 +8616,8 @@ function gmPaintUi(){ if (!GM) return; $("#gmMode").textContent = GM.mode === "b
 })();
 // myClick: dove parcheggi la tua barca nel gioco
 addEventListener("pagehide", () => { try{ gmSave(); }catch(e){} });
+(function gmResume(n){ if (!store.get("ln_gm_on", false)) return; if (map && map.isStyleLoaded && map.isStyleLoaded() && map.getSource("openmaptiles") && PROFILE){ setTimeout(gmStart, 600); return; }
+  if (n < 60) setTimeout(() => gmResume(n + 1), 500); })(0);
 document.addEventListener("visibilitychange", () => { if (document.hidden) try{ gmSave(); }catch(e){} });
 function gmParkPick(){
   closeSheet(); try{ setMode("nautica"); }catch(e){}
