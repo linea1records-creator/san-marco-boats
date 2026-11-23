@@ -2644,12 +2644,12 @@ async function loadFriendsLoc(){
   drawFriends();
 }
 function pushMyLoc(p){
-  if (!store.get("ln_share", false) || typeof PROFILE === "undefined" || !PROFILE || Date.now() - frPush < 25000) return;
+  if (!store.get("ln_share", false) || typeof PROFILE === "undefined" || !PROFILE || Date.now() - frPush < 10000) return;
   frPush = Date.now(); const b = !!manWat;
   rpc("loc_push2", { p_lat: p.lat, p_lng: p.lng, p_hdg: Math.round(heading), p_boat: b })
     .then(r => { if (!r || r.errore === undefined && r.ok === undefined) throw 0; }).catch(() => rpc("loc_push", { p_lat: p.lat, p_lng: p.lng, p_hdg: Math.round(heading) }).catch(() => {}));
 }
-setTimeout(() => { loadFriendsLoc(); setInterval(loadFriendsLoc, 20000); kissPoll(); setInterval(kissPoll, 5000); }, 4000);
+setTimeout(() => { loadFriendsLoc(); setInterval(loadFriendsLoc, 10000); kissPoll(); setInterval(kissPoll, 5000); }, 4000);
 
 /* emoji da lontano (baci, cuori, drink...): volano sulla mappa da chi le manda a chi le riceve in 7 secondi */
 const KISS_MS = 7000;
@@ -3414,7 +3414,10 @@ function targetHeading(){
 function frame(){
   requestAnimationFrame(frame);
   if (!map) return;
-  if (GM){ try{ gmTick(); }catch(e){} return; }   // modalità gioco: comanda lei la telecamera
+  if (GM){ try{ gmTick(); }catch(e){}   // modalità gioco: comanda lei la telecamera, ma il tuo omino vero (GPS) resta sulla mappa
+    try{ dispTick(); if (manPend && Date.now() - manPend.t >= 400){ manShown = manPend.P; manPend = null; } const D = manShown || disp; if (D && meMarker) meMarker.setLngLat([D.lng, D.lat]);
+      frame.n = (frame.n || 0) + 1; if (frame.n % 3 === 0) drawMan(); }catch(e){}
+    return; }
   const t = targetHeading();
   if (t !== null) heading = (heading + angDiff(heading, t) * 0.22 + 360) % 360;
   dispTick(); if (manPend && Date.now() - manPend.t >= 400){ manShown = manPend.P; manPend = null; }
@@ -8455,7 +8458,6 @@ function gmStart(){
     mine: park ? { lat: park.lat, lng: park.lng, hdg: park.hdg || 0 } : null, left: [], rb: {}, stolen: {}, n: 0, actT: 0, act: null, bumpT: 0, cx: 0, cy: 0, off: 0, pit: 62, dest: null, R: null,
     cam: { center: map.getCenter(), zoom: map.getZoom(), bearing: map.getBearing(), pitch: map.getPitch(), padding: map.getPadding() } };
   ["dragPan", "scrollZoom", "boxZoom", "dragRotate", "keyboard", "doubleClickZoom", "touchZoomRotate", "touchPitch"].forEach(k => { try{ map[k].disable(); }catch(e){} });
-  try{ if (map.getLayer("meman")) map.setLayoutProperty("meman", "visibility", "none"); }catch(e){} try{ if (meMarker) meMarker.getElement().style.display = "none"; }catch(e){}
   if (!map.getSource("gmman")){
     const paint = { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true };
     map.addSource("gmboats", { type: "geojson", data: { type: "FeatureCollection", features: [] } }); map.addLayer({ id: "gmboats", type: "fill-extrusion", source: "gmboats", paint });
