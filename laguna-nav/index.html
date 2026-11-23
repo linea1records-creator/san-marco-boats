@@ -8411,52 +8411,53 @@ const GM_K = 0.35;                       // nel gioco omino e barca in scala pi�
 const GM_WALK = 40 / 3.6, GM_BOAT = 200 / 3.6;   // velocità massime: a piedi 40 km/h, in barca 200 km/h
 const gmM = lat => ({ y: 111320, x: 111320 * Math.cos(lat * Math.PI / 180) });
 function gmOff(p, hdg, dist){ const r = hdg * Math.PI / 180, k = gmM(p.lat); return { lat: p.lat + Math.cos(r) * dist / k.y, lng: p.lng + Math.sin(r) * dist / k.x }; }
-// indice veloce di acqua, case, ponti e sottoporteghi presi dalle tessere della mappa già caricate
-const GM_CELL = 0.0004;
-function gmIndex(){
-  const I = { water: new Map(), bld: new Map(), br: new Map(), tun: new Map(), n: 0 };
-  const putPoly = (M, rings) => { const R = rings[0]; if (!R || R.length < 4) return; let a = 1e9, b = 1e9, c = -1e9, d = -1e9; R.forEach(([x, y]) => { a = Math.min(a, x); b = Math.min(b, y); c = Math.max(c, x); d = Math.max(d, y); });
-    const it = { bb: [a, b, c, d], rings }; for (let i = Math.floor(a / GM_CELL); i <= Math.floor(c / GM_CELL); i++) for (let j = Math.floor(b / GM_CELL); j <= Math.floor(d / GM_CELL); j++){ const k = i + "," + j; (M.get(k) || M.set(k, []).get(k)).push(it); } I.n++; };
-  const putLine = (M, L) => { for (let s = 0; s < L.length - 1; s++){ const A = L[s], B = L[s + 1], seg = { A, B };
-    for (let i = Math.floor(Math.min(A[0], B[0]) / GM_CELL); i <= Math.floor(Math.max(A[0], B[0]) / GM_CELL); i++) for (let j = Math.floor(Math.min(A[1], B[1]) / GM_CELL); j <= Math.floor(Math.max(A[1], B[1]) / GM_CELL); j++){ const k = i + "," + j; (M.get(k) || M.set(k, []).get(k)).push(seg); } } };
-  // solo quello che si vede intorno all'omino (le tessere intere sono troppo pesanti per il telefono)
-  if (!map.getLayer("gmbr")) try{ map.addLayer({ id: "gmbr", type: "line", source: "openmaptiles", "source-layer": "transportation", filter: ["in", "brunnel", "bridge", "tunnel"], paint: { "line-opacity": 0, "line-width": 12 } }); }catch(e){}
-  const ids = t => (map.getStyle().layers || []).filter(l => l.type === "fill" && l.layout?.visibility !== "none" && t(l.id)).map(l => l.id);
-  if (!GM.ly) GM.ly = { w: ids(id => /water/i.test(id) && !/name|label/i.test(id)), b: ids(id => /building/i.test(id)) };
-  const cv = map.getCanvas(), W = cv.clientWidth, H = cv.clientHeight, box = [[0, H * 0.22], [W, H]];
-  const q = L => { try{ return L.length ? map.queryRenderedFeatures(box, { layers: L }) : []; }catch(e){ return []; } };
-  const polys = (F, M) => F.forEach(f => { const g = f.geometry; if (g.type === "Polygon") putPoly(M, g.coordinates); else if (g.type === "MultiPolygon") g.coordinates.forEach(r => putPoly(M, r)); });
-  polys(q(GM.ly.w), I.water); polys(q(GM.ly.b), I.bld);
-  q(map.getLayer("gmbr") ? ["gmbr"] : []).forEach(f => { const bn = f.properties && f.properties.brunnel, g = f.geometry, M = bn === "bridge" ? I.br : I.tun;
-    if (g.type === "LineString") putLine(M, g.coordinates); else if (g.type === "MultiLineString") g.coordinates.forEach(l => putLine(M, l)); });
-  I.c = { lat: GM.lat, lng: GM.lng };
-  // zone "conosciute": solo quelle inquadrate con le tessere già caricate. Dove la mappa non ha ancora i dati
-  // (andando forte in barca) non si blocca niente e non si propone di scendere a terra.
-  I.cov = new Set(); const O = GM.idx;
-  let loaded = true; try{ loaded = map.areTilesLoaded(); }catch(e){}
-  if (loaded){ try{ const C = [[0, H * 0.22], [W, H * 0.22], [W, H], [0, H]].map(p => { const ll = map.unproject(p); return [ll.lng, ll.lat]; });
-    const xs = C.map(c => c[0]), ys = C.map(c => c[1]);
-    for (let i = Math.floor(Math.min(...xs) / GM_CELL); i <= Math.floor(Math.max(...xs) / GM_CELL); i++) for (let j = Math.floor(Math.min(...ys) / GM_CELL); j <= Math.floor(Math.max(...ys) / GM_CELL); j++){
-      const cx = (i + 0.5) * GM_CELL, cy = (j + 0.5) * GM_CELL; if (inRing(cx, cy, C.concat([C[0]]))) I.cov.add(i + "," + j); } }catch(e){} }
-  // si tiene a memoria quello già visto vicino (fino a circa 1 km), così tornando indietro non si perde niente
-  if (O && O.cov){ const k = gmM(GM.lat);
-    O.cov.forEach(key => { if (I.cov.has(key)) return; const [i, j] = key.split(",").map(Number), dy = ((j + 0.5) * GM_CELL - GM.lat) * k.y, dx = ((i + 0.5) * GM_CELL - GM.lng) * k.x;
-      if (Math.hypot(dx, dy) > 1000) return; I.cov.add(key); ["water", "bld", "br", "tun"].forEach(m => { const v = O[m].get(key); if (v) I[m].set(key, v); else I[m].delete(key); }); }); }
-  GM.idx = I; GM.idxT = performance.now();
+/* mappa di collisione del gioco: per ogni tessera (circa 2,4 km) si disegna UNA volta un'immagine di 1536×1536 punti (1,6 m l'uno)
+   con acqua, case e ponti/sottoporteghi. Poi ogni controllo è una lettura istantanea, anche a 200 km/h.
+   Dove la tessera non è ancora pronta non ci si muove (niente barche sulla terra), e appena arriva si riparte. */
+const GMT_Z = 14, GMT_S = 1536, GMT = new Map();
+function gmTileOf(lat, lng){ const n = 1 << GMT_Z, fx = (lng + 180) / 360 * n, r = lat * Math.PI / 180, fy = (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n;
+  return { tx: Math.floor(fx), ty: Math.floor(fy), fx, fy }; }
+// 1 = acqua, 2 = casa, 4 = si cammina comunque (ponte, sottoportego); null = tessera non ancora pronta
+function gmBits(p){ const t = gmTileOf(p.lat, p.lng), m = GMT.get(t.tx + "/" + t.ty); if (!m) return null;
+  const x = Math.min(GMT_S - 1, Math.floor((t.fx - t.tx) * GMT_S)), y = Math.min(GMT_S - 1, Math.floor((t.fy - t.ty) * GMT_S)); return m[y * GMT_S + x]; }
+function gmTilesBuild(need){
+  const want = new Set([...need].filter(k => !GMT.has(k))); if (!want.size) return;
+  const T = new Map(), get = f => { const v = f._vectorTileFeature || {}, z = f._z ?? v._z, x = f._x ?? v._x, y = f._y ?? v._y;
+    if (z !== GMT_Z || x === undefined) return null; const k = x + "/" + y; if (!want.has(k)) return null; let t = T.get(k); if (!t){ t = { x, y, w: [], b: [], l: [] }; T.set(k, t); } return t; };
+  try{ map.querySourceFeatures("openmaptiles", { sourceLayer: "water" }).forEach(f => { const t = get(f); if (t) t.w.push(f.geometry); }); }catch(e){}
+  try{ map.querySourceFeatures("openmaptiles", { sourceLayer: "building" }).forEach(f => { const t = get(f); if (t) t.b.push(f.geometry); }); }catch(e){}
+  try{ map.querySourceFeatures("openmaptiles", { sourceLayer: "transportation" }).forEach(f => { const bn = f.properties && f.properties.brunnel; if (bn !== "bridge" && bn !== "tunnel") return; const t = get(f); if (t) t.l.push([f.geometry, bn]); }); }catch(e){}
+  T.forEach((t, k) => {
+    if (!t.w.length && !t.b.length) return;   // tessera non ancora scaricata davvero
+    const c = document.createElement("canvas"); c.width = c.height = GMT_S; const g = c.getContext("2d"), n = 1 << GMT_Z;
+    const px = lng => ((lng + 180) / 360 * n - t.x) * GMT_S, py = lat => { const r = lat * Math.PI / 180; return ((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n - t.y) * GMT_S; };
+    const fill = (L, col) => { g.fillStyle = col; L.forEach(geo => { const P = geo.type === "Polygon" ? [geo.coordinates] : geo.type === "MultiPolygon" ? geo.coordinates : [];
+      P.forEach(rings => { g.beginPath(); rings.forEach(R => R.forEach(([lo, la], i) => i ? g.lineTo(px(lo), py(la)) : g.moveTo(px(lo), py(la)))); g.fill("evenodd"); }); }); };
+    g.globalCompositeOperation = "lighter";
+    fill(t.w, "#ff0000"); fill(t.b, "#00ff00");
+    g.strokeStyle = "#0000ff"; g.lineCap = "round";
+    t.l.forEach(([geo, bn]) => { g.lineWidth = bn === "bridge" ? 3 : 2; const L = geo.type === "LineString" ? [geo.coordinates] : geo.type === "MultiLineString" ? geo.coordinates : [];
+      L.forEach(l => { g.beginPath(); l.forEach(([lo, la], i) => i ? g.lineTo(px(lo), py(la)) : g.moveTo(px(lo), py(la))); g.stroke(); }); });
+    const D = g.getImageData(0, 0, GMT_S, GMT_S).data, m = new Uint8Array(GMT_S * GMT_S);
+    for (let i = 0, j = 0; i < m.length; i++, j += 4) m[i] = (D[j] > 110 ? 1 : 0) | (D[j + 1] > 110 ? 2 : 0) | (D[j + 2] > 110 ? 4 : 0);
+    GMT.set(k, m); c.width = c.height = 1;
+  });
+  if (GMT.size > 8){ const me = gmTileOf(GM.lat, GM.lng); [...GMT.keys()].map(k => { const [x, y] = k.split("/").map(Number); return [k, Math.abs(x - me.tx) + Math.abs(y - me.ty)]; })
+    .sort((a, b) => b[1] - a[1]).slice(0, GMT.size - 8).forEach(([k]) => GMT.delete(k)); }
 }
-const gmKey = p => Math.floor(p.lng / GM_CELL) + "," + Math.floor(p.lat / GM_CELL);
-function gmIn(M, p){ const L = M.get(gmKey(p)); if (!L) return false;
-  return L.some(it => p.lng >= it.bb[0] && p.lng <= it.bb[2] && p.lat >= it.bb[1] && p.lat <= it.bb[3] && inRing(p.lng, p.lat, it.rings[0]) && !it.rings.slice(1).some(h => inRing(p.lng, p.lat, h))); }
-function gmNear(M, p, m){ const L = M.get(gmKey(p)); if (!L) return false; const k = gmM(p.lat);
-  return L.some(({ A, B }) => { const ax = (A[0] - p.lng) * k.x, ay = (A[1] - p.lat) * k.y, bx = (B[0] - p.lng) * k.x, by = (B[1] - p.lat) * k.y, dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy;
-    const t = l2 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / l2)) : 0; return Math.hypot(ax + dx * t, ay + dy * t) <= m; }); }
-const gmKnown = p => !!GM.idx && !!GM.idx.cov && GM.idx.cov.has(gmKey(p));
-const gmWater = p => !!GM.idx && gmIn(GM.idx.water, p);
-function gmWalkable(p){ const I = GM.idx; if (!I || !gmKnown(p)) return true;
-  if (gmIn(I.water, p) && !gmNear(I.br, p, 3.5)) return false;            // acqua: solo sopra un ponte
-  if (gmIn(I.bld, p) && !gmNear(I.tun, p, 2.5)) return false;             // case: solo nei sottoporteghi
-  return true; }
-function gmBoatable(p){ return !gmKnown(p) || gmWater(p); }
+// tessere che servono: quella dove sei e quelle che stai per raggiungere
+function gmNeed(force){
+  const now = performance.now(); if (!force && now - (GM.needT || 0) < 450) return; GM.needT = now;
+  const need = new Set(), add = q => { const t = gmTileOf(q.lat, q.lng); need.add(t.tx + "/" + t.ty); };
+  add(GM); [0, 90, 180, 270].forEach(a => add(gmOff(GM, GM.hdg + a, 250))); add(gmOff(GM, GM.hdg, 600));
+  const miss = [...need].filter(k => !GMT.has(k)); if (!miss.length) return;
+  if (!force && now - (GM.buildT || 0) < 1500) return; GM.buildT = now;   // la tessera non è ancora arrivata: si riprova tra poco
+  gmTilesBuild(need);
+}
+const gmKnown = p => gmBits(p) !== null;
+const gmWater = p => { const b = gmBits(p); return b !== null && !!(b & 1); };
+function gmWalkable(p){ const b = gmBits(p); if (b === null) return false; if (b & 4) return true; return !(b & 1) && !(b & 2); }
+function gmBoatable(p){ const b = gmBits(p); return b !== null && !!(b & 1); }
 // punto più vicino dove si può stare (a piedi o in barca) entro un raggio
 function gmFind(p, ok, rMax){ for (let r = 0; r <= (rMax || 25); r += 1.5) for (let a = 0; a < 360; a += r ? Math.max(12, 90 / r) : 360){ const q = gmOff(p, a, r); if (ok(q)) return Object.assign(q, { a }); } return null; }
 
@@ -8485,11 +8486,13 @@ function gmStart(){
   document.body.appendChild($("#setPanel")); $("#setPanel").classList.add("hidden");
   setTimeout(() => { if (GM){ gmMiniInit(); try{ GMINI && GMINI.resize(); }catch(e){} } }, 50);   // il pannello di cosa vedere va sopra i comandi del gioco
   // dopo un attimo le tessere sono pronte: se sei in acqua parti in barca (la tua), se sei dentro una casa esci in calle
-  setTimeout(() => { if (!GM) return; gmIndex();
+  const settle = n => { if (!GM) return; gmNeed(true);
+    if (!gmKnown(GM)){ if (n < 20) setTimeout(() => settle(n + 1), 500); return; }   // aspetto che la mappa del posto sia pronta
     if (GM.restored){ gmPaintUi(); return; }
     if (gmWater(GM) && !gmWalkable(GM)){ GM.mode = "boat"; GM.using = { kind: "mine" }; GM.mine = null; }
     else if (!gmWalkable(GM)){ const q = gmFind(GM, gmWalkable, 40); if (q){ GM.lat = q.lat; GM.lng = q.lng; } }
-    gmPaintUi(); }, 900);
+    gmPaintUi(); };
+  setTimeout(() => settle(0), 700);
   gmPaintUi(); toast(SV ? "Riprendi da dove eri rimasto" : "Modalità gioco: levetta sinistra per andare, destra per girare");
 }
 function gmSave(){ if (!GM) return; store.set("ln_gm_save", { lat: GM.lat, lng: GM.lng, hdg: GM.hdg, mode: GM.mode, using: GM.using, mine: GM.mine, left: GM.left.slice(-10), stolen: GM.stolen, t: Date.now() }); }
@@ -8506,7 +8509,7 @@ function gmStop(){
 }
 // barche ormeggiate nelle rive dei diportisti: la prima volta che ti avvicini cerco il punto d'acqua davanti alla riva
 function gmRivaBoats(){
-  if (!GM.idx || !RIVE.length) return; const k = gmM(GM.lat);
+  if (!RIVE.length) return; const k = gmM(GM.lat);
   RIVE.forEach(r => { if (GM.rb[r.id] !== undefined || GM.stolen[r.id]) return;
     const d = Math.hypot((r.lat - GM.lat) * k.y, (r.lng - GM.lng) * k.x); if (d > 60) return;
     if (!gmKnown(r)) return;   // la zona non è ancora caricata: si riprova dopo
@@ -8657,7 +8660,7 @@ async function friendGift(nome){
 }
 function gmTick(){
   const now = performance.now(), dt = Math.min(0.05, (now - GM.t) / 1000); GM.t = now; GM.n++;
-  if (!GM.idx || now - GM.idxT > 4000 || (GM.idx.c && dist(GM, GM.idx.c) > 18)) gmIndex();
+  gmNeed();
   const boat = GM.mode === "boat", vmax = boat ? GM_BOAT : GM_WALK, target = GM.f * vmax * (GM.f < 0 ? 0.5 : 1);
   if (boat){ const a = (Math.abs(target) > Math.abs(GM.v) ? 16 : 20) * dt; GM.v += Math.max(-a, Math.min(a, target - GM.v)); }   // la barca ha un po' di abbrivio
   else GM.v += (target - GM.v) * Math.min(1, 12 * dt);
@@ -8682,7 +8685,7 @@ function gmTick(){
   if (GM.n % 90 === 0) gmSave();
   if (now - (GM.pushT || 0) > 3000 && PROFILE){ GM.pushT = now; rpc("game_push", { p_lat: GM.lat, p_lng: GM.lng, p_hdg: Math.round(GM.hdg), p_boat: GM.mode === "boat" }).catch(() => {}); }
   gmAvDraw(); if (GM.n % 10 === 0) gmDraw(); if (GM.n % 2 === 0) gmMiniTick();
-  if (now - GM.actT > 300){ GM.actT = now; gmRivaBoats(); gmCheckAct(); gmDestTick(); $("#gmSpd").textContent = Math.round(Math.abs(GM.v) * 3.6) + " km/h"; }
+  if (now - GM.actT > 300){ GM.actT = now; gmRivaBoats(); gmCheckAct(); gmDestTick(); $("#gmSpd").textContent = !gmKnown(gmOff(GM, GM.hdg, 8)) ? "Carico la mappa…" : Math.round(Math.abs(GM.v) * 3.6) + " km/h"; }
 }
 // tasto d'azione: ruba / sali / scendi
 function gmCheckAct(){
