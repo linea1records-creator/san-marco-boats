@@ -6350,7 +6350,10 @@ function actvPath(la0, lo0, la1, lo1){
     const route = (filt, okNode) => { const a = entry(la0, lo0, okNode), b = entry(la1, lo1, okNode); if (!a || !b) return null;
       DIJ_EDGE_OK = filt; try{ return dijkstra(a.n, b.n, null, true); } finally { DIJ_EDGE_OK = null; } };
     // 1) solo canali rossi e acqua bianca della carta del Comune; 2) se proprio non si arriva, tutta la rete ma senza tagliare le case
-    let res = route(bigEdge, n => G.adj[n].some(bigNamed)) || route(anyWaterEdge, n => G.adj[n].some(e => e[3] === 0));
+    // i canali grandi vanno preferiti, ma non se fanno fare un giro lunghissimo (es. linea 6 Santa Marta → San Basilio per il Canal Grande)
+    const plen = r => { let l = 0; for (let i = 1; i < r.path.length; i++) l += hav(G.la[r.path[i - 1]], G.lo[r.path[i - 1]], G.la[r.path[i]], G.lo[r.path[i]]); return l; };
+    const r1 = route(bigEdge, n => G.adj[n].some(bigNamed)), r2 = route(anyWaterEdge, n => G.adj[n].some(e => e[3] === 0));
+    let res = r1 || r2; if (r1 && r2 && plen(r1) > plen(r2) * 1.4 + 250) res = r2;
     const mid = res ? res.path.map(n => [G.la[n], G.lo[n]]) : null;
     let len = 0; if (mid) for (let i = 1; i < mid.length; i++) len += hav(mid[i - 1][0], mid[i - 1][1], mid[i][0], mid[i][1]);
     // se la rete non collega i due imbarcaderi il battello aspetta all'imbarcadero (niente linea dritta sopra la terra)
