@@ -809,7 +809,8 @@
   body.gm #setPanel:not(.hidden){display:block!important}
   body.gm #setPanel.hidden{display:none!important}
   body.hide-tesori .tesMk, body.hide-segnal .segMk, body.hide-gondole .gonMk{display:none!important}
-  .gonMk{width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid #111;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,.35);cursor:pointer}
+  .gonMk svg{width:24px;height:24px}
+  .gonMk{width:32px;height:32px;border-radius:50%;background:#fff;border:2px solid #111;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,.35);cursor:pointer}
   .gonMk.tr{background:#ffe9a8} body.mode-market .gonMk, body.mode-incontra .gonMk, body.mode-trasporti .gonMk{display:none}
   .gonInfo{display:flex;flex-direction:column;gap:6px;margin:8px 0} .gonInfo div{background:var(--panel2);border-radius:10px;padding:8px 10px;font-size:14px} .gonInfo div.on{outline:2px solid var(--accent)}
   .gmTop{position:absolute;top:calc(10px + var(--safe-t));left:10px;right:10px;display:flex;align-items:center;gap:8px}
@@ -831,6 +832,13 @@
   #hud{position:fixed;z-index:40;top:calc(10px + var(--safe-t));right:10px;display:flex;gap:6px;align-items:center}
   #hud button{height:34px;border:0;border-radius:999px;background:rgba(17,17,17,.9);color:#fff;font-weight:800;font-size:15px;display:flex;align-items:center;gap:5px;padding:0 12px 0 4px;box-shadow:0 2px 8px rgba(0,0,0,.28);font-variant-numeric:tabular-nums}
   #hud .scheo{width:26px;height:26px;flex:0 0 auto}
+  #hudHide{padding:0 10px!important;font-size:16px!important} #hudHide.on{background:#e5322d!important}
+  body.hidemode .npcTag{pointer-events:auto}
+  .siteIt{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding:8px 0} .siteIt small{display:block;color:var(--muted);font-size:12px} .sitePr{white-space:nowrap}
+  .siteIm{width:48px;height:48px;border-radius:10px;background:center/cover no-repeat;flex:0 0 auto} .siteIt a{color:var(--muted);text-decoration:none;font-weight:800;padding:0 4px}
+  .siteForm{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:8px}
+  .runBig,.runSmall{display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center;margin:8px 0} .runBig b{font-size:40px;font-variant-numeric:tabular-nums;display:block;line-height:1.1}
+  .runSmall b{font-size:22px;font-variant-numeric:tabular-nums;display:block} .runBig small,.runSmall small{color:var(--muted);font-size:12px}
   #hudAdm{padding:0 11px!important;background:#0a8f4e!important;font-size:13px!important;position:relative}
   #hudAdm i{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:9px;background:#e5322d;color:#fff;font:800 11px/18px system-ui;font-style:normal;text-align:center;padding:0 4px;box-sizing:border-box}
   #hudCoin.pop{animation:schPop .5s ease}
@@ -1210,13 +1218,14 @@
     <!-- Sport: partite ed eventi creati dagli utenti -->
     <div id="spPanel">
       <div class="mkh"><b>🎲 Gioca</b><span id="spCount"></span></div>
-      <div class="gseg"><button data-gt="sport" class="on">🏃 Dal vivo</button><button data-gt="tris">🎮 Digitali<i id="trisBadge" class="hidden"></i></button></div>
+      <div class="gseg"><button data-gt="sport" class="on">⚽ Dal vivo</button><button data-gt="tris">🎮 Digitali<i id="trisBadge" class="hidden"></i></button><button data-gt="run">🏃 Corsa</button></div>
       <div id="spSport">
         <div class="mkcats" id="spCats"></div>
         <div id="spList"></div>
         <button class="btn small" id="spNew">＋ Crea una partita o un evento</button>
       </div>
       <div id="spTris" class="hidden"></div>
+      <div id="spRun" class="hidden"></div>
     </div>
 
     <!-- Shopping: attività convenzionate sulla mappa -->
@@ -1487,6 +1496,7 @@
         <button class="card rowbtn" data-go="boat">⛵ La mia barca <span>›</span></button>
         <button class="card rowbtn" id="pfPark">⚓ Parcheggio della barca nel gioco <span id="pfParkSub">Scegli ›</span></button>
         <button class="card rowbtn hidden" id="pfLuogo">📍 Aggiungi un luogo (tabaccheria, ristorante…) <span>›</span></button>
+        <button class="card rowbtn hidden" id="pfHidden">🙈 Cose nascoste dalla mappa <span>›</span></button>
         <button class="card rowbtn" data-go="rider">🚶 Rider <span>›</span></button>
         <button class="card rowbtn" data-go="info">ⓘ Impostazioni e info <span>›</span></button>
         <button class="card rowbtn" id="pfEdit">🔑 Cambia PIN <span>›</span></button>
@@ -1591,7 +1601,7 @@
       <button id="gmAct" class="hidden"></button>
       <button id="gmSet" aria-label="Cosa vedere sulla mappa"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.4 7.4 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.4 7.4 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.4 7.4 0 0 0 1.7-1l2.4 1 2-3.4z"/></svg></button>
     </div>
-    <div id="hud" class="hidden"><button id="hudAdm" class="hidden" aria-label="Valida segnalazioni" title="Valida segnalazioni">✓ Valida<i class="hidden"></i></button><button id="hudCoin" aria-label="I tuoi schei"></button></div>
+    <div id="hud" class="hidden"><button id="hudHide" class="hidden" aria-label="Modalità nascondi" title="Nascondi cose dalla mappa" data-noico>🙈</button><button id="hudAdm" class="hidden" aria-label="Valida segnalazioni" title="Valida segnalazioni">✓ Valida<i class="hidden"></i></button><button id="hudCoin" aria-label="I tuoi schei"></button></div>
     <button id="tesBtn" class="hidden"></button>
     <button id="luogoBtn" class="hidden"></button>
   </nav>
@@ -2048,7 +2058,8 @@ $("#pfShopBtn").onclick = () => { haptic(); shopOpen(); };
 $("#pfBagBtn").onclick = () => { haptic(); zainoOpen(); };
 $("#pfShop2").onclick = () => shopOpen();
 $("#pfPark").onclick = () => gmParkPick();
-$("#pfLuogo").onclick = () => extraPick(); setTimeout(() => { try{ $("#pfLuogo").classList.toggle("hidden", !isTropss()); }catch(e){} }, 1500); setTimeout(() => { try{ paintGmPark(); }catch(e){} }, 0);
+$("#pfLuogo").onclick = () => extraPick(); setTimeout(() => { try{ $("#pfLuogo").classList.toggle("hidden", !isTropss()); $("#pfHidden").classList.toggle("hidden", !isTropss()); }catch(e){} }, 1500);
+$("#pfHidden").onclick = () => hiddenSheet(); setTimeout(() => { try{ paintGmPark(); }catch(e){} }, 0);
 $("#pfMeBack").onclick = () => setPfTab("home");
 $("#pfAmBtn").onclick = () => setPfTab("friends");
 $("#pfCmBtn").onclick = () => openMeet("match");
@@ -2589,6 +2600,7 @@ function initMap(){
   map.on("click", e => {
     if (typeof DRAW !== "undefined" && DRAW) return;   // mentre tropss ridisegna un tratto i tocchi servono solo alla matita
     if ($("#sheet") && !$("#sheet").classList.contains("hidden")) return;   // appena dopo il tocco lungo si apre la scheda: il rilascio non conta
+    if (HIDEMODE && isTropss()) return hideAtPoint(e);
     if (GM){ const fr = map.queryRenderedFeatures([[e.point.x - 16, e.point.y - 16], [e.point.x + 16, e.point.y + 16]], { layers: ["frman", "frdot"].filter(l => map.getLayer(l)) })[0];
       if (fr && fr.properties.n) friendMenu(fr.properties.n); return; }
     if (addMode === "luogoadd"){ addMode = null; $("#modeHint").classList.add("hidden"); return extraForm(e.lngLat); }
@@ -2646,13 +2658,13 @@ async function loadFriendsGame(){
 setInterval(loadFriendsGame, 4000);
 function drawFriends(){
   if (!map || !map.getSource("frman")) return;
-  const list = appMode === "nautica" ? FR_LOC.concat(FR_GAME.map(g => Object.assign({ gioco: true, minuti: 0 }, g))) : [], feats = [];
+  const list = (appMode === "nautica" ? FR_LOC.concat(FR_GAME.map(g => Object.assign({ gioco: true, minuti: 0 }, g))) : []).filter(f => typeof isHidden !== "function" || !isHidden("frman", "n=" + f.nome)), feats = [];
   list.forEach(f => { const k = feats.length; manFeatures(f.lat, f.lng, f.hdg || 0, f.avatar || {}, feats, 0, f.barca === true); for (let i = k; i < feats.length; i++) feats[i].properties.n = f.nome; });
   map.getSource("frman").setData({ type: "FeatureCollection", features: feats });
   map.getSource("frdot").setData({ type: "FeatureCollection", features: list.map(f => ({ type: "Feature", properties: { c: (f.avatar && f.avatar.shirt) || "#ff6446", n: f.nome }, geometry: { type: "Point", coordinates: [f.lng, f.lat] } })) });
   FR_MK.forEach(m => m.remove()); FR_MK = list.map(f => { const el = document.createElement("div"); el.className = "me fr";
     el.innerHTML = f.gioco ? `<div class="meTag game">🎮 ${esc(f.nome)}</div>` : `<div class="meTag${f.minuti < 3 ? " on" : ""}">${esc(f.nome)}${f.minuti >= 2 ? ` <small>${agoMin(f.minuti)}</small>` : ""}</div>`;
-    el.querySelector(".meTag").onclick = ev => { ev.stopPropagation(); friendMenu(f.nome); };
+    el.querySelector(".meTag").onclick = ev => { ev.stopPropagation(); if (HIDEMODE) return hideAsk("frman", "n=" + f.nome, "@" + f.nome); friendMenu(f.nome); };
     return new maplibregl.Marker({ element: el, anchor: "bottom", offset: [0, meOff || -12] }).setLngLat([f.lng, f.lat]).addTo(map); });
 }
 async function loadFriendsLoc(){
@@ -3429,6 +3441,7 @@ function onPos(pos){
   }
   recPoint(p);
   if (!GM){ checkZones(p, kmh); checkShallow(p); navTick(p); updateDepth(p); if (LY.velox !== false) veloxTick(p, kmh); bridgeTick(p); }
+  try{ runGps(p); }catch(e){}
   if (Date.now() - (onPos.lt || 0) > 4000){ onPos.lt = Date.now(); try{ luogoTick(p); }catch(e){} }   // sei davvero da un barbiere, in un cantiere…?
   try{ scheiWalk(p); tesTick(p); }catch(e){}
 }
@@ -6205,6 +6218,7 @@ function setBattelliFilter(){
   let fil = ["match", ["get", "al"], 1, LY.alilaguna !== false, LY.actv !== false];
   if (TRK && TRK.kind === "boat") fil = ["all", fil, ["!=", ["get", "k"], TRK.k]];   // il battello seguito si disegna a parte, fluido a ogni fotogramma
   map.setFilter("battelli", fil); if (map.getLayer("battelli-lbl")) map.setFilter("battelli-lbl", fil); if (map.getLayer("battelli3d")) map.setFilter("battelli3d", fil);
+  try{ ["battelli", "battelli-lbl", "battelli3d"].forEach(id => { ORIGF[id] = fil; }); if (HIDDEN.size) hideApply(); }catch(e){}
 }
 // vaporetti in 3D da vicino, col colore della loro linea (scafo e tetto), cabina bianca con i finestrini
 const VAP_K = 1.5;   // un po' più grandi del vero, come l'omino, così si vedono bene
@@ -6858,8 +6872,9 @@ function drawDlv(){
       if (map.getStyle().glyphs) map.addLayer({ id: "dlv-lbl", type: "symbol", source: "dlv", minzoom: 16.5, layout: { visibility: appMode === "market" ? "visible" : "none", "text-field": ["get", "n"], "text-size": 11, "text-offset": [0, 1], "text-anchor": "top", "text-font": ["Noto Sans Regular"], "text-optional": true },
         paint: { "text-color": "#2b0a0a", "text-halo-color": "#fff", "text-halo-width": 1.5 } });
     }
+    if (!drawDlv.hf){ drawDlv.hf = 1; try{ if (HIDDEN.size) hideApply(); }catch(e){} }
     DLV_L = dlvItems();
-    map.getSource("dlv").setData({ type: "FeatureCollection", features: DLV_L.map((x, i) => ({ type: "Feature", properties: { i, n: x.n, k: x.k }, geometry: { type: "Point", coordinates: [x.lng, x.lat] } })) });
+    map.getSource("dlv").setData({ type: "FeatureCollection", features: DLV_L.map((x, i) => ({ type: "Feature", properties: { i, n: x.n, k: x.k, hk: placeKey(x) }, geometry: { type: "Point", coordinates: [x.lng, x.lat] } })) });
     layerVis();
   }catch(e){}
 }
@@ -6881,10 +6896,12 @@ async function openDlv(i){
   const food = x.k === "food", key = placeKey(x), partner = (PARTNERS || []).find(p => norm(p.name) === norm(x.n) && hav(p.lat, p.lng, x.lat, x.lng) < 120);
   openSheet(`<h3 style="margin-bottom:2px">${esc(x.n)}</h3><p class="muted" style="margin:0 0 6px">${esc(dlvType(x))}</p>
     <div id="dlvRev" class="muted" style="margin-bottom:10px">Carico le recensioni…</div>
+    <div id="dlvSite"></div>
     ${food ? `<div class="row" style="gap:8px"><button class="btn" id="dlvOrd" style="flex:1">Ordina delivery</button><button class="btn" id="dlvBook" style="flex:1;background:#b5533c;color:#fff">Prenota</button></div>` : ""}
     <button class="btn ghost" id="dlvGo" style="margin-top:10px">Portami qui</button>${x.extra && isTropss() ? `<button class="btn small ghost" id="dlvDel" style="margin-top:10px">🗑️ Togli questo luogo (solo Trops)</button>` : ""}<button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
   $("#dlvGo").onclick = () => { closeSheet(); setMode("nautica"); openPlan({ name: x.n, lat: x.lat, lng: x.lng }); };
   if ($("#dlvDel")) $("#dlvDel").onclick = () => extraDel(x.extra);
+  siteLoad(key, $("#dlvSite"));
   if (food){
     $("#dlvOrd").onclick = () => { if (partner && partner.order_rest && CONFIG.RISTORANTI.some(r => r.id === partner.order_rest)){ closeSheet(); showView("order"); openMenu(partner.order_rest); }
       else toast("Questo locale non fa ancora consegne con clickVenice."); };
@@ -7580,8 +7597,8 @@ setTimeout(() => { try{ rtMine(); }catch(e){} }, 3000); setInterval(() => { try{
    e all'altro parte solo {"g":"ttt","i":4}. PeerJS si scarica solo quando apri una stanza. */
 let gTab = "sport";
 document.querySelectorAll("#spPanel [data-gt]").forEach(b => b.onclick = () => { gTab = b.dataset.gt; document.querySelectorAll("#spPanel [data-gt]").forEach(x => x.classList.toggle("on", x === b));
-  $("#spSport").classList.toggle("hidden", gTab !== "sport"); $("#spTris").classList.toggle("hidden", gTab !== "tris");
-  if (gTab === "tris") paintTris(); });
+  $("#spSport").classList.toggle("hidden", gTab !== "sport"); $("#spTris").classList.toggle("hidden", gTab !== "tris"); $("#spRun").classList.toggle("hidden", gTab !== "run");
+  if (gTab === "tris") paintTris(); if (gTab === "run") runPaint(); });
 const TTT_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 function trisLine(b){ for (const l of TTT_LINES) if (b[l[0]] !== "." && b[l[0]] === b[l[1]] && b[l[1]] === b[l[2]]) return l; return []; }
 const tttEnd = b => trisLine(b).length ? b[trisLine(b)[0]] : b.includes(".") ? null : "=";
@@ -8027,7 +8044,7 @@ function hudPaint(){
   const h = $("#hud"); if (!h) return;
   const on = !!(PROFILE && PROFILE.clickname); h.classList.toggle("hidden", !on);
   $("#hudCoin").innerHTML = SCHEO_SVG + `<b>${SCHEI.saldo == null ? "–" : SCHEI.saldo}</b>`;
-  const adm = on && isTropss(); $("#hudAdm").classList.toggle("hidden", !adm);
+  const adm = on && isTropss(); $("#hudAdm").classList.toggle("hidden", !adm); $("#hudHide").classList.toggle("hidden", !adm);
   $("#hudAdm i").textContent = SCHEI.pending || ""; $("#hudAdm i").classList.toggle("hidden", !SCHEI.pending);
   requestAnimationFrame(() => document.documentElement.style.setProperty("--hudw", (on ? h.offsetWidth + 18 : 10) + "px"));
 }
@@ -8043,6 +8060,7 @@ function scheiPlus(n){
 }
 $("#hudCoin").onclick = () => { haptic(); scheiSheet(); };
 $("#hudAdm").onclick = () => { haptic(); segAdmin(); };
+$("#hudHide").onclick = () => { haptic(); hideToggle(); };
 setInterval(() => { if (!document.hidden) scheiLoad(); }, 60000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) scheiLoad(); });
 setTimeout(() => { scheiLoad(); segLoadPublic(); tesLoad(); }, 1200);
@@ -8104,8 +8122,8 @@ function segTmpClear(){ try{ segTmpMk && segTmpMk.remove(); }catch(e){} segTmpMk
 async function segLoadPublic(){
   if (!map) return setTimeout(segLoadPublic, 3000); let L; try{ L = await rpc("seg_pubbliche", {}); }catch(e){ return; } if (!Array.isArray(L)) return;
   SEG_MK.forEach(m => m.remove()); SEG_MK = [];
-  L.forEach(s => { const t = SEG_T[s.tipo]; if (!t) return; const el = document.createElement("div"); el.className = "segMk"; el.textContent = t[0]; el.title = t[1];
-    el.onclick = ev => { ev.stopPropagation(); segOpen(s); };
+  L.forEach(s => { const t = SEG_T[s.tipo]; if (!t || (typeof isHidden === "function" && isHidden("segnal", "id=" + s.id))) return; const el = document.createElement("div"); el.className = "segMk"; el.textContent = t[0]; el.title = t[1];
+    el.onclick = ev => { ev.stopPropagation(); if (HIDEMODE) return hideAsk("segnal", "id=" + s.id, SEG_T[s.tipo][1]); segOpen(s); };
     SEG_MK.push(new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([s.lng, s.lat]).addTo(map)); });
 }
 async function segOpen(s){
@@ -8150,7 +8168,7 @@ async function tesLoad(){ try{ const j = await rpc("tesori_list", {}); if (Array
 function tesDraw(){
   TES_MK.forEach(m => m.remove()); TES_MK = []; if (!map) return setTimeout(tesDraw, 3000);
   TESORI.forEach(t => { const el = document.createElement("div"); el.className = "tesMk" + (tesWait(t) ? " used" : ""); el.innerHTML = SCHEO_SVG; el.title = t.nome;
-    el.onclick = ev => { ev.stopPropagation(); tesInfo(t); };
+    el.onclick = ev => { ev.stopPropagation(); if (HIDEMODE && isTropss()){ if (confirm("Togliere il tesoro «" + t.nome + "»?")) rpc("tesoro_admin", { p_azione: "del", p_id: t.id }).then(() => tesLoad()); return; } tesInfo(t); };
     TES_MK.push(new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([t.lng, t.lat]).addTo(map)); });
 }
 function tesTick(p){
@@ -8494,6 +8512,144 @@ async function shopDoBuy(i, nome){
   if (i.luogo) shopOpen(null, i.luogo); else shopOpen(i.tipo);
 }
 
+/* ---------- Trops: modalità «nascondi» — tocchi qualsiasi cosa sulla mappa e la nascondi per tutti ---------- */
+let HIDDEN = new Map(), HIDEMODE = false; const ORIGF = {};
+const HIDE_GROUP = { battelli: ["battelli", "battelli-lbl", "battelli3d"], "battelli3d": ["battelli", "battelli-lbl", "battelli3d"], dlv: ["dlv", "dlv-lbl"], frman: ["frman", "frdot"], frdot: ["frman", "frdot"] };
+const HIDE_LAYERS = ["dlv", "battelli", "battelli3d", "fermate", "cantieri", "velox", "ponti", "poi", "partners", "frman", "frdot", "gondole3d", "npc", "aero", "rive", "bricole"];
+const isHidden = (layer, val) => !!(HIDDEN.get(layer) && HIDDEN.get(layer).has(val));
+async function hiddenLoad(){
+  let L; try{ L = await rpc("map_hidden_list", {}); }catch(e){ return; } if (!Array.isArray(L)) return;
+  HIDDEN = new Map(); L.forEach(x => { if (!HIDDEN.has(x.l)) HIDDEN.set(x.l, new Set()); HIDDEN.get(x.l).add(x.v); }); hiddenLoad.L = L;
+  hideApply();
+}
+setTimeout(hiddenLoad, 2000); setInterval(() => { if (!document.hidden) hiddenLoad(); }, 300000);
+// sulle mappe: un filtro per ogni livello (oltre a quello che c'era già)
+function hideApply(){
+  if (!map) return;
+  const per = {};
+  HIDDEN.forEach((vals, layer) => (HIDE_GROUP[layer] || [layer]).forEach(id => { vals.forEach(v => { const i = v.indexOf("="); if (i < 0) return; const p = v.slice(0, i), val = v.slice(i + 1);
+    ((per[id] = per[id] || {})[p] = per[id][p] || []).push(val); }); }));
+  Object.keys(Object.assign({}, per, ORIGF)).forEach(id => { if (!map.getLayer(id)) return;
+    if (!(id in ORIGF)) ORIGF[id] = map.getFilter(id) || null;
+    const conds = Object.entries(per[id] || {}).map(([p, vals]) => ["!", ["in", ["to-string", ["get", p]], ["literal", vals]]]);
+    const base = ORIGF[id], f = conds.length ? (base ? ["all", base].concat(conds) : (conds.length === 1 ? conds[0] : ["all"].concat(conds))) : base;
+    try{ map.setFilter(id, f); }catch(e){} });
+  try{ drawFriends(); }catch(e){} try{ gondDraw(); }catch(e){} try{ npcDraw(); }catch(e){}
+}
+function hideToggle(){
+  HIDEMODE = !HIDEMODE; document.body.classList.toggle("hidemode", HIDEMODE); $("#hudHide").classList.toggle("on", HIDEMODE);
+  toast(HIDEMODE ? "🙈 Modalità nascondi: tocca una cosa sulla mappa per nasconderla a tutti" : "Modalità nascondi spenta");
+}
+async function hideAsk(layer, val, label){
+  if (!confirm(`Nascondere «${label}» dalla mappa per tutti?`)) return;
+  const j = await rpc("map_hide", { p_layer: layer, p_val: val, p_label: String(label).slice(0, 80), p_hide: true }).catch(() => null);
+  if (!j || !j.ok) return toast("Non nascosto, riprova.");
+  if (!HIDDEN.has(layer)) HIDDEN.set(layer, new Set()); HIDDEN.get(layer).add(val); hideApply(); haptic(); toast("🙈 Nascosto: lo ritrovi in myClick ⚙️ → Cose nascoste");
+}
+// tocco in modalità nascondi: cosa c'è sotto il dito?
+function hideAtPoint(e){
+  const ls = HIDE_LAYERS.filter(l => map.getLayer(l)), f = map.queryRenderedFeatures([[e.point.x - 12, e.point.y - 12], [e.point.x + 12, e.point.y + 12]], { layers: ls })[0];
+  if (!f) return toast("Qui non c'è niente da nascondere");
+  const P = f.properties || {}, prop = ["hk", "k", "gk", "id", "n", "name", "nome"].find(k => P[k] !== undefined && P[k] !== "");
+  if (!prop) return toast("Questo non si può nascondere");
+  const layer = f.layer.id === "battelli3d" ? "battelli" : f.layer.id === "frdot" ? "frman" : f.layer.id;
+  hideAsk(layer, prop + "=" + P[prop], P.n || P.name || P.nome || (P.l ? "linea " + P.l : layer));
+}
+async function hiddenSheet(){
+  await hiddenLoad(); const L = hiddenLoad.L || [];
+  openSheet(`<h3>🙈 Cose nascoste dalla mappa</h3>${L.length ? L.map((x, i) => `<div class="card rowbtn" style="width:100%">${esc(x.n || x.v)} <small class="muted">${esc(x.l)}</small> <span><a href="#" data-unh="${i}">mostra</a></span></div>`).join("") : `<p class="muted">Niente di nascosto.</p>`}
+    <button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">Chiudi</button>`);
+  document.querySelectorAll("[data-unh]").forEach(a => a.onclick = async e => { e.preventDefault(); const x = L[+a.dataset.unh];
+    const j = await rpc("map_hide", { p_layer: x.l, p_val: x.v, p_label: x.n, p_hide: false }).catch(() => null);
+    if (j && j.ok){ const s = HIDDEN.get(x.l); if (s) s.delete(x.v); hideApply(); toast("Di nuovo visibile"); hiddenSheet(); } else toast("Riprova"); });
+}
+
+/* ---------- Clicksite: prodotti e servizi del posto, scritti da tropss o dal commerciante ---------- */
+async function siteLoad(key, box){
+  let j = null; try{ j = await rpc("place_site", { p_key: key }); }catch(e){}
+  if (!box || !document.body.contains(box)) return; if (!j){ box.innerHTML = ""; return; }
+  const I = j.items || [];
+  box.innerHTML = (I.length || j.puoi ? `<h4 class="schH">🛍️ Prodotti e servizi</h4>` : "")
+    + I.map(it => `<div class="siteIt">${it.foto && /^data:image\//.test(it.foto) ? `<div class="siteIm" style="background-image:url('${esc(it.foto)}')"></div>` : ""}<div style="flex:1"><b>${esc(it.nome)}</b>${it.descr ? `<small>${esc(it.descr)}</small>` : ""}</div>
+      ${it.prezzo !== null && it.prezzo !== undefined ? `<b class="sitePr">${String(it.prezzo).replace(".", ",")} €</b>` : ""}${j.puoi ? `<a href="#" data-sdel="${it.id}" title="Togli">✕</a>` : ""}</div>`).join("")
+    + (j.puoi ? `<button class="btn small" id="siteAdd" style="margin-top:6px">＋ Aggiungi prodotto o servizio</button>` : "")
+    + (j.admin ? `<button class="btn small ghost" id="siteOwn" style="margin-top:6px">👤 Commercianti: ${j.titolari.length ? j.titolari.map(n => "@" + esc(n)).join(", ") : "nessuno"} · cambia</button>` : "");
+  box.querySelectorAll("[data-sdel]").forEach(a => a.onclick = async e => { e.preventDefault(); if (!confirm("Togliere questo prodotto?")) return;
+    const r = await rpc("place_item_del", { p_id: +a.dataset.sdel }).catch(() => null); if (r && r.ok) siteLoad(key, box); else toast("Non tolto"); });
+  if ($("#siteAdd")) $("#siteAdd").onclick = () => siteForm(key, box);
+  if ($("#siteOwn")) $("#siteOwn").onclick = async () => { const n = prompt("Clickname del commerciante da aggiungere (scrivi -nome per toglierlo)"); if (!n) return;
+    const off = n.trim().startsWith("-"), nome = n.trim().replace(/^[-@]+/, "");
+    const r = await rpc("place_owner_set", { p_key: key, p_nome: nome, p_on: !off }).catch(() => null);
+    if (r && r.ok){ toast(off ? `@${nome} tolto` : `@${nome} ora può scrivere i suoi prodotti qui`); siteLoad(key, box); } else toast(r && r.errore === "utente" ? "Utente non trovato" : "Non riuscito"); };
+}
+function siteForm(key, box){
+  const wrap = document.createElement("div"); wrap.className = "siteForm"; let foto = null;
+  wrap.innerHTML = `<div class="field"><input id="sfN" maxlength="80" placeholder="Prodotto o servizio (es. Spritz, Taglio uomo)"></div>
+    <div class="row" style="gap:8px"><div class="field" style="flex:1;margin:0"><input id="sfP" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Prezzo €"></div>
+      <label class="btn small ghost" style="flex:1;margin:0">📷 Foto<input type="file" accept="image/*" id="sfF" hidden></label></div>
+    <div class="field" style="margin-top:8px"><input id="sfD" maxlength="400" placeholder="Descrizione (facoltativa)"></div>
+    <button class="btn small" id="sfGo">Salva</button>`;
+  $("#siteAdd").replaceWith(wrap); setTimeout(() => $("#sfN").focus(), 60);
+  $("#sfF").onchange = async e => { const f = e.target.files && e.target.files[0]; if (!f) return; try{ foto = await shrinkPhoto(f); toast("Foto pronta ✓"); }catch(er){ toast("Foto non valida"); } };
+  $("#sfGo").onclick = async () => { const n = $("#sfN").value.trim(); if (!n) return toast("Scrivi il nome"); const pv = $("#sfP").value.trim();
+    $("#sfGo").disabled = true;
+    const r = await rpc("place_item_add", { p_key: key, p_nome: n, p_prezzo: pv === "" ? null : +pv.replace(",", "."), p_descr: $("#sfD").value.trim() || null, p_foto: foto }).catch(() => null);
+    if (r && r.ok){ haptic(); toast("Aggiunto ✓"); siteLoad(key, box); } else { $("#sfGo").disabled = false; toast(r && r.errore === "non_autorizzato" ? "Solo il commerciante del posto o Trops" : "Non salvato, riprova"); } };
+}
+
+/* ---------- Corsa: app di running classica (Gioca → Corsa) ---------- */
+let RUN = { on: false, paused: false, t0: 0, acc: 0, pts: [], m: 0, km: 0, wl: null };
+const runSec = () => Math.round((RUN.acc + (RUN.on && !RUN.paused ? Date.now() - RUN.t0 : 0)) / 1000);
+const runPace = (m, s) => m < 30 ? "–" : (() => { const p = s / (m / 1000), mi = Math.floor(p / 60), se = Math.round(p % 60); return mi + ":" + String(se).padStart(2, "0"); })();
+const hms = s => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(x).padStart(2, "0"); };
+function runPaint(){
+  const box = $("#spRun"); if (!box || box.classList.contains("hidden")) return;
+  const s = runSec(), last = RUN.pts.slice(-6), sp = last.length > 1 ? (() => { let d = 0; for (let i = 1; i < last.length; i++) d += dist(last[i - 1], last[i]); const t = (last[last.length - 1].t - last[0].t) / 1000; return t > 0 ? d / t * 3.6 : 0; })() : 0;
+  if (!box.dataset.ok){ box.dataset.ok = 1; box.innerHTML = `<div class="runBig"><div><b id="rnKm">0,00</b><small>km</small></div><div><b id="rnT">0:00</b><small>tempo</small></div></div>
+      <div class="runSmall"><div><b id="rnP">–</b><small>min/km medio</small></div><div><b id="rnV">0,0</b><small>km/h adesso</small></div></div>
+      <div class="row" style="gap:8px;margin-top:10px" id="rnBtns"></div><p class="muted" style="font-size:12px;margin:8px 0 0">Tieni lo schermo acceso: con il telefono bloccato il browser smette di leggere il GPS.</p>
+      <h4 class="schH">Le tue corse</h4><div id="rnHist"><p class="muted">Carico…</p></div>`; runHist(); }
+  $("#rnKm").textContent = (RUN.m / 1000).toFixed(2).replace(".", ","); $("#rnT").textContent = hms(s); $("#rnP").textContent = runPace(RUN.m, s); $("#rnV").textContent = sp.toFixed(1).replace(".", ",");
+  const st = RUN.on ? (RUN.paused ? "p" : "r") : "i"; if ($("#rnBtns").dataset.st !== st){ $("#rnBtns").dataset.st = st;
+    $("#rnBtns").innerHTML = st === "i" ? `<button class="btn" id="rnGo" style="flex:1;background:#1fae5b">▶ Inizia la corsa</button>`
+      : st === "r" ? `<button class="btn" id="rnPause" style="flex:1">⏸ Pausa</button><button class="btn ghost" id="rnStop" style="flex:1">■ Fine</button>`
+      : `<button class="btn" id="rnRes" style="flex:1;background:#1fae5b">▶ Riprendi</button><button class="btn ghost" id="rnStop" style="flex:1">■ Fine</button>`;
+    if ($("#rnGo")) $("#rnGo").onclick = runStart; if ($("#rnPause")) $("#rnPause").onclick = () => { RUN.acc += Date.now() - RUN.t0; RUN.paused = true; runPaint(); };
+    if ($("#rnRes")) $("#rnRes").onclick = () => { RUN.t0 = Date.now(); RUN.paused = false; RUN.last = null; runPaint(); }; if ($("#rnStop")) $("#rnStop").onclick = runStop; }
+}
+async function runStart(){
+  if (!lastPos) toast("Aspetto il GPS… intanto parto col tempo");
+  RUN = { on: true, paused: false, t0: Date.now(), acc: 0, pts: [], m: 0, km: 0, wl: null, last: null };
+  try{ RUN.wl = await navigator.wakeLock.request("screen"); }catch(e){}
+  buzz([60]); toast("🏃 Via!"); runLine(); runPaint();
+}
+async function runStop(){
+  if (!confirm("Finire la corsa?")) return;
+  if (!RUN.paused) RUN.acc += Date.now() - RUN.t0; RUN.on = false; try{ RUN.wl && RUN.wl.release(); }catch(e){}
+  const s = Math.round(RUN.acc / 1000), m = Math.round(RUN.m), step = Math.max(1, Math.ceil(RUN.pts.length / 2500));
+  const pts = RUN.pts.filter((p, i) => i % step === 0).map(p => [+p.lat.toFixed(5), +p.lng.toFixed(5)]);
+  toast(`🏁 ${(m / 1000).toFixed(2).replace(".", ",")} km in ${hms(s)} · ${runPace(m, s)} min/km`);
+  if (PROFILE && m > 50) rpc("run_save", { p_metri: m, p_secondi: s, p_pts: pts }).then(() => runHist()).catch(() => {});
+  runPaint();
+}
+function runGps(p){
+  if (!RUN.on || RUN.paused || !p || !(p.acc <= 25)) return; const q = { lat: p.lat, lng: p.lng, t: Date.now() };
+  if (RUN.last){ const d = dist(RUN.last, q), dt = (q.t - RUN.last.t) / 1000; if (d < 3) return; if (dt > 0 && d / dt * 3.6 > 30) { RUN.last = q; return; }   // salti del GPS: scartati
+    RUN.m += d; const km = Math.floor(RUN.m / 1000); if (km > RUN.km){ RUN.km = km; buzz([80, 60, 80]); toast(`Km ${km} · ${runPace(RUN.m, runSec())} min/km`); } }
+  RUN.last = q; RUN.pts.push(q); runLine();
+}
+function runLine(){
+  if (!map) return; try{ if (!map.getSource("runline")){ map.addSource("runline", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+      map.addLayer({ id: "runline", type: "line", source: "runline", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#1fae5b", "line-width": 5, "line-opacity": 0.9 } }); }
+    map.getSource("runline").setData({ type: "FeatureCollection", features: RUN.pts.length > 1 ? [{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: RUN.pts.map(p => [p.lng, p.lat]) } }] : [] }); }catch(e){}
+}
+async function runHist(){
+  const box = $("#rnHist"); if (!box) return; if (!PROFILE){ box.innerHTML = `<p class="muted">Con l'account le corse restano salvate.</p>`; return; }
+  let L = null; try{ L = await rpc("run_list", {}); }catch(e){} if (!Array.isArray(L) || !L.length){ box.innerHTML = `<p class="muted">Ancora nessuna corsa.</p>`; return; }
+  box.innerHTML = L.slice(0, 20).map(r => `<div class="card rowbtn" style="width:100%">${new Date(r.at).toLocaleDateString("it-IT", { day: "numeric", month: "short" })} · <b>${(r.metri / 1000).toFixed(2).replace(".", ",")} km</b> <span>${hms(r.secondi)} · ${runPace(r.metri, r.secondi)}/km</span></div>`).join("");
+}
+setInterval(() => { if (RUN.on) runPaint(); }, 1000);
+
 /* ---------- Gondole: traghetti (da una sponda all'altra del Canal Grande) e stazi per il giro turistico ----------
    Tariffe del Comune (cartello Servizio Gondola): giro di giorno 90 € per 30 min (9–19), di notte 110 € per 35 min (19–4), massimo 5 persone.
    Traghetto: circa 2 € (residenti 0,70 €). Posizioni e orari indicativi: tropss può aggiungere stazi con «Aggiungi luogo». */
@@ -8514,6 +8670,7 @@ const STAZI = [
   ["Ferrovia", 45.44115, 12.32230], ["Piazzale Roma", 45.43890, 12.31950]
 ];
 let GON_MK = [];
+const GON_SVG = `<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M2.5 18.5c7 4.6 20.5 4.6 27-3.2l-1.3-.7c-6.6 6-18.5 5.6-25 2.4z" fill="#111"/><path d="M27.6 15.2 29.4 8.6l1 .3-1.6 6.8z" fill="#111"/><path d="M29 10.2l2-.5M28.7 11.6l2-.5M28.4 13l2-.5" stroke="#111" stroke-width=".9"/><path d="M3.6 18.4 2.4 14.8" stroke="#111" stroke-width="1.3"/><circle cx="8.5" cy="11.2" r="1.4" fill="#111"/><path d="M8.5 12.6v4.6M8.5 14l5.5 6.3" stroke="#111" stroke-width="1.3" stroke-linecap="round"/><path d="M6.6 10h3.8" stroke="#e9c46a" stroke-width="1.2"/></svg>`;
 function gondDraw(){
   if (!map || !map.getStyle()) return setTimeout(gondDraw, 3000);
   if (!map.getSource("traghetti")){
@@ -8523,8 +8680,9 @@ function gondDraw(){
   GON_MK.forEach(m => m.remove()); GON_MK = [];
   const mk = (lat, lng, html, cls, fn) => { const el = document.createElement("div"); el.className = "gonMk " + cls; el.setAttribute("data-noico", ""); el.innerHTML = html;
     el.onclick = ev => { ev.stopPropagation(); fn(); }; GON_MK.push(new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([lng, lat]).addTo(map)); };
-  TRAGHETTI.forEach(t => [t.a, t.b].forEach(p => mk(p[0], p[1], "⛴", "tr", () => gondTraghetto(t, p))));
-  STAZI.concat((EXTRA || []).filter(x => x.t === "stazio_gondole").map(x => [x.n, x.lat, x.lng, x.id])).forEach(s => mk(s[1], s[2], "🚣", "st", () => gondStazio(s)));
+  TRAGHETTI.filter(t => !isHidden("gondole", "n=" + t.n)).forEach(t => [t.a, t.b].forEach(p => mk(p[0], p[1], GON_SVG, "tr", () => HIDEMODE ? hideAsk("gondole", "n=" + t.n, "Traghetto " + t.n) : gondTraghetto(t, p))));
+  STAZI.concat((EXTRA || []).filter(x => x.t === "stazio_gondole").map(x => [x.n, x.lat, x.lng, x.id])).filter(s => !isHidden("gondole", "n=" + s[0]))
+    .forEach(s => mk(s[1], s[2], GON_SVG, "st", () => HIDEMODE ? hideAsk("gondole", "n=" + s[0], "Gondole " + s[0]) : gondStazio(s)));
   gondVis();
 }
 function gondVis(){ document.body.classList.toggle("hide-gondole", LY.gondole === false); try{ if (map.getLayer("traghetti")) map.setLayoutProperty("traghetti", "visibility", LY.gondole === false || appMode !== "nautica" ? "none" : "visible"); }catch(e){} }
@@ -8604,14 +8762,15 @@ function traghAt(tr, k, tSec){
 function gond3dTick(){
   if (!map || !map.getStyle() || document.hidden) return;
   if (!map.getSource("gondole3d")){ map.addSource("gondole3d", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-    map.addLayer({ id: "gondole3d", type: "fill-extrusion", source: "gondole3d", minzoom: 15, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true } }); }
+    map.addLayer({ id: "gondole3d", type: "fill-extrusion", source: "gondole3d", minzoom: 15, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true } }); try{ hideApply(); }catch(e){} }
   const on = appMode === "nautica" && LY.gondole !== false && map.getZoom() >= 14.8;
   if (!on){ if (gond3dTick.had){ map.getSource("gondole3d").setData({ type: "FeatureCollection", features: [] }); gond3dTick.had = false; } return; }
   gondNpcBuild();
   const B = map.getBounds(), t = Date.now() / 1000, out = [], vis = p => B.contains([p.lng, p.lat]);
-  TRAGHETTI.forEach((tr, k) => { const p = traghAt(tr, k, t); if (vis(p)) gondGeo(p.lng, p.lat, p.hdg, out, { men: 2 }); });
-  (GOND_NPC || []).forEach(g => { const p = gondAt(g, t); if (vis(p)) gondGeo(p.lng, p.lat, p.hdg, out, { seats: true, men: 1 }); });
-  GOND_PARK.forEach(([la, lo, h]) => { if (vis({ lat: la, lng: lo })) gondGeo(lo, la, h, out, { seats: true, men: 0 }); });
+  const tag = (from, gk) => { for (let i = from; i < out.length; i++) out[i].properties.gk = gk; };
+  TRAGHETTI.forEach((tr, k) => { if (isHidden("gondole", "n=" + tr.n)) return; const p = traghAt(tr, k, t); if (vis(p)){ const n0 = out.length; gondGeo(p.lng, p.lat, p.hdg, out, { men: 2 }); tag(n0, "tr" + k); } });
+  (GOND_NPC || []).forEach((g, k) => { if (isHidden("gondole3d", "gk=npc" + k)) return; const p = gondAt(g, t); if (vis(p)){ const n0 = out.length; gondGeo(p.lng, p.lat, p.hdg, out, { seats: true, men: 1 }); tag(n0, "npc" + k); } });
+  GOND_PARK.forEach(([la, lo, h], k) => { if (isHidden("gondole3d", "gk=sq" + k)) return; if (vis({ lat: la, lng: lo })){ const n0 = out.length; gondGeo(lo, la, h, out, { seats: true, men: 0 }); tag(n0, "sq" + k); } });
   map.getSource("gondole3d").setData({ type: "FeatureCollection", features: out }); gond3dTick.had = true;
 }
 setInterval(gond3dTick, 500);
@@ -8701,10 +8860,14 @@ function npcDraw(){
   if (!map.getSource("npc")){ map.addSource("npc", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
     map.addLayer({ id: "npc", type: "fill-extrusion", source: "npc", minzoom: 15, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1 } }); }
   const out = [];
-  manFeatures(45.43429, 12.32372, 200, { sex: "m", shirt: "#3a3f44", legs: "#1d2228", shoe: "#f2f2f2", hair: "#1a1a1a", hat: "berretto" }, out, 0, false);
-  manFeatures(45.47370, 12.22355, 140, { sex: "m", shirt: "#2e7d32", legs: "#3b3b3b", shoe: "#111111", hair: "#3b2416", hs: "hs_ricci", eyes: "occhiali" }, out, 0, false);
+  const n0 = out.length; if (!isHidden("npc", "n=Il Cappuccio")) manFeatures(45.43429, 12.32372, 200, { sex: "m", shirt: "#3a3f44", legs: "#1d2228", shoe: "#f2f2f2", hair: "#1a1a1a", hat: "berretto" }, out, 0, false);
+  for (let i = n0; i < out.length; i++) out[i].properties.n = "Il Cappuccio"; const n1 = out.length;
+  if (!isHidden("npc", "n=Monopattino")) manFeatures(45.47370, 12.22355, 140, { sex: "m", shirt: "#2e7d32", legs: "#3b3b3b", shoe: "#111111", hair: "#3b2416", hs: "hs_ricci", eyes: "occhiali" }, out, 0, false);
+  for (let i = n1; i < out.length; i++) out[i].properties.n = "Monopattino";
   map.getSource("npc").setData({ type: "FeatureCollection", features: out });
-  if (!npcDraw.mk){ npcDraw.mk = [["Il Cappuccio", 45.43429, 12.32372], ["Monopattino", 45.47370, 12.22355]].map(([n, la, lo]) => { const el = document.createElement("div"); el.className = "npcTag"; el.textContent = n;
+  (npcDraw.mk || []).forEach(m => m.remove()); npcDraw.mk = null;
+  if (!npcDraw.mk){ npcDraw.mk = [["Il Cappuccio", 45.43429, 12.32372], ["Monopattino", 45.47370, 12.22355]].filter(([n]) => !isHidden("npc", "n=" + n)).map(([n, la, lo]) => { const el = document.createElement("div"); el.className = "npcTag"; el.textContent = n;
+    el.onclick = ev => { if (!HIDEMODE) return; ev.stopPropagation(); hideAsk("npc", "n=" + n, n); };
     return new maplibregl.Marker({ element: el, anchor: "bottom", offset: [0, -38] }).setLngLat([lo, la]).addTo(map); }); }
 }
 setTimeout(npcDraw, 4000);
