@@ -784,6 +784,10 @@
   body.gm .maplibregl-ctrl-bottom-right, body.gm .maplibregl-ctrl-bottom-left{display:none}
   #gmUi{position:fixed;inset:0;z-index:3500;touch-action:none;user-select:none;-webkit-user-select:none}
   #gmUi.hidden{display:none}
+  #gmMini{position:absolute;top:calc(60px + var(--safe-t));left:10px;width:132px;height:132px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 4px 16px rgba(0,0,0,.4);background:#3dc991;pointer-events:none}
+  #gmMiniMap{position:absolute;inset:-30px}
+  #gmMini .gmMe{position:absolute;left:50%;top:50%;width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:16px solid #ff6446;transform:translate(-50%,-60%);filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+  #gmMini .gmN{position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#111;color:#fff;font:800 11px/18px system-ui;text-align:center}
   #gmAv{position:absolute;left:0;top:0;width:360px;height:360px;pointer-events:none;will-change:transform}
   #gmSet{position:absolute;top:calc(60px + var(--safe-t));right:10px;width:42px;height:42px;border-radius:50%;border:0;background:rgba(17,17,17,.85);display:flex;align-items:center;justify-content:center}
   #gmSet svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:1.6;stroke-linejoin:round}
@@ -1550,6 +1554,7 @@
     </div></div>
     <div id="gmUi" class="hidden">
       <canvas id="gmAv" width="360" height="360"></canvas>
+      <div id="gmMini"><div id="gmMiniMap"></div><i class="gmMe"></i><b class="gmN">N</b></div>
       <div class="gmTop"><span id="gmMode">🚶 A piedi</span><span id="gmSpd">0 km/h</span><button id="gmX" aria-label="Esci dal gioco">✕</button></div>
       <div class="gmStick v" id="gmL"><i></i><small>avanti · indietro</small></div>
       <div class="gmStick h" id="gmR"><i></i><small>gira</small></div>
@@ -8353,7 +8358,7 @@ async function shopDoBuy(i, nome){
 let GM = null;
 document.body.appendChild($("#gmUi"));   // fuori dalla barra in basso, che nel gioco sparisce
 const GM_K = 0.35;                       // nel gioco omino e barca in scala più realistica (circa 4,5 m)
-const GM_WALK = 20 / 3.6, GM_BOAT = 45 / 3.6;   // velocità massime: a piedi 20 km/h, in barca 45 km/h
+const GM_WALK = 40 / 3.6, GM_BOAT = 100 / 3.6;   // velocità massime: a piedi 40 km/h, in barca 100 km/h
 const gmM = lat => ({ y: 111320, x: 111320 * Math.cos(lat * Math.PI / 180) });
 function gmOff(p, hdg, dist){ const r = hdg * Math.PI / 180, k = gmM(p.lat); return { lat: p.lat + Math.cos(r) * dist / k.y, lng: p.lng + Math.sin(r) * dist / k.x }; }
 // indice veloce di acqua, case, ponti e sottoporteghi presi dalle tessere della mappa già caricate
@@ -8415,7 +8420,8 @@ function gmStart(){
     if (SV.mine !== undefined) GM.mine = SV.mine; GM.restored = true; }
   map.jumpTo({ center: [GM.lng, GM.lat], zoom: 20.2, pitch: 62, bearing: GM.hdg, padding: { top: Math.round(innerHeight * 0.42), bottom: 0, left: 0, right: 0 } });
   document.body.classList.add("gm"); $("#gmUi").classList.remove("hidden"); buzz([60, 40, 120]);
-  document.body.appendChild($("#setPanel")); $("#setPanel").classList.add("hidden");   // il pannello di cosa vedere va sopra i comandi del gioco
+  document.body.appendChild($("#setPanel")); $("#setPanel").classList.add("hidden");
+  setTimeout(() => { if (GM){ gmMiniInit(); try{ GMINI && GMINI.resize(); }catch(e){} } }, 50);   // il pannello di cosa vedere va sopra i comandi del gioco
   // dopo un attimo le tessere sono pronte: se sei in acqua parti in barca (la tua), se sei dentro una casa esci in calle
   setTimeout(() => { if (!GM) return; gmIndex();
     if (GM.restored){ gmPaintUi(); return; }
@@ -8496,17 +8502,32 @@ function gmDraw(){
     else GM.mineMk && GM.mineMk.setLngLat([GM.mine.lng, GM.mine.lat]); }
   else { try{ GM.mineMk && GM.mineMk.remove(); }catch(e){} GM.mineMk = null; try{ $("#gmMine").remove(); }catch(e){} }
 }
+// minimappa in 2D, piccola e sempre visibile (gira con te, il nord è indicato dalla N sul bordo)
+let GMINI = null;
+function gmMiniInit(){
+  if (GMINI || !window.maplibregl) return;
+  try{ GMINI = new maplibregl.Map({ container: "gmMiniMap", style: STYLE_VECTOR, center: [GM.lng, GM.lat], zoom: 15.2, interactive: false, attributionControl: false, fadeDuration: 0, pitchWithRotate: false });
+    GMINI.on("styledata", () => { try{ GMINI.getStyle().layers.forEach(l => { if (l.type === "symbol" || l.type === "fill-extrusion") GMINI.setLayoutProperty(l.id, "visibility", "none");
+      else if (/water/i.test(l.id) && (l.type === "fill" || l.type === "line")) GMINI.setPaintProperty(l.id, l.type + "-color", WATER_COL || WATER_DEFAULT);
+      else if (l.type === "background") GMINI.setPaintProperty(l.id, "background-color", "#ffffff"); else if (l.type === "fill" && /building/i.test(l.id)) GMINI.setPaintProperty(l.id, "fill-color", BRICK); }); }catch(e){} });
+  }catch(e){ GMINI = null; }
+}
+function gmMiniTick(){
+  if (!GMINI) return; try{ GMINI.jumpTo({ center: [GM.lng, GM.lat], bearing: GM.hdg, zoom: GM.mode === "boat" ? 14.6 : 15.4 }); }catch(e){}
+  const r = 66 - 12, a = -GM.hdg * Math.PI / 180, n = document.querySelector("#gmMini .gmN");   // la N gira sul bordo
+  if (n) n.style.transform = `translate(${Math.sin(a) * r}px, ${-Math.cos(a) * r}px)`;
+}
 function gmTick(){
   const now = performance.now(), dt = Math.min(0.05, (now - GM.t) / 1000); GM.t = now; GM.n++;
   if (!GM.idx || now - GM.idxT > 4000 || (GM.idx.c && dist(GM, GM.idx.c) > 18)) gmIndex();
   const boat = GM.mode === "boat", vmax = boat ? GM_BOAT : GM_WALK, target = GM.f * vmax * (GM.f < 0 ? 0.5 : 1);
-  if (boat){ const a = (Math.abs(target) > Math.abs(GM.v) ? 5 : 7) * dt; GM.v += Math.max(-a, Math.min(a, target - GM.v)); }   // la barca ha un po' di abbrivio
+  if (boat){ const a = (Math.abs(target) > Math.abs(GM.v) ? 11 : 14) * dt; GM.v += Math.max(-a, Math.min(a, target - GM.v)); }   // la barca ha un po' di abbrivio
   else GM.v += (target - GM.v) * Math.min(1, 12 * dt);
-  const rate = boat ? 25 + 75 * Math.min(1, Math.abs(GM.v) / 4) : 170;
+  const rate = boat ? 25 + 75 * Math.min(1, Math.abs(GM.v) / 4) : 190;
   GM.hdg = (GM.hdg + GM.tr * rate * dt * (boat && GM.v < -0.3 ? -1 : 1) + 360) % 360;
   if (Math.abs(GM.v) > 0.05){
     const ok = boat ? gmBoatable : gmWalkable, step = GM.v * dt, nx = gmOff(GM, GM.hdg, step);
-    const probe = q => ok(q) && (!boat || ok(gmOff(q, GM.hdg, Math.sign(GM.v) * 2.2)));   // in barca controllo anche la prua
+    const probe = q => ok(q) && (!boat || (ok(gmOff(q, GM.hdg, Math.sign(GM.v) * 2.2)) && ok(gmOff(q, GM.hdg, Math.sign(GM.v) * 1.1))));   // in barca controllo anche la prua
     if (probe(nx)){ GM.lat = nx.lat; GM.lng = nx.lng; }
     else { const a = { lat: nx.lat, lng: GM.lng }, b = { lat: GM.lat, lng: nx.lng };     // scivola lungo il muro o la riva
       if (ok(a)){ GM.lat = a.lat; GM.v *= 0.85; } else if (ok(b)){ GM.lng = b.lng; GM.v *= 0.85; }
@@ -8515,7 +8536,7 @@ function gmTick(){
   GM.ph = (GM.ph || 0) + Math.abs(GM.v) * dt * 2.2;
   map.jumpTo({ center: [GM.lng, GM.lat], bearing: GM.hdg, pitch: 62, zoom: boat ? 19.5 : 20.2 });
   if (GM.n % 90 === 0) gmSave();
-  gmAvDraw(); if (GM.n % 10 === 0) gmDraw();
+  gmAvDraw(); if (GM.n % 10 === 0) gmDraw(); if (GM.n % 2 === 0) gmMiniTick();
   if (now - GM.actT > 300){ GM.actT = now; gmRivaBoats(); gmCheckAct(); $("#gmSpd").textContent = Math.round(Math.abs(GM.v) * 3.6) + " km/h"; }
 }
 // tasto d'azione: ruba / sali / scendi
