@@ -808,7 +808,10 @@
   body.gm #setPanel{position:fixed;z-index:3600;top:calc(110px + var(--safe-t));right:10px;bottom:auto;max-height:calc(100vh - 140px)}
   body.gm #setPanel:not(.hidden){display:block!important}
   body.gm #setPanel.hidden{display:none!important}
-  body.hide-tesori .tesMk, body.hide-segnal .segMk{display:none!important}
+  body.hide-tesori .tesMk, body.hide-segnal .segMk, body.hide-gondole .gonMk{display:none!important}
+  .gonMk{width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid #111;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,.35);cursor:pointer}
+  .gonMk.tr{background:#ffe9a8} body.mode-market .gonMk, body.mode-incontra .gonMk, body.mode-trasporti .gonMk{display:none}
+  .gonInfo{display:flex;flex-direction:column;gap:6px;margin:8px 0} .gonInfo div{background:var(--panel2);border-radius:10px;padding:8px 10px;font-size:14px} .gonInfo div.on{outline:2px solid var(--accent)}
   .gmTop{position:absolute;top:calc(10px + var(--safe-t));left:10px;right:10px;display:flex;align-items:center;gap:8px}
   .gmTop span{background:rgba(17,17,17,.82);color:#fff;font-weight:800;font-size:14px;border-radius:999px;padding:8px 12px}
   #gmX{margin-left:auto;width:42px;height:42px;border-radius:50%;border:0;background:rgba(17,17,17,.85);color:#fff;font-size:20px;font-weight:800}
@@ -1301,6 +1304,7 @@
       <button class="srow" data-set="sat"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.8 5.4 3.8 8.5s-1.3 5.9-3.8 8.5c-2.5-2.6-3.8-5.4-3.8-8.5S9.5 6.1 12 3.5z"/></svg><span>Satellitare</span><i class="sw"></i></button>
       <label class="srow hidden" id="waterColRow"><svg viewBox="0 0 24 24"><path d="M3 15c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/><path d="M3 19c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/><path d="M12 3.5c2.4 3 4 5.2 4 7a4 4 0 0 1-8 0c0-1.8 1.6-4 4-7z"/></svg><span>Colore dell'acqua</span><input type="color" id="waterCol" value="#3dc991"><button type="button" id="waterColReset" title="Colore di default">↺</button></label>
       <button class="srow" data-set="tesori"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 9.5h6M9 14.5h6M12 7v10"/></svg><span>Tesori</span><i class="sw"></i></button>
+      <button class="srow" data-set="gondole"><svg viewBox="0 0 24 24"><path d="M3 15c4 3 14 3 18-3M6 14l2-7M10 14.5V9"/></svg><span>Gondole e traghetti</span><i class="sw"></i></button>
       <button class="srow" data-set="segnal"><svg viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg><span>Segnalazioni</span><i class="sw"></i></button>
       <button class="srow" data-set="boat"><svg viewBox="0 0 24 24"><path d="M3 15.5h18l-2.6 4.5H5.6z"/><path d="M12 3v12.5M12 4.5l6 9h-6"/></svg><span>La tua barca</span><i class="sw"></i></button>
       <div class="sh">DIMENSIONI</div>
@@ -5700,7 +5704,7 @@ document.querySelectorAll("#setPanel [data-set]").forEach(b => b.onclick = () =>
   paintSet(); try{ haptic(); }catch(e){}
 });
 paintSet();
-function mkVis(){ document.body.classList.toggle("hide-tesori", LY.tesori === false); document.body.classList.toggle("hide-segnal", LY.segnal === false); }
+function mkVis(){ document.body.classList.toggle("hide-tesori", LY.tesori === false); document.body.classList.toggle("hide-segnal", LY.segnal === false); try{ gondVis(); }catch(e){} }
 mkVis();
 // ogni tocco cambia mappa: semplice ⇄ satellite
 $("#fabSat").onclick = e => { e.stopPropagation(); mapMode = mapMode === "sat" ? "simple" : "sat";
@@ -6838,7 +6842,7 @@ function dlvItems(){
   const L = [];
   if (DLV.food) (POI || []).forEach(x => L.push({ n: x.n, k: "food", lat: x.lat, lng: x.lng, s: x.k }));
   ((NEGOZI && NEGOZI.p) || []).forEach(a => { const k = DLV_FOODSHOP.has(a[4]) ? "food" : a[1]; if (DLV[k] && a[0]) L.push({ n: a[0], k, lat: a[2], lng: a[3], s: a[4] }); });
-  (EXTRA || []).forEach(x => { const T = EXTRA_T[x.t]; if (T && DLV[T.k]) L.push({ n: x.n, k: T.k, lat: x.lat, lng: x.lng, s: T.s, extra: x.id }); });
+  (EXTRA || []).forEach(x => { const T = EXTRA_T[x.t]; if (T && T.k && DLV[T.k]) L.push({ n: x.n, k: T.k, lat: x.lat, lng: x.lng, s: T.s, extra: x.id }); });
   return L;
 }
 let DLV_L = [];
@@ -7325,7 +7329,7 @@ function layerVis(){
     "route": n, "route-case": n,
     "poi": n && foodOn, "poi-label": n && foodOn,
     "sensi": n, "fermate": appMode === "trasporti" || (n && LY.actv), "fermate-lbl": appMode === "trasporti" || (n && LY.actv),
-    "battelli": n && (LY.actv || LY.alilaguna), "battelli-lbl": n && (LY.actv || LY.alilaguna), "battelli3d": n && (LY.actv || LY.alilaguna), "trk3d": n,
+    "battelli": n && (LY.actv || LY.alilaguna), "battelli-lbl": n && (LY.actv || LY.alilaguna), "battelli3d": n && (LY.actv || LY.alilaguna), "trk3d": n, "traghetti": n && LY.gondole !== false,
     "aero": n,
     "partners": appMode === "market", "partners-lbl": appMode === "market", "dlv": appMode === "market", "dlv-lbl": appMode === "market"
   };
@@ -8489,6 +8493,60 @@ async function shopDoBuy(i, nome){
   if (i.luogo) shopOpen(null, i.luogo); else shopOpen(i.tipo);
 }
 
+/* ---------- Gondole: traghetti (da una sponda all'altra del Canal Grande) e stazi per il giro turistico ----------
+   Tariffe del Comune (cartello Servizio Gondola): giro di giorno 90 € per 30 min (9–19), di notte 110 € per 35 min (19–4), massimo 5 persone.
+   Traghetto: circa 2 € (residenti 0,70 €). Posizioni e orari indicativi: tropss può aggiungere stazi con «Aggiungi luogo». */
+const TRAGHETTI = [
+  { n: "Santa Sofia ↔ Pescaria (Rialto)", a: [45.44035, 12.33450, "Santa Sofia · Ca' d'Oro"], b: [45.43975, 12.33385, "Pescaria · Mercato di Rialto"], o: "7:30–20" },
+  { n: "San Tomà ↔ Sant'Angelo", a: [45.43570, 12.32905, "San Tomà"], b: [45.43530, 12.32990, "Sant'Angelo · Santo Stefano"], o: "7:30–20" },
+  { n: "Riva del Carbon ↔ Riva del Vin", a: [45.43700, 12.33470, "Riva del Carbon"], b: [45.43735, 12.33395, "Riva del Vin"], o: "8–13" },
+  { n: "San Samuele ↔ Ca' Rezzonico", a: [45.43350, 12.32800, "San Samuele"], b: [45.43320, 12.32730, "Ca' Rezzonico"], o: "8:30–13:30" },
+  { n: "Santa Maria del Giglio ↔ Salute", a: [45.43160, 12.33300, "Santa Maria del Giglio"], b: [45.43090, 12.33320, "Salute · Calle Lanza"], o: "9–18" },
+  { n: "San Marco ↔ Punta della Dogana", a: [45.43215, 12.33545, "San Marco · Vallaresso"], b: [45.43105, 12.33590, "Punta della Dogana"], o: "9–14" },
+  { n: "San Marcuola ↔ Fondaco dei Turchi", a: [45.44235, 12.32935, "San Marcuola"], b: [45.44180, 12.32880, "Fondaco dei Turchi"], o: "9–13" },
+  { n: "Ferrovia ↔ San Simeon Piccolo", a: [45.44090, 12.32195, "Ferrovia"], b: [45.44040, 12.32150, "San Simeon Piccolo"], o: "8–14" }
+];
+const STAZI = [
+  ["Bacino Orseolo", 45.43470, 12.33760], ["Molo · Palazzo Ducale", 45.43325, 12.33960], ["Danieli · Riva degli Schiavoni", 45.43390, 12.34120],
+  ["Santa Maria del Giglio", 45.43175, 12.33270], ["San Moisè · Vallaresso", 45.43250, 12.33580], ["San Tomà", 45.43590, 12.32885],
+  ["Santa Sofia", 45.44050, 12.33470], ["Rialto · Riva del Carbon", 45.43725, 12.33500], ["Accademia", 45.43175, 12.32860],
+  ["Ferrovia", 45.44115, 12.32230], ["Piazzale Roma", 45.43890, 12.31950]
+];
+let GON_MK = [];
+function gondDraw(){
+  if (!map || !map.getStyle()) return setTimeout(gondDraw, 3000);
+  if (!map.getSource("traghetti")){
+    map.addSource("traghetti", { type: "geojson", data: { type: "FeatureCollection", features: TRAGHETTI.map(t => ({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [[t.a[1], t.a[0]], [t.b[1], t.b[0]]] } })) } });
+    map.addLayer({ id: "traghetti", type: "line", source: "traghetti", minzoom: 14, paint: { "line-color": "#111111", "line-width": ["interpolate", ["linear"], ["zoom"], 14, 1.5, 18, 4], "line-dasharray": [1.5, 1.2], "line-opacity": 0.85 } });
+  }
+  GON_MK.forEach(m => m.remove()); GON_MK = [];
+  const mk = (lat, lng, html, cls, fn) => { const el = document.createElement("div"); el.className = "gonMk " + cls; el.setAttribute("data-noico", ""); el.innerHTML = html;
+    el.onclick = ev => { ev.stopPropagation(); fn(); }; GON_MK.push(new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([lng, lat]).addTo(map)); };
+  TRAGHETTI.forEach(t => [t.a, t.b].forEach(p => mk(p[0], p[1], "⛴", "tr", () => gondTraghetto(t, p))));
+  STAZI.concat((EXTRA || []).filter(x => x.t === "stazio_gondole").map(x => [x.n, x.lat, x.lng, x.id])).forEach(s => mk(s[1], s[2], "🚣", "st", () => gondStazio(s)));
+  gondVis();
+}
+function gondVis(){ document.body.classList.toggle("hide-gondole", LY.gondole === false); try{ if (map.getLayer("traghetti")) map.setLayoutProperty("traghetti", "visibility", LY.gondole === false || appMode !== "nautica" ? "none" : "visible"); }catch(e){} }
+setTimeout(gondDraw, 4500);
+function gondTraghetto(t, p){
+  const other = p === t.a ? t.b : t.a;
+  openSheet(`<h3>⛴ Traghetto ${esc(t.n)}</h3><p class="muted" style="margin-top:-4px">Gondola che attraversa il Canal Grande da una sponda all'altra, in piedi come i veneziani</p>
+    <div class="gonInfo"><div><b>Da</b> ${esc(p[2])}</div><div><b>A</b> ${esc(other[2])}</div><div><b>Orari</b> circa ${esc(t.o)} (non nei festivi)</div><div><b>Prezzo</b> circa 2 € · residenti 0,70 €</div></div>
+    <p class="trnote">Orari e prezzi possono cambiare: controlla il cartello all'imbarco.</p>
+    <button class="btn" id="gonGo">Portami all'imbarco</button><button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">Chiudi</button>`);
+  $("#gonGo").onclick = () => { closeSheet(); setMode("nautica"); openPlan({ name: "Traghetto " + p[2], lat: p[0], lng: p[1] }); };
+}
+function gondStazio(s){
+  const night = (() => { const h = new Date().getHours(); return h >= 19 || h < 4; })();
+  openSheet(`<h3>🚣 Gondole · ${esc(s[0])}</h3><p class="muted" style="margin-top:-4px">Servizio pubblico di gondola: giro turistico</p>
+    <div class="gonInfo"><div class="${night ? "" : "on"}"><b>Di giorno</b> 90 € · 30 minuti · 9–19</div><div class="${night ? "on" : ""}"><b>Di notte</b> 110 € · 35 minuti · 19–4</div><div><b>Massimo</b> 5 persone per gondola</div></div>
+    <p class="trnote">Tariffe del Comune di Venezia. La durata può variare di qualche minuto per traffico, marea e meteo.</p>
+    <button class="btn" id="gonGo">Portami qui</button>${s[3] && isTropss() ? `<button class="btn small ghost" id="gonDel" style="margin-top:8px">🗑️ Togli questo stazio (solo Trops)</button>` : ""}
+    <button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">Chiudi</button>`);
+  $("#gonGo").onclick = () => { closeSheet(); setMode("nautica"); openPlan({ name: "Gondole " + s[0], lat: s[1], lng: s[2] }); };
+  if ($("#gonDel")) $("#gonDel").onclick = () => extraDel(s[3]).then(gondDraw);
+}
+
 /* ---------- Luoghi aggiunti da tropss: tabaccherie, ristoranti, bar, barbieri… che mancano sulla mappa ----------
    Compaiono nel Delivery (col loro colore) e, se sono barbieri, cantieri o tabaccherie, valgono anche per entrare nei negozi dei luoghi veri. */
 const EXTRA_T = {   // tipo → categoria del Delivery, tipo come OpenStreetMap, luogo vero del gioco
@@ -8497,10 +8555,10 @@ const EXTRA_T = {   // tipo → categoria del Delivery, tipo come OpenStreetMap,
   gelateria: { n: "Gelateria", k: "food", s: "ice_cream" }, fast_food: { n: "Fast food", k: "food", s: "fast_food" },
   tabaccheria: { n: "Tabaccheria", k: "tabacchi", s: "tobacco", l: "tabacchi" }, farmacia: { n: "Farmacia", k: "farmacie", s: "pharmacy" },
   barbiere: { n: "Barbiere", k: "negozi", s: "hairdresser", l: "barbiere" }, cantiere: { n: "Cantiere", k: "negozi", s: "boat", l: "cantiere" },
-  alimentari: { n: "Alimentari", k: "negozi", s: "convenience" }, supermercato: { n: "Supermercato", k: "negozi", s: "supermarket" }, negozio: { n: "Negozio", k: "negozi", s: "shop" }
+  stazio_gondole: { n: "Stazio gondole", k: null, s: "gondola" }, alimentari: { n: "Alimentari", k: "negozi", s: "convenience" }, supermercato: { n: "Supermercato", k: "negozi", s: "supermarket" }, negozio: { n: "Negozio", k: "negozi", s: "shop" }
 };
 let EXTRA = store.get("ln_extra", []);
-async function extraLoad(){ try{ const j = await rpc("luoghi_extra_list", {}); if (Array.isArray(j)){ EXTRA = j; store.set("ln_extra", j); try{ drawDlv(); }catch(e){} } }catch(e){} }
+async function extraLoad(){ try{ const j = await rpc("luoghi_extra_list", {}); if (Array.isArray(j)){ EXTRA = j; store.set("ln_extra", j); try{ drawDlv(); }catch(e){} try{ if (GON_MK.length) gondDraw(); }catch(e){} } }catch(e){} }
 setTimeout(extraLoad, 2500);
 function extraPick(){
   if (!isTropss()) return; closeSheet(); try{ setMode("nautica"); }catch(e){}
