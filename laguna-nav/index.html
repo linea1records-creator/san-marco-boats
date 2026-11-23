@@ -2601,7 +2601,7 @@ function initMap(){
       if (fr && fr.properties.n) return friendMenu(fr.properties.n); }
     if (false && INST.water && appMode === "nautica"){   // tocco sulla mappa: niente più profondità (tolta su richiesta)
       const z = fondoAt(e.lngLat.lat, e.lngLat.lng), t = tideNow() ?? 30;
-      const ff = map.queryRenderedFeatures(e.point, { layers: ["aero", "partners", "battelli", "fermate", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
+      const ff = map.queryRenderedFeatures(e.point, { layers: ["aero", "partners", "battelli", "battelli3d", "fermate", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
       if (!ff){
         const b = activeBoat(), dr = boatDraftCm(b), w = z === null ? null : z * 100 + t;
         new maplibregl.Popup({ maxWidth: "240px" }).setLngLat(e.lngLat).setHTML(z === null ? "Nessun dato di fondale qui" :
@@ -2611,7 +2611,7 @@ function initMap(){
         return;
       }
     }
-    const f = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["aero", "partners", "battelli", "fermate", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
+    const f = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["aero", "partners", "battelli", "battelli3d", "fermate", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
     if (f) popupFor(f, e.lngLat);
   });
   loadShared(); setInterval(loadShared, 60000);
@@ -3089,7 +3089,7 @@ function popupFor(f, ll){
   if (f.layer.id === "aero"){ openAero(); return; }
   if (f.layer.id === "partners"){ const p = PARTNERS.find(x => x.id === f.properties.id); if (p) openPartner(p); return; }
   if (f.layer.id === "cantieri"){ const c = CANT[f.properties.i]; if (c) openCantiere(c); return; }
-  if (f.layer.id === "battelli"){ const b = BOATS_ACTV[f.properties.i]; if (!b) return;   // percorso e fermate che mancano al capolinea
+  if (f.layer.id === "battelli" || f.layer.id === "battelli3d"){ const b = BOATS_ACTV[f.properties.i]; if (!b) return;   // percorso e fermate che mancano al capolinea
     trackBoat(b); openCorsa({ linea: b.L, dir: b.d, la: b.s0[0], lng: b.s0[1], t: b.s0[3], tol: 60, az: b.az, boat: true, k: b.k }); return; }
   if (f.layer.id === "fermate" && appMode === "nautica"){ const c = f.geometry.coordinates; openFermata(f.properties.n, c[1], c[0]); return; }
   if (f.layer.id === "velox"){
@@ -6196,16 +6196,33 @@ function setBattelliFilter(){
   if (!map || !map.getLayer("battelli")) return;
   let fil = ["match", ["get", "al"], 1, LY.alilaguna !== false, LY.actv !== false];
   if (TRK && TRK.kind === "boat") fil = ["all", fil, ["!=", ["get", "k"], TRK.k]];   // il battello seguito si disegna a parte, fluido a ogni fotogramma
-  map.setFilter("battelli", fil); if (map.getLayer("battelli-lbl")) map.setFilter("battelli-lbl", fil);
+  map.setFilter("battelli", fil); if (map.getLayer("battelli-lbl")) map.setFilter("battelli-lbl", fil); if (map.getLayer("battelli3d")) map.setFilter("battelli3d", fil);
+}
+// vaporetti in 3D da vicino, col colore della loro linea (scafo e tetto), cabina bianca con i finestrini
+const VAP_K = 1.5;   // un po' più grandi del vero, come l'omino, così si vedono bene
+function vapGeo(lng, lat, ang, col, ali, out, props){
+  const r = (ang || 0) * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r), kLat = 1 / 111320, kLng = 1 / (111320 * Math.cos(lat * Math.PI / 180)), K = VAP_K;
+  const pt = (x, y) => { x *= K; y *= K; const E = x * cs + y * sn, N = -x * sn + y * cs; return [lng + E * kLng, lat + N * kLat]; };
+  const poly = (P, b, h, c) => out.push({ type: "Feature", properties: Object.assign({ c, b: b * K, h: h * K }, props), geometry: { type: "Polygon", coordinates: [P.concat([P[0]]).map(q => pt(q[0], q[1]))] } });
+  const W = ali ? 2.6 : 2.3, hull = [[-W, -11.5], [W, -11.5], [W, 8.5], [W * 0.5, 11.5], [-W * 0.5, 11.5], [-W, 8.5]];
+  poly(hull, 0, 1.6, ali ? "#f4f6f8" : col);                                   // scafo
+  poly(hull, 1.6, 1.85, ali ? col : "#f4f6f8");                                // bordo
+  poly([[-2.0, -8], [2.0, -8], [2.0, 6], [-2.0, 6]], 1.85, 3.6, "#f2f2f2");    // cabina
+  poly([[-2.06, -7.9], [2.06, -7.9], [2.06, 5.9], [-2.06, 5.9]], 2.55, 3.2, "#1d2a33");   // finestrini
+  poly([[-2.15, -8.25], [2.15, -8.25], [2.15, 6.25], [-2.15, 6.25]], 3.6, 3.85, col);    // tetto del colore della linea
+  poly([[-1.0, 6.2], [1.0, 6.2], [1.0, 7.8], [-1.0, 7.8]], 1.85, 3.5, "#f2f2f2");        // timoneria a prua
 }
 function addBoatsLayer(){
   if (!map || map.getSource("battelli")) return;
+  map.addSource("battelli3d", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+  map.addLayer({ id: "battelli3d", type: "fill-extrusion", source: "battelli3d", minzoom: 14.8, layout: { visibility: appMode === "nautica" && (LY.actv || LY.alilaguna) ? "visible" : "none" },
+    paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true } });
   map.addSource("battelli", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
   if (!map.hasImage("battello")) map.addImage("battello", battelloIcon(), { pixelRatio: 2 });
   map.addLayer({ id: "battelli", type: "symbol", source: "battelli", minzoom: 10.5, layout: { visibility: appMode === "nautica" && LY.actv ? "visible" : "none",
     "icon-image": ["get", "img"], "icon-size": ["interpolate", ["linear"], ["zoom"], 11, 0.45, 14, 0.8, 17, 1.15], "icon-rotate": ["get", "a"],
     "icon-rotation-alignment": "map", "icon-pitch-alignment": "map", "icon-allow-overlap": true, "icon-ignore-placement": true },
-    paint: { "icon-opacity": 1 } });
+    paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], 14.8, 1, 15.4, 0] } });
   if (map.getStyle().glyphs) map.addLayer({ id: "battelli-lbl", type: "symbol", source: "battelli", minzoom: 12.5, layout: { visibility: appMode === "nautica" && LY.actv ? "visible" : "none",
     "text-field": ["get", "l"], "text-size": ["interpolate", ["linear"], ["zoom"], 12.5, 8, 16, 11], "text-font": ["Noto Sans Bold", "Noto Sans Regular"], "text-allow-overlap": true, "text-ignore-placement": true },
     paint: { "text-color": ["get", "col"], "text-halo-color": "#ffffff", "text-halo-width": 1.6 } });
@@ -6261,14 +6278,17 @@ function boatPos(b, t0){
 function actvPaint(){
   if (!map || !map.getSource("battelli") || !actvRaw || appMode !== "nautica" || !(LY.actv || LY.alilaguna)) return;
   actvBudget = 6; actvDeadline = performance.now() + 25;   // pochi calcoli per volta: la mappa e la tua posizione restano fluide
-  const t0 = romeMinNow(), feats = []; BOATS_ACTV = [];
+  const t0 = romeMinNow(), feats = [], v3 = []; BOATS_ACTV = [];
+  const near = map.getZoom() >= 14.6, BB = near ? map.getBounds() : null;   // i 3D solo da vicino e solo quelli inquadrati
   actvRaw.forEach(b => { const st = b[4]; if (!st || !st.length) return;
     const q = boatPos(b, t0); if (!q) return; const pos = q.pos, ang = q.ang;
     const ali = b[3] === "Alilaguna", col = lineColor(b[0], b[3]), img = ensureBoatImage(col, ali);
     const i = BOATS_ACTV.length; BOATS_ACTV.push({ l: b[0].replace(/^Alilaguna\s+/, ""), h: cleanDir(b[2]), az: b[3], next: b[5], L: b[0], d: b[2], s0: st[0], k: boatKey(b), raw: b, img });
     feats.push({ type: "Feature", properties: { i, k: boatKey(b), l: ali ? "AL" : b[0], a: ang, img, col, al: ali ? 1 : 0 }, geometry: { type: "Point", coordinates: pos } });
+    if (near && BB.contains(pos)) vapGeo(pos[0], pos[1], ang, col, ali, v3, { i, k: boatKey(b), al: ali ? 1 : 0 });
   });
   map.getSource("battelli").setData({ type: "FeatureCollection", features: feats });
+  if (map.getSource("battelli3d") && (near || actvPaint.had)){ map.getSource("battelli3d").setData({ type: "FeatureCollection", features: v3 }); actvPaint.had = near; }
 }
 // tragitto tra due imbarcaderi lungo la rete dei canali (calcolato una volta e tenuto in memoria; pochi per volta per non bloccare)
 const ACTV_PATH = new Map(); let actvBudget = 0, actvDeadline = 0;
@@ -6527,7 +6547,9 @@ function paintTrkBtn(){ const b = $("#cbFollow"); if (b){ b.classList.toggle("on
 function trkLayer(){
   if (!map || map.getSource("trkboat")) return;
   map.addSource("trkboat", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-  map.addLayer({ id: "trkboat", type: "symbol", source: "trkboat", layout: { "icon-image": ["get", "img"], "icon-size": ["interpolate", ["linear"], ["zoom"], 11, 0.5, 14, 0.9, 17, 1.3],
+  map.addSource("trk3d", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+  map.addLayer({ id: "trk3d", type: "fill-extrusion", source: "trk3d", minzoom: 14.8, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true } });
+  map.addLayer({ id: "trkboat", type: "symbol", source: "trkboat", paint: { "icon-opacity": ["interpolate", ["linear"], ["zoom"], 14.8, 1, 15.4, 0] }, layout: { "icon-image": ["get", "img"], "icon-size": ["interpolate", ["linear"], ["zoom"], 11, 0.5, 14, 0.9, 17, 1.3],
     "icon-rotate": ["get", "a"], "icon-rotation-alignment": "map", "icon-pitch-alignment": "map", "icon-allow-overlap": true, "icon-ignore-placement": true } });
 }
 // avvicina la visuale all'oggetto, lasciandolo sopra la tabella in basso
@@ -6545,9 +6567,11 @@ function trkTick(force){
     if (!map.getSource("trkboat")) return null;
     actvBudget = Math.max(actvBudget, 2); actvDeadline = Math.max(actvDeadline, performance.now() + 30);
     const q = boatPos(TRK.raw, romeMinNow());
-    if (!q){ if (!TRK.ended){ TRK.ended = true; map.getSource("trkboat").setData({ type: "FeatureCollection", features: [] }); toast("Corsa arrivata al capolinea"); } return null; }
+    if (!q){ if (!TRK.ended){ TRK.ended = true; map.getSource("trkboat").setData({ type: "FeatureCollection", features: [] }); if (map.getSource("trk3d")) map.getSource("trk3d").setData({ type: "FeatureCollection", features: [] }); toast("Corsa arrivata al capolinea"); } return null; }
     TRK.n = (TRK.n || 0) + 1;
     if (force || TRK.n % 2 === 0) map.getSource("trkboat").setData({ type: "FeatureCollection", features: [{ type: "Feature", properties: { img: TRK.img, a: q.ang }, geometry: { type: "Point", coordinates: q.pos } }] });
+    if ((force || TRK.n % 5 === 0) && map.getSource("trk3d")){ const out = [], raw = TRK.raw; if (map.getZoom() >= 14.6) vapGeo(q.pos[0], q.pos[1], q.ang, lineColor(raw[0], raw[3]), raw[3] === "Alilaguna", out, {});
+      map.getSource("trk3d").setData({ type: "FeatureCollection", features: out }); }
     return q.pos;
   }
   const f = FR_LOC.find(x => x.nome === TRK.nome); return f ? [f.lng, f.lat] : null;
@@ -6588,7 +6612,7 @@ function trackFriend(nome){
 }
 function trkStop(keepBox){
   clearInterval(trkT); trkT = null; const was = TRK && TRK.kind === "boat"; TRK = null;
-  if (was){ if (map && map.getSource("trkboat")) map.getSource("trkboat").setData({ type: "FeatureCollection", features: [] }); setBattelliFilter(); }
+  if (was){ if (map && map.getSource("trkboat")) map.getSource("trkboat").setData({ type: "FeatureCollection", features: [] }); if (map && map.getSource("trk3d")) map.getSource("trk3d").setData({ type: "FeatureCollection", features: [] }); setBattelliFilter(); }
 }
 function actvStart(){
   if (typeof loadGraph === "function") loadGraph();
@@ -7293,7 +7317,7 @@ function layerVis(){
     "route": n, "route-case": n,
     "poi": n && foodOn, "poi-label": n && foodOn,
     "sensi": n, "fermate": appMode === "trasporti" || (n && LY.actv), "fermate-lbl": appMode === "trasporti" || (n && LY.actv),
-    "battelli": n && (LY.actv || LY.alilaguna), "battelli-lbl": n && (LY.actv || LY.alilaguna),
+    "battelli": n && (LY.actv || LY.alilaguna), "battelli-lbl": n && (LY.actv || LY.alilaguna), "battelli3d": n && (LY.actv || LY.alilaguna), "trk3d": n,
     "aero": n,
     "partners": appMode === "market", "partners-lbl": appMode === "market", "dlv": appMode === "market", "dlv-lbl": appMode === "market"
   };
