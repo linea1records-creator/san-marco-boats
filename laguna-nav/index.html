@@ -784,7 +784,9 @@
   /* modalità gioco */
   body.gm #v-map > :not(#map), body.gm #dock, body.gm #dash, body.gm #board{display:none!important}
   body.gm .maplibregl-ctrl-bottom-right, body.gm .maplibregl-ctrl-bottom-left{display:none}
-  #gmUi{position:fixed;inset:0;z-index:3500;touch-action:none;user-select:none;-webkit-user-select:none}
+  #gmUi{position:fixed;inset:0;z-index:3500;user-select:none;-webkit-user-select:none;pointer-events:none}
+  #gmUi .gmTop, #gmUi .gmTop *, #gmUi .gmPad, #gmUi button, #gmMini{pointer-events:auto}
+  #gmUi .gmTop span{pointer-events:none}
   #gmUi.hidden{display:none}
   #gmMini{position:absolute;top:calc(60px + var(--safe-t));left:10px;width:132px;height:132px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 4px 16px rgba(0,0,0,.4);background:#3dc991;z-index:2}
   #gmMini:not(.big) #gmMiniMap{pointer-events:none}
@@ -795,14 +797,14 @@
   .gmBigBar span{flex:1;background:rgba(17,17,17,.85);color:#fff;font-weight:800;font-size:13px;border-radius:999px;padding:8px 12px}
   .gmBigBar button{border:0;border-radius:999px;background:rgba(17,17,17,.85);color:#fff;font-weight:800;padding:8px 12px}
   #gmDest{background:#7c3aed!important}
-  #gmEmo{position:absolute;top:calc(110px + var(--safe-t));right:10px;width:42px;height:42px;border-radius:50%;border:0;background:rgba(17,17,17,.85);font-size:20px}
+
   #gmMiniMap{position:absolute;inset:-30px}
   #gmMini .gmMe{position:absolute;left:50%;top:50%;width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:16px solid #ff6446;transform:translate(-50%,-60%);filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
   #gmMini .gmN{position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#111;color:#fff;font:800 11px/18px system-ui;text-align:center}
   #gmAv{position:absolute;left:0;top:0;width:360px;height:360px;pointer-events:none;will-change:transform}
   #gmSet{position:absolute;top:calc(60px + var(--safe-t));right:10px;width:42px;height:42px;border-radius:50%;border:0;background:rgba(17,17,17,.85);display:flex;align-items:center;justify-content:center}
   #gmSet svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:1.6;stroke-linejoin:round}
-  body.gm #setPanel{position:fixed;z-index:3600;top:calc(160px + var(--safe-t));right:10px;bottom:auto;max-height:calc(100vh - 140px)}
+  body.gm #setPanel{position:fixed;z-index:3600;top:calc(110px + var(--safe-t));right:10px;bottom:auto;max-height:calc(100vh - 140px)}
   body.gm #setPanel:not(.hidden){display:block!important}
   body.gm #setPanel.hidden{display:none!important}
   body.hide-tesori .tesMk, body.hide-segnal .segMk{display:none!important}
@@ -1572,9 +1574,7 @@
       <div id="gmMini"><div id="gmMiniMap"></div><i class="gmMe"></i><b class="gmN">N</b>
         <div class="gmBigBar"><span>🎯 Tocca dove vuoi andare</span><button id="gmBigClr">Togli meta</button><button id="gmBigX">✕</button></div></div>
       <div class="gmTop"><span id="gmMode">🚶 A piedi</span><span id="gmSpd">0 km/h</span><span id="gmDest" class="hidden"></span><button id="gmX" aria-label="Esci dal gioco">✕</button></div>
-      <div class="gmPad" id="gmL"><i></i><small>muovi</small></div>
-      <div class="gmPad r" id="gmR"><i></i><small>telecamera</small></div>
-      <button id="gmEmo" aria-label="Manda un'emoji a un amico" data-noico>💋</button>
+      <div class="gmPad r" id="gmL"><i></i><small>muovi</small></div>
       <button id="gmAct" class="hidden"></button>
       <button id="gmSet" aria-label="Cosa vedere sulla mappa"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.4 7.4 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.4 7.4 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.4 7.4 0 0 0 1.7-1l2.4 1 2-3.4z"/></svg></button>
     </div>
@@ -2573,6 +2573,8 @@ function initMap(){
   map.on("click", e => {
     if (typeof DRAW !== "undefined" && DRAW) return;   // mentre tropss ridisegna un tratto i tocchi servono solo alla matita
     if ($("#sheet") && !$("#sheet").classList.contains("hidden")) return;   // appena dopo il tocco lungo si apre la scheda: il rilascio non conta
+    if (GM){ const fr = map.queryRenderedFeatures([[e.point.x - 16, e.point.y - 16], [e.point.x + 16, e.point.y + 16]], { layers: ["frman", "frdot"].filter(l => map.getLayer(l)) })[0];
+      if (fr && fr.properties.n) friendMenu(fr.properties.n); return; }
     if (addMode === "gmpark"){ addMode = null; $("#modeHint").classList.add("hidden"); return gmParkSet(e.lngLat); }
     if (addMode === "segpick"){ addMode = null; $("#modeHint").classList.add("hidden"); return segForm(e.lngLat.lat, e.lngLat.lng); }
     if (appMode === "market" && map.getLayer("dlv")){ const d = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["dlv"] })[0]; if (d) return openDlv(d.properties.i); }
@@ -2586,7 +2588,7 @@ function initMap(){
     { const rv = map.getLayer("rive") && map.getLayoutProperty("rive", "visibility") === "visible" && map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["rive"] })[0];
       if (rv){ const r = RIVE[rv.properties.i]; if (r){ new maplibregl.Popup({ maxWidth: "250px" }).setLngLat([r.lng, r.lat]).setHTML(`<b>Riva per la sosta del diporto</b><br>${esc(r.n)}<br><span style="color:#888">${esc(r.rio)} · sosta max 1 ora con disco orario (ord. 375/2014)</span><br><a href="#" data-goto="${r.lat},${r.lng}" data-name="${esc(r.n)}" style="color:#7fc1ff">Portami qui</a>`).addTo(map); return; } } }
     { const fr = map.queryRenderedFeatures([[e.point.x - 14, e.point.y - 14], [e.point.x + 14, e.point.y + 14]], { layers: ["frman", "frdot"].filter(l => map.getLayer(l)) })[0];
-      if (fr && fr.properties.n) return trackFriend(fr.properties.n); }
+      if (fr && fr.properties.n) return friendMenu(fr.properties.n); }
     if (false && INST.water && appMode === "nautica"){   // tocco sulla mappa: niente più profondità (tolta su richiesta)
       const z = fondoAt(e.lngLat.lat, e.lngLat.lng), t = tideNow() ?? 30;
       const ff = map.queryRenderedFeatures(e.point, { layers: ["aero", "partners", "battelli", "fermate", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
@@ -2633,7 +2635,7 @@ function drawFriends(){
   map.getSource("frdot").setData({ type: "FeatureCollection", features: list.map(f => ({ type: "Feature", properties: { c: (f.avatar && f.avatar.shirt) || "#ff6446", n: f.nome }, geometry: { type: "Point", coordinates: [f.lng, f.lat] } })) });
   FR_MK.forEach(m => m.remove()); FR_MK = list.map(f => { const el = document.createElement("div"); el.className = "me fr";
     el.innerHTML = f.gioco ? `<div class="meTag game">🎮 ${esc(f.nome)}</div>` : `<div class="meTag${f.minuti < 3 ? " on" : ""}">${esc(f.nome)}${f.minuti >= 2 ? ` <small>${agoMin(f.minuti)}</small>` : ""}</div>`;
-    el.querySelector(".meTag").onclick = ev => { ev.stopPropagation(); if (f.gioco) gmEmoPick(f.nome); else trackFriend(f.nome); };
+    el.querySelector(".meTag").onclick = ev => { ev.stopPropagation(); friendMenu(f.nome); };
     return new maplibregl.Marker({ element: el, anchor: "bottom", offset: [0, meOff || -12] }).setLngLat([f.lng, f.lat]).addTo(map); });
 }
 async function loadFriendsLoc(){
@@ -3063,7 +3065,7 @@ function hookLongPress(){
   if (!map || hookLongPress.done) return; hookLongPress.done = true;
   const cv = map.getCanvasContainer(); let t = null, p0 = null, fired = false;
   const cancel = () => { clearTimeout(t); t = null; };
-  cv.addEventListener("pointerdown", e => { if (e.isPrimary === false || (typeof DRAW !== "undefined" && DRAW) || addMode) return cancel();
+  cv.addEventListener("pointerdown", e => { if (e.isPrimary === false || (typeof DRAW !== "undefined" && DRAW) || addMode || GM) return cancel();
     fired = false; p0 = [e.clientX, e.clientY]; cancel();
     t = setTimeout(() => { t = null; fired = true; const r = map.getCanvas().getBoundingClientRect(); addMyPlace(map.unproject([p0[0] - r.left, p0[1] - r.top])); }, 2000); });
   cv.addEventListener("pointermove", e => { if (t && p0 && Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) > 10) cancel(); });
@@ -6556,6 +6558,7 @@ function trackFriend(nome){
   const paint = () => { const g = FR_LOC.find(x => x.nome === nome);
     $("#cbNote").textContent = !g ? "Posizione non più condivisa" : g.minuti >= 2 ? "Ultima posizione " + agoMin(g.minuti) : "È qui adesso"; };
   $("#cbList").innerHTML = `<div class="emogrid cbEmo" data-noico>${EMOJI_AMICI.map(e => `<button data-emo="${e[0]}" title="${esc(e[1])}">${e[0]}</button>`).join("")}</div>`;
+  $("#cbList").insertAdjacentHTML("beforeend", `<button class="btn small" id="cbGift" style="margin-top:8px">🎁 Regala un oggetto</button>`); $("#cbGift").onclick = () => friendGift(nome);
   document.querySelectorAll("#cbList [data-emo]").forEach(bt => bt.onclick = () => kissSend(nome, bt.dataset.emo));
   paint(); trkT = setInterval(paint, 20000); trkFocus(true);
 }
@@ -8600,20 +8603,40 @@ function gmDestTick(){
     if ((bd > 45 || GM.rMode !== GM.mode) && Date.now() - (GM.rCalcT || 0) > 6000) gmRouteCalc(); }   // fuori strada o cambi mezzo: ricalcola
   $("#gmDest").textContent = "🎯 " + (left >= 1000 ? (left / 1000).toFixed(1) + " km" : Math.round(left) + " m");
 }
-// emoji agli amici anche dal gioco (partono dal tuo personaggio)
-function gmEmoPick(nome){
-  const A = ((MY && MY.amici) || []).map(a => a.nome), playing = FR_GAME.map(g => g.nome), L = [...new Set(playing.concat(A))];
-  if (!nome){ openSheet(`<h3>💋 Manda un'emoji</h3>${L.length ? L.map(n => `<button class="card rowbtn" data-emto="${esc(n)}" style="width:100%">${playing.includes(n) ? "🎮 " : ""}@${esc(n)} <span>›</span></button>`).join("") : `<p class="muted">Non hai ancora amici su myClick.</p>`}
-      <button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">Chiudi</button>`);
-    document.querySelectorAll("[data-emto]").forEach(b => b.onclick = () => gmEmoPick(b.dataset.emto)); return; }
-  openSheet(`<h3>@${esc(nome)}</h3><div class="emogrid" data-noico>${EMOJI_AMICI.map(e => `<button data-emo="${e[0]}" title="${esc(e[1])}">${e[0]}</button>`).join("")}</div>
-    <button class="btn ghost" style="margin-top:12px" onclick="closeSheet()">Chiudi</button>`);
+// tocchi una persona (sulla mappa o nel gioco): le mandi un'emoji o le regali un oggetto
+function friendMenu(nome){
+  const playing = FR_GAME.some(g => g.nome === nome), real = FR_LOC.find(g => g.nome === nome);
+  openSheet(`<h3>${playing ? "🎮 " : ""}@${esc(nome)}</h3>${real && !GM ? `<p class="muted" style="margin-top:-4px">${real.minuti >= 2 ? "Ultima posizione " + agoMin(real.minuti) : "È qui adesso"}</p>` : ""}
+    <div class="emogrid" data-noico>${EMOJI_AMICI.map(e => `<button data-emo="${e[0]}" title="${esc(e[1])}">${e[0]}</button>`).join("")}</div>
+    <button class="btn" id="fmGift" style="margin-top:12px">🎁 Regala un oggetto</button>
+    ${real && !GM ? `<button class="btn ghost" id="fmTrack" style="margin-top:8px">📍 Segui sulla mappa</button>` : ""}
+    <button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">Chiudi</button>`);
+  $("#fmGift").onclick = () => friendGift(nome);
+  if ($("#fmTrack")) $("#fmTrack").onclick = () => { closeSheet(); trackFriend(nome); };
   document.querySelectorAll("#sheetIn [data-emo]").forEach(bt => bt.onclick = async () => { closeSheet(); const emo = bt.dataset.emo, from = GM ? { lat: GM.lat, lng: GM.lng } : lastPos;
-    if (!from) return toast("Serve la tua posizione");
+    if (!from) return toast("Serve la tua posizione: accendi il GPS");
     let r = null; try{ r = await rpc("kiss_send2", { p_nome: nome, p_lat: from.lat, p_lng: from.lng, p_emoji: emo }); }catch(e){}
     if (!r || r.errore) return toast(r && r.errore === "troppi" ? "Piano! Riprova tra un minuto" : r && r.errore === "non_amici" ? "Puoi mandarli solo ai tuoi amici." : "Non partito.");
-    haptic(); const to = FR_GAME.find(g => g.nome === nome) || FR_LOC.find(g => g.nome === nome);
+    haptic(); const to = (GM && FR_GAME.find(g => g.nome === nome)) || FR_LOC.find(g => g.nome === nome) || FR_GAME.find(g => g.nome === nome);
     if (to) kissFly([from.lng, from.lat], [to.lng, to.lat], () => toastEmo(`${emo} arrivato a ${nome}`), emo); else toastEmo(`${emo} mandato a ${nome}`); });
+}
+async function friendGift(nome){
+  openSheet(`<h3>🎁 Regala a @${esc(nome)}</h3><p class="trnote" style="margin-top:0">Scegli un vestito o una mascotte che hai: passa a lui e a te non resta più.</p><div id="fgL"><p class="muted">Carico…</p></div>
+    <button class="btn ghost" id="fgX" style="margin-top:8px">Indietro</button>`);
+  $("#fgX").onclick = () => friendMenu(nome);
+  let j = null; try{ j = await rpc("shop_list", {}); }catch(e){}
+  const box = $("#fgL"); if (!box) return;
+  if (!j || !Array.isArray(j.items)){ box.innerHTML = `<p class="muted">Non riesco a caricare i tuoi oggetti.</p>`; return; }
+  SHOP.items = j.items; SHOP.miei = j.miei || [];
+  const L = SHOP.miei.map(m => ({ m, i: SHOP.items.find(x => x.id === m.id) })).filter(x => x.i);
+  if (!L.length){ box.innerHTML = `<p class="muted">Non hai ancora oggetti da regalare. Comprali nel negozio di myClick.</p><button class="btn small" id="fgShop">🛍️ Apri il negozio</button>`; $("#fgShop").onclick = () => shopOpen(); return; }
+  box.innerHTML = L.map(({ m, i }) => `<button class="card rowbtn" data-fg="${i.id}" style="width:100%">${SHOP_EMO[i.slot] || "🎁"} ${esc(i.tipo === "mascotte" && m.nome ? m.nome + " (" + i.nome + ")" : i.nome)} <span>›</span></button>`).join("");
+  box.querySelectorAll("[data-fg]").forEach(b => b.onclick = async () => { const i = SHOP.items.find(x => x.id === b.dataset.fg);
+    if (!confirm(`Regalare ${i.nome} a @${nome}?`)) return; b.disabled = true;
+    const r = await rpc("shop_give", { p_item: i.id, p_amico: nome }).catch(() => null);
+    if (!r || !r.ok){ b.disabled = false; return toast(r && r.errore === "ce_l_ha" ? `@${nome} ce l'ha già` : r && r.errore === "non_amici" ? "Si può regalare solo agli amici" : "Regalo non riuscito, riprova."); }
+    SHOP.miei = SHOP.miei.filter(x => x.id !== i.id); if (avGet()[i.slot] === i.id){ const ch = { [i.slot]: null }; if (i.slot === "pet") ch.petn = null; avSave(ch); }
+    closeSheet(); buzz([40, 30, 80]); toast(`🎁 ${i.nome} regalato a @${nome}!`); });
 }
 function gmTick(){
   const now = performance.now(), dt = Math.min(0.05, (now - GM.t) / 1000); GM.t = now; GM.n++;
@@ -8681,14 +8704,13 @@ function gmPaintUi(){ if (!GM) return; $("#gmMode").textContent = GM.mode === "b
     el.addEventListener("pointerup", end); el.addEventListener("pointercancel", end); };
   const dz = v => Math.abs(v) < 0.12 ? 0 : (v - Math.sign(v) * 0.12) / 0.88;
   pad($("#gmL"), (x, y) => { if (GM){ GM.f = dz(y); GM.tr = dz(x); } });      // sinistro: su avanti, giù indietro, ai lati gira
-  pad($("#gmR"), (x, y) => { if (GM){ GM.cx = dz(x); GM.cy = dz(y); } });    // destro: telecamera
   $("#gmAct").onclick = gmDoAct; $("#gmX").onclick = gmStop;
   $("#gmSet").onclick = e => { e.stopPropagation(); paintSet(); $("#setPanel").classList.toggle("hidden"); };
-  ["touchstart", "touchmove"].forEach(ev => $("#gmUi").addEventListener(ev, e => { if (e.target.closest("button") || e.target.closest("#gmMini")) return; e.preventDefault(); }, { passive: false }));
+  $("#gmL").addEventListener("touchstart", e => e.preventDefault(), { passive: false }); $("#gmL").addEventListener("touchmove", e => e.preventDefault(), { passive: false });
   $("#gmMini").addEventListener("click", e => { if (GM && !GM.big) gmBigOpen(); });
   $("#gmBigX").onclick = e => { e.stopPropagation(); gmBigClose(); };
   $("#gmBigClr").onclick = e => { e.stopPropagation(); gmDestSet(null); gmBigClose(); };
-  $("#gmEmo").onclick = e => { e.stopPropagation(); gmEmoPick(); };
+
   // da tastiera (computer): frecce o WASD, spazio per l'azione, Esc per uscire
   const K = {}; addEventListener("keydown", e => { if (!GM) return; K[e.key.toLowerCase()] = 1; if (e.key === " ") gmDoAct(); if (e.key === "Escape") gmStop(); kk(); });
   addEventListener("keyup", e => { if (!GM) return; K[e.key.toLowerCase()] = 0; kk(); });
