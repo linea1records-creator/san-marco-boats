@@ -779,6 +779,23 @@
   @keyframes pinShake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
   .rpLegal{font-size:10.5px;color:#8a99a3;text-align:center;margin:6px 0 0;line-height:1.3}
   .tttFriend{margin:6px 0}
+  /* modalità gioco */
+  body.gm #v-map > :not(#map), body.gm #dock, body.gm #dash, body.gm #board{display:none!important}
+  body.gm .maplibregl-ctrl-bottom-right, body.gm .maplibregl-ctrl-bottom-left{display:none}
+  #gmUi{position:fixed;inset:0;z-index:3500;touch-action:none;user-select:none;-webkit-user-select:none}
+  #gmUi.hidden{display:none}
+  .gmTop{position:absolute;top:calc(10px + var(--safe-t));left:10px;right:10px;display:flex;align-items:center;gap:8px}
+  .gmTop span{background:rgba(17,17,17,.82);color:#fff;font-weight:800;font-size:14px;border-radius:999px;padding:8px 12px}
+  #gmX{margin-left:auto;width:42px;height:42px;border-radius:50%;border:0;background:rgba(17,17,17,.85);color:#fff;font-size:20px;font-weight:800}
+  .gmStick{position:absolute;bottom:calc(30px + var(--safe-b, 0px));background:rgba(17,17,17,.35);border:3px solid rgba(255,255,255,.75);box-shadow:0 4px 18px rgba(0,0,0,.3);touch-action:none}
+  .gmStick.v{left:22px;width:84px;height:190px;border-radius:42px}
+  .gmStick.h{right:22px;width:190px;height:84px;border-radius:42px}
+  .gmStick i{position:absolute;left:50%;top:50%;width:62px;height:62px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#d8dde2);box-shadow:0 3px 10px rgba(0,0,0,.4);transform:translate(-50%,-50%);pointer-events:none}
+  .gmStick small{position:absolute;left:0;right:0;bottom:-20px;text-align:center;color:#fff;font-size:11px;font-weight:700;text-shadow:0 1px 3px #000;white-space:nowrap}
+  #gmAct{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(250px + var(--safe-b, 0px));border:0;border-radius:18px;padding:14px 20px;white-space:nowrap;font-size:17px;font-weight:900;
+    background:linear-gradient(#ffe066,#f2b705);color:#3b2600;box-shadow:0 6px 20px rgba(0,0,0,.35);animation:tesPulse 1.4s ease-in-out infinite}
+  #gmAct.hidden{display:none}
+  .gmMine{background:#111;color:#fff;font-size:12px;font-weight:800;border-radius:999px;padding:4px 9px;white-space:nowrap;pointer-events:none}
   #hud{position:fixed;z-index:40;top:calc(10px + var(--safe-t));right:10px;display:flex;gap:6px;align-items:center}
   #hud button{height:34px;border:0;border-radius:999px;background:rgba(17,17,17,.9);color:#fff;font-weight:800;font-size:15px;display:flex;align-items:center;gap:5px;padding:0 12px 0 4px;box-shadow:0 2px 8px rgba(0,0,0,.28);font-variant-numeric:tabular-nums}
   #hud .scheo{width:26px;height:26px;flex:0 0 auto}
@@ -1427,6 +1444,7 @@
         <button class="card rowbtn" id="pfMatches" style="display:none">💬 I tuoi match <span>›</span></button>
         <button class="card rowbtn" id="pfShare">📍 Posizione agli amici <span id="pfShareSub">No ›</span></button>
         <button class="card rowbtn" data-go="boat">⛵ La mia barca <span>›</span></button>
+        <button class="card rowbtn" id="pfPark">⚓ Parcheggio della barca nel gioco <span id="pfParkSub">Scegli ›</span></button>
         <button class="card rowbtn" data-go="rider">🚶 Rider <span>›</span></button>
         <button class="card rowbtn" data-go="info">ⓘ Impostazioni e info <span>›</span></button>
         <button class="card rowbtn" id="pfEdit">🔑 Cambia PIN <span>›</span></button>
@@ -1521,6 +1539,12 @@
       </div>
       <p class="rpLegal">La parte nautica è indicativa: non sostituisce carta nautica e avvisi ufficiali.</p>
     </div></div>
+    <div id="gmUi" class="hidden">
+      <div class="gmTop"><span id="gmMode">🚶 A piedi</span><span id="gmSpd">0 km/h</span><button id="gmX" aria-label="Esci dal gioco">✕</button></div>
+      <div class="gmStick v" id="gmL"><i></i><small>avanti · indietro</small></div>
+      <div class="gmStick h" id="gmR"><i></i><small>gira</small></div>
+      <button id="gmAct" class="hidden"></button>
+    </div>
     <div id="hud" class="hidden"><button id="hudAdm" class="hidden" aria-label="Valida segnalazioni" title="Valida segnalazioni">✓ Valida<i class="hidden"></i></button><button id="hudCoin" aria-label="I tuoi schei"></button></div>
     <button id="tesBtn" class="hidden"></button>
   </nav>
@@ -1975,6 +1999,7 @@ $("#pfRouBtn").onclick = () => openMeet("roulette");
 $("#pfSetBtn").onclick = () => { haptic(); setPfTab("me"); };
 $("#pfShopBtn").onclick = () => { haptic(); shopOpen(); };
 $("#pfShop2").onclick = () => shopOpen();
+$("#pfPark").onclick = () => gmParkPick(); setTimeout(() => { try{ paintGmPark(); }catch(e){} }, 0);
 $("#pfMeBack").onclick = () => setPfTab("home");
 $("#pfAmBtn").onclick = () => setPfTab("friends");
 $("#pfCmBtn").onclick = () => openMeet("match");
@@ -2515,6 +2540,7 @@ function initMap(){
   map.on("click", e => {
     if (typeof DRAW !== "undefined" && DRAW) return;   // mentre tropss ridisegna un tratto i tocchi servono solo alla matita
     if ($("#sheet") && !$("#sheet").classList.contains("hidden")) return;   // appena dopo il tocco lungo si apre la scheda: il rilascio non conta
+    if (addMode === "gmpark"){ addMode = null; $("#modeHint").classList.add("hidden"); return gmParkSet(e.lngLat); }
     if (addMode === "segpick"){ addMode = null; $("#modeHint").classList.add("hidden"); return segForm(e.lngLat.lat, e.lngLat.lng); }
     if (appMode === "market" && map.getLayer("dlv")){ const d = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["dlv"] })[0]; if (d) return openDlv(d.properties.i); }
     { const mp = map.getLayer("myplaces") && map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["myplaces"] })[0];
@@ -3076,7 +3102,7 @@ function manFeatures(lat, lng, hdg, av, out, tilt, boatHint){
   const tl = tilt || 0, poly = (P, b, t, c) => { const dz = tl ? P.reduce((a, q) => a + q[1], 0) / P.length * tl : 0; out.push({ type: "Feature", properties: { c: C[c] || c, b: Math.max(0, b + dz) * u, h: Math.max(0.05, t + dz) * u },
     geometry: { type: "Polygon", coordinates: [P.concat([P[0]]).map(q => pt(q[0], q[1]))] } }); };
   // sull'acqua l'omino sta in piedi dentro una barchetta grande come lui (un po' verso poppa, sopra il pagliolo)
-  const wat = boatHint === true || onWater(lat, lng);
+  const wat = boatHint === true ? true : boatHint === false ? false : onWater(lat, lng);
   const SZ = avSizes(), sm = SZ.man, sb = SZ.boat;
   if (wat){ boatFeatures((P, b, t, c) => poly(P.map(q => [q[0] * sb, q[1] * sb]), b * sb, t * sb, c)); seatedMan(poly, C, girl, sm, sb, av);
     petBoxes(av, true, sm, sb).forEach(q => poly([[q[0], q[2]], [q[1], q[2]], [q[1], q[3]], [q[0], q[3]]], q[4], q[5], q[6]));
@@ -3117,7 +3143,7 @@ function clipBand(P, y0, y1){
 }
 // dimensioni scelte nelle impostazioni della mappa (1 = normale)
 let AV_SIZE = Object.assign({ man: 1, boat: 1 }, store.get("ln_avsize", {}));
-function avSizes(){ return AV_SIZE; }
+function avSizes(){ return GM ? { man: AV_SIZE.man * GM_K, boat: AV_SIZE.boat * GM_K } : AV_SIZE; }
 // planata: sopra i 10 km/h la prua sale e scende una volta al secondo
 function planeTilt(){ if (speedMs * 3.6 <= 10 || !manWat) return 0; const a = (5 + 3 * Math.sin(Date.now() / 1000 * 2 * Math.PI)) * Math.PI / 180; return Math.tan(a); }
 // omino seduto sulla panca a dritta, guarda avanti e tiene la manetta con la mano sinistra
@@ -3239,11 +3265,13 @@ function modeFlash(t){ let el = $("#modeFlash"); if (!el){ el = document.createE
   b.addEventListener("pointerdown", e => { e.preventDefault(); try{ b.setPointerCapture(e.pointerId); }catch(er){}
     gpsHold = { y: e.clientY, adj: false, t: setTimeout(() => { gpsHold.adj = true; gpsHold.y0 = gpsHold.yNow || gpsHold.y; gpsHold.z0 = fpZoom; buzz(40);
       if (!view3d){ askCompass(); if (watchId === null) startGps(); setFirstPerson(true); }
-      modeFlash("Trascina su o giù: distanza"); }, 2000) }; });
+      modeFlash("Trascina su o giù: distanza · tienilo ancora per giocare"); }, 2000),
+      tg: setTimeout(() => { if (gpsHold && Math.abs((gpsHold.yNow || gpsHold.y) - gpsHold.y) < 14){ gpsHold.game = true; gmStart(); } }, 5000) }; });
   b.addEventListener("pointermove", e => { if (!gpsHold) return; gpsHold.yNow = e.clientY; if (!gpsHold.adj) return;
     fpZoom = Math.max(16.5, Math.min(21, gpsHold.z0 + (e.clientY - gpsHold.y0) / 70));   // su = più lontano, giù = più vicino
     if (map && view3d && !(map.isEasing && map.isEasing())) map.jumpTo({ zoom: fpZoom }); });
-  const end = e => { if (!gpsHold) return; clearTimeout(gpsHold.t); const adj = gpsHold.adj; gpsHold = null;
+  const end = e => { if (!gpsHold) return; clearTimeout(gpsHold.t); clearTimeout(gpsHold.tg); const adj = gpsHold.adj, game = gpsHold.game; gpsHold = null;
+    if (game) return;
     if (adj){ store.set("ln_fpzoom", fpZoom); if (map && view3d) map.easeTo({ zoom: fpZoom, duration: 200 }); return; }
     if (e.type === "pointerup") gpsTap(); };
   b.addEventListener("pointerup", end); b.addEventListener("pointercancel", end);
@@ -3343,6 +3371,7 @@ function targetHeading(){
 function frame(){
   requestAnimationFrame(frame);
   if (!map) return;
+  if (GM){ try{ gmTick(); }catch(e){} return; }   // modalità gioco: comanda lei la telecamera
   const t = targetHeading();
   if (t !== null) heading = (heading + angDiff(heading, t) * 0.22 + 360) % 360;
   dispTick(); if (manPend && Date.now() - manPend.t >= 400){ manShown = manPend.P; manPend = null; }
@@ -8303,6 +8332,182 @@ async function shopDoBuy(i, nome){
   toast(i.tipo === "mascotte" ? `${nome} è con te! 🐾` : `${i.nome}: comprato e indossato ✓`);
   shopOpen(i.tipo);
 }
+
+/* ---------- Modalità videogioco: tieni premuto 5 s il tasto della telecamera ----------
+   L'omino si guida con due levette (avanti/indietro e gira), la telecamera gli sta incollata alle spalle.
+   A piedi: solo calli, campi, fondamenta e ponti (niente acqua, niente case). In barca: solo canali e laguna.
+   Barche: la tua (parcheggiata da myClick) e quelle ormeggiate nelle rive per i diportisti, che si possono rubare. */
+let GM = null;
+document.body.appendChild($("#gmUi"));   // fuori dalla barra in basso, che nel gioco sparisce
+const GM_K = 0.35;                       // nel gioco omino e barca in scala più realistica (circa 4,5 m)
+const GM_WALK = 20 / 3.6, GM_BOAT = 45 / 3.6;   // velocità massime: a piedi 20 km/h, in barca 45 km/h
+const gmM = lat => ({ y: 111320, x: 111320 * Math.cos(lat * Math.PI / 180) });
+function gmOff(p, hdg, dist){ const r = hdg * Math.PI / 180, k = gmM(p.lat); return { lat: p.lat + Math.cos(r) * dist / k.y, lng: p.lng + Math.sin(r) * dist / k.x }; }
+// indice veloce di acqua, case, ponti e sottoporteghi presi dalle tessere della mappa già caricate
+const GM_CELL = 0.0004;
+function gmIndex(){
+  const I = { water: new Map(), bld: new Map(), br: new Map(), tun: new Map(), n: 0 };
+  const putPoly = (M, rings) => { const R = rings[0]; if (!R || R.length < 4) return; let a = 1e9, b = 1e9, c = -1e9, d = -1e9; R.forEach(([x, y]) => { a = Math.min(a, x); b = Math.min(b, y); c = Math.max(c, x); d = Math.max(d, y); });
+    const it = { bb: [a, b, c, d], rings }; for (let i = Math.floor(a / GM_CELL); i <= Math.floor(c / GM_CELL); i++) for (let j = Math.floor(b / GM_CELL); j <= Math.floor(d / GM_CELL); j++){ const k = i + "," + j; (M.get(k) || M.set(k, []).get(k)).push(it); } I.n++; };
+  const putLine = (M, L) => { for (let s = 0; s < L.length - 1; s++){ const A = L[s], B = L[s + 1], seg = { A, B };
+    for (let i = Math.floor(Math.min(A[0], B[0]) / GM_CELL); i <= Math.floor(Math.max(A[0], B[0]) / GM_CELL); i++) for (let j = Math.floor(Math.min(A[1], B[1]) / GM_CELL); j <= Math.floor(Math.max(A[1], B[1]) / GM_CELL); j++){ const k = i + "," + j; (M.get(k) || M.set(k, []).get(k)).push(seg); } } };
+  const polys = (sl, M) => { try{ map.querySourceFeatures("openmaptiles", { sourceLayer: sl }).forEach(f => { const g = f.geometry;
+    if (g.type === "Polygon") putPoly(M, g.coordinates); else if (g.type === "MultiPolygon") g.coordinates.forEach(r => putPoly(M, r)); }); }catch(e){} };
+  polys("water", I.water); polys("building", I.bld);
+  try{ map.querySourceFeatures("openmaptiles", { sourceLayer: "transportation" }).forEach(f => { const bn = f.properties && f.properties.brunnel, g = f.geometry; if (bn !== "bridge" && bn !== "tunnel") return;
+    const M = bn === "bridge" ? I.br : I.tun; if (g.type === "LineString") putLine(M, g.coordinates); else if (g.type === "MultiLineString") g.coordinates.forEach(l => putLine(M, l)); }); }catch(e){}
+  GM.idx = I; GM.idxT = performance.now();
+}
+const gmKey = p => Math.floor(p.lng / GM_CELL) + "," + Math.floor(p.lat / GM_CELL);
+function gmIn(M, p){ const L = M.get(gmKey(p)); if (!L) return false;
+  return L.some(it => p.lng >= it.bb[0] && p.lng <= it.bb[2] && p.lat >= it.bb[1] && p.lat <= it.bb[3] && inRing(p.lng, p.lat, it.rings[0]) && !it.rings.slice(1).some(h => inRing(p.lng, p.lat, h))); }
+function gmNear(M, p, m){ const L = M.get(gmKey(p)); if (!L) return false; const k = gmM(p.lat);
+  return L.some(({ A, B }) => { const ax = (A[0] - p.lng) * k.x, ay = (A[1] - p.lat) * k.y, bx = (B[0] - p.lng) * k.x, by = (B[1] - p.lat) * k.y, dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy;
+    const t = l2 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / l2)) : 0; return Math.hypot(ax + dx * t, ay + dy * t) <= m; }); }
+const gmWater = p => !!GM.idx && gmIn(GM.idx.water, p);
+function gmWalkable(p){ const I = GM.idx; if (!I) return true;
+  if (gmIn(I.water, p) && !gmNear(I.br, p, 3.5)) return false;            // acqua: solo sopra un ponte
+  if (gmIn(I.bld, p) && !gmNear(I.tun, p, 2.5)) return false;             // case: solo nei sottoporteghi
+  return true; }
+function gmBoatable(p){ return gmWater(p); }
+// punto più vicino dove si può stare (a piedi o in barca) entro un raggio
+function gmFind(p, ok, rMax){ for (let r = 0; r <= (rMax || 25); r += 1.5) for (let a = 0; a < 360; a += r ? Math.max(12, 90 / r) : 360){ const q = gmOff(p, a, r); if (ok(q)) return Object.assign(q, { a }); } return null; }
+
+function gmStart(){
+  if (GM || !map) return;
+  try{ if (typeof stopNav === "function" && document.body.classList.contains("nav")) stopNav(); }catch(e){}
+  try{ if (TRK) trkStop(); }catch(e){} try{ setFollow(false); setFirstPerson(false); }catch(e){} closeSheet(); closePopups && closePopups();
+  if (appMode !== "nautica") try{ setMode("nautica"); }catch(e){}
+  const start = lastPos ? { lat: lastPos.lat, lng: lastPos.lng } : { lat: 45.43405, lng: 12.33879 };   // senza GPS: Piazza San Marco
+  const park = store.get("ln_gm_park", null);
+  GM = { lat: start.lat, lng: start.lng, hdg: heading || 0, mode: "walk", v: 0, f: 0, tr: 0, t: performance.now(), idx: null, idxT: 0, using: null,
+    mine: park ? { lat: park.lat, lng: park.lng, hdg: park.hdg || 0 } : null, left: [], rb: {}, stolen: {}, n: 0, actT: 0, act: null, bumpT: 0,
+    cam: { center: map.getCenter(), zoom: map.getZoom(), bearing: map.getBearing(), pitch: map.getPitch(), padding: map.getPadding() } };
+  ["dragPan", "scrollZoom", "boxZoom", "dragRotate", "keyboard", "doubleClickZoom", "touchZoomRotate", "touchPitch"].forEach(k => { try{ map[k].disable(); }catch(e){} });
+  try{ if (map.getLayer("meman")) map.setLayoutProperty("meman", "visibility", "none"); }catch(e){} try{ if (meMarker) meMarker.getElement().style.display = "none"; }catch(e){}
+  if (!map.getSource("gmman")){
+    const paint = { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1, "fill-extrusion-vertical-gradient": true };
+    map.addSource("gmboats", { type: "geojson", data: { type: "FeatureCollection", features: [] } }); map.addLayer({ id: "gmboats", type: "fill-extrusion", source: "gmboats", paint });
+    map.addSource("gmman", { type: "geojson", data: { type: "FeatureCollection", features: [] } }); map.addLayer({ id: "gmman", type: "fill-extrusion", source: "gmman", paint });
+  }
+  map.jumpTo({ center: [GM.lng, GM.lat], zoom: 19.6, pitch: 62, bearing: GM.hdg, padding: { top: Math.round(innerHeight * 0.42), bottom: 0, left: 0, right: 0 } });
+  document.body.classList.add("gm"); $("#gmUi").classList.remove("hidden"); buzz([60, 40, 120]);
+  // dopo un attimo le tessere sono pronte: se sei in acqua parti in barca (la tua), se sei dentro una casa esci in calle
+  setTimeout(() => { if (!GM) return; gmIndex();
+    if (gmWater(GM) && !gmWalkable(GM)){ GM.mode = "boat"; GM.using = { kind: "mine" }; GM.mine = null; }
+    else if (!gmWalkable(GM)){ const q = gmFind(GM, gmWalkable, 40); if (q){ GM.lat = q.lat; GM.lng = q.lng; } }
+    gmPaintUi(); }, 900);
+  gmPaintUi(); toast("Modalità gioco: levetta sinistra per andare, destra per girare");
+}
+function gmStop(){
+  if (!GM) return; const c = GM.cam; GM = null;
+  document.body.classList.remove("gm"); $("#gmUi").classList.add("hidden");
+  ["dragPan", "scrollZoom", "boxZoom", "dragRotate", "keyboard", "doubleClickZoom", "touchZoomRotate", "touchPitch"].forEach(k => { try{ map[k].enable(); }catch(e){} });
+  try{ map.getSource("gmman").setData({ type: "FeatureCollection", features: [] }); map.getSource("gmboats").setData({ type: "FeatureCollection", features: [] }); }catch(e){}
+  try{ if (map.getLayer("meman")) map.setLayoutProperty("meman", "visibility", "visible"); }catch(e){} try{ if (meMarker) meMarker.getElement().style.display = ""; }catch(e){}
+  try{ $("#gmMine").remove(); }catch(e){}
+  map.easeTo({ center: lastPos ? [lastPos.lng, lastPos.lat] : c.center, zoom: lastPos ? 17.5 : c.zoom, pitch: c.pitch, bearing: c.bearing, padding: c.padding, duration: 700 });
+  manKey = ""; try{ drawMan(true); }catch(e){} paintCam(); modeFlash("Fine gioco");
+}
+// barche ormeggiate nelle rive dei diportisti: la prima volta che ti avvicini cerco il punto d'acqua davanti alla riva
+function gmRivaBoats(){
+  if (!GM.idx || !RIVE.length) return; const k = gmM(GM.lat);
+  RIVE.forEach(r => { if (GM.rb[r.id] !== undefined || GM.stolen[r.id]) return;
+    const d = Math.hypot((r.lat - GM.lat) * k.y, (r.lng - GM.lng) * k.x); if (d > 220) return;
+    const w = gmFind(r, gmBoatable, 22); if (!w){ GM.rb[r.id] = null; return; }
+    GM.rb[r.id] = { lat: w.lat, lng: w.lng, hdg: (w.a + 90) % 360, id: r.id, n: r.n }; });   // la barca sta parallela alla riva
+}
+function gmBoats(){ const L = []; if (GM.mine) L.push(Object.assign({ kind: "mine" }, GM.mine));
+  GM.left.forEach((b, i) => L.push(Object.assign({ kind: "left", i }, b)));
+  Object.values(GM.rb).forEach(b => { if (b && !GM.stolen[b.id]) L.push(Object.assign({ kind: "riva" }, b)); }); return L; }
+function gmBoatGeo(b, out){
+  const u = MAN_U, sb = avSizes().boat, r = b.hdg * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r), kLat = 1 / 111320, kLng = 1 / (111320 * Math.cos(b.lat * Math.PI / 180));
+  const pt = (x, y) => { const E = (x * cs + y * sn) * u, N = (-x * sn + y * cs) * u; return [b.lng + E * kLng, b.lat + N * kLat]; };
+  boatFeatures((P, bb, t, c) => out.push({ type: "Feature", properties: { c, b: bb * sb * u, h: t * sb * u }, geometry: { type: "Polygon", coordinates: [P.concat([P[0]]).map(q => pt(q[0] * sb, q[1] * sb))] } }));
+}
+function gmDraw(){
+  try{ map.getSource("gmman").setData(manFeatures(GM.lat, GM.lng, GM.hdg, myAvatar(), null, GM.mode === "boat" && Math.abs(GM.v) > 4 ? 0.08 : 0, GM.mode === "boat")); }catch(e){}
+  if (GM.n % 15 === 0){ const out = []; gmBoats().forEach(b => gmBoatGeo(b, out)); try{ map.getSource("gmboats").setData({ type: "FeatureCollection", features: out }); }catch(e){}
+    // etichetta sopra la tua barca
+    if (GM.mine){ let el = $("#gmMine"); if (!el){ el = document.createElement("div"); el.id = "gmMine"; el.className = "gmMine"; el.textContent = "⚓ La tua barca"; GM.mineMk = new maplibregl.Marker({ element: el, anchor: "bottom", offset: [0, -30] }).setLngLat([GM.mine.lng, GM.mine.lat]).addTo(map); }
+      else GM.mineMk && GM.mineMk.setLngLat([GM.mine.lng, GM.mine.lat]); }
+    else { try{ GM.mineMk && GM.mineMk.remove(); }catch(e){} GM.mineMk = null; } }
+}
+function gmTick(){
+  const now = performance.now(), dt = Math.min(0.05, (now - GM.t) / 1000); GM.t = now; GM.n++;
+  if (now - GM.idxT > 2500) gmIndex();
+  const boat = GM.mode === "boat", vmax = boat ? GM_BOAT : GM_WALK, target = GM.f * vmax * (GM.f < 0 ? 0.5 : 1);
+  if (boat){ const a = (Math.abs(target) > Math.abs(GM.v) ? 5 : 7) * dt; GM.v += Math.max(-a, Math.min(a, target - GM.v)); }   // la barca ha un po' di abbrivio
+  else GM.v += (target - GM.v) * Math.min(1, 12 * dt);
+  const rate = boat ? 25 + 75 * Math.min(1, Math.abs(GM.v) / 4) : 170;
+  GM.hdg = (GM.hdg + GM.tr * rate * dt * (boat && GM.v < -0.3 ? -1 : 1) + 360) % 360;
+  if (Math.abs(GM.v) > 0.05){
+    const ok = boat ? gmBoatable : gmWalkable, step = GM.v * dt, nx = gmOff(GM, GM.hdg, step);
+    const probe = q => ok(q) && (!boat || ok(gmOff(q, GM.hdg, Math.sign(GM.v) * 2.2)));   // in barca controllo anche la prua
+    if (probe(nx)){ GM.lat = nx.lat; GM.lng = nx.lng; }
+    else { const a = { lat: nx.lat, lng: GM.lng }, b = { lat: GM.lat, lng: nx.lng };     // scivola lungo il muro o la riva
+      if (ok(a)){ GM.lat = a.lat; GM.v *= 0.85; } else if (ok(b)){ GM.lng = b.lng; GM.v *= 0.85; }
+      else { if (boat && Math.abs(GM.v) > 3 && now - GM.bumpT > 600){ buzz([50]); GM.bumpT = now; } GM.v = boat ? -GM.v * 0.15 : 0; } }
+  }
+  if (GM.n % 2 === 0) gmDraw();
+  map.jumpTo({ center: [GM.lng, GM.lat], bearing: GM.hdg, pitch: 62, zoom: boat ? 19 : 19.6 });
+  if (now - GM.actT > 300){ GM.actT = now; gmRivaBoats(); gmCheckAct(); $("#gmSpd").textContent = Math.round(Math.abs(GM.v) * 3.6) + " km/h"; }
+}
+// tasto d'azione: ruba / sali / scendi
+function gmCheckAct(){
+  let act = null; const k = gmM(GM.lat);
+  if (GM.mode === "walk"){ let best = null;
+    gmBoats().forEach(b => { const d = Math.hypot((b.lat - GM.lat) * k.y, (b.lng - GM.lng) * k.x); if (d < 9 && (!best || d < best.d)) best = { b, d }; });
+    if (best) act = { t: best.b.kind === "mine" ? "board" : "steal", b: best.b }; }
+  else { const land = gmFind(GM, q => !gmWater(q) && gmWalkable(q), 8); if (land) act = { t: "off", q: land }; }
+  GM.act = act; const b = $("#gmAct");
+  b.classList.toggle("hidden", !act); if (act) b.textContent = act.t === "board" ? "⚓ Sali sulla tua barca" : act.t === "steal" ? "🔑 Ruba la barca" : "🚶 Scendi a terra";
+}
+function gmDoAct(){
+  const a = GM && GM.act; if (!a) return; haptic();
+  if (a.t === "off"){
+    const boatPos = { lat: GM.lat, lng: GM.lng, hdg: GM.hdg };
+    if (GM.using && GM.using.kind === "mine") GM.mine = boatPos; else GM.left.push(boatPos);   // la barca resta dove l'hai lasciata
+    GM.using = null; GM.mode = "walk"; GM.v = 0; GM.lat = a.q.lat; GM.lng = a.q.lng; GM.hdg = a.q.a;
+    toast("Sei a terra"); }
+  else { const b = a.b;
+    if (b.kind === "mine"){ GM.mine = null; GM.using = { kind: "mine" }; }
+    else if (b.kind === "left"){ GM.left.splice(b.i, 1); GM.using = { kind: "left" }; }
+    else { GM.stolen[b.id] = true; GM.using = { kind: "riva", id: b.id }; toast("🔑 Barca rubata alla riva " + (b.n || "")); }
+    GM.mode = "boat"; GM.v = 0; GM.lat = b.lat; GM.lng = b.lng; GM.hdg = b.hdg; buzz([40, 30, 80]); }
+  GM.n = 14; gmPaintUi(); gmCheckAct();
+}
+function gmPaintUi(){ if (!GM) return; $("#gmMode").textContent = GM.mode === "boat" ? "🛥️ In barca" : "🚶 A piedi"; }
+// levette: la sinistra va su e giù (avanti/indietro), la destra a sinistra e destra (gira); si usano insieme con due dita
+(() => {
+  const stick = (el, axis, set) => { const knob = el.querySelector("i"); let id = null, c = null;
+    const upd = e => { const R = el.getBoundingClientRect(), max = (axis === "y" ? R.height : R.width) / 2 - 22;
+      let d = axis === "y" ? e.clientY - (R.top + R.height / 2) : e.clientX - (R.left + R.width / 2); d = Math.max(-max, Math.min(max, d));
+      knob.style.transform = axis === "y" ? `translate(-50%, calc(-50% + ${d}px))` : `translate(calc(-50% + ${d}px), -50%)`;
+      set(axis === "y" ? -d / max : d / max); };
+    el.addEventListener("pointerdown", e => { e.preventDefault(); id = e.pointerId; try{ el.setPointerCapture(id); }catch(er){} upd(e); });
+    el.addEventListener("pointermove", e => { if (e.pointerId === id) upd(e); });
+    const end = e => { if (e.pointerId !== id) return; id = null; knob.style.transform = "translate(-50%, -50%)"; set(0); };
+    el.addEventListener("pointerup", end); el.addEventListener("pointercancel", end); };
+  stick($("#gmL"), "y", v => { if (GM) GM.f = Math.abs(v) < 0.08 ? 0 : v; });
+  stick($("#gmR"), "x", v => { if (GM) GM.tr = Math.abs(v) < 0.08 ? 0 : v; });
+  $("#gmAct").onclick = gmDoAct; $("#gmX").onclick = gmStop;
+  ["touchstart", "touchmove"].forEach(ev => $("#gmUi").addEventListener(ev, e => { if (e.target.closest("button")) return; e.preventDefault(); }, { passive: false }));
+  // da tastiera (computer): frecce o WASD, spazio per l'azione, Esc per uscire
+  const K = {}; addEventListener("keydown", e => { if (!GM) return; K[e.key.toLowerCase()] = 1; if (e.key === " ") gmDoAct(); if (e.key === "Escape") gmStop(); kk(); });
+  addEventListener("keyup", e => { if (!GM) return; K[e.key.toLowerCase()] = 0; kk(); });
+  function kk(){ if (!GM) return; GM.f = (K.arrowup || K.w ? 1 : 0) - (K.arrowdown || K.s ? 1 : 0); GM.tr = (K.arrowright || K.d ? 1 : 0) - (K.arrowleft || K.a ? 1 : 0); }
+})();
+// myClick: dove parcheggi la tua barca nel gioco
+function gmParkPick(){
+  closeSheet(); try{ setMode("nautica"); }catch(e){}
+  addMode = "gmpark"; const h = $("#modeHint"); h.textContent = "⚓ Tocca un punto d'acqua dove parcheggiare la tua barca"; h.classList.remove("hidden");
+}
+function gmParkSet(ll){
+  if (!onWater(ll.lat, ll.lng)) return toast("Scegli un punto in acqua (un canale o la laguna)");
+  store.set("ln_gm_park", { lat: ll.lat, lng: ll.lng, hdg: 0 }); toast("⚓ La tua barca è parcheggiata qui"); try{ paintGmPark(); }catch(e){}
+}
+function paintGmPark(){ const s = $("#pfParkSub"); if (s) s.textContent = (store.get("ln_gm_park", null) ? "Impostato" : "Scegli") + " ›"; }
 
 function sportStop(){ clearInterval(spTimer); spMarkers.forEach(m => m.remove()); spMarkers = []; }
 function paintSport(){
