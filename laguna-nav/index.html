@@ -8430,6 +8430,18 @@ function gmIndex(){
   q(map.getLayer("gmbr") ? ["gmbr"] : []).forEach(f => { const bn = f.properties && f.properties.brunnel, g = f.geometry, M = bn === "bridge" ? I.br : I.tun;
     if (g.type === "LineString") putLine(M, g.coordinates); else if (g.type === "MultiLineString") g.coordinates.forEach(l => putLine(M, l)); });
   I.c = { lat: GM.lat, lng: GM.lng };
+  // zone "conosciute": solo quelle inquadrate con le tessere già caricate. Dove la mappa non ha ancora i dati
+  // (andando forte in barca) non si blocca niente e non si propone di scendere a terra.
+  I.cov = new Set(); const O = GM.idx;
+  let loaded = true; try{ loaded = map.areTilesLoaded(); }catch(e){}
+  if (loaded){ try{ const C = [[0, H * 0.22], [W, H * 0.22], [W, H], [0, H]].map(p => { const ll = map.unproject(p); return [ll.lng, ll.lat]; });
+    const xs = C.map(c => c[0]), ys = C.map(c => c[1]);
+    for (let i = Math.floor(Math.min(...xs) / GM_CELL); i <= Math.floor(Math.max(...xs) / GM_CELL); i++) for (let j = Math.floor(Math.min(...ys) / GM_CELL); j <= Math.floor(Math.max(...ys) / GM_CELL); j++){
+      const cx = (i + 0.5) * GM_CELL, cy = (j + 0.5) * GM_CELL; if (inRing(cx, cy, C.concat([C[0]]))) I.cov.add(i + "," + j); } }catch(e){} }
+  // si tiene a memoria quello già visto vicino (fino a circa 1 km), così tornando indietro non si perde niente
+  if (O && O.cov){ const k = gmM(GM.lat);
+    O.cov.forEach(key => { if (I.cov.has(key)) return; const [i, j] = key.split(",").map(Number), dy = ((j + 0.5) * GM_CELL - GM.lat) * k.y, dx = ((i + 0.5) * GM_CELL - GM.lng) * k.x;
+      if (Math.hypot(dx, dy) > 1000) return; I.cov.add(key); ["water", "bld", "br", "tun"].forEach(m => { const v = O[m].get(key); if (v) I[m].set(key, v); else I[m].delete(key); }); }); }
   GM.idx = I; GM.idxT = performance.now();
 }
 const gmKey = p => Math.floor(p.lng / GM_CELL) + "," + Math.floor(p.lat / GM_CELL);
@@ -8438,12 +8450,13 @@ function gmIn(M, p){ const L = M.get(gmKey(p)); if (!L) return false;
 function gmNear(M, p, m){ const L = M.get(gmKey(p)); if (!L) return false; const k = gmM(p.lat);
   return L.some(({ A, B }) => { const ax = (A[0] - p.lng) * k.x, ay = (A[1] - p.lat) * k.y, bx = (B[0] - p.lng) * k.x, by = (B[1] - p.lat) * k.y, dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy;
     const t = l2 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / l2)) : 0; return Math.hypot(ax + dx * t, ay + dy * t) <= m; }); }
+const gmKnown = p => !!GM.idx && !!GM.idx.cov && GM.idx.cov.has(gmKey(p));
 const gmWater = p => !!GM.idx && gmIn(GM.idx.water, p);
-function gmWalkable(p){ const I = GM.idx; if (!I) return true;
+function gmWalkable(p){ const I = GM.idx; if (!I || !gmKnown(p)) return true;
   if (gmIn(I.water, p) && !gmNear(I.br, p, 3.5)) return false;            // acqua: solo sopra un ponte
   if (gmIn(I.bld, p) && !gmNear(I.tun, p, 2.5)) return false;             // case: solo nei sottoporteghi
   return true; }
-function gmBoatable(p){ return gmWater(p); }
+function gmBoatable(p){ return !gmKnown(p) || gmWater(p); }
 // punto più vicino dove si può stare (a piedi o in barca) entro un raggio
 function gmFind(p, ok, rMax){ for (let r = 0; r <= (rMax || 25); r += 1.5) for (let a = 0; a < 360; a += r ? Math.max(12, 90 / r) : 360){ const q = gmOff(p, a, r); if (ok(q)) return Object.assign(q, { a }); } return null; }
 
@@ -8496,7 +8509,8 @@ function gmRivaBoats(){
   if (!GM.idx || !RIVE.length) return; const k = gmM(GM.lat);
   RIVE.forEach(r => { if (GM.rb[r.id] !== undefined || GM.stolen[r.id]) return;
     const d = Math.hypot((r.lat - GM.lat) * k.y, (r.lng - GM.lng) * k.x); if (d > 60) return;
-    const w = gmFind(r, gmBoatable, 22); if (!w){ if (d < 25) GM.rb[r.id] = null; return; }
+    if (!gmKnown(r)) return;   // la zona non è ancora caricata: si riprova dopo
+    const w = gmFind(r, q => gmKnown(q) && gmWater(q), 22); if (!w){ if (d < 25) GM.rb[r.id] = null; return; }
     GM.rb[r.id] = { lat: w.lat, lng: w.lng, hdg: (w.a + 90) % 360, id: r.id, n: r.n }; });   // la barca sta parallela alla riva
 }
 function gmBoats(){ const L = []; if (GM.mine) L.push(Object.assign({ kind: "mine" }, GM.mine));
@@ -8676,7 +8690,7 @@ function gmCheckAct(){
   if (GM.mode === "walk"){ let best = null;
     gmBoats().forEach(b => { const d = Math.hypot((b.lat - GM.lat) * k.y, (b.lng - GM.lng) * k.x); if (d < 9 && (!best || d < best.d)) best = { b, d }; });
     if (best) act = { t: best.b.kind === "mine" ? "board" : "steal", b: best.b }; }
-  else { const land = gmFind(GM, q => !gmWater(q) && gmWalkable(q), 8); if (land) act = { t: "off", q: land }; }
+  else { const land = gmFind(GM, q => gmKnown(q) && !gmWater(q) && gmWalkable(q), 8); if (land) act = { t: "off", q: land }; }
   GM.act = act; const b = $("#gmAct");
   b.classList.toggle("hidden", !act); if (act) b.textContent = act.t === "board" ? "⚓ Sali sulla tua barca" : act.t === "steal" ? "🔑 Ruba la barca" : "🚶 Scendi a terra";
 }
