@@ -1308,6 +1308,7 @@
       <button class="srow" data-set="canali"><svg viewBox="0 0 24 24"><path d="M3 17c3-1 5-6 9-6s6 5 9 6"/><path d="M3 21c3-1 5-6 9-6s6 5 9 6" stroke-dasharray="2 2.5"/><path d="M7 4v6M17 4v6"/></svg><span>Canali lagunari</span><i class="sw"></i></button>
       <button class="srow" data-set="rive"><svg viewBox="0 0 24 24"><path d="M4 18h16M6 18V9M18 18V9"/><path d="M12 3.5v9M12 12.5a3 3 0 0 1-3-3M12 12.5a3 3 0 0 0 3-3M10 5.5h4"/></svg><span>Rive sosta diporto</span><i class="sw"></i></button>
       <button class="srow" data-set="cantieri"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5l-5.6 5.6a1.6 1.6 0 0 0 2.3 2.3l5.6-5.6a4 4 0 0 0 5-5.4l-2.4 2.4-2.1-.4-.4-2.1z"/></svg><span>Cantieri nautici</span><i class="sw"></i></button>
+      <button class="srow" data-set="benzinai"><svg viewBox="0 0 24 24"><path d="M5 20V5.5A1.5 1.5 0 0 1 6.5 4h6A1.5 1.5 0 0 1 14 5.5V20M3.5 20h12M7 8h5"/><path d="M14 10h1.5a1.5 1.5 0 0 1 1.5 1.5v4a1.5 1.5 0 0 0 3 0V8l-2.5-2.5"/></svg><span>Benzinai</span><i class="sw"></i></button>
       <button class="srow" data-set="water"><svg viewBox="0 0 24 24"><path d="M12 3.5c3.5 4.3 6 7.6 6 10.5a6 6 0 0 1-12 0c0-2.9 2.5-6.2 6-10.5z"/><path d="M9 15a3 3 0 0 0 3 3"/></svg><span>Secca</span><i class="sw"></i></button>
       <button class="srow" data-set="d3"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>Vista 3D</span><i class="sw"></i></button>
       <button class="srow" data-set="sat"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.8 5.4 3.8 8.5s-1.3 5.9-3.8 8.5c-2.5-2.6-3.8-5.4-3.8-8.5S9.5 6.1 12 3.5z"/></svg><span>Satellitare</span><i class="sw"></i></button>
@@ -2620,7 +2621,7 @@ function initMap(){
       if (fr && fr.properties.n) return friendMenu(fr.properties.n); }
     if (false && INST.water && appMode === "nautica"){   // tocco sulla mappa: niente più profondità (tolta su richiesta)
       const z = fondoAt(e.lngLat.lat, e.lngLat.lng), t = tideNow() ?? 30;
-      const ff = map.queryRenderedFeatures(e.point, { layers: ["aero", "partners", "battelli", "battelli3d", "fermate", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
+      const ff = map.queryRenderedFeatures(e.point, { layers: ["aero", "partners", "battelli", "battelli3d", "fermate", "cantieri", "benzinai", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
       if (!ff){
         const b = activeBoat(), dr = boatDraftCm(b), w = z === null ? null : z * 100 + t;
         new maplibregl.Popup({ maxWidth: "240px" }).setLngLat(e.lngLat).setHTML(z === null ? "Nessun dato di fondale qui" :
@@ -2630,7 +2631,7 @@ function initMap(){
         return;
       }
     }
-    const f = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["aero", "partners", "battelli", "battelli3d", "fermate", "cantieri", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
+    const f = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["aero", "partners", "battelli", "battelli3d", "fermate", "cantieri", "benzinai", "velox", "ponti", "poi", "depths"].filter(l => map.getLayer(l)) })[0];
     if (f) popupFor(f, e.lngLat);
   });
   loadShared(); setInterval(loadShared, 60000);
@@ -3045,6 +3046,10 @@ function addLayers(){
     "text-field": ["get", "n"], "text-size": 11.5, "text-offset": [0, 1.5], "text-anchor": "top", "text-optional": true, "text-font": ["Noto Sans Regular"] },
     paint: { "text-color": "#111", "text-halo-color": "#fff", "text-halo-width": 1.5 } });
   drawCantieri();
+  map.addSource("benzinai", { type: "geojson", data: empty });
+  map.addLayer({ id: "benzinai", type: "symbol", source: "benzinai", minzoom: 11, layout: { visibility: LY.benzinai !== false ? "visible" : "none",
+    "icon-image": ["get", "img"], "icon-size": ["interpolate", ["linear"], ["zoom"], 11, 0.7, 15, 1], "icon-anchor": "bottom", "icon-allow-overlap": true, "icon-pitch-alignment": "viewport" } });
+  drawFuel(); loadFuel();
   drawZones(); drawDepths(); drawRoute(); drawPOI(); drawVelox(); drawBridges(); drawChart(); drawBricole(); applyMapMode();
   addFermateLayer(); if (FERMATE.length) drawFermate();
   addStations();
@@ -3108,6 +3113,7 @@ function popupFor(f, ll){
   if (f.layer.id === "aero"){ openAero(); return; }
   if (f.layer.id === "partners"){ const p = PARTNERS.find(x => x.id === f.properties.id); if (p) openPartner(p); return; }
   if (f.layer.id === "cantieri"){ const c = CANT[f.properties.i]; if (c) openCantiere(c); return; }
+  if (f.layer.id === "benzinai"){ const b = FUEL[f.properties.i]; if (b) openFuel(b); return; }
   if (f.layer.id === "battelli" || f.layer.id === "battelli3d"){ const b = BOATS_ACTV[f.properties.i]; if (!b) return;   // percorso e fermate che mancano al capolinea
     trackBoat(b); openCorsa({ linea: b.L, dir: b.d, la: b.s0[0], lng: b.s0[1], t: b.s0[3], tol: 60, az: b.az, boat: true, k: b.k }); return; }
   if (f.layer.id === "fermate" && appMode === "nautica"){ const c = f.geometry.coordinates; openFermata(f.properties.n, c[1], c[0]); return; }
@@ -5088,7 +5094,7 @@ const BOAT_FORM = [
 ];
 let BOATS = store.get("ln_boats", []), boatId = store.get("ln_boat_active", null);
 function activeBoat(){ return BOATS.find(b => b.id === boatId) || null; }
-function saveBoats(){ store.set("ln_boats", BOATS); store.set("ln_boat_active", boatId); }
+function saveBoats(){ store.set("ln_boats", BOATS); store.set("ln_boat_active", boatId); try{ drawFuel(); }catch(e){} }
 function newBoat(){ const b = { id: "b" + Date.now().toString(36), name: "", margin: 30, share: true }; BOATS.push(b); boatId = b.id; saveBoats(); return b; }
 function boatSteps(b, onlyMissing, onlyKey){
   const unit = l => (l.match(/\(([^)]+)\)\s*$/) || [])[1] || "", clean = l => l.replace(/\s*\([^)]+\)\s*$/, "");
@@ -5815,6 +5821,42 @@ function drawCanali(pack){
 function drawCantieri(){
   if (!map || !map.getSource("cantieri")) return;
   map.getSource("cantieri").setData({ type: "FeatureCollection", features: CANT.map((c, i) => ({ type: "Feature", properties: { i, n: c.n }, geometry: { type: "Point", coordinates: [c.lng, c.lat] } })) });
+}
+/* ---------- Benzinai in acqua: prezzi del Ministero (aggiornati ogni mattina).
+   Sull'icona il prezzo del carburante della barca attiva: gasolio se è diesel, altrimenti benzina. ---------- */
+let FUEL = store.get("ln_fuel", { at: 0, s: [] }).s || [];
+function fuelKind(){ const b = (typeof BOATS !== "undefined" && BOATS.find(x => x.id === boatId)) || {}; return b.fuel === "Diesel" ? "d" : "b"; }
+function fuelPrice(s, k){ const p = s.p || {}; return p[k] || p[k + "s"] || p[k + "2"] || p[k + "2s"] || null; }
+function fuelImg(txt, k){
+  const id = "fz-" + k + txt; if (map.hasImage(id)) return id;
+  const R = 2, w = 74, h = 40, c = document.createElement("canvas"); c.width = w * R; c.height = h * R; const g = c.getContext("2d"); g.scale(R, R);
+  const col = k === "d" ? "#f2b705" : "#2e9e4f";
+  g.fillStyle = "#111"; g.beginPath(); g.roundRect(2, 2, w - 4, 28, 9); g.fill();
+  g.beginPath(); g.moveTo(w / 2 - 7, 29); g.lineTo(w / 2, 38); g.lineTo(w / 2 + 7, 29); g.fill();
+  g.fillStyle = col; g.beginPath(); g.roundRect(6, 7, 18, 18, 5); g.fill();
+  g.fillStyle = "#111"; g.font = "bold 12px system-ui,sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(k === "d" ? "D" : "B", 15, 16.5);
+  g.fillStyle = "#fff"; g.font = "bold 14px system-ui,sans-serif"; g.fillText(txt, 48, 16.5);
+  map.addImage(id, g.getImageData(0, 0, w * R, h * R), { pixelRatio: R }); return id;
+}
+function drawFuel(){
+  if (!map || !map.getSource("benzinai")) return; const k = fuelKind();
+  map.getSource("benzinai").setData({ type: "FeatureCollection", features: FUEL.map((s, i) => { const pr = fuelPrice(s, k);
+    return { type: "Feature", properties: { i, img: fuelImg(pr ? pr.toFixed(3).replace(".", ",") : "—", k) }, geometry: { type: "Point", coordinates: [s.lng, s.lat] } }; }) });
+}
+async function loadFuel(){
+  const c = store.get("ln_fuel", { at: 0 }); if (Date.now() - c.at < 3 * 3600e3 && FUEL.length) return;
+  try{ const r = await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/carburanti", {}, 60000), j = await r.json();
+    if (j && Array.isArray(j.s)){ FUEL = j.s; store.set("ln_fuel", { at: Date.now(), s: FUEL, agg: j.at }); drawFuel(); } }catch(e){}
+}
+function openFuel(s){
+  const k = fuelKind(), b = (BOATS.find(x => x.id === boatId) || {}), eur = v => v ? v.toFixed(3).replace(".", ",") + " €/l" : "—";
+  const riga = (n, key, on) => `<div style="display:flex;justify-content:space-between;padding:9px 12px;border-radius:12px;margin:6px 0;background:${on ? "#111" : "#eceef1"};color:${on ? "#fff" : "#111"}"><b>${n}</b><span>${eur(fuelPrice(s, key))}${s.p[key + "s"] && s.p[key] && s.p[key + "s"] !== s.p[key] ? ` <small style="opacity:.7">(self ${eur(s.p[key + "s"])})</small>` : ""}</span></div>`;
+  openSheet(`<h3>⛽ ${esc(s.nome || s.marca || "Distributore")}</h3>
+    <p class="muted" style="margin:-6px 0 10px">${esc([s.marca, s.ind].filter(Boolean).join(" · "))}</p>
+    ${riga("Benzina", "b", k === "b")}${riga("Gasolio", "d", k === "d")}
+    <p class="muted" style="font-size:12px;margin:8px 0">${b.fuel ? "La tua barca va a " + esc(b.fuel.toLowerCase()) : "Nessuna barca registrata: mostro la benzina"} · prezzi comunicati al Ministero${s.dt ? " il " + esc(String(s.dt).slice(0, 10)) : ""}</p>
+    <div class="row" style="margin-top:12px"><button class="btn" id="fuelGo">🧭 Portami qui</button><button class="btn ghost" onclick="closeSheet()">Chiudi</button></div>`);
+  $("#fuelGo").onclick = () => { closeSheet(); PLAN = null; openPlan({ name: s.nome || "Distributore", lat: s.lat, lng: s.lng }); };
 }
 function openCantiere(c){
   const chips = (c.lavori || []).map(k => `<span class="pill" style="background:#eceef1;color:#111">${CANT_L[k] || esc(k)}</span>`).join(" ");
@@ -7338,7 +7380,7 @@ function layerVis(){
     "bricole": n && LY.bricole, "bric3d": n && LY.bricole && d3,
     "velox": n && LY.velox, "velox-tratte": n && LY.velox,
     "meman": me && d3 && !GM, "medot": me && !GM, "frman": d3 || !!GM,   // nel gioco gli omini si vedono anche in 2D
-    "cantieri": n && LY.cantieri, "cantieri-lbl": n && LY.cantieri,
+    "cantieri": n && LY.cantieri, "cantieri-lbl": n && LY.cantieri, "benzinai": n && LY.benzinai !== false,
     "rive": n && LY.rive === true, "rive-lbl": n && LY.rive === true,
     "canali": n && LY.canali, "canali-lbl": n && LY.canali,
     "ponti": false,
@@ -8515,7 +8557,7 @@ async function shopDoBuy(i, nome){
 /* ---------- Trops: modalità «nascondi» — tocchi qualsiasi cosa sulla mappa e la nascondi per tutti ---------- */
 let HIDDEN = new Map(), HIDEMODE = false; const ORIGF = {};
 const HIDE_GROUP = { battelli: ["battelli", "battelli-lbl", "battelli3d"], "battelli3d": ["battelli", "battelli-lbl", "battelli3d"], dlv: ["dlv", "dlv-lbl"], frman: ["frman", "frdot"], frdot: ["frman", "frdot"] };
-const HIDE_LAYERS = ["dlv", "battelli", "battelli3d", "fermate", "cantieri", "velox", "ponti", "poi", "partners", "frman", "frdot", "gondole3d", "npc", "aero", "rive", "bricole"];
+const HIDE_LAYERS = ["dlv", "battelli", "battelli3d", "fermate", "cantieri", "benzinai", "velox", "ponti", "poi", "partners", "frman", "frdot", "gondole3d", "npc", "aero", "rive", "bricole"];
 const isHidden = (layer, val) => !!(HIDDEN.get(layer) && HIDDEN.get(layer).has(val));
 async function hiddenLoad(){
   let L; try{ L = await rpc("map_hidden_list", {}); }catch(e){ return; } if (!Array.isArray(L)) return;
