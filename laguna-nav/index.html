@@ -534,6 +534,23 @@
   .lightv input,.lightv textarea,.lightv select{background:#f4f6f5!important;color:#111!important;border:1px solid #e6e9e7!important}
   .lightv .muted,.lightv .sub{color:#6f7a74}
   .lightv .pill{background:#f3e6e1;color:#b5533c}
+  /* Spedisci & Traslochi */
+  .spcard{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:#fff;border:1px solid #e6e9e7;border-radius:16px;padding:16px;margin:0 0 10px;color:#111;font:inherit;cursor:pointer}
+  .spcard:active{background:#f4f6f5}
+  .spcard svg{width:34px;height:34px;flex:0 0 34px;fill:none;stroke:var(--c-ship);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  .spcard span{flex:1;display:flex;flex-direction:column;gap:3px} .spcard b{font-size:16px} .spcard small{color:#6f7a74;font-size:13px;line-height:1.35}
+  .spcard i{font-style:normal;color:#9aa49f;font-size:22px}
+  .shmine{display:flex;align-items:center;gap:10px;width:100%;text-align:left;font:inherit;padding:12px 14px;margin:0 0 8px;cursor:pointer}
+  .shmine span{flex:1;display:flex;flex-direction:column;gap:2px} .shmine small{color:#6f7a74;font-size:12.5px}
+  .shmine em,.shadm em{font-style:normal;font-size:12px;font-weight:700;padding:4px 9px;border-radius:99px;background:#f1ecfd;color:#7c3aed;white-space:nowrap}
+  em.st-confermata{background:#e3f7ee!important;color:#0a8f4e!important} em.st-fatta{background:#eef0ef!important;color:#555!important} em.st-annullata{background:#fde8e8!important;color:#c8102e!important}
+  .shsum{border:1px solid var(--line);border-radius:14px;padding:2px 12px;margin:0 0 12px}
+  .shrow{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .shrow:last-child{border-bottom:0} .shrow span{color:var(--muted)} .shrow small{font-size:12px;opacity:.8} .shrow b{text-align:right}
+  .shrow.tot span,.shrow.tot b{color:var(--text);font-size:16px;font-weight:800}
+  .shok{text-align:center;padding:6px 0 4px} .shok svg{width:54px;height:54px;fill:none;stroke:#3dc991;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .shcode{font-size:26px;font-weight:800;letter-spacing:.04em;margin:2px 0 10px}
+  .shtxt{white-space:pre-wrap;font-family:inherit;font-size:12.5px;line-height:1.45;background:#f4f6f5;border-radius:10px;padding:10px;margin:8px 0;color:#111}
   .igh{display:flex;align-items:center;gap:6px;margin:0 0 12px} .igh h2{flex:1;margin:0;font-size:27px;font-weight:800;letter-spacing:-.02em;color:#111!important;background:none!important;-webkit-text-fill-color:#111}
   .lightv .mcic{background:none;border:0;color:#111;width:40px;height:40px} .lightv .mcic svg{width:26px;height:26px;fill:none;stroke:#111;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
   .lightv .mcic i{background:#b5533c}
@@ -1076,10 +1093,12 @@
 </style>
 <style id="modeColors">
   /* colore di ogni modalità: tasto premuto, banner e tasti principali del suo pannello */
-  :root{ --c-market:#c8102e; --c-meet:#f7b928; --c-shop:#b5533c; --c-water:#3dc991; --c-land:#b5533c; --c-sport:#7c3aed; --c-my:#1877f2 }
+  :root{ --c-market:#c8102e; --c-meet:#f7b928; --c-shop:#b5533c; --c-water:#3dc991; --c-land:#b5533c; --c-sport:#7c3aed; --c-my:#1877f2; --c-ship:#7c3aed }
   #tabs [data-pm="market"].on{color:var(--c-market)!important}
   #tabs [data-pm="shop"].on{color:var(--c-shop)!important}
   #tabs [data-pm="sport"].on{color:var(--c-sport)!important}
+  #tabs [data-pm="ship"].on{color:var(--c-ship)!important}
+  #tabs [data-pm="ship"].on svg path:not(.s){stroke:#fff}
   #tabs [data-pm="my"].on{color:var(--c-my)!important}
   #tabs button.on .c{stroke:#fff!important}
   /* Naviga: grigio quando non è premuto, nero quando è premuto */
@@ -1424,6 +1443,18 @@
     </div>
   </section>
 
+  <!-- SPEDISCI & TRASLOCHI -->
+  <section class="view hidden" id="v-ship">
+    <div class="scroll lightv" id="shipScroll">
+      <div class="mchead igh"><h2>Spedisci</h2></div>
+      <p class="muted" style="margin:-4px 0 14px;line-height:1.45">Trasporti merci, traslochi e consegne veloci a Venezia. Scegli il servizio: ti facciamo qualche domanda, una alla volta.</p>
+      <div id="shipTypes"></div>
+      <div id="shipAdmin"></div>
+      <h4 style="margin:22px 0 8px">Le tue richieste</h4>
+      <div id="shipMine"><p class="muted">Nessuna richiesta per ora.</p></div>
+    </div>
+  </section>
+
   <!-- INCONTRA -->
   <section class="view hidden" id="v-meet">
     <div class="scroll" id="meetBox"></div>
@@ -1435,6 +1466,7 @@
       <div class="mchead igh"><h2>myClick</h2>
         <button id="pfBagBtn" class="mcic" title="Zaino" aria-label="Zaino"><svg viewBox="0 0 24 24"><path d="M7 8a5 5 0 0 1 10 0v12H7z"/><path d="M9.5 8V6.5a2.5 2.5 0 0 1 5 0V8M9 13h6"/></svg></button>
         <button id="pfShopBtn" class="mcic" title="Negozio" aria-label="Negozio"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg></button>
+        <button id="pfGameBtn" class="mcic" title="Gioca" aria-label="Gioca"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.3" cy="8.3" r="1.1" class="f"/><circle cx="15.7" cy="15.7" r="1.1" class="f"/><circle cx="12" cy="12" r="1.1" class="f"/></svg></button>
         <button id="pfSetBtn" class="mcic" title="Impostazioni del profilo"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.4 7.4 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.4 7.4 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.4 7.4 0 0 0 1.7-1l2.4 1 2-3.4z"/></svg></button>
         <button id="pfRouBtn" class="mcic" style="display:none" title="Roulette video"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.3" cy="8.3" r="1.1" class="f"/><circle cx="15.7" cy="15.7" r="1.1" class="f"/><circle cx="12" cy="12" r="1.1" class="f"/><circle cx="15.7" cy="8.3" r="1.1" class="f"/><circle cx="8.3" cy="15.7" r="1.1" class="f"/></svg></button>
         <button id="pfCmBtn" class="mcic" style="display:none" title="Click Match"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><i id="pfChatBadge" class="hidden"></i></button>
@@ -1536,7 +1568,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.52</p>
+      <p class="sub">clickVenice · versione 3.53</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -1619,6 +1651,15 @@ const CONFIG = {
   // Numero WhatsApp che riceve gli ordini (formato internazionale senza +, es. "393401234567")
   ORDER_WHATSAPP: "",
   RIDER_SOGLIA: 5000,
+  // Spedisci & Traslochi · PREZZI PROVVISORI da sostituire con quelli veri (euro)
+  SPEDISCI: {
+    WHATSAPP: "",            // numero che riceve le richieste, es. "393401234567"; vuoto = usa ORDER_WHATSAPP
+    BASE: { barca: 60, trasloco: 120, piedi: 15 },
+    VOLUME: { piccolo: 0, bancali: 40, medio: 100, completo: 250 },
+    FACCHINAGGIO: 40, URGENTE: 25,
+    ANTICIPO_PCT: 20, ANTICIPO_MIN: 10,
+    CONDIZIONI: "L'anticipo blocca il mezzo e la pianificazione. Annullando almeno 24 ore prima l'anticipo viene restituito; dopo, o se il ritiro non è possibile per cause del cliente, l'anticipo resta trattenuto. Il prezzo è una stima: te lo confermiamo prima del servizio."
+  },
   // Database Supabase "LAGUNA NAV" (separato da San Marco Barche)
   SUPABASE_URL: "https://lzqedhmiwywrgeypivbt.supabase.co",
   SUPABASE_KEY: "sb_publishable_7Uw0Kr2j-eutseOfbuIjCw_fUdPwzwv",
@@ -1911,7 +1952,7 @@ document.addEventListener("click", async e => {
 });
 
 /* ---------- un solo tasto centrale a scorrimento per cambiare modalità ---------- */
-const VIEWS = ["map", "boat", "order", "rider", "info", "meet", "profile", "shop"];
+const VIEWS = ["map", "boat", "order", "rider", "info", "meet", "profile", "shop", "ship"];
 function showView(v){
   VIEWS.forEach(x => $("#v-" + x).classList.toggle("hidden", x !== v));
   if (v === "map" && map) setTimeout(() => map.resize(), 50);
@@ -1921,13 +1962,15 @@ function showView(v){
   if (v === "meet") renderMeet();
   if (v === "profile") renderProfile();
   if (v === "shop") renderShop();
+  if (v === "ship") renderShip();
   if (v === "boat") setTimeout(() => { renderBoat(); paintEngChips(); }, 0);
 }
 const MODES = [
   { k: "market", ic: "🛥️", n: "Delivery", v: "map", am: "market" },
   { k: "shop", ic: "🛍️", n: "Marketplace", v: "shop" },
   { k: "nautica", ic: "⚓", n: "Naviga", v: "map", am: "nautica" },
-  { k: "sport", ic: "🎲", n: "Gioca", v: "map", am: "sport" },
+  { k: "ship", ic: "📦", n: "Spedisci", v: "ship" },
+  { k: "sport", ic: "🎲", n: "Gioca", v: "map", am: "sport", hidden: true },   // Gioca ora si apre da myClick
   { k: "my", ic: "👤", n: "myClick", v: "profile" }
 ];
 let modeIdx = MODES.findIndex(x => x.k === "nautica");
@@ -1943,18 +1986,20 @@ const TAB_IC = {   // linea sottile · .s si riempie quando la scheda è selezio
   nautica: '<path class="s" d="M3 14.5h18l-2.6 5H5.6z"/><path d="M12 3.5v11"/><path class="s" d="M12 4.5l6 8h-6z"/>',
   market: '<path class="s" d="M2.5 13.5h16l-2 5H5.3z"/><path d="M8.5 13.5l1.7-3.6h4.2l1.3 3.6"/><path class="s" d="M18.8 9.6h2.6v4.6h-2.6z"/><path d="M20.1 14.2v3.6"/>',   // barchino a motore
   shop: '<path class="s" d="M5 8h14l-1.2 12H6.2z"/><path d="M9 10.5V6.8a3 3 0 0 1 6 0v3.7"/>',   // borsa della spesa
+  ship: '<path class="s" d="M3.5 8L12 4l8.5 4v8.5L12 20.5l-8.5-4z"/><path d="M3.5 8l8.5 4 8.5-4M12 12v8.5M7.7 6l8.6 4.1"/>',   // pacco
   sport: '<rect class="s" x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle class="c" cx="8.3" cy="8.3" r="1.2"/><circle class="c" cx="15.7" cy="15.7" r="1.2"/><circle class="c" cx="12" cy="12" r="1.2"/>',
   my: '<path class="s" d="M9.5 8.5l10 4.3-4.4 1.3-1.3 4.4z"/><path d="M6 4l1 2.1M3.3 7.6l2.2.8M10 3l-.2 2.3M4.3 12l1.9-1.1"/>'   // un clic
 };
 function buildDial(){
-  $("#tabs").innerHTML = MODES.map(x => x.k === "nautica"
+  $("#tabs").innerHTML = MODES.filter(x => !x.hidden).map(x => x.k === "nautica"
     ? `<button role="tab" data-pm="${x.k}" class="mid"><i class="ring"><svg viewBox="0 0 60 60" aria-hidden="true"><path class="arw" d="M30 3 L54 55 L30 43 L6 55 Z"/><path class="arl" d="M30 12 L30 41"/></svg></i><span>${x.n}</span></button>`
     : `<button role="tab" data-pm="${x.k}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_IC[x.k] || ""}</svg><span>${x.n}</span></button>`).join("");
 }
 const APP_VER = ([...document.querySelectorAll(".sub")].map(e => e.textContent).join(" ").match(/versione (\d+(?:\.\d+)+)/) || [])[1] || "";
 function paintDial(){
   const vm = $("#verMark"); if (vm){ const me = PROFILE && /^tropss$/i.test(PROFILE.clickname || ""); vm.classList.toggle("hidden", !me); vm.textContent = "v" + APP_VER; }
-  document.querySelectorAll("#tabs [data-pm]").forEach((b, i) => { const on = i === modeIdx; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+  const tabK = MODES[modeIdx].hidden ? "my" : MODES[modeIdx].k;   // in Gioca resta acceso myClick
+  document.querySelectorAll("#tabs [data-pm]").forEach(b => { const on = b.dataset.pm === tabK; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
   MODES.forEach((x, i) => document.body.classList.toggle("m-" + x.k, i === modeIdx));
 }
 function setMode(k){
@@ -1966,7 +2011,8 @@ function setMode(k){
   showView(m.v);
   if (m.am) setAppMode(m.am);
 }
-function stepMode(d){ haptic(); setMode(MODES[(modeIdx + d + MODES.length) % MODES.length].k); }
+function stepMode(d){ haptic(); const V = MODES.filter(x => !x.hidden); let c = V.findIndex(x => x.k === MODES[modeIdx].k); if (c < 0) c = V.findIndex(x => x.k === "my");
+  setMode(V[(c + d + V.length) % V.length].k); }
 // myClick: un tocco apre la home, tenendo premuto 2 secondi si apre il tuo profilo
 let myHold = null, myHeld = false;
 $("#tabs").addEventListener("pointerdown", e => { const b = e.target.closest('[data-pm="my"]'); if (!b) return; myHeld = false; clearTimeout(myHold);
@@ -1982,6 +2028,163 @@ document.addEventListener("click", e => {
   const g = e.target.closest("[data-go]"); if (g){ showView(g.dataset.go); return; }
   const bk = e.target.closest("[data-back]"); if (bk){ if (bk.dataset.back === "market"){ setMode("market"); return; } showView("profile"); }
 });
+/* =========================================================
+   SPEDISCI & TRASLOCHI · trasporti merci, traslochi e consegne veloci a Venezia
+   Una domanda alla volta (wizard) → riepilogo con prezzo → codice prenotazione → WhatsApp
+   ========================================================= */
+const SH_TIPI = {
+  barca: { n: "Trasporto merci in barca", d: "Bancali, attrezzature, forniture commerciali",
+    ic: '<path d="M3 14.5h18l-2.6 5H5.6z"/><rect x="8" y="7.5" width="8" height="7" rx="1"/><path d="M12 7.5v7"/>' },
+  trasloco: { n: "Trasloco / Facchinaggio", d: "Mobili, elettrodomestici, appartamenti o negozi",
+    ic: '<path d="M5 11V8.5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2V11"/><path d="M3 12a1.5 1.5 0 0 1 3 0v2.5h12V12a1.5 1.5 0 0 1 3 0v6H3z"/><path d="M5 18v1.5M19 18v1.5"/>' },
+  piedi: { n: "Consegna veloce a piedi / carrello", d: "Pacchi, scatoloni, commissioni rapide in centro storico",
+    ic: '<path d="M6.5 4v13h12"/><rect x="9" y="8" width="7.5" height="7" rx="1"/><circle cx="8" cy="19.2" r="1.4"/><circle cx="17" cy="19.2" r="1.4"/>' }
+};
+const SH_VOL = { piccolo: "Piccolo, a mano o carrello", bancali: "1–2 bancali o un elettrodomestico", medio: "Carico medio, una stanza", completo: "Trasloco completo" };
+const SH_SERV = { trasporto: "Solo trasporto riva-riva / strada", facchinaggio: "Con facchinaggio, carico e scarico al piano" };
+const SH_FASCE = { urgente: "Urgente, entro 2 ore", mattina: "Mattina 08:00–12:00", pomeriggio: "Pomeriggio 14:00–18:00", flessibile: "Flessibile" };
+const SH_STATI = { nuova: "In attesa di conferma", confermata: "Confermata", fatta: "Completata", annullata: "Annullata" };
+let shipMineCache = store.get("ln_ship", []);
+const shEur = n => Number(n || 0).toLocaleString("it-IT", { style: "currency", currency: "EUR", minimumFractionDigits: Number(n) % 1 ? 2 : 0 });
+const shDay = (g, o) => { const d = new Date(g + "T12:00"); return isNaN(d) ? "" : d.toLocaleDateString("it-IT", o || { weekday: "long", day: "numeric", month: "long" }); };
+const shWaNum = t => { let d = String(t || "").replace(/\D/g, ""); if (d.startsWith("00")) d = d.slice(2); if (d.length <= 10) d = "39" + d; return d; };
+
+function shipPrice(v){
+  const P = CONFIG.SPEDISCI, r = [["Servizio base", P.BASE[v.tipo] || 0]];
+  if (P.VOLUME[v.volume]) r.push(["Volume del carico", P.VOLUME[v.volume]]);
+  if (v.servizio === "facchinaggio") r.push(["Facchinaggio al piano", P.FACCHINAGGIO]);
+  if (v.fascia === "urgente") r.push(["Urgenza entro 2 ore", P.URGENTE]);
+  const tot = r.reduce((a, x) => a + x[1], 0);
+  const ant = Math.min(tot, Math.max(P.ANTICIPO_MIN, Math.round(tot * P.ANTICIPO_PCT / 100)));
+  return { righe: r, totale: tot, anticipo: ant, saldo: tot - ant };
+}
+
+function renderShip(){
+  $("#shipTypes").innerHTML = Object.entries(SH_TIPI).map(([k, t]) => `<button class="spcard" data-sht="${k}"><svg viewBox="0 0 24 24" aria-hidden="true">${t.ic}</svg><span><b>${t.n}</b><small>${t.d}</small></span><i>›</i></button>`).join("");
+  document.querySelectorAll("#shipTypes [data-sht]").forEach(b => b.onclick = () => shipStart(b.dataset.sht));
+  loadShipMine();
+  if (isTropss()) loadShipAdmin(); else $("#shipAdmin").innerHTML = "";
+}
+
+function shipStart(tipo, prev){
+  haptic();
+  const last = store.get("ln_ship_contatto", {});
+  const oggi = new Date().toISOString().slice(0, 10);   // stesso formato dei giorni del wizard
+  wizard({ title: SH_TIPI[tipo].n, values: Object.assign({ tipo, nome: last.nome || "", tel: last.tel || "" }, prev || {}, { tipo }),
+    steps: [
+      { k: "ritiro", q: "Dove ritiriamo?", hint: "Indirizzo e sestiere, oppure la riva di attracco", type: "place", hereLabel: "Usa posizione GPS attuale", hereName: "Posizione GPS del cliente", freeText: true, ph: "es. Cannaregio 4119 o Riva di Biasio" },
+      { k: "consegna", q: "Dove consegniamo?", hint: "Indirizzo e sestiere, oppure la riva di attracco", type: "place", noHere: true, freeText: true, ph: "es. Dorsoduro 3246 o Zattere" },
+      { k: "volume", q: "Quanto è grande il carico?", type: "choice", options: Object.entries(SH_VOL), when: v => v.tipo !== "piedi" },
+      { k: "servizio", q: "Che servizio ti serve?", type: "choice", options: Object.entries(SH_SERV), when: v => v.tipo !== "piedi" },
+      { k: "note", q: "C'è qualcosa da sapere?", hint: "Tocca tutto quello che vale, oppure scrivi tu", type: "text", multi: true, optional: true, skipLabel: "No, niente", max: 300,
+        chips: ["Ponti tra la riva e il civico", "Piano senza ascensore", "Merce fragile"] },
+      { k: "giorno", q: "Che giorno?", type: "day", days: 14 },
+      { k: "fascia", q: "In che fascia oraria?", type: "choice", options: v => Object.entries(SH_FASCE).filter(([k]) => k !== "urgente" || v.giorno === oggi) },
+      { k: "nome", q: "Come ti chiami?", type: "text", max: 60, ph: "Nome e cognome", check: t => t.trim().length < 2 ? "Scrivi il tuo nome." : "" },
+      { k: "tel", q: "Il tuo numero WhatsApp o di telefono", type: "text", inputType: "tel", max: 20, ph: "es. 340 123 4567", check: t => t.replace(/\D/g, "").length < 8 ? "Controlla il numero." : "" }
+    ],
+    onDone: v => {
+      if (v.tipo === "piedi"){ v.volume = "piccolo"; v.servizio = "trasporto"; }
+      if (v.fascia === "urgente" && v.giorno !== oggi) v.fascia = "flessibile";
+      store.set("ln_ship_contatto", { nome: v.nome, tel: v.tel }); shipSummary(v);
+    } });
+}
+
+function shipSummary(v){
+  const pr = shipPrice(v), P = CONFIG.SPEDISCI;
+  const row = (a, b) => `<div class="shrow"><span>${a}</span><b>${b}</b></div>`;
+  openSheet(`<h3>Riepilogo</h3>
+    <div class="shsum">${row("Servizio", esc(SH_TIPI[v.tipo].n))}${row("Ritiro", esc(v.ritiro.name))}${row("Consegna", esc(v.consegna.name))}
+      ${v.tipo !== "piedi" ? row("Carico", esc(SH_VOL[v.volume])) + row("Tipo", esc(SH_SERV[v.servizio])) : ""}
+      ${v.note ? row("Note", esc(v.note)) : ""}${row("Quando", esc(shDay(v.giorno)) + "<br>" + esc(SH_FASCE[v.fascia]))}${row("Contatto", esc(v.nome) + "<br>" + esc(v.tel))}</div>
+    <div class="shsum">${pr.righe.map(([a, b]) => row(esc(a), shEur(b))).join("")}
+      <div class="shrow tot"><span>Totale servizio stimato</span><b>${shEur(pr.totale)}</b></div>
+      <div class="shrow"><span>Anticipo per confermare<br><small>Pianificazione logistica e blocco del mezzo</small></span><b>${shEur(pr.anticipo)}</b></div>
+      <div class="shrow"><span>Saldo al trasportatore alla consegna</span><b>${shEur(pr.saldo)}</b></div></div>
+    <p class="muted" style="font-size:13px;line-height:1.45;margin:0 0 10px">${esc(P.CONDIZIONI)}</p>
+    <label class="check"><input type="checkbox" id="shAg"><span>Accetto le condizioni di cancellazione e rimborso dell'anticipo</span></label>
+    <button class="btn" id="shGo" disabled style="opacity:.45;margin-top:12px">Invia richiesta</button>
+    <button class="btn ghost" id="shEdit" style="margin-top:8px">Modifica</button>`);
+  $("#shAg").onchange = e => { $("#shGo").disabled = !e.target.checked; $("#shGo").style.opacity = e.target.checked ? "" : ".45"; };
+  $("#shEdit").onclick = () => { closeSheet(); shipStart(v.tipo, v); };
+  $("#shGo").onclick = () => shipSend(v, pr);
+}
+
+async function shipSend(v, pr){
+  const go = $("#shGo"); go.disabled = true; go.textContent = "Invio…";
+  const dati = { tipo: v.tipo, ritiro: v.ritiro, consegna: v.consegna, volume: v.volume, servizio: v.servizio, note: v.note || "", giorno: v.giorno, fascia: v.fascia,
+    nome: String(v.nome).trim(), tel: String(v.tel).trim(), totale: pr.totale, anticipo: pr.anticipo };
+  const wa = CONFIG.SPEDISCI.WHATSAPP || CONFIG.ORDER_WHATSAPP;
+  let codice = null, online = false;
+  try{
+    const r = await rpc("spedizione_crea", { p_data: dati });
+    if (r && r.codice){ codice = r.codice; online = true; }
+    else if (r && r.errore === "troppe"){ go.disabled = false; go.textContent = "Invia richiesta"; return toast("Hai inviato tante richieste oggi: riprova domani."); }
+  }catch(e){}
+  if (!online && !wa){ go.disabled = false; go.textContent = "Invia richiesta"; return toast("Non riesco a inviarla: controlla la connessione ed entra con il tuo account."); }
+  if (!codice){ const d = new Date(); codice = "CV-" + String(d.getDate()).padStart(2, "0") + String(d.getMonth() + 1).padStart(2, "0") + "-" + Math.random().toString(36).slice(2, 6).toUpperCase(); }
+  const rec = Object.assign({ codice, stato: "nuova", creata: new Date().toISOString(), online }, dati);
+  shipMineCache = [rec, ...shipMineCache.filter(x => x.codice !== codice)].slice(0, 30); store.set("ln_ship", shipMineCache);
+  haptic(); shipDone(rec);
+}
+
+function shipText(r){
+  const pos = p => p && typeof p.lat === "number" ? ` (https://maps.google.com/?q=${p.lat.toFixed(5)},${p.lng.toFixed(5)})` : "";
+  return [`*Richiesta clickVenice ${r.codice}*`, `Servizio: ${SH_TIPI[r.tipo] ? SH_TIPI[r.tipo].n : r.tipo}`,
+    `Ritiro: ${r.ritiro && r.ritiro.name}${pos(r.ritiro)}`, `Consegna: ${r.consegna && r.consegna.name}${pos(r.consegna)}`,
+    r.tipo !== "piedi" ? `Carico: ${SH_VOL[r.volume] || ""} · ${SH_SERV[r.servizio] || ""}` : "", r.note ? `Note: ${r.note}` : "",
+    `Quando: ${shDay(r.giorno, { weekday: "short", day: "numeric", month: "short" })} · ${SH_FASCE[r.fascia] || ""}`, `Cliente: ${r.nome} · ${r.tel}`,
+    `Totale stimato ${shEur(r.totale)} · anticipo ${shEur(r.anticipo)} · saldo ${shEur(r.totale - r.anticipo)}`].filter(Boolean).join("\n");
+}
+
+function shipDone(r, dalla_lista){
+  const wa = CONFIG.SPEDISCI.WHATSAPP || CONFIG.ORDER_WHATSAPP, devo = !r.online;   // non salvata online: va mandata per forza su WhatsApp
+  openSheet(`<div class="shok"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>
+    <h3>${dalla_lista ? esc(SH_STATI[r.stato] || r.stato) : devo ? "Quasi fatto" : "Richiesta inviata"}</h3><p class="muted" style="margin:0">Codice prenotazione</p><div class="shcode">${esc(r.codice)}</div>
+    <p class="muted" style="line-height:1.45">${devo && !dalla_lista ? "Tocca il tasto qui sotto per mandarci la richiesta su WhatsApp." : `Ti contattiamo al ${esc(r.tel)} per confermare il prezzo e l'anticipo di ${shEur(r.anticipo)}.`}</p></div>
+    ${wa ? `<button class="btn" id="shWa">${devo ? "Invia su WhatsApp" : "Manda il riepilogo anche su WhatsApp"}</button>` : ""}
+    <button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">Chiudi</button>`);
+  if ($("#shWa")) $("#shWa").onclick = () => { window.location.href = `https://wa.me/${wa}?text=${encodeURIComponent(shipText(r))}`; };
+  renderShipMine();
+}
+
+async function loadShipMine(){
+  renderShipMine();
+  try{
+    const r = await rpc("spedizioni_mie", {});
+    if (r && Array.isArray(r.lista)){
+      const loc = shipMineCache.filter(x => !x.online && !r.lista.some(s => s.codice === x.codice));
+      shipMineCache = [...r.lista.map(x => Object.assign(x, { online: true })), ...loc].slice(0, 30); store.set("ln_ship", shipMineCache); renderShipMine();
+    }
+  }catch(e){}
+}
+function renderShipMine(){
+  const box = $("#shipMine"); if (!box) return; const L = shipMineCache;
+  box.innerHTML = L.length ? L.map(r => `<button class="card shmine" data-shc="${esc(r.codice)}"><span><b>${esc(SH_TIPI[r.tipo] ? SH_TIPI[r.tipo].n : r.tipo)}</b>
+      <small>${esc(r.codice)} · ${esc(shDay(r.giorno, { day: "numeric", month: "short" }))} · ${esc(SH_FASCE[r.fascia] || "")}</small></span><em class="st-${esc(r.stato)}">${esc(SH_STATI[r.stato] || r.stato)}</em></button>`).join("")
+    : `<p class="muted">Nessuna richiesta per ora.</p>`;
+  box.querySelectorAll("[data-shc]").forEach(b => b.onclick = () => { const r = L.find(x => x.codice === b.dataset.shc); if (r) shipDone(r, true); });
+}
+
+// pannello operativo: solo tropss vede tutte le richieste e ne cambia lo stato
+async function loadShipAdmin(){
+  const box = $("#shipAdmin"); box.innerHTML = `<h4 style="margin:22px 0 8px">Richieste ricevute</h4><p class="muted">Carico…</p>`;
+  try{
+    const r = await rpc("spedizioni_tutte", {}); if (!r || !Array.isArray(r.lista)) throw 0;
+    const L = r.lista, nuove = L.filter(x => x.stato === "nuova").length;
+    box.innerHTML = `<h4 style="margin:22px 0 8px">Richieste ricevute${nuove ? ` <span class="muted">· ${nuove} da confermare</span>` : ""}</h4>` + (L.length ? L.map(x => `<div class="card shadm">
+      <div class="shrow" style="border:0;padding-top:0"><b style="text-align:left">${esc(x.codice)}</b><em class="st-${esc(x.stato)}">${esc(SH_STATI[x.stato] || x.stato)}</em></div>
+      <pre class="shtxt">${esc(shipText(x))}</pre>
+      <div class="row" style="gap:6px;flex-wrap:wrap"><a class="btn small ghost" href="https://wa.me/${shWaNum(x.tel)}" target="_blank" rel="noopener">WhatsApp</a><a class="btn small ghost" href="tel:${esc(String(x.tel).replace(/[^\d+]/g, ""))}">Chiama</a>
+      ${x.stato === "nuova" ? `<button class="btn small" data-shs="confermata" data-id="${x.id}">Conferma</button>` : ""}${x.stato === "confermata" ? `<button class="btn small" data-shs="fatta" data-id="${x.id}">Fatta</button>` : ""}${x.stato === "nuova" || x.stato === "confermata" ? `<button class="btn small ghost" data-shs="annullata" data-id="${x.id}">Annulla</button>` : ""}</div></div>`).join("") : `<p class="muted">Nessuna richiesta.</p>`);
+    box.querySelectorAll("[data-shs]").forEach(b => b.onclick = async () => {
+      try{ const j = await rpc("spedizione_stato", { p_id: +b.dataset.id, p_stato: b.dataset.shs }); if (j && j.errore) return toast("Non riuscito, riprova."); haptic(); loadShipAdmin(); }catch(e){ toast("Controlla la connessione."); } });
+  }catch(e){ box.innerHTML = `<p class="muted" style="margin-top:18px">Pannello richieste non attivo: va eseguito sql/spedizioni.sql su Supabase.</p>`; }
+}
+
+// Gioca ora si apre da myClick
+$("#pfGameBtn").onclick = () => { haptic(); setMode("sport"); };
+
 /* ---------- myClick: profilo personalizzato e amici ---------- */
 let MY = store.get("ln_my", null);
 const MY_COLORS = ["#050706", "#c8102e", "#0a8f4e", "#d6336c", "#6d28d9", "#f59e0b", "#0891b2", "#334155"];
@@ -9674,8 +9877,9 @@ function wzPaint(){
   const ok = $("#wzOk");
   if (ok) ok.onclick = async () => {
     if (s.type === "place"){ const t = wzIn.value.trim(); if (!t){ if (cur && cur.lat) return wzNext(); return toast("Scegli o scrivi un posto."); }
-      ok.disabled = true; ok.textContent = "Cerco…"; let g = null; try{ g = await geocodeVenice(t); }catch(e){} ok.disabled = false; ok.textContent = "Avanti ›";
-      if (!g) return toast("Non trovo questo posto: prova a toccarlo sulla mappa."); return wzSet({ name: t, lat: g.lat, lng: g.lng }); }
+      ok.disabled = true; ok.textContent = "Cerco…"; let g = null; try{ const cv = await civicoSearch(t); if (cv.length) g = cv[0]; }catch(e){}   // "Cannaregio 4119": civici del Comune
+      if (!g){ try{ g = await geocodeVenice(t); }catch(e){} } ok.disabled = false; ok.textContent = "Avanti ›";
+      if (!g){ if (s.freeText) return wzSet({ name: t }); return toast("Non trovo questo posto: prova a toccarlo sulla mappa."); } return wzSet({ name: t, lat: g.lat, lng: g.lng }); }
     if (s.type === "photo") return wzNext();
     let val = wzIn ? wzIn.value.trim() : "";
     if (!val){ if (s.optional || (s.type === "date")){ WZ.v[s.k] = ""; return wzNext(); } return toast("Tocca una risposta o scrivila."); }
