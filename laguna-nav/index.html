@@ -3113,7 +3113,7 @@ function popupFor(f, ll){
   if (f.layer.id === "aero"){ openAero(); return; }
   if (f.layer.id === "partners"){ const p = PARTNERS.find(x => x.id === f.properties.id); if (p) openPartner(p); return; }
   if (f.layer.id === "cantieri"){ const c = CANT[f.properties.i]; if (c) openCantiere(c); return; }
-  if (f.layer.id === "benzinai"){ const b = FUEL[f.properties.i]; if (b) openFuel(b); return; }
+  if (f.layer.id === "benzinai"){ const b = FUEL_ALL[f.properties.i]; if (b) openFuel(b); return; }
   if (f.layer.id === "battelli" || f.layer.id === "battelli3d"){ const b = BOATS_ACTV[f.properties.i]; if (!b) return;   // percorso e fermate che mancano al capolinea
     trackBoat(b); openCorsa({ linea: b.L, dir: b.d, la: b.s0[0], lng: b.s0[1], t: b.s0[3], tol: 60, az: b.az, boat: true, k: b.k }); return; }
   if (f.layer.id === "fermate" && appMode === "nautica"){ const c = f.geometry.coordinates; openFermata(f.properties.n, c[1], c[0]); return; }
@@ -5824,29 +5824,35 @@ function drawCantieri(){
 }
 /* ---------- Benzinai in acqua: prezzi del Ministero (aggiornati ogni mattina).
    Sull'icona il prezzo del carburante della barca attiva: gasolio se è diesel, altrimenti benzina. ---------- */
-let FUEL = store.get("ln_fuel", { at: 0, s: [] }).s || [];
+let FUEL = store.get("ln_fuel2", { at: 0, s: [] }).s || [];
 function fuelKind(){ const b = (typeof BOATS !== "undefined" && BOATS.find(x => x.id === boatId)) || {}; return b.fuel === "Diesel" ? "d" : "b"; }
 function fuelPrice(s, k){ const p = s.p || {}; return p[k] || p[k + "s"] || p[k + "2"] || p[k + "2s"] || null; }
-function fuelImg(txt, k){
-  const id = "fz-" + k + txt; if (map.hasImage(id)) return id;
-  const R = 2, w = 74, h = 40, c = document.createElement("canvas"); c.width = w * R; c.height = h * R; const g = c.getContext("2d"); g.scale(R, R);
+function fuelImg(txt, k, terra){
+  const id = "fz-" + k + txt + (terra ? "t" : ""); if (map.hasImage(id)) return id;
+  const R = 2, w = 74, h = terra ? 52 : 40, c = document.createElement("canvas"); c.width = w * R; c.height = h * R; const g = c.getContext("2d"); g.scale(R, R);
   const col = k === "d" ? "#f2b705" : "#2e9e4f";
   g.fillStyle = "#111"; g.beginPath(); g.roundRect(2, 2, w - 4, 28, 9); g.fill();
   g.beginPath(); g.moveTo(w / 2 - 7, 29); g.lineTo(w / 2, 38); g.lineTo(w / 2 + 7, 29); g.fill();
   g.fillStyle = col; g.beginPath(); g.roundRect(6, 7, 18, 18, 5); g.fill();
   g.fillStyle = "#111"; g.font = "bold 12px system-ui,sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(k === "d" ? "D" : "B", 15, 16.5);
   g.fillStyle = "#fff"; g.font = "bold 14px system-ui,sans-serif"; g.fillText(txt, 48, 16.5);
+  if (terra){ g.font = "bold 10px system-ui,sans-serif"; g.lineWidth = 3; g.strokeStyle = "#fff"; g.strokeText("🚶 a terra", w / 2, 45); g.fillStyle = "#111"; g.fillText("🚶 a terra", w / 2, 45); }
   map.addImage(id, g.getImageData(0, 0, w * R, h * R), { pixelRatio: R }); return id;
 }
+let FUEL_ALL = [];
 function drawFuel(){
   if (!map || !map.getSource("benzinai")) return; const k = fuelKind();
-  map.getSource("benzinai").setData({ type: "FeatureCollection", features: FUEL.map((s, i) => { const pr = fuelPrice(s, k);
-    return { type: "Feature", properties: { i, img: fuelImg(pr ? pr.toFixed(3).replace(".", ",") : "—", k) }, geometry: { type: "Point", coordinates: [s.lng, s.lat] } }; }) });
+  // quelli aggiunti da tropss (senza prezzo del Ministero), se non c'è già un distributore a meno di 60 m
+  const ex = (typeof EXTRA !== "undefined" ? EXTRA : []).filter(x => x.t === "benzinaio" || x.t === "benzinaio_terra")
+    .filter(x => !FUEL.some(s => dist(s, x) < 60)).map(x => ({ nome: x.n, lat: x.lat, lng: x.lng, p: {}, terra: x.t === "benzinaio_terra", extra: x.id }));
+  FUEL_ALL = FUEL.concat(ex);
+  map.getSource("benzinai").setData({ type: "FeatureCollection", features: FUEL_ALL.map((s, i) => { const pr = fuelPrice(s, k);
+    return { type: "Feature", properties: { i, img: fuelImg(pr ? pr.toFixed(3).replace(".", ",") : "—", k, s.terra) }, geometry: { type: "Point", coordinates: [s.lng, s.lat] } }; }) });
 }
 async function loadFuel(){
-  const c = store.get("ln_fuel", { at: 0 }); if (Date.now() - c.at < 3 * 3600e3 && FUEL.length) return;
+  const c = store.get("ln_fuel2", { at: 0 }); if (Date.now() - c.at < 3 * 3600e3 && FUEL.length) return;
   try{ const r = await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/carburanti", {}, 60000), j = await r.json();
-    if (j && Array.isArray(j.s)){ FUEL = j.s; store.set("ln_fuel", { at: Date.now(), s: FUEL, agg: j.at }); drawFuel(); } }catch(e){}
+    if (j && Array.isArray(j.s)){ FUEL = j.s.filter(x => !/bunker/i.test(x.nome || "")); store.set("ln_fuel2", { at: Date.now(), s: FUEL, agg: j.at }); drawFuel(); } }catch(e){}
 }
 function openFuel(s){
   const k = fuelKind(), b = (BOATS.find(x => x.id === boatId) || {}), eur = v => v ? v.toFixed(3).replace(".", ",") + " €/l" : "—";
@@ -5854,8 +5860,12 @@ function openFuel(s){
   openSheet(`<h3>⛽ ${esc(s.nome || s.marca || "Distributore")}</h3>
     <p class="muted" style="margin:-6px 0 10px">${esc([s.marca, s.ind].filter(Boolean).join(" · "))}</p>
     ${riga("Benzina", "b", k === "b")}${riga("Gasolio", "d", k === "d")}
-    <p class="muted" style="font-size:12px;margin:8px 0">${b.fuel ? "La tua barca va a " + esc(b.fuel.toLowerCase()) : "Nessuna barca registrata: mostro la benzina"} · prezzi comunicati al Ministero${s.dt ? " il " + esc(String(s.dt).slice(0, 10)) : ""}</p>
-    <div class="row" style="margin-top:12px"><button class="btn" id="fuelGo">🧭 Portami qui</button><button class="btn ghost" onclick="closeSheet()">Chiudi</button></div>`);
+    ${s.terra ? `<p style="margin:8px 0;padding:9px 12px;border-radius:12px;background:#fff4d6;color:#5a4300;font-size:13px">🚶 Distributore a terra: ormeggia vicino e scendi con la tanica, la pompa non è sulla riva.</p>` : `<p style="margin:8px 0;font-size:13px">⚓ Pompa sulla riva: ci arrivi direttamente in barca.</p>`}
+    <p class="muted" style="font-size:12px;margin:8px 0">${!Object.keys(s.p).length ? "Prezzi non disponibili (aggiunto a mano) · " : ""}${b.fuel ? "La tua barca va a " + esc(b.fuel.toLowerCase()) : "Nessuna barca registrata: mostro la benzina"} · prezzi comunicati al Ministero${s.dt ? " il " + esc(String(s.dt).slice(0, 10)) : ""}</p>
+    <div class="row" style="margin-top:12px"><button class="btn" id="fuelGo">🧭 Portami qui</button><button class="btn ghost" onclick="closeSheet()">Chiudi</button></div>
+    ${s.extra && isTropss() ? `<button class="btn ghost" style="margin-top:10px;color:#d32f2f" id="fuelDel">Togli questo distributore</button>` : ""}`);
+  const fd = $("#fuelDel"); if (fd) fd.onclick = async () => { const j = await rpc("luogo_del", { p_id: s.extra }).catch(() => null);
+    if (j && j.ok){ EXTRA = EXTRA.filter(x => x.id !== s.extra); store.set("ln_extra", EXTRA); closeSheet(); drawFuel(); toast("Tolto"); } else toast("Non riuscito"); };
   $("#fuelGo").onclick = () => { closeSheet(); PLAN = null; openPlan({ name: s.nome || "Distributore", lat: s.lat, lng: s.lng }); };
 }
 function openCantiere(c){
@@ -8825,10 +8835,10 @@ const EXTRA_T = {   // tipo → categoria del Delivery, tipo come OpenStreetMap,
   gelateria: { n: "Gelateria", k: "food", s: "ice_cream" }, fast_food: { n: "Fast food", k: "food", s: "fast_food" },
   tabaccheria: { n: "Tabaccheria", k: "tabacchi", s: "tobacco", l: "tabacchi" }, farmacia: { n: "Farmacia", k: "farmacie", s: "pharmacy" },
   barbiere: { n: "Barbiere", k: "negozi", s: "hairdresser", l: "barbiere" }, cantiere: { n: "Cantiere", k: "negozi", s: "boat", l: "cantiere" },
-  stazio_gondole: { n: "Stazio gondole", k: null, s: "gondola" }, alimentari: { n: "Alimentari", k: "negozi", s: "convenience" }, supermercato: { n: "Supermercato", k: "negozi", s: "supermarket" }, negozio: { n: "Negozio", k: "negozi", s: "shop" }
+  stazio_gondole: { n: "Stazio gondole", k: null, s: "gondola" }, benzinaio: { n: "Benzinaio in acqua", k: null, s: "fuel" }, benzinaio_terra: { n: "Benzinaio a terra", k: null, s: "fuel" }, alimentari: { n: "Alimentari", k: "negozi", s: "convenience" }, supermercato: { n: "Supermercato", k: "negozi", s: "supermarket" }, negozio: { n: "Negozio", k: "negozi", s: "shop" }
 };
 let EXTRA = store.get("ln_extra", []);
-async function extraLoad(){ try{ const j = await rpc("luoghi_extra_list", {}); if (Array.isArray(j)){ EXTRA = j; store.set("ln_extra", j); try{ drawDlv(); }catch(e){} try{ if (GON_MK.length) gondDraw(); }catch(e){} } }catch(e){} }
+async function extraLoad(){ try{ const j = await rpc("luoghi_extra_list", {}); if (Array.isArray(j)){ EXTRA = j; store.set("ln_extra", j); try{ drawDlv(); }catch(e){} try{ drawFuel(); }catch(e){} try{ if (GON_MK.length) gondDraw(); }catch(e){} } }catch(e){} }
 setTimeout(extraLoad, 2500);
 function extraPick(){
   if (!isTropss()) return; closeSheet(); try{ setMode("nautica"); }catch(e){}
