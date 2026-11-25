@@ -1445,7 +1445,7 @@
     <!-- Shopping: attività convenzionate sulla mappa -->
     <div id="mkPanel">
       <div class="mkh"><b>Delivery</b><span id="mkCount"></span></div>
-      <div class="mkcats" id="dlvCats"><button data-dc="food">Food</button><button data-dc="negozi">Negozi</button><button data-dc="tabacchi">Tabaccherie</button><button data-dc="farmacie">Farmacie</button></div>
+      <div class="mkcats" id="dlvCats"><button data-dc="conv">🍽️ Convenzionati</button><button data-dc="food">Food</button><button data-dc="negozi">Negozi</button><button data-dc="tabacchi">Tabaccherie</button><button data-dc="farmacie">Farmacie</button></div>
       <div id="mkList"></div>
       <button class="btn small" id="mkOrder">🍝 Ordina cibo in barca o a casa</button>
     </div>
@@ -1764,7 +1764,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.73</p>
+      <p class="sub">clickVenice · versione 3.74</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -3523,6 +3523,8 @@ function initMap(){
     if (addMode === "luogoadd"){ addMode = null; $("#modeHint").classList.add("hidden"); return extraForm(e.lngLat); }
     if (addMode === "gmpark"){ addMode = null; $("#modeHint").classList.add("hidden"); return gmParkSet(e.lngLat); }
     if (addMode === "segpick"){ addMode = null; $("#modeHint").classList.add("hidden"); return segForm(e.lngLat.lat, e.lngLat.lng); }
+    if (appMode === "market" && DLV.conv !== false && map.getLayer("partners")){ const pf = map.queryRenderedFeatures([[e.point.x - 14, e.point.y - 14], [e.point.x + 14, e.point.y + 14]], { layers: ["partners"] })[0];
+      if (pf){ const p = PARTNERS.find(x => x.id === pf.properties.id); if (p) return openPartner(p); } }
     if (appMode === "market" && map.getLayer("dlv")){ const d = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["dlv"] })[0]; if (d) return openDlv(d.properties.i); }
     { const mp = map.getLayer("myplaces") && map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ["myplaces"] })[0];
       if (mp) return openMyPlace(mp.properties.i); }
@@ -8034,12 +8036,108 @@ function openPartner(p){
   const c = MK_CATS[p.category] || ["", ""];
   openSheet(`<h3>${c[0]} ${esc(p.name)}</h3><p class="muted" style="margin-top:-4px">${esc(c[1])}${p.address ? " · " + esc(p.address) : ""}</p>
     ${p.descr ? `<p style="line-height:1.45">${esc(p.descr)}</p>` : ""}
-    ${p.order_rest && CONFIG.RISTORANTI.some(r => r.id === p.order_rest) ? `<button class="btn" id="pOrder">🛒 Ordina</button>` : ""}
+    ${p.order_rest ? `<button class="btn" id="pOrder">🛒 Ordina i piatti del giorno</button>` : ""}
     <button class="btn ghost" id="pGo" style="margin-top:10px">⚓ Portami qui in barca</button>
     ${p.phone ? `<a class="btn ghost" style="margin-top:10px;display:block;text-align:center;text-decoration:none" href="tel:${esc(p.phone.replace(/[^+\d]/g, ""))}">📞 Chiama</a>` : ""}
     <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
-  if ($("#pOrder")) $("#pOrder").onclick = () => { closeSheet(); showView("order"); openMenu(p.order_rest); };
+  if ($("#pOrder")) $("#pOrder").onclick = () => restOrder(p);
   $("#pGo").onclick = () => { closeSheet(); setMode("nautica"); openPlan({ name: p.name, lat: p.lat, lng: p.lng }); };
+}
+/* ---------- Ristoranti convenzionati: piatti del giorno, ordini e strumenti dell'admin ---------- */
+let RO = null;   // { p, lista, admin, cart, mode }
+async function restOrder(p){
+  RO = { p, lista: [], admin: false, cart: {}, mode: "foot" };
+  openSheet(`<h3>${esc(p.name)}</h3><p class="muted">Carico i piatti del giorno…</p>`, "light");
+  let r; try{ r = await rpc("menu_oggi", { p_rest: p.order_rest }); }catch(e){ r = null; }
+  if (!r){ openSheet(`<h3>${esc(p.name)}</h3><p class="muted">Menu non disponibile adesso: controlla la connessione.</p><button class="btn ghost" onclick="closeSheet()">Chiudi</button>`, "light"); return; }
+  RO.admin = !!r.admin; RO.lista = (r.lista || []).filter(x => x.disponibile); restOrderDraw();
+}
+function roTot(){ return RO.lista.reduce((s, m) => s + (RO.cart[m.id] || 0) * +m.prezzo, 0); }
+function restOrderDraw(){
+  const keep = {}; ["roAddr","roBoat","roName","roTel","roNote"].forEach(k => { const e = $("#"+k); if (e) keep[k] = e.value; });
+  const p = RO.p, tot = roTot(), boat = RO.mode === "boat";
+  openSheet(`<h3 style="margin-bottom:2px">${esc(p.name)}</h3><p class="muted" style="margin:0 0 8px">Piatti del giorno${p.address ? " · " + esc(p.address) : ""}</p>
+    ${RO.admin ? `<div class="row" style="gap:8px;margin-bottom:10px"><button class="btn small" id="roAdm" style="flex:1">✏️ Gestisci piatti</button><button class="btn small ghost" id="roOrd" style="flex:1">📋 Ordini</button></div>` : ""}
+    <div class="card" style="padding:4px 14px">${RO.lista.length ? RO.lista.map(m => `<div class="item"><div><b>${esc(m.nome)}</b>${m.descr ? `<div class="muted" style="font-size:13px">${esc(m.descr)}</div>` : ""}<div class="muted">${eur(+m.prezzo)}</div></div>
+      <div class="qty"><button data-rq="${m.id}" data-d="-1">−</button><b>${RO.cart[m.id] || 0}</b><button data-rq="${m.id}" data-d="1">+</button></div></div>`).join("")
+      : `<p class="muted">Oggi non ci sono ancora piatti disponibili.</p>`}</div>
+    ${RO.lista.length ? `<div class="card"><div class="mkcats" style="margin-bottom:10px"><button data-rm="foot" class="${boat ? "" : "on"}">🚶 A piedi</button><button data-rm="boat" class="${boat ? "on" : ""}">🚤 In barca</button></div>
+      ${boat ? `<div class="field"><label>Nome della barca</label><input id="roBoat" placeholder="es. Topa azzurra"></div><div class="muted" id="roGps" style="margin:-4px 0 10px">${lastPos ? "📍 Posizione GPS pronta" : "📍 Attivo il GPS…"}</div>`
+        : `<div class="field"><label>Indirizzo (sestiere e civico)</label><input id="roAddr" placeholder="es. Cannaregio 1234"></div>`}
+      <div class="row"><div class="field"><label>Nome</label><input id="roName"></div><div class="field"><label>Telefono</label><input id="roTel" type="tel"></div></div>
+      <div class="field"><label>Note</label><input id="roNote" placeholder="allergie, orario…"></div>
+      <button class="btn" id="roSend" ${tot ? "" : "disabled"}>Invia ordine · ${eur(tot)}</button></div>` : ""}
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`, "light");
+  Object.entries(keep).forEach(([k, v]) => { const e = $("#"+k); if (e) e.value = v; });
+  document.querySelectorAll("[data-rq]").forEach(b => b.onclick = () => { const id = +b.dataset.rq; RO.cart[id] = Math.max(0, Math.min(30, (RO.cart[id] || 0) + +b.dataset.d)); restOrderDraw(); });
+  document.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { RO.mode = b.dataset.rm; if (RO.mode === "boat" && watchId === null) startGps(); restOrderDraw(); });
+  if ($("#roAdm")) $("#roAdm").onclick = () => restAdmin(p);
+  if ($("#roOrd")) $("#roOrd").onclick = () => restOrdini(p);
+  if ($("#roSend")) $("#roSend").onclick = restSend;
+}
+async function restSend(){
+  const v = k => ($("#"+k) ? $("#"+k).value.trim() : ""), boat = RO.mode === "boat";
+  if (!v("roName") || !v("roTel")) return toast("Inserisci nome e telefono.");
+  if (boat && !lastPos) return toast("Attiva il GPS per mandare la posizione della barca.");
+  if (!boat && !v("roAddr")) return toast("Inserisci l'indirizzo.");
+  const items = RO.lista.filter(m => RO.cart[m.id]).map(m => ({ id: m.id, nome: m.nome, qta: RO.cart[m.id], prezzo: +m.prezzo }));
+  const b = $("#roSend"); b.disabled = true; b.textContent = "Invio…";
+  try{
+    await api("orders", { method: "POST", body: { restaurant: RO.p.name, mode: RO.mode, items, total_eur: roTot(),
+      customer_name: v("roName").slice(0, 80), customer_phone: v("roTel").slice(0, 30), boat_name: boat ? v("roBoat").slice(0, 80) : null,
+      address: boat ? null : v("roAddr").slice(0, 200), lat: boat ? lastPos.lat : null, lng: boat ? lastPos.lng : null, note: v("roNote").slice(0, 300) || null } });
+  }catch(e){ b.disabled = false; b.textContent = "Invia ordine · " + eur(roTot()); return toast("Ordine non inviato: controlla la connessione."); }
+  const o = store.get("ln_orders", []); o.unshift({ t: Date.now(), rest: RO.p.name, mode: RO.mode, tot: roTot() }); store.set("ln_orders", o);
+  openSheet(`<h3>Ordine inviato ✓</h3><p>${esc(RO.p.name)} ha ricevuto il tuo ordine da ${eur(roTot())}.</p><p class="muted">${items.map(i => i.qta + "× " + esc(i.nome)).join("<br>")}</p>
+    <p class="muted">Ti chiamano al ${esc(v("roTel"))} se serve. Paghi alla consegna.</p><button class="btn" onclick="closeSheet()">Ok</button>`, "light");
+}
+// strumenti dell'admin: piatti del giorno con prezzo e disponibile / sold out
+async function restAdmin(p){
+  let r; try{ r = await rpc("menu_oggi", { p_rest: p.order_rest }); }catch(e){ r = null; }
+  if (!r || !r.admin) return toast("Solo l'admin del ristorante può gestire i piatti.");
+  const L = r.lista || [], oggi = new Date().toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" });
+  openSheet(`<h3 style="margin-bottom:2px">Piatti del giorno</h3><p class="muted" style="margin:0 0 8px">${esc(p.name)} · ${oggi}</p>
+    <div class="card" style="padding:4px 14px">${L.length ? L.map(m => `<div class="item" style="gap:8px"><div style="flex:1;min-width:0;${m.disponibile ? "" : "opacity:.5"}"><b>${esc(m.nome)}</b>${m.descr ? `<div class="muted" style="font-size:13px">${esc(m.descr)}</div>` : ""}<div class="muted">${eur(+m.prezzo)}</div></div>
+      <div style="display:flex;gap:6px;align-items:center;flex-shrink:0"><button class="btn small" data-ma="stato" data-id="${m.id}" data-v="${m.disponibile ? 0 : 1}" style="width:auto;padding:6px 10px;${m.disponibile ? "background:#15a34a;color:#fff" : "background:#e23b2e;color:#fff"}">${m.disponibile ? "Disponibile" : "Sold out"}</button>
+      <button class="btn small ghost" data-ma="edit" data-id="${m.id}" style="width:auto;padding:6px 9px">✏️</button><button class="btn small ghost" data-ma="del" data-id="${m.id}" style="width:auto;padding:6px 9px">🗑️</button></div></div>`).join("")
+      : `<p class="muted">Nessun piatto per oggi. Aggiungili qui sotto o copia quelli dell'ultimo giorno.</p>`}</div>
+    <div class="card"><b id="maTit">Aggiungi un piatto</b><input type="hidden" id="maId">
+      <div class="field" style="margin-top:8px"><label>Nome</label><input id="maNome" maxlength="80" placeholder="es. Risotto di pesce"></div>
+      <div class="field"><label>Descrizione (facoltativa)</label><input id="maDescr" maxlength="200" placeholder="es. con vongole e calamari"></div>
+      <div class="field"><label>Prezzo €</label><input id="maPrezzo" inputmode="decimal" placeholder="es. 9,50"></div>
+      <button class="btn" id="maSave">Aggiungi</button></div>
+    <button class="btn ghost" id="maCopy">📋 Copia i piatti dell'ultimo giorno</button>
+    <button class="btn ghost" id="maBack" style="margin-top:10px">‹ Torna al menu</button>`, "light");
+  const go = async (az, d) => { let x; try{ x = await rpc("menu_admin", { p_rest: p.order_rest, p_azione: az, p_dati: d }); }catch(e){ x = null; }
+    if (x && x.ok) return restAdmin(p);
+    toast(!x ? "Controlla la connessione." : x.errore === "prezzo" ? "Prezzo non valido." : x.errore === "dati" ? "Scrivi il nome del piatto." : x.errore === "niente" ? "Non ci sono giorni precedenti da copiare." : x.errore === "troppi" ? "Troppi piatti per oggi." : "Non salvato."); };
+  document.querySelectorAll("[data-ma]").forEach(b => b.onclick = () => { const id = +b.dataset.id, m = L.find(z => z.id === id);
+    if (b.dataset.ma === "stato") go("stato", { id, disponibile: b.dataset.v === "1" });
+    else if (b.dataset.ma === "del"){ if (confirm("Togliere " + m.nome + "?")) go("del", { id }); }
+    else { $("#maId").value = id; $("#maNome").value = m.nome; $("#maDescr").value = m.descr || ""; $("#maPrezzo").value = String(m.prezzo).replace(".", ","); $("#maTit").textContent = "Modifica il piatto"; $("#maSave").textContent = "Salva"; $("#maNome").focus(); } });
+  $("#maSave").onclick = () => { const id = $("#maId").value, d = { nome: $("#maNome").value.trim(), descr: $("#maDescr").value.trim(), prezzo: $("#maPrezzo").value.trim() || "0" };
+    if (id) d.id = +id; go(id ? "upd" : "add", d); };
+  $("#maCopy").onclick = () => go("copia", {});
+  $("#maBack").onclick = () => restOrder(p);
+}
+// ordini ricevuti oggi, con lo stato che vede il ristorante
+async function restOrdini(p){
+  const nomi = [p.name].concat(CONFIG.RISTORANTI.filter(r => r.id === p.order_rest).map(r => r.name));
+  let r; try{ r = await rpc("ordini_rest", { p_rest: p.order_rest, p_nomi: nomi }); }catch(e){ r = null; }
+  if (!r || !r.lista) return toast(r && r.errore ? "Solo l'admin del ristorante vede gli ordini." : "Controlla la connessione.");
+  const ST = ["nuovo", "in preparazione", "in consegna", "consegnato", "annullato"];
+  openSheet(`<h3>Ordini · ${esc(p.name)}</h3><p class="muted" style="margin-top:-4px">Ultime 36 ore</p>
+    ${r.lista.length ? r.lista.map(o => `<div class="card" style="padding:12px"><div style="display:flex;justify-content:space-between"><b>${esc(o.nome || "—")}</b><b>${eur(+o.tot || 0)}</b></div>
+      <div class="muted" style="font-size:13px">${new Date(o.quando).toLocaleString("it-IT", { weekday: "short", hour: "2-digit", minute: "2-digit" })} · ${o.mode === "boat" ? "🚤 in barca" + (o.barca ? " " + esc(o.barca) : "") : "🚶 " + esc(o.addr || "")}</div>
+      <div style="margin:6px 0">${(o.items || []).map(i => `${i.qta}× ${esc(i.nome)}`).join("<br>")}</div>${o.note ? `<div class="muted">Note: ${esc(o.note)}</div>` : ""}
+      <div class="row" style="gap:6px;margin-top:8px"><a class="btn small ghost" style="flex:1;text-align:center;text-decoration:none" href="tel:${esc(String(o.tel || "").replace(/[^+\d]/g, ""))}">📞 Chiama</a>
+      ${o.lat ? `<a class="btn small ghost" style="flex:1;text-align:center;text-decoration:none" target="_blank" href="https://maps.google.com/?q=${o.lat},${o.lng}">📍 Barca</a>` : ""}
+      <select data-os="${o.id}" style="flex:1.4">${ST.map(s => `<option${s === o.stato ? " selected" : ""}>${s}</option>`).join("")}</select></div></div>`).join("")
+      : `<p class="muted">Nessun ordine nelle ultime 36 ore.</p>`}
+    <button class="btn ghost" id="osBack">‹ Torna al menu</button>`, "light");
+  document.querySelectorAll("[data-os]").forEach(s => s.onchange = async () => { let x; try{ x = await rpc("ordine_stato", { p_rest: p.order_rest, p_id: +s.dataset.os, p_stato: s.value }); }catch(e){}
+    toast(x && x.ok ? "Stato aggiornato ✓" : "Non aggiornato."); });
+  $("#osBack").onclick = () => restOrder(p);
 }
 document.querySelectorAll("#mkCats [data-c]").forEach(b => b.onclick = () => {
   mkCat = b.dataset.c; document.querySelectorAll("#mkCats [data-c]").forEach(x => x.classList.toggle("on", x === b)); drawPartners(); renderMk();
@@ -8048,8 +8146,8 @@ $("#mkList").addEventListener("click", e => { const r = e.target.closest("[data-
   setFollow(false); if (map) map.easeTo({ center: [p.lng, p.lat], zoom: 16.5, pitch: 0, bearing: 0, duration: 600 }); openPartner(p); });
 $("#mkOrder").onclick = () => { showView("order"); };
 /* Delivery: tasti che mostrano o nascondono food, negozi, tabaccherie e farmacie sulla mappa */
-const DLV_C = { food: ["Food", "#e23b2e"], negozi: ["Negozi", "#b5533c"], tabacchi: ["Tabaccheria", "#1d4e9e"], farmacie: ["Farmacia", "#15a34a"] };
-let DLV = Object.assign({ food: true, negozi: true, tabacchi: true, farmacie: true }, store.get("ln_dlv", {})), NEGOZI = store.get("ln_negozi", null);
+const DLV_C = { conv: ["Convenzionati", "#111111"], food: ["Food", "#e23b2e"], negozi: ["Negozi", "#b5533c"], tabacchi: ["Tabaccheria", "#1d4e9e"], farmacie: ["Farmacia", "#15a34a"] };
+let DLV = Object.assign({ conv: true, food: true, negozi: true, tabacchi: true, farmacie: true }, store.get("ln_dlv", {})), NEGOZI = store.get("ln_negozi", null);
 async function loadNegozi(){
   if (NEGOZI && Date.now() - (NEGOZI.t || 0) < 3 * 864e5) return drawDlv();
   try{ const r = await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/negozi", {}, 60000), j = await r.json(); if (j && j.p){ NEGOZI = { t: Date.now(), p: j.p }; store.set("ln_negozi", NEGOZI); } }catch(e){}
@@ -8117,7 +8215,7 @@ async function openDlv(i){
   if ($("#dlvDel")) $("#dlvDel").onclick = () => extraDel(x.extra);
   siteLoad(key, $("#dlvSite"));
   if (food){
-    $("#dlvOrd").onclick = () => { if (partner && partner.order_rest && CONFIG.RISTORANTI.some(r => r.id === partner.order_rest)){ closeSheet(); showView("order"); openMenu(partner.order_rest); }
+    $("#dlvOrd").onclick = () => { if (partner && partner.order_rest) restOrder(partner);
       else toast("Questo locale non fa ancora consegne con clickVenice."); };
     $("#dlvBook").onclick = () => bookPlace(x, key);
   }
@@ -8563,7 +8661,7 @@ function layerVis(){
     "sensi": n, "fermate": appMode === "trasporti" || (n && LY.actv), "fermate-lbl": appMode === "trasporti" || (n && LY.actv),
     "battelli": n && (LY.actv || LY.alilaguna), "battelli-lbl": n && (LY.actv || LY.alilaguna), "battelli3d": n && (LY.actv || LY.alilaguna), "trk3d": n, "traghetti": n && LY.gondole !== false,
     "aero": n,
-    "partners": appMode === "market", "partners-lbl": appMode === "market", "dlv": appMode === "market", "dlv-lbl": appMode === "market"
+    "partners": appMode === "market" && DLV.conv !== false, "partners-lbl": appMode === "market" && DLV.conv !== false, "dlv": appMode === "market", "dlv-lbl": appMode === "market"
   };
   Object.entries(want).forEach(([id, v]) => /^route/.test(id) ? (map.getLayer(id) && map.setLayoutProperty(id, "visibility", v ? "visible" : "none")) : fadeVis(id, v));
   if (destMarker) fadeEl(destMarker.getElement(), n);
