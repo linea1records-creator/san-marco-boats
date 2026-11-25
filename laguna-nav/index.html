@@ -1618,7 +1618,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.64</p>
+      <p class="sub">clickVenice · versione 3.65</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -5382,8 +5382,9 @@ function kwOpen(){
     <button class="btn ghost" id="kwSito" style="margin-top:10px">Apri il sito di Kiwitaxi</button>
     <button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">Chiudi</button>`);
   $("#kwSito").onclick = () => kwOpenSito();
-  // il tragitto e la data passano al widget (se il widget li accetta si compila da solo)
-  const q = new URLSearchParams({ from: da, to: a, date: kwDay(), passengers: String(pax), adults: String(pax) });
+  // il widget accetta "from" e "to" in testo libero (come nel configuratore di Travelpayouts: "piazzale roma", "marco polo")
+  const wn = (p, z) => z === "aeroporto" ? "marco polo" : z === "proma" ? "piazzale roma" : z === "tronchetto" ? "tronchetto" : kwNome(p, z).replace(/, Venezia$/, "") ;
+  const q = new URLSearchParams({ from: wn(kw.cf, kwZona(kw.cf)), to: wn(kw.ct, kwZona(kw.ct)) });
   const sc = document.createElement("script"); sc.async = true; sc.charset = "utf-8"; sc.src = K.WIDGET + "&" + q.toString();
   sc.onerror = () => { const w = $("#kwW"); if (w) w.innerHTML = `<p class="muted">Il widget di Kiwitaxi non si carica: usa il tasto qui sotto.</p>`; };
   const box = $("#kwW"); box.appendChild(sc);
