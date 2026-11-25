@@ -483,6 +483,7 @@
   .pcr i{font-style:normal;font-weight:700;margin-right:6px} .pcr em{font-style:normal;font-size:12px;color:#6b7078;white-space:nowrap}
   .pcFull{width:100%;margin-top:6px;padding:8px;border:0;background:none;color:#4f9fe6;font:inherit;font-weight:700;font-size:13.5px}
   .fab.taxifab{background:#ffd24a;color:#111}
+  .btn.taxiY{background:#ffd24a!important;color:#111!important;border-color:#ffd24a!important;font-weight:800}
   .stz{display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:opacity .5s}
   .stz i{width:34px;height:34px;border-radius:50%;background:#111;border:2px solid #c9ccd1;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.4)}
   .stz svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
@@ -1676,7 +1677,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.68</p>
+      <p class="sub">clickVenice · versione 3.69</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -5560,7 +5561,7 @@ function paintTravel(fit){
   document.querySelectorAll("#rbModes [data-tm]").forEach(b => { b.classList.toggle("on", b.dataset.tm === PLAN.mode); if (b.dataset.tm === "auto") b.classList.toggle("off", !PLAN.kw); });
   document.querySelectorAll("#rbSubs [data-sg]").forEach(g => { g.classList.toggle("hidden", g.dataset.sg !== PLAN.mode);
     g.querySelectorAll("[data-sub]").forEach(b => b.classList.toggle("on", PLAN.sub[g.dataset.sg] === b.dataset.sub)); });
-  more.classList.add("hidden"); more.innerHTML = ""; go.disabled = false; go.classList.remove("hidden"); EXT_HOOK = null;
+  more.classList.add("hidden"); more.innerHTML = ""; go.disabled = false; go.classList.remove("hidden"); go.classList.toggle("taxiY", m === "taxi"); EXT_HOOK = null;
   if (m === "autotaxi" || m === "autoguida"){
     const kw = PLAN.kw, hub = kw.hub ? (kw.resto.prima ? ` · da ${kw.hub}` : ` fino a ${kw.hub}, poi ${kw.restoMin} min a piedi`) : "";
     PLAN.R = kw.car || null; if (!kw.car) kwRoute(planSeq); else if (fit) try{ fitPlan(kw.car); }catch(e){}
@@ -5575,9 +5576,9 @@ function paintTravel(fit){
       info.textContent = `Circa ${kw.min} min in auto${hub}`;
       more.innerHTML = `<div class="txopts">
         <div class="svc${sel === "kiwi" ? " on" : ""}" data-svc="kiwi"><button class="txo"><svg viewBox="0 0 24 24">${carIc}</svg><span><b>Kiwitaxi${K.SCONTO ? `<em>-${esc(K.SCONTO.replace(/^-/, ""))}</em>` : ""}</b><small>Prezzo fisso${K.CODICE ? " · codice " + esc(K.CODICE) + " copiato" : ""}</small></span><b class="pz">da ${pk} €${pk !== p0 ? `<s>${p0} €</s>` : ""}</b></button>
-          <div class="tpw" id="tpwKiwi"></div><button class="btn small ghost svcSito" data-sito="kiwi">Apri il sito di Kiwitaxi</button></div>
+          <div class="tpw" id="tpwKiwi"></div><button class="btn small svcSito taxiY" data-sito="kiwi">Prenota con Kiwitaxi</button></div>
         <div class="svc${sel === "welcome" ? " on" : ""}" data-svc="welcome"><button class="txo"><svg viewBox="0 0 24 24">${carIc}</svg><span><b>Welcome Pickups</b><small>Autista che ti aspetta con il cartello</small></span><b class="pz">da ~${pw} €</b></button>
-          <div class="tpw" id="tpwWelcome"></div><button class="btn small ghost svcSito" data-sito="welcome">Apri il sito di Welcome Pickups</button></div>
+          <div class="tpw" id="tpwWelcome"></div><button class="btn small svcSito taxiY" data-sito="welcome">Prenota con Welcome Pickups</button></div>
         </div><p class="trnote" style="margin:0">Prezzi indicativi: tocca un servizio per vedere le sue offerte e prenotare. Data e passeggeri li scegli nella pagina del servizio.</p>`;
       more.classList.remove("hidden");
       const wn = (pt, z) => z === "aeroporto" ? "marco polo" : z === "proma" ? "piazzale roma" : z === "tronchetto" ? "tronchetto" : kwNome(pt, z).replace(/, Venezia$/, "");
