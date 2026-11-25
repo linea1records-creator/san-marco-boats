@@ -1584,7 +1584,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.56</p>
+      <p class="sub">clickVenice · versione 3.57</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -4903,8 +4903,8 @@ function kwZona(p){
 }
 // nome del punto per la ricerca di Kiwitaxi (il tragitto si apre già compilato)
 function kwNome(p, z){
-  if (z === "aeroporto") return "Aeroporto di Venezia Marco Polo";
-  if (z === "proma") return "Venezia Piazzale Roma";
+  if (z === "aeroporto") return "Venice Marco Polo Airport";     // nomi come nel database di Kiwitaxi
+  if (z === "proma") return "Venice, Piazzale Roma";
   const n = p && !p.me && p.name && !/^(la mia posizione|posizione gps)/i.test(p.name) ? String(p.name).replace(/^[^\wÀ-ÿ]+/, "").trim() : "";
   if (n) return /venezia|mestre|marghera|treviso|padova|jesolo/i.test(n) ? n : n + ", Venezia";
   if (p.lat > 45.44 && p.lng > 12.43) return "Jesolo";
@@ -4917,8 +4917,11 @@ function kwInfo(from, to){
   const km = hav(from.lat, from.lng, to.lat, to.lng) / 1000 * 1.45;                      // strada ≈ 1,45 × linea d'aria
   const price = Math.max(45, Math.round((40 + 1.7 * km) / 5) * 5);                       // stima "a partire da": aeroporto ≈ 60 €
   const K = CONFIG.KIWITAXI, q = new URLSearchParams({ from: kwNome(from, a), to: kwNome(to, b) });
-  let url = "https://kiwitaxi.com/it/search?" + q.toString();
-  if (K.LINK){ const m = String(K.LINK).match(/[?&]pap=([^&#]+)/); if (m) url += "&pap=" + m[1]; }      // ID partner Kiwitaxi
+  // tratte con la pagina diretta di Kiwitaxi (si apre già il tragitto giusto); le altre passano dalla ricerca
+  const DIRETTE = { "aeroporto>proma": "venice-airport-venice", "proma>aeroporto": "venice-venice-airport" };
+  const dir = DIRETTE[a + ">" + b];
+  let url = dir ? "https://kiwitaxi.com/it/italy/" + dir : "https://kiwitaxi.com/it/search?" + q.toString();
+  if (K.LINK){ const m = String(K.LINK).match(/[?&]pap=([^&#]+)/); if (m) url += (url.includes("?") ? "&" : "?") + "pap=" + m[1]; }      // ID partner Kiwitaxi
   return { terra: a === "terraferma" || b === "terraferma", aer: a === "aeroporto" || b === "aeroporto", price, min: Math.max(15, Math.round(km * 1.6)), url };
 }
 function kwOpen(){
