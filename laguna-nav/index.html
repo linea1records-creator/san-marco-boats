@@ -1588,7 +1588,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.58</p>
+      <p class="sub">clickVenice · versione 3.59</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -4603,12 +4603,12 @@ function drawRoute(){
   const coords = R && R.src !== "aria" ? R.pts.slice(NAV && !NAV.pending ? Math.max(0, NAV.idx || 0) : 0).map(p => [p[1], p[0]]) : [];
   if (NAV && !NAV.pending && R && lastPos && coords.length) coords.unshift([lastPos.lng, lastPos.lat]);
   map.getSource("route").setData({ type: "FeatureCollection", features: coords.length > 1 ? [{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: coords } }] : [] });
-  const st = R && R.walk ? (mapMode === "sat" ? "ws" : "w") : "b";
+  const st = R && R.car ? "c" : R && R.walk ? (mapMode === "sat" ? "ws" : "w") : "b";
   if (st !== routeSt && map.getLayer("route")){ routeSt = st;
-    map.setPaintProperty("route", "line-color", st === "b" ? "#ff6446" : st === "ws" ? "#ffffff" : "#111111");
-    map.setPaintProperty("route", "line-dasharray", st === "b" ? null : [0.1, 1.8]);
-    map.setPaintProperty("route", "line-width", st === "b" ? 8 : 7);
-    if (map.getLayer("route-case")) map.setPaintProperty("route-case", "line-opacity", st === "b" ? 1 : 0); }
+    map.setPaintProperty("route", "line-color", st === "b" ? "#ff6446" : st === "c" ? "#2b2f33" : st === "ws" ? "#ffffff" : "#111111");
+    map.setPaintProperty("route", "line-dasharray", st === "b" || st === "c" ? null : [0.1, 1.8]);
+    map.setPaintProperty("route", "line-width", st === "b" || st === "c" ? 8 : 7);
+    if (map.getLayer("route-case")) map.setPaintProperty("route-case", "line-opacity", st === "b" || st === "c" ? 1 : 0); }
 }
 let routeSt = "b";
 /* ---------- a piedi: calli e ponti da OpenStreetMap (server di routing pedonale), se non risponde linea d'aria ---------- */
@@ -4908,39 +4908,63 @@ function fitFeats(F){
   F.forEach(f => { const c = f.geometry.coordinates; if (f.geometry.type === "Point") b.extend(c); else c.forEach(x => b.extend(x)); });
   setFollow(false); map.fitBounds(b, { padding: { top: 290, bottom: 120, left: 50, right: 50 }, duration: 700, bearing: 0, pitch: 0, maxZoom: 17 });
 }
-/* Kiwitaxi: taxi in auto quando si va da Piazzale Roma alla terraferma (o all'aeroporto) e viceversa */
-const KW_PROMA = { lat: 45.4384, lng: 12.3185 };
+/* Kiwitaxi: taxi in auto su ogni tragitto che tocca la terraferma o l'aeroporto (non dentro Venezia).
+   Se l'altro capo è a Venezia, l'auto arriva a Piazzale Roma o al Tronchetto, quello più vicino al punto di Venezia. */
+const KW_PROMA = { lat: 45.4384, lng: 12.3185, name: "Piazzale Roma" }, KW_TRONCH = { lat: 45.4408, lng: 12.3060, name: "Tronchetto" };
 function kwZona(p){
   if (!p || typeof p.lat !== "number") return "";
-  if (hav(p.lat, p.lng, KW_PROMA.lat, KW_PROMA.lng) < 650) return "proma";          // Piazzale Roma (con la stazione e il Tronchetto vicini)
+  if (hav(p.lat, p.lng, KW_PROMA.lat, KW_PROMA.lng) < 300) return "proma";
+  if (hav(p.lat, p.lng, KW_TRONCH.lat, KW_TRONCH.lng) < 450) return "tronchetto";
   if (p.lat > 45.488 && p.lng > 12.31 && p.lng < 12.385) return "aeroporto";        // Marco Polo e Tessera
   if (p.lng < 12.296 && p.lat > 45.30) return "terraferma";                          // Mestre, Marghera, Campalto, entroterra
   if (p.lat > 45.44 && p.lng > 12.43) return "terraferma";                           // Cavallino-Treporti, Jesolo
   if (p.lat > 45.52 || p.lng < 12.2) return "terraferma";                            // più lontano: Treviso, Padova…
-  return "";
+  return "";                                                                          // Venezia e isole
 }
 // nome del punto per la ricerca di Kiwitaxi (il tragitto si apre già compilato)
 function kwNome(p, z){
   if (z === "aeroporto") return "Venice Marco Polo Airport";     // nomi come nel database di Kiwitaxi
   if (z === "proma") return "Venice, Piazzale Roma";
+  if (z === "tronchetto") return "Venice, Tronchetto";
   const n = p && !p.me && p.name && !/^(la mia posizione|posizione gps)/i.test(p.name) ? String(p.name).replace(/^[^\wÀ-ÿ]+/, "").trim() : "";
   if (n) return /venezia|mestre|marghera|treviso|padova|jesolo/i.test(n) ? n : n + ", Venezia";
   if (p.lat > 45.44 && p.lng > 12.43) return "Jesolo";
   return "Mestre";
 }
 function kwInfo(from, to){
-  const a = kwZona(from), b = kwZona(to);
-  const ok = (a === "proma" && (b === "terraferma" || b === "aeroporto")) || (b === "proma" && (a === "terraferma" || a === "aeroporto"));
-  if (!ok) return null;
-  const km = hav(from.lat, from.lng, to.lat, to.lng) / 1000 * 1.45;                      // strada ≈ 1,45 × linea d'aria
+  const za = kwZona(from), zb = kwZona(to), car = z => z === "terraferma" || z === "aeroporto";
+  if (!car(za) && !car(zb)) return null;                                                // tutto dentro Venezia: niente auto
+  // l'auto si ferma a Piazzale Roma o al Tronchetto: quello più vicino al punto di Venezia
+  const hub = v => hav(v.lat, v.lng, KW_PROMA.lat, KW_PROMA.lng) <= hav(v.lat, v.lng, KW_TRONCH.lat, KW_TRONCH.lng) ? KW_PROMA : KW_TRONCH;
+  let cf = from, ct = to, a = za, b = zb, resto = null;
+  if (!car(za) && za !== "proma" && za !== "tronchetto"){ cf = hub(from); a = cf === KW_PROMA ? "proma" : "tronchetto"; resto = { da: from, a: cf, prima: true }; }
+  if (!car(zb) && zb !== "proma" && zb !== "tronchetto"){ ct = hub(to); b = ct === KW_PROMA ? "proma" : "tronchetto"; resto = { da: ct, a: to, prima: false }; }
+  const km = hav(cf.lat, cf.lng, ct.lat, ct.lng) / 1000 * 1.45;                          // strada ≈ 1,45 × linea d'aria
   const price = Math.max(45, Math.round((40 + 1.7 * km) / 5) * 5);                       // stima "a partire da": aeroporto ≈ 60 €
-  const K = CONFIG.KIWITAXI, q = new URLSearchParams({ from: kwNome(from, a), to: kwNome(to, b) });
-  // tratte con la pagina diretta di Kiwitaxi (si apre già il tragitto giusto); le altre passano dalla ricerca
+  const K = CONFIG.KIWITAXI, q = new URLSearchParams({ from: kwNome(cf, a), to: kwNome(ct, b) });
+  // tratte con la pagina diretta di Kiwitaxi; le altre passano dalla ricerca
   const DIRETTE = { "aeroporto>proma": "venice-airport-venice", "proma>aeroporto": "venice-venice-airport" };
   const dir = DIRETTE[a + ">" + b];
   let url = dir ? "https://kiwitaxi.com/it/italy/" + dir : "https://kiwitaxi.com/it/search?" + q.toString();
   if (K.LINK){ const m = String(K.LINK).match(/[?&]pap=([^&#]+)/); if (m) url += (url.includes("?") ? "&" : "?") + "pap=" + m[1]; }      // ID partner Kiwitaxi
-  return { terra: a === "terraferma" || b === "terraferma", aer: a === "aeroporto" || b === "aeroporto", price, min: Math.max(15, Math.round(km * 1.6)), url };
+  const restoMin = resto ? Math.max(1, Math.round(hav(resto.da.lat, resto.da.lng, resto.a.lat, resto.a.lng) * 1.4 / 80)) : 0;   // a piedi, ~80 m al minuto
+  const hubN = resto ? (resto.prima ? cf : ct).name : "";
+  return { terra: za === "terraferma" || zb === "terraferma", aer: za === "aeroporto" || zb === "aeroporto", price, min: Math.max(15, Math.round(km * 1.6)), url,
+    cf, ct, hub: hubN, resto, restoMin };
+}
+// il tragitto dell'auto sulla mappa (strade vere da OpenStreetMap; se non risponde, linea dritta)
+async function kwRoute(seq){
+  const kw = PLAN && PLAN.kw; if (!kw || kw.car) return;
+  let R = null;
+  try{
+    const u = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${kw.cf.lng.toFixed(6)},${kw.cf.lat.toFixed(6)};${kw.ct.lng.toFixed(6)},${kw.ct.lat.toFixed(6)}?overview=full&geometries=geojson`;
+    const j = await fetchT(u, {}, 12000).then(r => r.json()), rt = j && j.routes && j.routes[0];
+    if (rt && rt.geometry && rt.geometry.coordinates.length > 1) R = { pts: rt.geometry.coordinates.map(c => [c[1], c[0]]), len: rt.distance, car: true, src: "osrm", sec: rt.duration };
+  }catch(e){}
+  if (!R) R = { pts: [[kw.cf.lat, kw.cf.lng], [kw.ct.lat, kw.ct.lng]], len: hav(kw.cf.lat, kw.cf.lng, kw.ct.lat, kw.ct.lng) * 1.45, car: true, src: "dritta" };
+  if (!PLAN || seq !== planSeq || PLAN.kw !== kw) return;
+  kw.car = R; if (R.sec) kw.min = Math.max(5, Math.round(R.sec / 60));
+  if (PLAN.mode === "taxi" && PLAN.txKind === "auto") paintTravel(true);
 }
 const kwOggi = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
 const kwPax = () => store.get("ln_kw_pax", 2);
@@ -4981,14 +5005,15 @@ function paintTravel(fit){
         const carIc = '<path d="M4 16.5V12l2-5h12l2 5v4.5z"/><path d="M4 12h16M7.5 19.5v-3M16.5 19.5v-3"/><circle cx="7.5" cy="14.3" r=".8"/><circle cx="16.5" cy="14.3" r=".8"/>';
         more.innerHTML = `<div class="txopts">
           ${kw.terra ? "" : `<button class="txo${auto ? "" : " on"}" data-txk="barca"><svg viewBox="0 0 24 24">${boatIc}</svg><span><b>Taxi acqueo</b><small>Circa ${t.min} min · tassisti convenzionati</small></span><b class="pz">${t.lo}–${t.hi} €</b></button>`}
-          <button class="txo${auto ? " on" : ""}" data-txk="auto"><svg viewBox="0 0 24 24">${carIc}</svg><span><b>Taxi in auto${K.SCONTO ? `<em>-${esc(K.SCONTO.replace(/^-/, ""))}</em>` : ""}</b><small>Kiwitaxi · circa ${kw.min} min · prezzo fisso</small></span><b class="pz">da ${kwPrezzo(kw)} €</b></button>
+          <button class="txo${auto ? " on" : ""}" data-txk="auto"><svg viewBox="0 0 24 24">${carIc}</svg><span><b>Taxi in auto${K.SCONTO ? `<em>-${esc(K.SCONTO.replace(/^-/, ""))}</em>` : ""}</b><small>Kiwitaxi${kw.hub ? (kw.resto.prima ? " da " : " fino a ") + kw.hub : ""} · circa ${kw.min} min · prezzo fisso</small></span><b class="pz">da ${kwPrezzo(kw)} €</b></button>
         </div>${auto ? `<div class="kwrow"><span>Passeggeri</span><button data-kwp="-1" aria-label="Meno">−</button><b>${kwPax()}</b><button data-kwp="1" aria-label="Più">+</button>
           <input type="date" id="kwDay" min="${kwOggi()}" value="${esc(kwDay())}"></div>` : ""}<p class="trnote" style="margin:0">${auto ? "Prezzo indicativo: quello esatto lo vedi su Kiwitaxi." : "Prezzo indicativo per 2 persone. La richiesta arriva a tutti i tassisti convenzionati: il primo che accetta prende la corsa."}</p>`;
         more.classList.remove("hidden");
         more.querySelectorAll("[data-txk]").forEach(b => b.onclick = () => { PLAN.txKind = b.dataset.txk; store.set("ln_txkind", PLAN.txKind); haptic(); paintTravel(false); });
         more.querySelectorAll("[data-kwp]").forEach(b => b.onclick = () => { store.set("ln_kw_pax", Math.min(16, Math.max(1, kwPax() + +b.dataset.kwp))); haptic(); paintTravel(false); });
         if ($("#kwDay")) $("#kwDay").onchange = e => { PLAN.kwDay = e.target.value || kwOggi(); };
-        if (auto){ PLAN.R = null; info.textContent = `Da ${kwPrezzo(kw)} € · circa ${kw.min} min in auto · ${kwPax()} ${kwPax() === 1 ? "persona" : "persone"}`; go.textContent = "🚗 Prenota su Kiwitaxi"; }
+        if (auto){ PLAN.R = kw.car || null; if (!kw.car) kwRoute(planSeq); else if (fit) try{ fitPlan(kw.car); }catch(e){}
+          info.textContent = `Da ${kwPrezzo(kw)} € · circa ${kw.min} min in auto${kw.hub ? (kw.resto.prima ? ` · da ${kw.hub}` : ` fino a ${kw.hub}, poi ${kw.restoMin} min a piedi`) : ""}`; go.textContent = "🚗 Prenota su Kiwitaxi"; }
         else { info.textContent = `${t.lo}–${t.hi} € · circa ${t.min} min`; go.textContent = "🚕 Chiama un taxi acqueo"; }
       }
     }
@@ -8784,7 +8809,7 @@ async function shopOpen(tab, luogo){
   if (!PROFILE || !PROFILE.clickname) return toast("Per il negozio serve l'account.");
   if (tab) SHOP.tab = tab; SHOP.luogo = luogo || null;
   const LT = SHOP.luogo && LUOGO_T[SHOP.luogo];
-  openSheet(`<h3>${LT ? LT.e + " " + esc(LT.t) : "🛍️ Negozio"}</h3>${LT && LUOGO_QUI && LUOGO_QUI.k === SHOP.luogo && !LT.fix ? `<p class="muted" style="margin-top:-6px">${esc(LUOGO_QUI.n)}</p>` : ""}
+  openSheet(`<h3>${LT ? LT.e + " " + esc(LT.t) : "🛍️ Negozio"}</h3>${LT && LUOGO_QUI && LUOGO_QUI.k === SHOP.luogo && !LT.fix && !LT.npc ? `<p class="muted" style="margin-top:-6px">${esc(LUOGO_QUI.n)}</p>` : ""}
     <div class="shSaldo">${SCHEO_SVG}<b id="shSaldo">${SCHEI.saldo == null ? "–" : SCHEI.saldo}</b> schei</div>
     <div class="mkcats dg${LT ? " hidden" : ""}" id="shTabs"><button data-sht="vestito">👕 Vestiti</button><button data-sht="mascotte">🐾 Mascotte</button></div>
     <div id="shAdm"></div><div id="shGrid" class="shgrid"><p class="muted">Carico…</p></div>
@@ -9183,12 +9208,29 @@ async function extraDel(id){
 const LUOGO_T = {
   barbiere: { e: "💈", n: "dal barbiere", t: "Barbiere", r: 30 }, cantiere: { e: "⚓", n: "nel cantiere", t: "Cantiere", r: 45 },
   tabacchi: { e: "🚬", n: "in tabaccheria", t: "Tabaccheria", r: 30 },
-  santamargherita: { e: "🧥", n: "dal Cappuccio", t: "Il Cappuccio · Campo Santa Margherita", r: 80, fix: { lat: 45.43429, lng: 12.32372, nome: "Il Cappuccio" } },
-  marghera: { e: "🛴", n: "da Monopattino", t: "Monopattino · Marghera", r: 1400, fix: { lat: 45.47370, lng: 12.22355, nome: "Monopattino" } },
+  santamargherita: { e: "🧥", n: "dal Cappuccio", t: "Il Cappuccio", r: 35, npc: "Il Cappuccio" },     // nascosto da qualche parte a Venezia
+  marghera: { e: "🛴", n: "da Monopattino", t: "Monopattino", r: 60, npc: "Monopattino" },              // nascosto da qualche parte a Marghera
   stadio: { e: "⚽", n: "allo stadio", t: "Stadio Penzo", r: 180, fix: { lat: 45.42771, lng: 12.36402, nome: "Stadio Penzo" } },
   squero: { e: "🛶", n: "nello squero", t: "Squero di San Trovaso", r: 45, fix: { lat: 45.43065, lng: 12.32655, nome: "Squero di San Trovaso" } }
 };
 let LUOGHI = store.get("ln_luoghi", null), LUOGO_QUI = null;
+/* Personaggi nascosti: niente nome né figura sulla mappa. Ogni giorno si spostano in un angolo tranquillo
+   (uguale per tutti) a farsi una canna: li trovi solo passandoci vicino a piedi, con il GPS vero. */
+const NPC_SPOTS = {
+  santamargherita: [[45.43429, 12.32372], [45.44520, 12.32640], [45.44372, 12.33140], [45.44520, 12.33620], [45.43995, 12.32530], [45.43760, 12.32080],
+    [45.42890, 12.33150], [45.43440, 12.34600], [45.42730, 12.36300], [45.43730, 12.32940], [45.44430, 12.32900]],
+  marghera: [[45.47370, 12.22355], [45.47600, 12.22050], [45.47150, 12.22650], [45.47480, 12.22900], [45.47050, 12.21900]]
+};
+const NPC_LOOK = {
+  santamargherita: { sex: "m", shirt: "#3a3f44", legs: "#1d2228", shoe: "#f2f2f2", hair: "#1a1a1a", hat: "berretto" },
+  marghera: { sex: "m", shirt: "#2e7d32", legs: "#3b3b3b", shoe: "#111111", hair: "#3b2416", hs: "hs_ricci", eyes: "occhiali" }
+};
+const NPC_VEDI = 90;   // da quanti metri si vede la figura mentre passeggi
+function npcSpot(k){
+  const L = NPC_SPOTS[k], d = new Date(), g = Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5));
+  let h = Math.imul(g, 2654435761) + (k === "marghera" ? 97 : 13); h = (h ^ (h >>> 15)) >>> 0;
+  const [lat, lng] = L[h % L.length]; return { lat, lng, nome: LUOGO_T[k].npc };
+}
 // barbieri e tabaccherie dalla mappa (OpenStreetMap), i cantieri dal nostro elenco; tenuti 7 giorni
 async function luoghiLoad(){
   if (LUOGHI && Date.now() - (LUOGHI.t || 0) < 7 * 864e5) return;
@@ -9206,9 +9248,10 @@ async function luoghiLoad(){
 setTimeout(luoghiLoad, 6000);
 // dove sono davvero adesso? (solo il GPS vero, il personaggio del gioco non conta)
 function luogoTick(p){
-  if (!p || !PROFILE || !(p.acc <= 60)) return luogoShow(null);
+  if (!p || !PROFILE || !(p.acc <= 60)){ npcNear(null); return luogoShow(null); }
   let best = null;
-  Object.entries(LUOGO_T).forEach(([k, T]) => { if (!T.fix) return; const d = dist(p, T.fix); if (d <= T.r && (!best || d < best.d)) best = { k, n: T.fix.nome, d }; });
+  Object.entries(LUOGO_T).forEach(([k, T]) => { const F = T.npc ? npcSpot(k) : T.fix; if (!F) return; const d = dist(p, F); if (d <= T.r && (!best || d < best.d)) best = { k, n: F.nome, d }; });
+  npcNear(p);
   if (!best && LUOGHI) LUOGHI.p.forEach(x => { const d = dist(p, x); if (d <= LUOGO_T[x.k].r && (!best || d < best.d)) best = { k: x.k, n: x.n, d }; });
   if (!best) (EXTRA || []).forEach(x => { const T = EXTRA_T[x.t]; if (!T || !T.l) return; const d = dist(p, x); if (d <= LUOGO_T[T.l].r && (!best || d < best.d)) best = { k: T.l, n: x.n, d }; });
   luogoShow(best);
@@ -9216,24 +9259,25 @@ function luogoTick(p){
 function luogoShow(b){
   LUOGO_QUI = b; const el = $("#luogoBtn"); if (!el) return;
   el.classList.toggle("hidden", !b); if (!b) return; const T = LUOGO_T[b.k];
-  el.innerHTML = `<span>${T.e}</span><b>Entra ${T.n}</b><small>${esc(b.n)}</small>`;
+  el.innerHTML = T.npc ? `<span>🫣</span><b>Qualcuno ti fa cenno</b><small>Avvicinati</small>` : `<span>${T.e}</span><b>Entra ${T.n}</b><small>${esc(b.n)}</small>`;
 }
 $("#luogoBtn").onclick = () => { if (LUOGO_QUI){ haptic(); shopOpen(null, LUOGO_QUI.k); } };
-// personaggi inventati, sempre fermi al loro posto
+// la figura compare solo a chi passa lì vicino (senza nome sopra)
+function npcNear(p){
+  const vis = p ? Object.keys(NPC_SPOTS).filter(k => !isHidden("npc", "n=" + LUOGO_T[k].npc) && dist(p, npcSpot(k)) <= NPC_VEDI) : [];
+  const key = vis.join(",") + "|" + new Date().getDate();
+  if (key !== npcNear.key){ npcNear.key = key; npcNear.vis = vis; npcDraw(); }
+}
 function npcDraw(){
   if (!map || !map.getStyle()) return setTimeout(npcDraw, 3000);
   if (!map.getSource("npc")){ map.addSource("npc", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
     map.addLayer({ id: "npc", type: "fill-extrusion", source: "npc", minzoom: 15, paint: { "fill-extrusion-color": ["get", "c"], "fill-extrusion-base": ["get", "b"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-opacity": 1 } }); }
   const out = [];
-  const n0 = out.length; if (!isHidden("npc", "n=Il Cappuccio")) manFeatures(45.43429, 12.32372, 200, { sex: "m", shirt: "#3a3f44", legs: "#1d2228", shoe: "#f2f2f2", hair: "#1a1a1a", hat: "berretto" }, out, 0, false);
-  for (let i = n0; i < out.length; i++) out[i].properties.n = "Il Cappuccio"; const n1 = out.length;
-  if (!isHidden("npc", "n=Monopattino")) manFeatures(45.47370, 12.22355, 140, { sex: "m", shirt: "#2e7d32", legs: "#3b3b3b", shoe: "#111111", hair: "#3b2416", hs: "hs_ricci", eyes: "occhiali" }, out, 0, false);
-  for (let i = n1; i < out.length; i++) out[i].properties.n = "Monopattino";
+  (npcNear.vis || []).forEach(k => { const S = npcSpot(k), n0 = out.length;
+    manFeatures(S.lat, S.lng, k === "marghera" ? 140 : 200, Object.assign({ smk: Date.now() + 36e5, smkK: "c" }, NPC_LOOK[k]), out, 0, false);   // con la canna in bocca
+    for (let i = n0; i < out.length; i++) out[i].properties.n = S.nome; });
   map.getSource("npc").setData({ type: "FeatureCollection", features: out });
-  (npcDraw.mk || []).forEach(m => m.remove()); npcDraw.mk = null;
-  if (!npcDraw.mk){ npcDraw.mk = [["Il Cappuccio", 45.43429, 12.32372], ["Monopattino", 45.47370, 12.22355]].filter(([n]) => !isHidden("npc", "n=" + n)).map(([n, la, lo]) => { const el = document.createElement("div"); el.className = "npcTag"; el.textContent = n;
-    el.onclick = ev => { if (!HIDEMODE) return; ev.stopPropagation(); hideAsk("npc", "n=" + n, n); };
-    return new maplibregl.Marker({ element: el, anchor: "bottom", offset: [0, -38] }).setLngLat([lo, la]).addTo(map); }); }
+  (npcDraw.mk || []).forEach(m => m.remove()); npcDraw.mk = null;   // niente più nomi sulla mappa
 }
 setTimeout(npcDraw, 4000);
 
