@@ -595,8 +595,11 @@
   .aud .adel{width:34px;height:34px;border:0;background:none;cursor:pointer;padding:6px} .aud .adel svg{width:20px;height:20px;fill:none;stroke:#c8102e;stroke-width:1.6}
   .auprog{height:6px;border-radius:3px;background:rgba(127,127,127,.25);margin-top:10px;overflow:hidden} .auprog i{display:block;height:100%;width:0;background:var(--c-ship);transition:width .2s}
   .audbtn{width:100%;margin:-2px 0 10px}
-  #pk2{position:fixed;inset:0;z-index:6100;background:#fff;animation:obIn .25s ease}
-  #pk2Map{position:absolute;inset:0}
+  #pk2{position:fixed;inset:0;z-index:4500;pointer-events:none}
+  #pk2 .pk2Top, #pk2 .pk2Bot{pointer-events:auto}
+  body.picking #v-map > :not(#map):not(#modeHint), body.picking #dock, body.picking #hud, body.picking #tesBtn, body.picking #luogoBtn{display:none!important}
+  body.picking .maplibregl-marker:not(.pk2Pin){display:none!important}
+  body.picking #modeHint{top:calc(12px + var(--safe-t));bottom:auto;right:10px}
   .pk2Top{position:absolute;left:10px;right:10px;top:calc(10px + var(--safe-t));display:flex;align-items:center;gap:10px;background:#fff;color:#111;border-radius:14px;padding:10px 12px;box-shadow:0 3px 12px rgba(0,0,0,.2);font-weight:800;font-size:16px}
   .pk2Top button{width:34px;height:34px;border-radius:50%;border:0;background:#f1f2f4;font-size:16px;color:#111}
   .pk2Bot{position:absolute;left:10px;right:10px;bottom:calc(12px + var(--safe-b));background:#fff;color:#111;border-radius:16px;padding:12px;box-shadow:0 3px 14px rgba(0,0,0,.25)}
@@ -1761,7 +1764,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.72</p>
+      <p class="sub">clickVenice · versione 3.73</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -2382,53 +2385,73 @@ function goLavora(cat){
 }
 
 /* ---------- prenotazione: trasporti (stesso percorso di Spedisci) ---------- */
-/* ---------- consegna veloce a piedi: partenza e arrivo con due tocchi sulla mappa ----------
+/* ---------- scegliere punti sulla mappa di Naviga (la stessa mappa di clickVenice) ----------
+   mentre scegli si nascondono pulsanti, segnaposti e livelli: resta solo la mappa */
+let PICK_PREV = null;
+function pickHideLayers(on){
+  if (!map) return;
+  try{
+    if (on){ pickHideLayers.saved = [];
+      map.getStyle().layers.forEach(l => { if (l.source && l.source !== "openmaptiles" && l.id !== "pk2l" && l.type !== "raster"){
+        pickHideLayers.saved.push([l.id, map.getLayoutProperty(l.id, "visibility") || "visible"]); map.setLayoutProperty(l.id, "visibility", "none"); } }); }
+    else { (pickHideLayers.saved || []).forEach(([id, v]) => { try{ map.setLayoutProperty(id, "visibility", v); }catch(e){} }); pickHideLayers.saved = null; }
+  }catch(e){}
+}
+function mapPickStart(){
+  PICK_PREV = VIEWS.find(x => !$("#v-" + x).classList.contains("hidden")) || "map";
+  if (PICK_PREV !== "map") showView("map");
+  document.body.classList.add("picking"); pickHideLayers(true);
+}
+function mapPickEnd(){
+  document.body.classList.remove("picking"); pickHideLayers(false);
+  if (PICK_PREV && PICK_PREV !== "map") showView(PICK_PREV); PICK_PREV = null;
+}
+/* consegna veloce a piedi: partenza e arrivo con due tocchi sulla mappa di Naviga;
    al secondo tocco una linea tratteggiata ad arco (sale e poi scende) unisce ritiro e consegna */
 function pick2Map(onDone){
+  if (typeof map === "undefined" || !map || !window.maplibregl) return onDone({});   // mappa non pronta: domande scritte
   let o = document.getElementById("pk2"); if (o) o.remove();
   o = document.createElement("div"); o.id = "pk2";
-  o.innerHTML = `<div id="pk2Map"></div>
-    <div class="pk2Top"><button id="pk2X" aria-label="Annulla">✕</button><span id="pk2T">Tocca dove ritiriamo</span></div>
+  o.innerHTML = `<div class="pk2Top"><button id="pk2X" aria-label="Annulla">✕</button><span id="pk2T">Tocca dove ritiriamo</span></div>
     <div class="pk2Bot"><div class="pk2Row"><i class="a">A</i><span id="pk2A">Ritiro: tocca la mappa</span></div><div class="pk2Row"><i class="b">B</i><span id="pk2B">Consegna</span></div>
       <div class="pk2Btns"><button class="btn ghost" id="pk2R">Rifai</button><button class="btn" id="pk2Ok" disabled style="opacity:.4">Avanti</button></div></div>`;
   document.body.appendChild(o);
-  const ctr = (typeof map !== "undefined" && map) ? map.getCenter() : { lng: 12.3326, lat: 45.4380 };
-  let M = null, A = null, B = null, mA = null, mB = null;
+  mapPickStart();
+  let A = null, B = null, mA = null, mB = null;
   const nome = ll => { const cv = typeof civicoNear === "function" ? civicoNear(ll.lat, ll.lng) : null;
     return cv && cv.d < 80 ? cv.k.replace(/\b\w/g, l => l.toUpperCase()) + " " + cv.h : "Punto sulla mappa"; };
-  const pin = (ll, t) => { const el = document.createElement("div"); el.className = "pk2Pin " + t; el.textContent = t.toUpperCase(); return new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([ll.lng, ll.lat]).addTo(M); };
+  const pin = (ll, t) => { const el = document.createElement("div"); el.className = "pk2Pin " + t; el.textContent = t.toUpperCase(); return new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([ll.lng, ll.lat]).addTo(map); };
+  if (!map.getSource("pk2l")){ map.addSource("pk2l", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addLayer({ id: "pk2l", type: "line", source: "pk2l", layout: { "line-cap": "round" }, paint: { "line-color": "#111", "line-width": 3.5, "line-dasharray": [1.2, 1.6] } }); }
+  try{ map.setLayoutProperty("pk2l", "visibility", "visible"); map.moveLayer("pk2l"); }catch(e){}
   // arco: curva di Bézier con il punto di controllo sopra la metà del tratto (verso l'alto dello schermo)
   const arco = () => { if (!A || !B) return [];
-    const pa = M.project([A.lng, A.lat]), pb = M.project([B.lng, B.lat]), d = Math.hypot(pb.x - pa.x, pb.y - pa.y);
+    const pa = map.project([A.lng, A.lat]), pb = map.project([B.lng, B.lat]), d = Math.hypot(pb.x - pa.x, pb.y - pa.y);
     const c = { x: (pa.x + pb.x) / 2, y: Math.min(pa.y, pb.y) - Math.max(40, d * 0.45) }, L = [];
     for (let i = 0; i <= 48; i++){ const t = i / 48, x = (1 - t) * (1 - t) * pa.x + 2 * (1 - t) * t * c.x + t * t * pb.x, y = (1 - t) * (1 - t) * pa.y + 2 * (1 - t) * t * c.y + t * t * pb.y;
-      const ll = M.unproject([x, y]); L.push([ll.lng, ll.lat]); }
+      const ll = map.unproject([x, y]); L.push([ll.lng, ll.lat]); }
     return L; };
-  const draw = () => { if (!M || !M.getSource("pk2l")) return; const L = arco();
-    M.getSource("pk2l").setData({ type: "FeatureCollection", features: L.length ? [{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: L } }] : [] }); };
-  const paint = () => {
+  const draw = () => { const s = map.getSource("pk2l"); if (!s) return; const L = arco();
+    s.setData({ type: "FeatureCollection", features: L.length ? [{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: L } }] : [] }); };
+  const paint = () => { if (!$("#pk2T")) return;
     $("#pk2T").textContent = !A ? "Tocca dove ritiriamo" : !B ? "Ora tocca dove consegniamo" : "Tutto pronto: tocca Avanti";
     $("#pk2A").textContent = A ? "Ritiro: " + A.name : "Ritiro: tocca la mappa"; $("#pk2B").textContent = B ? "Consegna: " + B.name : "Consegna";
     const ok = $("#pk2Ok"); ok.disabled = !(A && B); ok.style.opacity = A && B ? "" : ".4"; draw(); };
   const reset = () => { A = B = null; if (mA) mA.remove(); if (mB) mB.remove(); mA = mB = null; paint(); };
-  try{
-    M = new maplibregl.Map({ container: "pk2Map", style: STYLE_VECTOR, center: [ctr.lng, ctr.lat], zoom: 15.3, attributionControl: false, pitchWithRotate: false, dragRotate: false, touchPitch: false });
-    M.on("load", () => { M.addSource("pk2l", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-      M.addLayer({ id: "pk2l", type: "line", source: "pk2l", layout: { "line-cap": "round" }, paint: { "line-color": "#111", "line-width": 3.5, "line-dasharray": [1.2, 1.6] } }); draw(); });
-    M.on("styledata", () => { try{ M.getStyle().layers.forEach(l => { if (l.type === "fill-extrusion") M.setLayoutProperty(l.id, "visibility", "none");
-      else if (/water/i.test(l.id) && (l.type === "fill" || l.type === "line")) M.setPaintProperty(l.id, l.type + "-color", (typeof WATER_COL !== "undefined" && WATER_COL) || WATER_DEFAULT); }); }catch(e){} });
-    M.on("move", draw);
-    M.on("click", e => { const ll = { lat: +e.lngLat.lat.toFixed(6), lng: +e.lngLat.lng.toFixed(6) }; ll.name = nome(ll); haptic();
-      if (!A){ A = ll; mA = pin(A, "a"); }
-      else if (!B){ B = ll; mB = pin(B, "b");
-        try{ const b = new maplibregl.LngLatBounds([A.lng, A.lat], [A.lng, A.lat]).extend([B.lng, B.lat]); M.fitBounds(b, { padding: { top: 140, bottom: 220, left: 50, right: 50 }, maxZoom: 17, duration: 500 }); }catch(e){} }
-      else { B = ll; mB.setLngLat([B.lng, B.lat]); }   // terzo tocco: sposta la consegna
-      paint(); });
-  }catch(e){ o.remove(); return onDone({}); }   // mappa non disponibile: si torna alle domande scritte
+  addMode = "pick2"; map.on("move", draw);
+  window._pk2Click = e => { const ll = { lat: +e.lat.toFixed(6), lng: +e.lng.toFixed(6) }; ll.name = nome(ll); haptic();
+    if (!A){ A = ll; mA = pin(A, "a"); }
+    else if (!B){ B = ll; mB = pin(B, "b");
+      try{ const b = new maplibregl.LngLatBounds([A.lng, A.lat], [A.lng, A.lat]).extend([B.lng, B.lat]); map.fitBounds(b, { padding: { top: 150, bottom: 230, left: 50, right: 50 }, maxZoom: 17.5, duration: 500 }); }catch(err){} }
+    else { B = ll; mB.setLngLat([B.lng, B.lat]); }   // terzo tocco: sposta la consegna
+    paint(); };
+  const fine = r => { addMode = null; window._pk2Click = null; map.off("move", draw); if (mA) mA.remove(); if (mB) mB.remove();
+    try{ map.getSource("pk2l").setData({ type: "FeatureCollection", features: [] }); }catch(e){}
+    o.remove(); mapPickEnd(); onDone(r); };
   try{ loadCivici().then(() => { if (A) A.name = nome(A); if (B) B.name = nome(B); paint(); }); }catch(e){}
-  $("#pk2X").onclick = () => { try{ M.remove(); }catch(e){} o.remove(); onDone(null); };
+  $("#pk2X").onclick = () => fine(null);
   $("#pk2R").onclick = reset;
-  $("#pk2Ok").onclick = () => { if (!A || !B) return; try{ M.remove(); }catch(e){} o.remove(); onDone({ ritiro: A, consegna: B }); };
+  $("#pk2Ok").onclick = () => { if (A && B) fine({ ritiro: A, consegna: B }); };
   paint();
 }
 function shipStart(tipo, prev){
@@ -3490,6 +3513,7 @@ function initMap(){
   map.on("zoomend", e => { if (view3d && e.originalEvent && map.getZoom() < 14.5) setFirstPerson(false); });
   map.on("click", e => {
     if (typeof DRAW !== "undefined" && DRAW) return;   // mentre tropss ridisegna un tratto i tocchi servono solo alla matita
+    if (addMode === "pick2"){ if (window._pk2Click) window._pk2Click(e.lngLat); return; }   // scelta di ritiro e consegna di un servizio
     if ($("#sheet") && !$("#sheet").classList.contains("hidden")) return;   // appena dopo il tocco lungo si apre la scheda: il rilascio non conta
     if (HIDEMODE && isTropss()) return hideAtPoint(e);
     if (GM){ const ap = map.project([GM.lng, GM.lat]); if (Math.hypot(e.point.x - ap.x, e.point.y - ap.y) < 60){ haptic(); return zainoOpen(); } }
@@ -10860,8 +10884,8 @@ function wzPaint(){
     if (s.type !== "place" && !(chips || []).length) setTimeout(() => wzIn.focus(), 150); }
   if (s.type === "place"){
     if ($("#wzHere")) $("#wzHere").onclick = () => { if (!lastPos){ if (watchId === null){ askCompass(); startGps(); } return toast("Aspetto il GPS: riprova tra un attimo."); } wzSet({ name: s.hereName || "Dove ero io", lat: lastPos.lat, lng: lastPos.lng }); };
-    $("#wzMap").onclick = () => { const keep = WZ; document.getElementById("wz").classList.add("hidden"); addMode = "wzpick"; const h = $("#modeHint"); h.textContent = "Tocca la mappa nel punto giusto"; h.classList.remove("hidden");
-      window._wzPick = ll => { WZ = keep; document.getElementById("wz").classList.remove("hidden"); wzSet({ name: (wzIn && wzIn.value.trim()) || "Punto sulla mappa", lat: ll.lat, lng: ll.lng }); };
+    $("#wzMap").onclick = () => { const keep = WZ; document.getElementById("wz").classList.add("hidden"); mapPickStart(); addMode = "wzpick"; const h = $("#modeHint"); h.textContent = "Tocca la mappa nel punto giusto"; h.classList.remove("hidden");
+      window._wzPick = ll => { mapPickEnd(); WZ = keep; document.getElementById("wz").classList.remove("hidden"); wzSet({ name: (wzIn && wzIn.value.trim()) || "Punto sulla mappa", lat: ll.lat, lng: ll.lng }); };
       if (typeof setMode === "function" && $("#v-map").classList.contains("hidden")) showView("map"); };
   }
   if (s.type === "photo"){ const pick = async f => { if (!f) return; try{ const p = await shrinkPhoto(f); wzSet(p, false); wzPaint(); }catch(e){ toast("Questa foto non si apre, provane un'altra."); } };
