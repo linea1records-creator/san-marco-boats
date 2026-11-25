@@ -28,8 +28,8 @@
 <script>if(!window.maplibregl){document.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"><\/script>');}</script>
 <style>
   :root{
-    --bg:#082a3e; --panel:#050706; --panel2:#124766; --line:#1f587a;
-    --text:#f7f7f2; --muted:#a3b8c6; --accent:#ff6446;
+    --bg:#ffffff; --panel:#ffffff; --panel2:#f1f2f4; --line:#e3e5e8;
+    --text:#111111; --muted:#6b7078; --accent:#111111;
     --navy:#050706; --coral:#ff6446; --cream:#f7f7f2;
     --warn:#ffc400; --danger:#ff3b30; --ok:#30d158;
     --safe-b: env(safe-area-inset-bottom, 0px);
@@ -149,7 +149,7 @@
   #dPick button{display:flex;flex-direction:column;align-items:center;gap:3px;width:62px;padding:8px 2px;border-radius:14px;color:#222;font-size:10.5px;font-weight:700;line-height:1.1}
   #dPick button span{font-size:24px}
   #dPick button.on{background:#e8efff;color:#050706}
-  body.food{--accent:#ff6446}
+  body.food{--accent:#111}
   body.food .sbar{border:3px solid #ff6446}
   body.food #searchBox::before{content:"";display:block;height:14px;margin:0 10px -3px;border-radius:10px 10px 0 0;
     background:repeating-conic-gradient(#ff6446 0 25%,#fff 0 50%) 0 0/14px 14px;box-shadow:0 -1px 6px rgba(0,0,0,.25)}
@@ -159,7 +159,7 @@
   body.food .speed{background:#ff6446}
   body.food .speed .u{color:#ffd9de}
   body.food #results .res b{color:#ff6446}
-  body.food .btn:not(.ghost){background:#ff6446;color:#fff}
+  body.food .btn:not(.ghost){background:#111;color:#fff}
   body.food #v-order .scroll{background:#fff7f2;color:#2b0a0a}
   body.food #v-order h2{color:#ff6446;font-family:Georgia,"Times New Roman",serif;font-size:32px;padding-top:16px;position:relative}
   body.food #v-order h2::before{content:"";position:absolute;left:-18px;right:-18px;top:-18px;height:16px;
@@ -1135,6 +1135,65 @@
   .kwrow input{margin-left:auto;font:inherit;font-size:14px;padding:6px 8px;border:1px solid #ddd;border-radius:10px;background:#fff;color:#111}
   .txo b.pz{font-size:15px;white-space:nowrap} .txo em{font-style:normal;font-weight:800;font-size:11px;background:#111;color:#ffd24a;border-radius:99px;padding:3px 7px;margin-left:6px}
   #rbGo:disabled{opacity:.45}
+  /* ===== tema chiaro (v3.70): pagine bianche con scritte nere, tasti neri con scritta bianca ===== */
+  .btn:not(.ghost):not(.taxiY):not(.pcGo):not(.pcPin):not(.danger){background:#111;color:#fff}
+  .btn.ghost{background:#f1f2f4;color:#111;border:1px solid #e3e5e8}
+  #spPanel .btn, #mkPanel .btn, body.food .btn:not(.ghost){background:#111!important;color:#fff!important}
+  body.food #v-order .seg button.on, #meetModes button.on, #meetFilters button.on, .mkcats button.on, .avsx button.on, #spPanel .gseg button.on, #cbEdit.on{background:#111!important;color:#fff!important;border-color:#111!important}
+  body.food #v-order .qty button, body.food #v-order .btn.ghost{background:#fff;color:#111;border-color:#111}
+  body.food .fab{color:#111;border-color:#111} body.food .fab.on{background:#111;color:#fff}
+  #vcBar .vcnext, #fabMatch{background:#111;color:#fff}
+  .cmyes{background:#111;color:#fff} .cmno{background:#fff;color:#111}
+  .backbar{color:#111}
+  #tabs button.on{color:#111}
+  /* domande una alla volta */
+  #wz{background:#fff;color:#111}
+  .wzbar button{color:#333} .wzbar span{color:#6b7078}
+  .wzprog{background:#e6e8ea} .wzprog i{background:#111}
+  .wzt{color:#4f9fe6} .wzh{color:#5b6068}
+  .wzo{background:#f4f5f6;border-color:#e3e5e8;color:#111} .wzo.on{border-color:#111;background:#fff;box-shadow:inset 0 0 0 1px #111}
+  .wzin input,.wzin textarea{background:#f4f5f6;border-color:#e3e5e8;color:#111} .wzin span{color:#6b7078}
+  .wzchips button{background:#f1f2f4;color:#111} .wzchips button.on{background:#111;color:#fff}
+  .wzskip{color:#6b7078} .wzo.wzwrite{color:#4f9fe6;background:transparent}
+  .wzck{border-color:#9aa0a8} .wzo.on .wzck{background:#111;border-color:#111;box-shadow:inset 0 0 0 3px #fff}
+  .wzph{background-color:#f1f2f4} .wzcol{border-color:#e3e5e8} .wzcol.on{border-color:#fff;box-shadow:0 0 0 3px #111}
+  .avsw button.on{border-color:#fff;box-shadow:0 0 0 2px #111}
+  .boatpick button.on{border-color:#111;background:#fff}
+  .emogrid button{background:#f6f7f8}
+  /* pagine e pannelli che erano neri */
+  .ov, .vcstart{background:#fff;color:#111} .vcstart p,.vcstart li{color:#444}
+  body.mm-ov #v-map::before{background:#fff}
+  .txsum{background:#f4f5f6;color:#111}
+  .chatbox{background:#f6f7f8;color:#111}
+  .chips button{background:#f1f2f4;color:#111} .chips button.on{background:#111;color:#fff}
+  #sonar, #tideC{background:#eef3f7}
+  .discoMk{background:#fff;color:#111}
+  #toggles .dashbtn{background:#fff;color:#111}
+  #dash #dashClose{background:#f1f2f4;color:#111;border-color:#e3e5e8}
+  #dash .tl{color:#6b7078}
+  /* tabellone: fondo bianco, scritte nere */
+  #board{background:#fff;color:#111}
+  #board .bdtop b, #board .bdtop i{color:#111;text-shadow:none} #board .bdtop i{background:#f1f2f4}
+  #board .bdclk{color:#111;text-shadow:none} #board .bdst, #board .bdst2, #board .bdnote{color:#6b7078}
+  #board .bdtabs button{background:#f1f2f4;color:#333;border-color:#e3e5e8} #board .bdtabs button.on{background:#111;color:#fff;border-color:#111}
+  #board .bdhead span{color:#111;background:#f1f2f4} #board .bdhead span:first-child{background:none;color:#6b7078}
+  #board .bdr{text-shadow:none;color:#111}
+  #board .bdr span, #board .bdr .c-tr b, #board .bdr.bus .c-tr, #board .bdr.aereo .c-tr, #board .bdr.porto .c-tr{background:#f4f5f6;color:#111}
+  #board .bdr span::after{display:none}
+  #board .bdr .c-tr em, #board .bdr .c-i span, #board .bdr .c-i{color:#b45309}
+  #board .bdr .c-b.chg{background:#111;color:#fff}
+  #board .bdmsg{color:#111;text-shadow:none}
+  /* icone delle stazioni: fondo bianco, disegno nero */
+  .stz i{background:#fff;border:2px solid #111}
+  .stz svg{stroke:#111}
+  #modeHint{background:#111;color:#fff} #gToast{background:#111;color:#fff}
+  /* schei solo nella modalità videogioco */
+  body:not(.gm) #hudCoin, body:not(.gm) .tesMk, body:not(.gm) #tesBtn{display:none!important}
+  /* negozio e gioca accanto all'avatar nel videogioco */
+  .gmSpot{display:flex;flex-direction:column;align-items:center;cursor:pointer}
+  .gmSpot i{width:46px;height:46px;border-radius:50%;background:#fff;border:2px solid #111;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+  .gmSpot svg{width:26px;height:26px;fill:none;stroke:#111;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .gmSpot span{margin-top:3px;font-size:11px;font-weight:800;color:#111;background:#fff;padding:1px 7px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.3)}
 </style>
 <style id="camBtn">
   #fabGps svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
@@ -1572,9 +1631,9 @@
   <section class="view hidden" id="v-profile">
     <div class="scroll lightv" id="pfScroll">
       <div class="mchead igh"><h2>myClick</h2>
-        <button id="pfBagBtn" class="mcic" title="Zaino" aria-label="Zaino"><svg viewBox="0 0 24 24"><path d="M7 8a5 5 0 0 1 10 0v12H7z"/><path d="M9.5 8V6.5a2.5 2.5 0 0 1 5 0V8M9 13h6"/></svg></button>
-        <button id="pfShopBtn" class="mcic" title="Negozio" aria-label="Negozio"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg></button>
-        <button id="pfGameBtn" class="mcic" title="Gioca" aria-label="Gioca"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.3" cy="8.3" r="1.1" class="f"/><circle cx="15.7" cy="15.7" r="1.1" class="f"/><circle cx="12" cy="12" r="1.1" class="f"/></svg></button>
+        <button id="pfBagBtn" class="mcic" style="display:none" title="Zaino" aria-label="Zaino"><svg viewBox="0 0 24 24"><path d="M7 8a5 5 0 0 1 10 0v12H7z"/><path d="M9.5 8V6.5a2.5 2.5 0 0 1 5 0V8M9 13h6"/></svg></button>
+        <button id="pfShopBtn" class="mcic" style="display:none" title="Negozio" aria-label="Negozio"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg></button>
+        <button id="pfGameBtn" class="mcic" style="display:none" title="Gioca" aria-label="Gioca"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.3" cy="8.3" r="1.1" class="f"/><circle cx="15.7" cy="15.7" r="1.1" class="f"/><circle cx="12" cy="12" r="1.1" class="f"/></svg></button>
         <button id="pfSetBtn" class="mcic" title="Impostazioni del profilo"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.4 7.4 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.4 7.4 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.4 7.4 0 0 0 1.7-1l2.4 1 2-3.4z"/></svg></button>
         <button id="pfRouBtn" class="mcic" style="display:none" title="Roulette video"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.3" cy="8.3" r="1.1" class="f"/><circle cx="15.7" cy="15.7" r="1.1" class="f"/><circle cx="12" cy="12" r="1.1" class="f"/><circle cx="15.7" cy="8.3" r="1.1" class="f"/><circle cx="8.3" cy="15.7" r="1.1" class="f"/></svg></button>
         <button id="pfCmBtn" class="mcic" style="display:none" title="Click Match"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><i id="pfChatBadge" class="hidden"></i></button>
@@ -1677,7 +1736,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.69</p>
+      <p class="sub">clickVenice · versione 3.70</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -3289,6 +3348,8 @@ function initMap(){
     if (typeof DRAW !== "undefined" && DRAW) return;   // mentre tropss ridisegna un tratto i tocchi servono solo alla matita
     if ($("#sheet") && !$("#sheet").classList.contains("hidden")) return;   // appena dopo il tocco lungo si apre la scheda: il rilascio non conta
     if (HIDEMODE && isTropss()) return hideAtPoint(e);
+    if (GM){ const ap = map.project([GM.lng, GM.lat]); if (Math.hypot(e.point.x - ap.x, e.point.y - ap.y) < 60){ haptic(); return zainoOpen(); } }
+    else if (lastPos && map.getZoom() > 15){ const ap = map.project([lastPos.lng, lastPos.lat]); if (Math.hypot(e.point.x - ap.x, e.point.y - ap.y) < 34){ haptic(); return zainoOpen(); } }
     if (GM){ const fr = map.queryRenderedFeatures([[e.point.x - 16, e.point.y - 16], [e.point.x + 16, e.point.y + 16]], { layers: ["frman", "frdot"].filter(l => map.getLayer(l)) })[0];
       if (fr && fr.properties.n) friendMenu(fr.properties.n); return; }
     if (addMode === "luogoadd"){ addMode = null; $("#modeHint").classList.add("hidden"); return extraForm(e.lngLat); }
@@ -3867,7 +3928,7 @@ function hookLongPress(){
   const cancel = () => { clearTimeout(t); t = null; };
   cv.addEventListener("pointerdown", e => { if (e.isPrimary === false || (typeof DRAW !== "undefined" && DRAW) || addMode || GM) return cancel();
     fired = false; p0 = [e.clientX, e.clientY]; cancel();
-    t = setTimeout(() => { t = null; fired = true; const r = map.getCanvas().getBoundingClientRect(); placeCard(map.unproject([p0[0] - r.left, p0[1] - r.top])); }, 2000); });
+    t = setTimeout(() => { t = null; fired = true; const r = map.getCanvas().getBoundingClientRect(); placeCard(map.unproject([p0[0] - r.left, p0[1] - r.top])); }, 1000); });
   cv.addEventListener("pointermove", e => { if (t && p0 && Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) > 10) cancel(); });
   ["pointerup", "pointercancel", "pointerleave"].forEach(ev => cv.addEventListener(ev, cancel));
   cv.addEventListener("touchstart", e => { if (e.touches.length > 1) cancel(); }, { passive: true });
@@ -9924,6 +9985,7 @@ async function smoke(items, kind){
    Barche: la tua (parcheggiata da myClick) e quelle ormeggiate nelle rive per i diportisti, che si possono rubare. */
 let GM = null;
 document.body.appendChild($("#gmUi"));   // fuori dalla barra in basso, che nel gioco sparisce
+document.body.appendChild($("#hud")); document.body.appendChild($("#tesBtn"));   // schei e tesori si vedono nel videogioco
 const GM_K = 0.35;                       // nel gioco omino e barca in scala più realistica (circa 4,5 m)
 const GM_WALK = 40 / 3.6, GM_BOAT = 200 / 3.6, GM_SWIM = 10 / 3.6;   // a nuoto 10 km/h   // velocità massime: a piedi 40 km/h, in barca 200 km/h
 const gmM = lat => ({ y: 111320, x: 111320 * Math.cos(lat * Math.PI / 180) });
@@ -10016,11 +10078,25 @@ function gmStart(){
   rpc("shop_list", {}).then(j => { if (GM && j && Array.isArray(j.miei)) GM.tickets = ((j.miei.find(m => m.id === "biglietto") || {}).qty) | 0; }).catch(() => {});
   if (GM.mode === "ride") GM.mode = "walk";
   gmPaintUi(); toast(SV ? "Riprendi da dove eri rimasto" : "Modalità gioco: levetta sinistra per andare, destra per girare");
+  setTimeout(gmSpots, 1600);   // quando la mappa del posto è pronta
+}
+// Negozio e Gioca: due punti a pochi passi dall'avatar, ovunque parta il gioco
+let GM_SPOTS = [];
+function gmSpots(){
+  GM_SPOTS.forEach(m => m.remove()); GM_SPOTS = []; if (!GM || !map) return;
+  const ok = q => { try{ return gmKnown(q) ? gmWalkable(q) || gmBoatable(q) : true; }catch(e){ return true; } };
+  const P = [
+    { n: "Negozio", ic: '<path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>', go: () => { haptic(); shopOpen(); } },
+    { n: "Gioca", ic: '<rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.3" cy="8.3" r="1.1"/><circle cx="15.7" cy="15.7" r="1.1"/><circle cx="12" cy="12" r="1.1"/>', go: () => { haptic(); try{ gmStop(); }catch(e){} setMode("sport"); } }];
+  P.forEach((x, k) => { let q = gmOff(GM, GM.hdg + (k ? -35 : 35), 9); if (!ok(q)){ const f = gmFind(q, ok, 12); if (f) q = f; }
+    const el = document.createElement("div"); el.className = "gmSpot"; el.innerHTML = `<i><svg viewBox="0 0 24 24">${x.ic}</svg></i><span>${x.n}</span>`;
+    el.onclick = ev => { ev.stopPropagation(); x.go(); };
+    GM_SPOTS.push(new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([q.lng, q.lat]).addTo(map)); });
 }
 function gmSave(){ if (!GM) return; store.set("ln_gm_save", { lat: GM.lat, lng: GM.lng, hdg: GM.hdg, mode: GM.mode, using: GM.using, mine: GM.mine, left: GM.left.slice(-10), stolen: GM.stolen, t: Date.now() }); }
 function gmStop(){
   if (!GM) return; try{ gmBigClose(); }catch(e){} gmSave(); store.set("ln_gm_on", false); try{ map.getSource("gmroute") && map.getSource("gmroute").setData({ type: "FeatureCollection", features: [] }); }catch(e){} rpc("game_stop", {}).catch(() => {}); const c = GM.cam; GM = null;
-  document.body.classList.remove("gm"); $("#gmUi").classList.add("hidden");
+  document.body.classList.remove("gm"); $("#gmUi").classList.add("hidden"); GM_SPOTS.forEach(m => m.remove()); GM_SPOTS = [];
   $("#setPanel").classList.add("hidden"); $("#v-map").insertBefore($("#setPanel"), $("#modes"));
   ["dragPan", "scrollZoom", "boxZoom", "dragRotate", "keyboard", "doubleClickZoom", "touchZoomRotate", "touchPitch"].forEach(k => { try{ map[k].enable(); }catch(e){} });
   try{ map.getSource("gmman").setData({ type: "FeatureCollection", features: [] }); map.getSource("gmboats").setData({ type: "FeatureCollection", features: [] }); }catch(e){}
@@ -10413,7 +10489,7 @@ function cmSelfieIntro(){
   $("#cmMine").textContent = "";
   $("#cmBody").innerHTML = `<div class="cmempty"><div class="big">🤳</div><h3 style="color:#fff">Fatti un selfie</h3>
     <p style="line-height:1.45">In Click Match si entra solo con un selfie scattato adesso, niente foto dalla galleria. Il selfie vale <b>48 ore</b>: poi ne fai uno nuovo.</p>
-    <button class="btn" id="cmCam" style="max-width:260px;background:#ff6446;color:#fff">📸 Scatta il selfie</button></div>`;
+    <button class="btn" id="cmCam" style="max-width:260px;background:#111;color:#fff">📸 Scatta il selfie</button></div>`;
   $("#cmCam").onclick = cmCamera;
 }
 async function cmCamera(){
@@ -10452,7 +10528,7 @@ async function cmVote(like){
     if (r && r.match){
       buzz([100, 60, 100, 60, 200]);
       $("#cmBody").innerHTML = `<div class="cmcard" style="background-image:url('${esc(p.foto)}')"><div class="cmmatch"><div style="font-size:54px">💥</div><h2>È un Click!</h2><p>Tu e @${esc(p.nome)} vi siete cliccati a vicenda.</p>
-        <button class="btn" id="cmChat" style="background:#fff;color:#ff6446">💬 Scrivi a @${esc(p.nome)}</button><button class="btn ghost" id="cmGoOn" style="margin-top:10px">Continua</button></div></div>`;
+        <button class="btn" id="cmChat" style="background:#fff;color:#111;border:1px solid #111">💬 Scrivi a @${esc(p.nome)}</button><button class="btn ghost" id="cmGoOn" style="margin-top:10px">Continua</button></div></div>`;
       $("#cmChat").onclick = () => { meetMode("map"); openChat(p.nome); }; $("#cmGoOn").onclick = cmCard;
     } else cmCard();
   }, 280);
