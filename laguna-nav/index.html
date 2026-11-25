@@ -1070,6 +1070,8 @@
   .txo.on{background:#fff;border-color:#111}
   .txo svg{width:30px;height:30px;flex:0 0 30px;fill:none;stroke:#111;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
   .txo span{flex:1;display:flex;flex-direction:column;gap:1px;font-size:14px} .txo small{color:#666;font-size:12px}
+  .kwPromo{display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%;text-align:left;font:inherit;color:#111;background:#fff6e0;border:1.5px dashed #e0b33a;border-radius:14px;padding:10px 12px;margin:0 0 8px;cursor:pointer}
+  .kwPromo span{font-size:13px;color:#6b5b2a} .kwPromo b{font-size:18px;letter-spacing:.08em} .kwPromo em{font-style:normal;font-size:12px;color:#6b5b2a;margin-left:auto}
   .kwW{min-height:120px;margin:4px 0 0;border-radius:14px;overflow:hidden;background:#fff}
   .kwW > p{padding:14px;color:#666!important}
   .kwW iframe{width:100%!important;max-width:100%!important;border:0}
@@ -1618,7 +1620,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.65</p>
+      <p class="sub">clickVenice · versione 3.66</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -1707,7 +1709,7 @@ const CONFIG = {
     // widget di ricerca Kiwitaxi da Travelpayouts (marker 811379): si apre dentro l'app con il tragitto
     WIDGET: "https://tpembd.com/content?currency=EUR&trs=606360&shmarker=811379&locale=en&country=Italy&powered_by=true&transfer_options_limit=10&transfer_options=MCR&disable_currency_selector=true&hide_form_extras=true&hide_external_links=true&campaign_id=1&promo_id=3879",
     SCONTO: "5%",    // sconto da mostrare ("" = non mostrarlo)
-    CODICE: ""       // eventuale codice sconto da copiare
+    CODICE: "TPO5"   // codice sconto Kiwitaxi (5%): si copia da solo e si mostra nel pannello
   },
   // Spedisci & Traslochi · PREZZI PROVVISORI da sostituire con quelli veri (euro)
   SPEDISCI: {
@@ -5378,14 +5380,19 @@ function kwOpen(){
   openSheet(`<h3>Taxi in auto · Kiwitaxi</h3>
     <div class="shsum"><div class="shrow"><span>Da</span><b>${esc(da)}</b></div><div class="shrow"><span>A</span><b>${esc(a)}</b></div>
       <div class="shrow"><span>Quando</span><b>${esc(g)} · ${pax} ${pax === 1 ? "passeggero" : "passeggeri"}</b></div></div>
+    ${K.CODICE ? `<button class="kwPromo" id="kwPromo"><span>Codice sconto ${esc(K.SCONTO || "")}</span><b>${esc(K.CODICE)}</b><em>Copiato · incollalo al pagamento</em></button>` : ""}
+    <p class="muted" style="font-size:12.5px;margin:0 0 8px">Nel widget scegli ${pax} ${pax === 1 ? "passeggero" : "passeggeri"} e il giorno: Kiwitaxi non li prende da clickVenice.</p>
     <div id="kwW" class="kwW"><p class="muted">Carico le offerte di Kiwitaxi…</p></div>
     <button class="btn ghost" id="kwSito" style="margin-top:10px">Apri il sito di Kiwitaxi</button>
     <button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">Chiudi</button>`);
   $("#kwSito").onclick = () => kwOpenSito();
+  const cp = () => { try{ navigator.clipboard.writeText(K.CODICE); }catch(e){} };
+  if (K.CODICE){ cp(); $("#kwPromo").onclick = () => { cp(); haptic(); toast("Codice " + K.CODICE + " copiato"); }; }
   // il widget accetta "from" e "to" in testo libero (come nel configuratore di Travelpayouts: "piazzale roma", "marco polo")
   const wn = (p, z) => z === "aeroporto" ? "marco polo" : z === "proma" ? "piazzale roma" : z === "tronchetto" ? "tronchetto" : kwNome(p, z).replace(/, Venezia$/, "") ;
-  const q = new URLSearchParams({ from: wn(kw.cf, kwZona(kw.cf)), to: wn(kw.ct, kwZona(kw.ct)) });
-  const sc = document.createElement("script"); sc.async = true; sc.charset = "utf-8"; sc.src = K.WIDGET + "&" + q.toString();
+  const enc = t => encodeURIComponent(t).replace(/'/g, "%27");    // spazi come %20 (con "+" il widget scrive "piazzale+roma")
+  const q = "from=" + enc(wn(kw.cf, kwZona(kw.cf))) + "&to=" + enc(wn(kw.ct, kwZona(kw.ct)));
+  const sc = document.createElement("script"); sc.async = true; sc.charset = "utf-8"; sc.src = K.WIDGET + "&" + q;
   sc.onerror = () => { const w = $("#kwW"); if (w) w.innerHTML = `<p class="muted">Il widget di Kiwitaxi non si carica: usa il tasto qui sotto.</p>`; };
   const box = $("#kwW"); box.appendChild(sc);
   setTimeout(() => { const w = $("#kwW"); if (w && w.children.length > 1){ const m = w.querySelector("p.muted"); if (m) m.remove(); } }, 2500);
