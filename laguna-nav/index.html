@@ -548,6 +548,19 @@
   .lightv .muted,.lightv .sub{color:#6f7a74}
   .lightv .pill{background:#f3e6e1;color:#b5533c}
   /* Spedisci & Traslochi */
+  .aud{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .aud:last-child{border-bottom:0}
+  .aud .apl{width:40px;height:40px;flex:0 0 40px;border-radius:50%;border:0;background:var(--c-ship);display:grid;place-items:center;cursor:pointer;padding:0}
+  .aud .apl svg{width:18px;height:18px;fill:#fff}
+  .aud.on .apl{background:#111}
+  .aud span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px} .aud b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .aud small{font-size:12px;opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .aud .apbar{display:block;height:4px;border-radius:2px;background:rgba(127,127,127,.25);margin-top:4px;cursor:pointer;overflow:hidden}
+  .aud .apbar i{display:block;height:100%;width:0;background:var(--c-ship)}
+  .aud .atime{font-style:normal;font-size:11px;opacity:.7;min-width:32px;text-align:right}
+  .aud .adel{width:34px;height:34px;border:0;background:none;cursor:pointer;padding:6px} .aud .adel svg{width:20px;height:20px;fill:none;stroke:#c8102e;stroke-width:1.6}
+  .auprog{height:6px;border-radius:3px;background:rgba(127,127,127,.25);margin-top:10px;overflow:hidden} .auprog i{display:block;height:100%;width:0;background:var(--c-ship);transition:width .2s}
+  .audbtn{width:100%;margin:-2px 0 10px}
   .srvH{margin:16px 0 8px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#6f7a74}
   .srvSoon{margin:18px 0 4px;border:1px dashed #d5dad7;border-radius:14px;padding:10px 12px;background:#fafbfa}
   .srvSoon summary{cursor:pointer;font-weight:700;color:#333}
@@ -557,7 +570,7 @@
   .shmine svg{width:26px;height:26px;flex:0 0 26px;fill:none;stroke:var(--c-ship);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
   em.ps-pending{background:#fff4d6!important;color:#9a6b00!important} em.ps-approved{background:#e3f7ee!important;color:#0a8f4e!important}
   em.ps-paused{background:#eef0ef!important;color:#555!important} em.ps-rejected{background:#fde8e8!important;color:#c8102e!important}
-  .prF .pill{border:1px solid #dcdfdd;background:#fff;color:#333;border-radius:99px;padding:5px 10px;font:inherit;font-size:12.5px;cursor:pointer}
+  .prF .pill{border:1px solid #dcdfdd;background:#fff;color:#333;border-radius:99px;padding:6px 11px;font:inherit;font-size:12.5px;line-height:1.2;white-space:nowrap;cursor:pointer;width:auto;height:auto;min-height:0}
   .prF .pill.on{background:#111;color:#fff;border-color:#111}
   .spcard{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:#fff;border:1px solid #e6e9e7;border-radius:16px;padding:16px;margin:0 0 10px;color:#111;font:inherit;cursor:pointer}
   .spcard:active{background:#f4f6f5}
@@ -1602,7 +1615,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.62</p>
+      <p class="sub">clickVenice · versione 3.63</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -2103,14 +2116,21 @@ const SRV_IC = {
   book: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"/>',
   flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
   chef: '<path d="M7 14.5a4 4 0 0 1-.8-7.9A5 5 0 0 1 15.8 5 4 4 0 1 1 17 14.5z"/><path d="M7 14.5V20h10v-5.5M7 17h10"/>',
+  wave: '<path d="M3 12h2M7 8v8M11 5v14M15 9v6M19 7v10M21 12h0"/>',
+  pads: '<rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><rect x="6.5" y="6.5" width="4.5" height="4.5" rx="1"/><rect x="13" y="6.5" width="4.5" height="4.5" rx="1"/><rect x="6.5" y="13" width="4.5" height="4.5" rx="1"/><rect x="13" y="13" width="4.5" height="4.5" rx="1"/>',
   phones: '<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3.5" y="14" width="4" height="6" rx="1.5"/><rect x="16.5" y="14" width="4" height="6" rx="1.5"/>'
 };
 // s = nome del servizio nel catalogo, pro = categoria per chi si candida; ask = domande specifiche; ship = usa il percorso di Spedisci
 const SRV = {
   videomaker: { m: "media", ic: "cam", pro: "Videomaker & Fotografo", s: "Noleggia Videomaker & Fotografo", d: "Foto e video per eventi, attività e matrimoni", ore: true,
     luogo: "Dove si fa il servizio?", ask: [{ k: "lavoro", q: "Che lavoro ti serve?", o: ["Foto", "Video", "Foto + Video"] }] },
-  studio: { m: "media", ic: "mic", pro: "Studio di Registrazione", s: "Registra in Studio", d: "Registrazione, voce, mix e master", ore: true, noLuogo: true,
+  studio: { m: "media", ic: "mic", pro: "Studio di Registrazione", s: "Registra in Studio", d: "Registrazione, voce, mix e master · ascolta i lavori", ore: true, noLuogo: true, audio: "vetrina",
     ask: [{ k: "lavoro", q: "Cosa vuoi registrare?", o: ["Voce o podcast", "Una canzone", "Band", "Mix e master"] }] },
+  mixmaster: { m: "media", ic: "wave", pro: "Mix & Master", s: "Mix & Master", d: "Mix e master dei tuoi brani · ascolta i lavori", noLuogo: true, audio: "vetrina",
+    ask: [{ k: "lavoro", q: "Cosa ti serve?", o: ["Solo mix", "Solo master", "Mix + master"] }, { k: "brani", q: "Quanti brani?", o: ["1", "2–3", "EP (4–6)", "Album"] }] },
+  beat: { m: "media", ic: "pads", pro: "Beatmaker / Produttore", s: "Beat", d: "Licenze di beat e beat su misura · ascolta la cartella", noLuogo: true, audio: "beat",
+    ask: [{ k: "lavoro", q: "Cosa ti serve?", o: ["Licenza di un beat", "Beat in esclusiva", "Beat su misura"] },
+      { k: "beat", q: "Quale beat?", opt: true, chipsFn: () => [...new Set((SRV_AUDIO.beat || []).map(a => a.titolo))].slice(0, 12), when: v => v.lavoro !== "Beat su misura" }] },
   grafico: { m: "media", ic: "pen", pro: "Grafico / Social Media", s: "Grafica e Social Media", d: "Logo, grafiche e gestione dei social", noLuogo: true,
     ask: [{ k: "lavoro", q: "Cosa ti serve?", o: ["Logo", "Grafiche per i social", "Gestione dei social", "Volantino o menù"] }] },
   barca: { m: "trasporti", ic: "boat", pro: "Trasportatore Barca (targa RV)", s: "Trasporto merci in barca", d: "Bancali, attrezzature, forniture commerciali", ship: "barca" },
@@ -2198,7 +2218,7 @@ function paintSrv(){
   if (off.length) h += `<details class="srvSoon"${on.length ? "" : " open"}><summary>Prossimamente · ${off.length} servizi</summary><p class="muted" style="margin:6px 0 8px;font-size:13px">Si attivano appena c'è almeno un professionista. Candidati per sbloccarli.</p>` +
     off.map(k => `<button class="srvOff" data-soon="${k}">${srvIco(k)}<span>${SRV[k].s}</span><em>Candidati</em></button>`).join("") + `</details>`;
   $("#shipTypes").innerHTML = h;
-  document.querySelectorAll("#shipTypes [data-srv]").forEach(b => b.onclick = () => { const S = SRV[b.dataset.srv]; S.ship ? shipStart(S.ship) : srvStart(b.dataset.srv); });
+  document.querySelectorAll("#shipTypes [data-srv]").forEach(b => b.onclick = () => { const S = SRV[b.dataset.srv]; S.ship ? shipStart(S.ship) : S.audio ? srvVetrina(b.dataset.srv) : srvStart(b.dataset.srv); });
   document.querySelectorAll("#shipTypes [data-soon]").forEach(b => b.onclick = () => goLavora(b.dataset.soon));
 }
 function goLavora(cat){
@@ -2237,8 +2257,9 @@ function srvStart(cat, prev){
   const S = SRV[cat], A = srvAtt()[cat] || {}, last = store.get("ln_ship_contatto", {}), oggi = new Date().toISOString().slice(0, 10);
   const steps = [];
   if (!S.noLuogo) steps.push({ k: "ritiro", q: S.luogo || "Dove?", hint: "Indirizzo e sestiere, oppure una riva", type: "place", hereLabel: "Usa posizione GPS attuale", hereName: "Posizione GPS del cliente", freeText: true, ph: "es. Cannaregio 4119" });
-  (S.ask || []).forEach(a => steps.push(a.o ? { k: a.k, q: a.q, type: "choice", options: a.o.map(x => [x, x]) }
-    : { k: a.k, q: a.q, hint: "Tocca quello che vale, oppure scrivi tu", type: "text", multi: true, max: 200, chips: a.chips, check: t => t.trim().length < 2 ? "Scrivi due parole." : "" }));
+  (S.ask || []).forEach(a => steps.push(a.o ? { k: a.k, q: a.q, type: "choice", options: a.o.map(x => [x, x]), when: a.when }
+    : { k: a.k, q: a.q, hint: a.opt ? "Tocca un titolo o scrivilo" : "Tocca quello che vale, oppure scrivi tu", type: "text", multi: !a.opt, max: 200, chips: a.chipsFn ? a.chipsFn() : a.chips, when: a.when,
+        optional: !!a.opt, skipLabel: "Lo scelgo dopo", check: t => !a.opt && t.trim().length < 2 ? "Scrivi due parole." : "" }));
   if (S.ore && (!A.unita || A.unita === "ora")) steps.push({ k: "ore", q: "Per quante ore?", type: "choice", options: [["1", "1 ora"], ["2", "2 ore"], ["3", "3 ore"], ["4", "4 ore"], ["8", "Giornata intera"]] });
   steps.push(
     { k: "note", q: "Vuoi aggiungere qualcosa?", type: "text", optional: true, skipLabel: "No, niente", max: 300, ph: "Dettagli utili per il professionista" },
@@ -2272,7 +2293,7 @@ function srvDettagli(v){
   else { (SRV[v.categoria].ask || []).forEach(a => { if (v[a.k]) d[a.k] = v[a.k]; }); if (v.ore) d.ore = v.ore; }
   return d;
 }
-const DET_N = { volume: "Carico", servizio: "Tipo", lavoro: "Lavoro", persone: "Persone", lunghezza: "Barca", ore: "Ore" };
+const DET_N = { volume: "Carico", servizio: "Tipo", lavoro: "Lavoro", persone: "Persone", lunghezza: "Barca", ore: "Ore", brani: "Brani", beat: "Beat" };
 
 function shipSummary(v){
   const pr = shipPrice(v), P = CONFIG.SPEDISCI, det = srvDettagli(v);
@@ -2379,7 +2400,9 @@ async function paintPro(box){
   try{
     const r = await rpc("pro_mie", {}); const L = (r && r.lista) || [];
     if ($("#proMine") && L.length) $("#proMine").innerHTML = `<h4 style="margin:18px 0 8px">Le tue candidature</h4>` + L.map(x => `<button class="card shmine" data-pro="${x.id}">${srvIco(x.categoria)}<span><b>${esc(proNome(x))}</b>
-      <small>${esc(x.nome)}${x.tariffa != null ? " · " + shEur(x.tariffa) + " " + (UNITA[x.unita] || "") : ""}</small></span><em class="ps-${esc(x.stato)}">${esc(PRO_STATI[x.stato] || x.stato)}</em></button>`).join("");
+      <small>${esc(x.nome)}${x.tariffa != null ? " · " + shEur(x.tariffa) + " " + (UNITA[x.unita] || "") : ""}</small></span><em class="ps-${esc(x.stato)}">${esc(PRO_STATI[x.stato] || x.stato)}</em></button>` +
+      (SRV[x.categoria] && SRV[x.categoria].audio ? `<button class="btn small ghost audbtn" data-aud="${x.id}">${SRV[x.categoria].audio === "beat" ? "Cartella beat: carica e ascolta" : "Vetrina audio: carica e ascolta"}</button>` : "")).join("");
+    document.querySelectorAll("#proMine [data-aud]").forEach(b => b.onclick = () => { const x = L.find(y => y.id === +b.dataset.aud); if (x) proAudioSheet(x); });
     document.querySelectorAll("#proMine [data-pro]").forEach(b => b.onclick = () => { const x = L.find(y => y.id === +b.dataset.pro); if (x) proStart(proToVals(x)); });
   }catch(e){}
   if (isTropss()) loadProAdmin();
@@ -2440,6 +2463,7 @@ async function loadProAdmin(){
   const cnt = k => L.filter(x => x.stato === k).length, F = L.filter(x => proAdmF === "tutte" || x.stato === proAdmF);
   const att = srvAtt(), attivi = Object.keys(SRV).filter(k => att[k]).length;
   box.innerHTML = `<h4 style="margin:22px 0 4px">Candidature ricevute</h4><p class="muted" style="margin:0 0 8px;font-size:13px">Servizi attivi in Servizi: ${attivi} su ${Object.keys(SRV).length}</p>
+    <button class="btn small" id="proInv" style="width:100%;margin:0 0 10px">Invita su WhatsApp a candidarsi</button>
     <div class="row prF" style="gap:6px;flex-wrap:wrap;margin-bottom:8px">${[["pending", "In attesa"], ["approved", "Attivi"], ["paused", "In pausa"], ["rejected", "Rifiutati"], ["tutte", "Tutte"]].map(([k, n]) =>
       `<button class="pill${proAdmF === k ? " on" : ""}" data-prf="${k}">${n}${k !== "tutte" ? " " + cnt(k) : ""}</button>`).join("")}</div>` +
     (F.length ? F.map(x => `<div class="card shadm">
@@ -2448,10 +2472,13 @@ async function loadProAdmin(){
       <p class="muted" style="margin:0 0 4px;font-size:13px">${esc(x.zona)}${x.tariffa != null ? " · " + shEur(x.tariffa) + " " + (UNITA[x.unita] || "") : " · tariffa da concordare"}</p>
       <p style="margin:0 0 8px;font-size:13px;line-height:1.4">${esc(x.bio)}</p>
       <div class="row" style="gap:6px;flex-wrap:wrap"><a class="btn small ghost" href="https://wa.me/${shWaNum(x.wa)}" target="_blank" rel="noopener">WhatsApp</a>
+      ${SRV[x.categoria] && SRV[x.categoria].audio ? `<button class="btn small ghost" data-paud="${x.id}">Ascolta i file</button>` : ""}
       ${x.stato !== "approved" ? `<button class="btn small" data-pst="approved" data-id="${x.id}">Approva</button>` : ""}
       ${x.stato === "approved" ? `<button class="btn small ghost" data-pst="paused" data-id="${x.id}">Metti in pausa</button>` : ""}
       ${x.stato === "pending" ? `<button class="btn small ghost" data-pst="rejected" data-id="${x.id}">Rifiuta</button>` : ""}</div></div>`).join("") : `<p class="muted">Nessuna candidatura qui.</p>`);
   box.querySelectorAll("[data-prf]").forEach(b => b.onclick = () => { proAdmF = b.dataset.prf; loadProAdmin(); });
+  if ($("#proInv")) $("#proInv").onclick = () => proInvita();
+  box.querySelectorAll("[data-paud]").forEach(b => b.onclick = () => { const x = L.find(y => y.id === +b.dataset.paud); if (x) proAudioSheet(x); });
   box.querySelectorAll("[data-pst]").forEach(b => b.onclick = async () => {
     b.disabled = true;
     try{ const j = await rpc("pro_stato", { p_id: +b.dataset.id, p_stato: b.dataset.pst }); if (!j || j.errore){ b.disabled = false; return toast("Non riuscito, riprova."); } }catch(e){ b.disabled = false; return toast("Controlla la connessione."); }
@@ -2461,6 +2488,113 @@ async function loadProAdmin(){
     loadProAdmin();
   });
 }
+
+/* =========================================================
+   AUDIO dei professionisti: vetrina di Mix & Master (e studio), cartella dei Beat. Si ascoltano in app.
+   I file vanno nello storage "audio" tramite la funzione "audio" (link firmato, poi registrazione).
+   ========================================================= */
+const AUD = new Audio(); AUD.preload = "none"; let audEl = null;
+const AUD_PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg>', AUD_PAUSE = '<svg viewBox="0 0 24 24"><path d="M7.5 5.5h3v13h-3zM13.5 5.5h3v13h-3z"/></svg>';
+const SRV_AUDIO = {};
+function audStop(){ try{ AUD.pause(); }catch(e){} if (audEl){ audEl.classList.remove("on"); const b = audEl.querySelector(".apl"); if (b) b.innerHTML = AUD_PLAY; } audEl = null; }
+function audToggle(el){
+  const u = el.dataset.u;
+  if (audEl === el){ if (AUD.paused){ AUD.play().catch(() => toast("Non riesco a riprodurre questo file.")); el.querySelector(".apl").innerHTML = AUD_PAUSE; } else { AUD.pause(); el.querySelector(".apl").innerHTML = AUD_PLAY; } return; }
+  audStop(); audEl = el; el.classList.add("on"); el.querySelector(".apl").innerHTML = AUD_PAUSE;
+  AUD.src = u; AUD.play().catch(() => { toast("Non riesco a riprodurre questo file."); audStop(); });
+}
+AUD.addEventListener("timeupdate", () => { if (!audEl || !AUD.duration) return; const i = audEl.querySelector(".apbar i"); if (i) i.style.width = (AUD.currentTime / AUD.duration * 100).toFixed(1) + "%";
+  const t = audEl.querySelector(".atime"); if (t){ const s = Math.max(0, Math.round(AUD.duration - AUD.currentTime)); t.textContent = "-" + Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); } });
+AUD.addEventListener("ended", () => { const el = audEl; audStop(); if (el){ const i = el.querySelector(".apbar i"); if (i) i.style.width = "0"; } });
+function audRow(a, del){
+  return `<div class="aud" data-u="${esc(a.url)}"><button class="apl" aria-label="Ascolta">${AUD_PLAY}</button>
+    <span><b>${esc(a.titolo)}</b><small>${esc([a.info, a.nome].filter(Boolean).join(" · "))}</small><i class="apbar"><i></i></i></span><em class="atime"></em>
+    ${del ? `<button class="adel" data-adel="${a.id}" aria-label="Elimina"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13"/></svg></button>` : ""}</div>`;
+}
+function audBind(root){
+  root.querySelectorAll(".aud").forEach(el => { el.querySelector(".apl").onclick = () => audToggle(el);
+    el.querySelector(".apbar").onclick = e => { if (audEl !== el || !AUD.duration) return; const r = e.currentTarget.getBoundingClientRect(); AUD.currentTime = AUD.duration * Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)); }; });
+}
+// clienti: ascolta i lavori prima di prenotare
+async function srvVetrina(cat){
+  const S = SRV[cat], beat = S.audio === "beat";
+  openSheet(`<h3>${esc(S.s)}</h3><p class="muted" style="margin-top:-4px">${beat ? "La cartella dei beat dei produttori di clickVenice." : "Ascolta i lavori dei professionisti di clickVenice."}</p>
+    <div id="avL"><p class="muted">Carico…</p></div><button class="btn" id="avGo" style="margin-top:10px">${beat ? "Prenota un beat" : "Prenota"}</button>
+    <button class="btn ghost" id="avX" style="margin-top:8px">Chiudi</button>`);
+  $("#avGo").onclick = () => { closeSheet(); srvStart(cat); };
+  $("#avX").onclick = () => closeSheet();
+  let L = []; try{ const r = await rpc("pro_audio_cat", { p_cat: cat }); L = (r && r.lista) || []; }catch(e){}
+  SRV_AUDIO[cat] = L; const box = $("#avL"); if (!box) return;
+  box.innerHTML = L.length ? L.map(a => audRow(a, false)).join("") : `<p class="muted">Ancora nessun file da ascoltare: puoi prenotare lo stesso.</p>`;
+  audBind(box);
+}
+// professionisti (e tropss): carica e gestisci i file
+async function proAudioSheet(x){
+  const S = SRV[x.categoria] || {}, beat = S.audio === "beat";
+  openSheet(`<h3>${beat ? "La tua cartella beat" : "La tua vetrina audio"}</h3>
+    <p class="muted" style="margin-top:-4px;line-height:1.45">${beat ? "Carica i tuoi beat: i clienti li ascoltano in Servizi e scelgono quale comprare." : "Carica qualche mix o master fatto da te: i clienti li ascoltano in Servizi prima di prenotare."} File audio fino a 15 MB (mp3, m4a, wav).${x.stato !== "approved" ? " Si vedono in Servizi quando la candidatura è approvata." : ""}</p>
+    <div class="card" style="margin:0 0 10px">
+      <div class="field"><input id="auT" maxlength="80" placeholder="${beat ? "Titolo del beat" : "Titolo del brano"}"></div>
+      <div class="field" style="margin-top:8px"><input id="auI" maxlength="120" placeholder="${beat ? "Genere e BPM, es. Trap 140" : "Genere o artista, es. Pop – mix e master"}"></div>
+      <input type="file" id="auF" accept="audio/*,.mp3,.m4a,.wav,.aac,.ogg,.flac" class="hidden">
+      <button class="btn" id="auPick" style="margin-top:10px">Scegli il file e carica</button>
+      <div class="auprog hidden" id="auProg"><i></i></div></div>
+    <div id="auL"><p class="muted">Carico…</p></div>
+    <button class="btn ghost" id="auX" style="margin-top:10px">Chiudi</button>`);
+  $("#auX").onclick = () => closeSheet();
+  $("#auPick").onclick = () => { if (!$("#auT").value.trim()) return toast("Scrivi prima il titolo."); $("#auF").click(); };
+  $("#auF").onchange = async e => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    if (f.size > 15 * 1024 * 1024) return toast("Il file è troppo grande: massimo 15 MB.");
+    const b = $("#auPick"), pr = $("#auProg"); b.disabled = true; b.textContent = "Carico…"; pr.classList.remove("hidden");
+    try{ await audUpload(x.id, f, $("#auT").value.trim(), $("#auI").value.trim(), p => { const i = pr.querySelector("i"); if (i) i.style.width = Math.round(p * 100) + "%"; });
+      haptic(); toast("Caricato ✓"); $("#auT").value = ""; $("#auI").value = ""; loadAudMie(x); }
+    catch(err){ toast(err === "formato" ? "Formato non supportato: usa mp3, m4a o wav." : err === "grande" ? "Il file è troppo grande: massimo 15 MB." : err === "troppi" ? "Hai già 30 file: eliminane qualcuno." : "Caricamento non riuscito: controlla la connessione."); }
+    b.disabled = false; b.textContent = "Scegli il file e carica"; pr.classList.add("hidden"); e.target.value = "";
+  };
+  loadAudMie(x);
+}
+async function loadAudMie(x){
+  let L = null; try{ const r = await rpc("pro_audio_mie", { p_pro: x.id }); L = r && r.lista; }catch(e){}
+  const box = $("#auL"); if (!box) return;
+  if (!Array.isArray(L)){ box.innerHTML = `<p class="muted">Non riesco a caricare i file.</p>`; return; }
+  box.innerHTML = L.length ? L.map(a => audRow(a, true)).join("") : `<p class="muted">Ancora nessun file.</p>`;
+  audBind(box);
+  box.querySelectorAll("[data-adel]").forEach(b => b.onclick = async () => {
+    if (!confirm("Eliminare questo file?")) return; audStop();
+    try{ const r = await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/audio", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: TOKEN, azione: "elimina", id: +b.dataset.adel }) }, 20000).then(r => r.json());
+      if (!r.ok) return toast("Non eliminato, riprova."); haptic(); loadAudMie(x); }catch(e){ toast("Controlla la connessione."); } });
+}
+async function audUpload(pro, file, titolo, info, onProg){
+  const ext = (file.name.split(".").pop() || "").toLowerCase();
+  const mime = file.type || { mp3: "audio/mpeg", m4a: "audio/mp4", wav: "audio/wav", aac: "audio/aac", ogg: "audio/ogg", flac: "audio/flac" }[ext] || "";
+  const fn = body => fetchT(CONFIG.SUPABASE_URL + "/functions/v1/audio", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: TOKEN, pro, ...body }) }, 30000).then(r => r.json());
+  const f = await fn({ azione: "firma", mime, size: file.size }); if (!f || !f.ok) throw (f && f.errore) || "firma";
+  await new Promise((ok, ko) => { const q = new XMLHttpRequest(); q.open("PUT", f.upload); q.setRequestHeader("content-type", mime); q.setRequestHeader("x-upsert", "false");
+    q.upload.onprogress = e => { if (e.lengthComputable && onProg) onProg(e.loaded / e.total); }; q.onload = () => q.status < 300 ? ok() : ko("upload"); q.onerror = () => ko("rete"); q.send(file); });
+  const g = await fn({ azione: "registra", path: f.path, titolo, info }); if (!g || !g.ok) throw (g && g.errore) || "registra";
+}
+
+/* ---------- tropss: invito su WhatsApp a candidarsi e usare l'app ---------- */
+function proInvita(){
+  const cats = Object.entries(SRV);
+  openSheet(`<h3>Invita su WhatsApp</h3><p class="muted" style="margin-top:-4px;line-height:1.45">Scegli per che lavoro lo inviti (o nessuno, per un invito generico). Si apre WhatsApp con il messaggio pronto: scegli tu a chi mandarlo.</p>
+    <div class="row prF" style="gap:6px;flex-wrap:wrap;margin:6px 0 12px"><button class="pill on" data-inv="">Generico</button>${cats.map(([k, S]) => `<button class="pill" data-inv="${k}">${esc(S.pro)}</button>`).join("")}</div>
+    <div class="field"><textarea id="invT" rows="7" style="width:100%;font:inherit;font-size:14px;line-height:1.4;border-radius:12px;padding:10px"></textarea></div>
+    <button class="btn" id="invGo" style="margin-top:10px">Apri WhatsApp</button><button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">Chiudi</button>`);
+  let cat = "";
+  const base = location.origin + location.pathname;
+  const txt = () => { const S = SRV[cat], link = base + "?lavora=" + (cat || "1");
+    return `Ciao! Sto lanciando clickVenice, l'app di Venezia per muoversi in laguna, ordinare e trovare servizi.\n\n${S ? `Cerco ${S.pro.toLowerCase()} da mettere in contatto con i clienti. ` : "Cerco professionisti e collaboratori da mettere in contatto con i clienti. "}Ti candidi gratis in due minuti: il tuo prezzo lo incassi tutto tu, i clienti li porta l'app.\n\nApri il link, registrati e vai su Lavoro → Lavora con noi:\n${link}`; };
+  $("#invT").value = txt();
+  document.querySelectorAll("[data-inv]").forEach(b => b.onclick = () => { cat = b.dataset.inv; document.querySelectorAll("[data-inv]").forEach(x => x.classList.toggle("on", x === b)); $("#invT").value = txt(); });
+  $("#invGo").onclick = () => { haptic(); window.location.href = "https://wa.me/?text=" + encodeURIComponent($("#invT").value); };
+}
+// chi apre il link d'invito (…?lavora=categoria) arriva su Lavora con noi appena è registrato
+(() => { let q = null; try{ q = new URLSearchParams(location.search).get("lavora"); }catch(e){} if (!q) return;
+  try{ history.replaceState(null, "", location.pathname); }catch(e){}
+  const cat = SRV[q] ? q : null; let n = 0;
+  const t = setInterval(() => { n++; if (n > 300) return clearInterval(t); if (typeof PROFILE !== "undefined" && PROFILE && PROFILE.clickname && !document.querySelector("#wz:not(.hidden)")){ clearInterval(t); try{ goLavora(cat); }catch(e){} } }, 1000); })();
 
 // Gioca ora si apre da myClick
 $("#pfGameBtn").onclick = () => { haptic(); setMode("sport"); };
@@ -4027,7 +4161,7 @@ function setAddMode(m){
 if ($("#fabZone")) $("#fabZone").onclick = () => setAddMode("zone");
 $("#fabDepth").onclick = () => setAddMode("depth");
 function openSheet(html){ $("#sheetIn").innerHTML = html; $("#sheet").classList.remove("hidden"); }
-function closeSheet(){ $("#sheet").classList.add("hidden"); }
+function closeSheet(){ $("#sheet").classList.add("hidden"); try{ audStop(); }catch(e){} }
 $("#sheet").onclick = e => { if (e.target.id === "sheet") closeSheet(); };
 
 function zoneForm(ll){

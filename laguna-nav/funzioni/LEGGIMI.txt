@@ -1,0 +1,3 @@
+Funzioni Supabase (Edge Functions) del progetto LAGUNA NAV usate da clickVenice.
+audio  → file audio dei professionisti (vetrina Mix & Master / Studio, cartella Beat): firma del caricamento, registrazione, eliminazione.
+Il codice è pubblicato direttamente su Supabase; tabelle e permessi sono in sql/servizi.sql e sql/audio.sql.
