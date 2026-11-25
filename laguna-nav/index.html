@@ -95,6 +95,9 @@
   body.nav #banner{top:calc(100px + var(--safe-t))}
   @keyframes pulse{50%{opacity:.75}}
   #shallow{position:absolute;z-index:19;left:10px;right:10px;top:calc(130px + var(--safe-t));background:var(--danger);color:#fff;font-weight:700;border-radius:12px;padding:9px 12px;font-size:14px}
+  #gToast{position:fixed;left:14px;right:14px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:9000;background:#ff6446;color:#000;font-weight:700;border-radius:12px;padding:12px 14px;font-size:15px;
+    box-shadow:0 6px 24px rgba(0,0,0,.35);opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s;pointer-events:none}
+  #gToast.on{opacity:1;transform:none}
   #modeHint{position:absolute;z-index:22;left:10px;right:80px;bottom:16px;background:var(--accent);color:#000;font-weight:700;border-radius:12px;padding:12px 14px;font-size:14px}
   .speedwrap{position:absolute;z-index:18;left:10px;bottom:16px;display:flex;align-items:flex-end;gap:8px}
   body.nav .speedwrap{bottom:92px}
@@ -1599,7 +1602,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.60</p>
+      <p class="sub">clickVenice · versione 3.61</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -2362,7 +2365,7 @@ function proStart(prev){
       { k: "tariffa", q: "Tariffa indicativa in euro", hint: "Solo il numero, es. 25. Serve a stimare il prezzo per il cliente", type: "text", inputType: "number", max: 8, optional: true, skipLabel: "La concordo ogni volta",
         check: t => t && !(+String(t).replace(",", ".") >= 0) ? "Scrivi solo il numero." : "" },
       { k: "unita", q: "La tariffa è…", type: "choice", options: Object.entries(UNITA), when: v => !!v.tariffa },
-      { k: "bio", q: "Presentati in breve", hint: "Esperienza e attrezzatura", type: "text", max: 300, ph: "es. 10 anni di matrimoni, drone e luci", check: t => t.trim().length < 10 ? "Scrivi qualche parola in più." : "" },
+      { k: "bio", q: "Presentati in breve", hint: "Esperienza e attrezzatura", type: "text", max: 300, ph: "es. 10 anni di matrimoni, drone e luci", check: t => t.trim().length < 3 ? "Scrivi qualche parola su di te." : "" },
       { k: "wa", q: "Il tuo numero WhatsApp", hint: "Ti giriamo qui le richieste dei clienti", type: "text", inputType: "tel", max: 20, ph: "es. 340 123 4567", check: t => t.replace(/\D/g, "").length < 8 ? "Controlla il numero." : "" }
     ],
     onDone: v => { if (v.macro === "altro") v.categoria = "altro"; if (!v.tariffa) v.unita = "servizio"; proSummary(v); } });
@@ -3600,6 +3603,10 @@ document.addEventListener("click", async e => {
   catch(err){ toast("Non riesco a eliminare: controlla la connessione."); }
 });
 function toast(msg, colori){
+  // con una domanda, un pannello o un'altra schermata aperti il messaggio della mappa resterebbe nascosto sotto: va in primo piano
+  const wz = document.getElementById("wz"), sopra = (wz && !wz.classList.contains("hidden") && wz.innerHTML) || !$("#sheet").classList.contains("hidden") || $("#v-map").classList.contains("hidden");
+  if (sopra && !addMode){ let g = document.getElementById("gToast"); if (!g){ g = document.createElement("div"); g.id = "gToast"; document.body.appendChild(g); }
+    g.textContent = msg; g.classList.add("on"); clearTimeout(toast._g); toast._g = setTimeout(() => g.classList.remove("on"), 3500); return; }
   const h = $("#modeHint"); h.toggleAttribute("data-noico", !!colori); h.textContent = msg; h.classList.remove("hidden");
   clearTimeout(toast._t); toast._t = setTimeout(() => { if (!addMode) h.classList.add("hidden"); }, 3500);
 }
