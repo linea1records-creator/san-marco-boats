@@ -13,7 +13,7 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#07936c">
+<meta name="theme-color" content="#88c6f9">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -450,6 +450,39 @@
   #dash .dmore .dm{flex:0 0 auto;padding:8px 11px;border-radius:12px;background:#1a1b1d;border:1px solid #2c2e31;color:#ddd;font-size:12.5px;white-space:nowrap}
   #dash .dmore .dm.rec{color:#ff6b60;border-color:#ff6b60}
   #toggles{display:none!important}
+  /* cruscotto chiaro: fondo bianco, scritte nere */
+  #dash{background:#fff;color:#111}
+  #dash .dseg{background:#f1f2f4;border-color:#e1e3e6} #dash .dseg button{color:#6b7078} #dash .dseg button.on{background:#111;color:#fff}
+  #dash .dbar .btn, #dash .dmore .dm{background:#f1f2f4;color:#111;border-color:#e1e3e6}
+  #dash .tile, #dash.analog .tile{background:#f6f7f8;border-color:#e3e5e8;color:#111}
+  #dash .tile small, #dash .tile .muted{color:#6b7078}
+  #dash .tile.add{color:#555;border-color:#bbb}
+  #dash .dmore{border-top-color:#e6e8ea}
+  #dash .gauge .bez{fill:#e9ebee;stroke:#9a9ea4}
+  #dash .gauge [fill="#08090a"]{fill:#fff} #dash .gauge [fill="#fff"]{fill:#111} #dash .gauge [stroke="#fff"]{stroke:#111}
+  #dash .gauge [fill="#c9ccd1"]{fill:#555} #dash .gauge [stroke="#c9ccd1"]{stroke:#888}
+  #dash #dEco{background:#eef3f7}
+  #dash .ted button{background:#111;color:#fff}
+  /* scheda luogo e pannelli chiari */
+  #sheet #sheetIn.light{background:#fff!important;color:#111;border-top-color:#eceef0;--line:#eceef0;--muted:#6b7078;--panel:#fff;--panel2:#f4f5f6;--text:#111}
+  #sheetIn.light .muted{color:#6b7078}
+  #sheetIn.light .btn.ghost{background:#f1f2f4;color:#111;border:1px solid #e1e3e6}
+  .lcard h3{margin:0 0 4px;font-size:21px;line-height:1.2;color:#111}
+  .lcard .pcK{margin:0 0 2px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#4f9fe6}
+  .lcard .pcS{display:flex;align-items:center;gap:6px;margin:0 0 4px;color:#333;font-size:14.5px}
+  .lcard .pcS svg{width:18px;height:18px;flex:0 0 18px;fill:none;stroke:#111;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .lcard .pcB{display:flex;gap:8px;margin-top:14px}
+  .lcard .pcB .btn{flex:1;margin:0;border:0;font-weight:800}
+  .lcard .pcGo{background:#4f9fe6!important;color:#fff!important}
+  .lcard .pcPin{background:#88c6f9!important;color:#0b1b2b!important}
+  .pcOr{margin:12px 0 0;border:1px solid #eceef0;border-radius:14px;padding:8px 10px}
+  .pcSeg{display:flex;gap:6px;margin-bottom:4px} .pcSeg button{flex:1;padding:6px;border-radius:10px;border:1px solid #e1e3e6;background:#fff;color:#555;font:inherit;font-size:13px;font-weight:700}
+  .pcSeg button.on{background:#111;color:#fff;border-color:#111}
+  .pcr{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid #f0f1f2;font-size:13.5px;color:#111}
+  .pcr b{min-width:42px;font-variant-numeric:tabular-nums} .pcr span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pcr i{font-style:normal;font-weight:700;margin-right:6px} .pcr em{font-style:normal;font-size:12px;color:#6b7078;white-space:nowrap}
+  .pcFull{width:100%;margin-top:6px;padding:8px;border:0;background:none;color:#4f9fe6;font:inherit;font-weight:700;font-size:13.5px}
+  .fab.taxifab{background:#ffd24a;color:#111}
   .stz{display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:opacity .5s}
   .stz i{width:34px;height:34px;border-radius:50%;background:#111;border:2px solid #c9ccd1;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.4)}
   .stz svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
@@ -958,7 +991,7 @@
   svg.ei{display:inline-block;width:1.2em;height:1.2em;vertical-align:-.22em;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto;overflow:visible}
   .big svg.ei,.big > svg.ei{width:1em;height:1em}
   /* schermata d'apertura con il logo */
-  #boot{position:fixed;inset:0;z-index:7000;background:#07936c;display:flex;align-items:center;justify-content:center;transition:opacity .45s ease}
+  #boot{position:fixed;inset:0;z-index:7000;background:#88c6f9;display:flex;align-items:center;justify-content:center;transition:opacity .45s ease}
   #boot img{width:min(100vw,62vh,560px);height:auto;animation:bootIn .6s ease}
   #boot.out{opacity:0;pointer-events:none}
   @keyframes bootIn{from{transform:scale(.92);opacity:0}}
@@ -1387,7 +1420,7 @@
       <button class="fab" id="fabSat" title="Tipo di mappa" style="display:none">🗺️</button>
       <button class="fab" id="fabView" title="Prima persona / nord in alto" style="display:none">3D</button>
       <button class="fab" id="fabSet" title="Impostazioni della mappa"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
-      <button class="fab" id="fabMenu" title="Cruscotto"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 17a9 9 0 1 1 17 0"/><path d="M12 17l4.2-5.2"/><circle cx="12" cy="17" r="1.6"/><path d="M6.2 12.4l1 .6M12 7.5V8.7M17.8 12.4l-1 .6"/></svg></button>
+      <button class="fab taxifab" id="fabMenu" title="Taxi" aria-label="Taxi"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16.5V12l2-5h12l2 5v4.5z"/><path d="M4 12h16M7.5 19.5v-3M16.5 19.5v-3M9.5 7V5h5v2"/><circle cx="7.5" cy="14.3" r=".8"/><circle cx="16.5" cy="14.3" r=".8"/></svg></button>
       <button class="fab big" id="fabGps" title="Prima persona · tocca per cambiare visuale" data-noico><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.3" r="2.6"/><path d="M12 8.4v6.4M7.8 11.2l4.2-1.6 4.2 1.6M9.3 21l2.7-6.2 2.7 6.2"/></svg></button>
     </div>
 
@@ -1643,7 +1676,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.67</p>
+      <p class="sub">clickVenice · versione 3.68</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -3734,9 +3767,9 @@ function drawMyPlaces(){
     map.getSource("myplaces").setData({ type: "FeatureCollection", features: MYPL.map((x, i) => ({ type: "Feature", properties: { i, n: x.n }, geometry: { type: "Point", coordinates: [x.lng, x.lat] } })) });
   }catch(e){}
 }
-function addMyPlace(ll){
+function addMyPlace(ll, nome){
   haptic();
-  openSheet(`<h3>Aggiungi alla tua mappa</h3><div class="field"><label>Come lo chiami?</label><input id="mpN" maxlength="60" placeholder="es. Posto barca, Casa di Marco"></div>
+  openSheet(`<h3>Aggiungi alla tua mappa</h3><div class="field"><label>Come lo chiami?</label><input id="mpN" maxlength="60" placeholder="es. Posto barca, Casa di Marco" value="${esc(nome && !/^(questo punto|canale)$/i.test(nome) ? nome : "")}"></div>
     <button class="btn" id="mpOk">Salva</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Annulla</button>`);
   setTimeout(() => { const i = $("#mpN"); if (i) i.focus(); }, 80);
   const save = () => { const n = ($("#mpN").value || "").trim() || "Il mio luogo"; MYPL.push({ n, lat: +ll.lat.toFixed(6), lng: +ll.lng.toFixed(6), t: Date.now() });
@@ -3748,13 +3781,92 @@ function openMyPlace(i){
   new maplibregl.Popup({ maxWidth: "240px" }).setLngLat([x.lng, x.lat]).setHTML(`<b>${esc(x.n)}</b><br><span style="color:#888">Nella tua mappa</span><br><a href="#" data-goto="${x.lat},${x.lng}" data-name="${esc(x.n)}" style="color:#7fc1ff">Portami qui</a> · <a href="#" id="mpDel" style="color:#ff6b60">Elimina</a>`).addTo(map);
   setTimeout(() => { const d = document.getElementById("mpDel"); if (d) d.onclick = ev => { ev.preventDefault(); MYPL.splice(i, 1); store.set("ln_myplaces", MYPL); closePopups(); drawMyPlaces(); NAV_IDX = null; }; }, 0);
 }
+/* ---------- scheda luogo: tieni premuto 2 secondi sulla mappa ----------
+   a terra: calle / fondamenta + sestiere e civico più vicino; in acqua: nome del canale; tempo a piedi;
+   vicino a Ferrovia, Piazzale Roma, San Basilio e aeroporto: gli orari dentro la scheda */
+const PC_HUBS = () => STZ.filter(s => s.k === "treni" || s.k === "aereo" || s.k === "porto" || (s.k === "bus" && s.luogo === "proma"));
+function civicoNear(lat, lng){
+  if (!CIVICI) return null; let best = null;
+  Object.entries(CIVICI).forEach(([k, L]) => { for (const x of L){ const dy = (x.lat - lat) * 111320; if (Math.abs(dy) > 120) continue;
+    const d = Math.hypot(dy, (x.lng - lng) * 78500); if (!best || d < best.d) best = { k, h: x.h, d }; } });
+  return best;
+}
+function canalNear(lat, lng){
+  if (!G.done) return ""; const nb = gNear(lat, lng, 80); if (!nb) return "";
+  const nm = (G.adj[nb.n] || []).map(e => e[2] >= 0 ? (G.names[e[2]] || "") : "").find(Boolean); return nm || "";
+}
+async function revAddr(lat, lng){
+  try{ const j = await fetchT(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&accept-language=it&lat=${lat.toFixed(6)}&lon=${lng.toFixed(6)}`, { headers: { Accept: "application/json" } }, 8000).then(r => r.json());
+    const a = (j && j.address) || {}; return { via: a.road || a.pedestrian || a.footway || a.path || a.square || a.bridge || "", acqua: a.water || (j && /water|canal|river/.test(j.type || "") ? j.name : "") || "",
+      num: a.house_number || "", citta: a.city || a.town || a.village || a.suburb || "", nome: (j && j.name) || "" }; }catch(e){ return null; }
+}
+async function placeCard(ll, hubForzato){
+  haptic();
+  const lat = ll.lat, lng = ll.lng, acqua = !hubForzato && isWaterPt(lat, lng);
+  const hub = hubForzato || PC_HUBS().find(s => hav(s.lat, s.lng, lat, lng) < 350);
+  openSheet(`<div class="lcard"><p class="pcK">${hub ? "Stazione" : acqua ? "In acqua" : "Indirizzo"}</p><h3 id="pcT">${hub ? esc(hub.full) : "…"}</h3><p class="pcS" id="pcS">Cerco l'indirizzo…</p>
+    <p class="pcS" id="pcW"><svg viewBox="0 0 24 24"><circle cx="13" cy="4.5" r="1.8"/><path d="M9.5 21l2.2-6.5L14.5 17v4M8.5 12.5l1.6-4.6 3.6.4 2.3 3.4h2.5M11.7 14.5l-1.1-4.2"/></svg><span>${lastPos ? "Calcolo il tempo a piedi…" : "Attiva il GPS per il tempo a piedi"}</span></p>
+    ${hub ? `<div class="pcOr"><div class="pcSeg"><button class="on" data-pcv="partenze">Partenze</button><button data-pcv="arrivi">Arrivi</button></div><div id="pcRows"><p class="muted">Carico gli orari…</p></div><button class="pcFull" id="pcFull">Tabellone completo</button></div>` : ""}
+    <div class="pcB"><button class="btn pcGo" id="pcGo">Indicazioni</button><button class="btn pcPin" id="pcPin">Aggiungi segnaposto</button></div>
+    <button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">Chiudi</button></div>`, "light");
+  let titolo = hub ? hub.full : acqua ? "Canale" : "Questo punto";
+  $("#pcGo").onclick = () => { closeSheet(); PLAN = null; openPlan({ name: titolo, lat, lng }); };
+  $("#pcPin").onclick = () => { closeSheet(); addMyPlace(ll, titolo); };
+  if (hub){ const st = hub; $("#pcFull").onclick = () => { closeSheet(); openStation(st, "partenze"); };
+    document.querySelectorAll("[data-pcv]").forEach(b => b.onclick = () => { document.querySelectorAll("[data-pcv]").forEach(x => x.classList.toggle("on", x === b)); pcOrari(st, b.dataset.pcv); });
+    pcOrari(st, "partenze"); }
+  // tempo a piedi dalla tua posizione
+  if (lastPos){ const me = { lat: lastPos.lat, lng: lastPos.lng };
+    walkRoute(me, { lat, lng }).then(R => { const w = $("#pcW span"); if (!w) return; const m = R ? walkMin(R) : Math.round(hav(me.lat, me.lng, lat, lng) * 1.35 / 80);
+      w.textContent = `${fmtMin(m)} a piedi · ${fmtDist(R ? R.len : hav(me.lat, me.lng, lat, lng) * 1.35)}`; }).catch(() => {}); }
+  // indirizzo o canale
+  if (hub){ $("#pcS").textContent = { treni: "Stazione dei treni", bus: "Autobus · Piazzale Roma", porto: "Terminal crociere e traghetti", aereo: "Voli in partenza e in arrivo" }[hub.k] || ""; return; }
+  try{ await loadCivici(); }catch(e){}
+  const cv = acqua ? null : civicoNear(lat, lng), canale = acqua ? canalNear(lat, lng) : "";
+  const setT = (t, s) => { if (!$("#pcT")) return; if (!hub){ $("#pcT").textContent = t; titolo = t; } $("#pcS").textContent = s; };
+  const sest = cv && cv.d < 80 ? cv.k.replace(/\b\w/g, l => l.toUpperCase()) + " " + cv.h : "";
+  if (acqua) setT(canale || "Canale", canale ? "Sei sull'acqua" : "Cerco il nome del canale…");
+  else if (sest) setT(sest, "Cerco il nome della calle…");
+  const r = await revAddr(lat, lng); if (!$("#pcT")) return;
+  if (acqua){ const n = canale || (r && (r.acqua || r.nome)) || ""; setT(n || "Canale senza nome", n ? "In acqua · canale più vicino" : "In acqua"); return; }
+  const via = r && r.via;
+  if (sest) setT(via || sest, via ? `${sest} · civico più vicino` : "Civico più vicino");
+  else if (r) setT(via ? via + (r.num ? " " + r.num : "") : (r.nome || "Questo punto"), r.citta || "");
+  else setT("Questo punto", "Indirizzo non disponibile adesso");
+}
+// orari compatti dentro la scheda (stessi dati del tabellone)
+async function pcOrari(st, verso){
+  const box = $("#pcRows"); if (!box) return; box.innerHTML = `<p class="muted">Carico gli orari…</p>`;
+  let rows = [];
+  try{
+    if (st.k === "aereo"){ const v = await VOLI(); const L = v && !v.error ? (verso === "arrivi" ? v.arr : v.dep) : null; if (!L) throw 0;
+      rows = L.slice(0, 7).map(c => ({ t: c.time, a: c.flight, b: c.place, c: c.status || "" })); }
+    else { const j = await fetchT(CONFIG.SUPABASE_URL + "/functions/v1/stazioni?tipo=" + st.k + (st.luogo ? "&luogo=" + st.luogo : "") + "&verso=" + verso, {}, 25000).then(r => r.json());
+      if (!j || j.errore || !Array.isArray(j.corse)) throw 0;
+      rows = j.corse.slice(0, 7).map(c => st.k === "treni" ? { t: c.ora, a: c.treno, b: c.luogo, c: c.soppresso ? "Soppresso" : c.ritardo > 0 ? "+" + c.ritardo + "'" : c.binario ? "bin. " + c.binario : "" }
+        : st.k === "porto" ? { t: c.ora, a: c.nave, b: c.luogo, c: c.giorno === "oggi" ? "oggi" : (c.giorno || "") }
+        : { t: c.ora, a: c.linea, b: c.luogo, c: c.tra_min <= 0 ? "ora" : c.tra_min + "'" }); }
+  }catch(e){ if ($("#pcRows")) $("#pcRows").innerHTML = `<p class="muted">Orari non disponibili adesso.</p>`; return; }
+  if (!$("#pcRows")) return;
+  $("#pcRows").innerHTML = rows.length ? rows.map(x => `<div class="pcr"><b>${esc(x.t || "")}</b><span><i>${esc(x.a || "")}</i>${esc(x.b || "")}</span><em>${esc(x.c)}</em></div>`).join("")
+    : `<p class="muted">Nessuna corsa nelle prossime ore.</p>`;
+}
+/* ---------- tasto Taxi (al posto del cruscotto): scegli dove vai e propone il taxi ---------- */
+let TAXI_NEXT = false;
+function taxiFab(){
+  haptic(); TAXI_NEXT = true;
+  try{ if (typeof endFromSearch === "function") endFromSearch(); }catch(e){}
+  $("#routeBox").classList.add("hidden"); $("#searchBox").classList.remove("hidden");
+  qIn.value = ""; qIn.placeholder = "Dove vai in taxi?"; setTimeout(() => qIn.focus(), 50);
+  toast("Scrivi dove vai: ti propongo taxi acqueo o taxi in auto");
+}
 function hookLongPress(){
   if (!map || hookLongPress.done) return; hookLongPress.done = true;
   const cv = map.getCanvasContainer(); let t = null, p0 = null, fired = false;
   const cancel = () => { clearTimeout(t); t = null; };
   cv.addEventListener("pointerdown", e => { if (e.isPrimary === false || (typeof DRAW !== "undefined" && DRAW) || addMode || GM) return cancel();
     fired = false; p0 = [e.clientX, e.clientY]; cancel();
-    t = setTimeout(() => { t = null; fired = true; const r = map.getCanvas().getBoundingClientRect(); addMyPlace(map.unproject([p0[0] - r.left, p0[1] - r.top])); }, 2000); });
+    t = setTimeout(() => { t = null; fired = true; const r = map.getCanvas().getBoundingClientRect(); placeCard(map.unproject([p0[0] - r.left, p0[1] - r.top])); }, 2000); });
   cv.addEventListener("pointermove", e => { if (t && p0 && Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) > 10) cancel(); });
   ["pointerup", "pointercancel", "pointerleave"].forEach(ev => cv.addEventListener(ev, cancel));
   cv.addEventListener("touchstart", e => { if (e.touches.length > 1) cancel(); }, { passive: true });
@@ -4196,7 +4308,7 @@ function setAddMode(m){
 }
 if ($("#fabZone")) $("#fabZone").onclick = () => setAddMode("zone");
 $("#fabDepth").onclick = () => setAddMode("depth");
-function openSheet(html){ $("#sheetIn").innerHTML = html; $("#sheet").classList.remove("hidden"); }
+function openSheet(html, cls){ const i = $("#sheetIn"); i.innerHTML = html; i.className = "in" + (cls ? " " + cls : ""); $("#sheet").classList.remove("hidden"); }
 function closeSheet(){ $("#sheet").classList.add("hidden"); try{ audStop(); }catch(e){} }
 $("#sheet").onclick = e => { if (e.target.id === "sheet") closeSheet(); };
 
@@ -5275,6 +5387,9 @@ async function showPlan(){
   if (!from){ $("#rbInfo").textContent = "Aspetto il GPS… oppure scegli un punto di partenza"; setTimeout(() => { if (PLAN && seq === planSeq && lastPos) showPlan(); }, 2500); return; }
   $("#rbInfo").textContent = "Calcolo il percorso…";
   PLAN._rbGo = false; PLAN.kw = kwInfo(from, PLAN.to);
+  if (TAXI_NEXT){ TAXI_NEXT = false; qIn.placeholder = "Trova";   // arrivo dal tasto Taxi: taxi in auto se c'è la terraferma, altrimenti taxi acqueo
+    PLAN.sub = Object.assign({ barca: activeBoat() ? "mia" : "vapo", auto: "taxi" }, store.get("ln_sub", {}), PLAN.kw ? { auto: "taxi" } : { barca: "taxi" });
+    PLAN.mode = PLAN.kw ? "auto" : "barca"; }
   $("#tmBarca").textContent = "tocca"; $("#tmTaxi").textContent = "tocca"; $("#tmBoat").textContent = "3 modi";
   $("#tmAuto").textContent = PLAN.kw ? "da " + kwSconto(PLAN.kw.price) + " €" : "non arriva";
   $("#tmAutoTaxi").textContent = PLAN.kw ? "da " + kwSconto(PLAN.kw.price) + " €" : ""; $("#tmGuida").textContent = PLAN.kw ? "circa " + PLAN.kw.min + " min" : "";
@@ -6897,7 +7012,7 @@ $("#dashClose").onclick = closeDashView;
 setInterval(() => { if (!dashOpen && lastPos){ const kmh = speedMs * 3.6; TRIP.max = Math.max(TRIP.max, kmh < 90 ? kmh : 0);
   if (TRIP.last){ const d = hav(TRIP.last.lat, TRIP.last.lng, lastPos.lat, lastPos.lng); if (d > 5 && d < 500 && kmh > 1){ TRIP.km += d / 1000; TRIP.last = lastPos; } else if (d >= 500) TRIP.last = lastPos; } else TRIP.last = lastPos; } }, 2000);
 // il tasto in basso a destra apre il cruscotto (al posto del menu ⋯)
-$("#fabMenu").onclick = e => { e.stopPropagation(); openDash(); };
+$("#fabMenu").onclick = e => { e.stopPropagation(); taxiFab(); };   // tasto Taxi (il cruscotto si apre toccando i mini widget)
 // funzioni di servizio in fondo al cruscotto: chiudono il cruscotto e tornano alla mappa
 $("#dashMore").addEventListener("click", e => { const b = e.target.closest("button"); if (b && b.id !== "fabVoice") setTimeout(closeDashView, 30); });
 
@@ -8246,7 +8361,7 @@ function addStations(){
   if (STZ_MK.length || !map) return;
   STZ.forEach(st => { const el = document.createElement("div"); el.className = "stz";
     el.innerHTML = `<i><svg viewBox="0 0 24 24">${st.ic}</svg></i><span>${st.n}</span>`;
-    el.onclick = ev => { ev.stopPropagation(); if (st.k === "stadio") openStadium(st); else openStation(st, "partenze"); };
+    el.onclick = ev => { ev.stopPropagation(); if (st.k === "stadio") openStadium(st); else if (st.k === "bus" && st.luogo !== "proma") openStation(st, "partenze"); else placeCard({ lat: st.lat, lng: st.lng }, st); };
     STZ_MK.push(new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([st.lng, st.lat]).addTo(map)); });
 }
 // tabellone come quello della stazione: fondo blu, scritte bianche e gialle, colonne fisse
@@ -8384,7 +8499,7 @@ function paintMini(){
 setInterval(paintMini, 700);
 $("#miniW").addEventListener("click", e => {
   const c = e.target.closest("[data-mw]"); if (!c) return;
-  if (c.dataset.mw === "dep"){
+  if (false){
     openSheet(`<h3>〰 Scandaglio: ${esc((($("#dUnder") || {}).textContent) || "–")}</h3><p class="muted">${esc((($("#dInfo") || {}).textContent) || "")}</p>
       <p class="muted" style="margin:10px 0 6px">Posizione del motore</p><div class="chips" id="engChipsS"></div>
       <button class="btn ghost" style="margin-top:12px" id="mwDash">Apri il cruscotto</button><button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`);
