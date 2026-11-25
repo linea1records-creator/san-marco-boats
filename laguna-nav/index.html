@@ -1038,6 +1038,11 @@
   .rb-modes button.on{background:#111;color:#fff;border-color:#111}
   .rb-modes button.on small{color:#c9ccd1}
   #rbMore{max-height:36vh;overflow-y:auto;margin:0 0 8px}
+  #rbKiwi{display:flex;align-items:center;gap:10px;margin:8px 0 2px;padding:10px 12px;border-radius:14px;background:#fff6e0;border:1px solid #f3d27a;color:#111;text-decoration:none;cursor:pointer}
+  #rbKiwi.hidden{display:none}
+  #rbKiwi svg{width:28px;height:28px;flex:0 0 28px;fill:none;stroke:#111;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  #rbKiwi span{flex:1;display:flex;flex-direction:column;gap:1px;font-size:14px} #rbKiwi small{color:#6b5b2a;font-size:12px}
+  #rbKiwi em{font-style:normal;font-weight:800;font-size:12px;background:#111;color:#ffd24a;border-radius:99px;padding:4px 8px;white-space:nowrap}
   #rbGo:disabled{opacity:.45}
 </style>
 <style id="camBtn">
@@ -1200,6 +1205,7 @@
         <button data-tm="mezzi"><svg viewBox="0 0 24 24"><path d="M3 16h18l-2.2 4H5.2z"/><rect x="6" y="9" width="12" height="7" rx="1.5"/><path d="M9.5 9V6.5h5V9M9 12.5h1.5M13.5 12.5H15"/></svg><b>Vaporetto</b><small id="tmMezzi">…</small></button>
         <button data-tm="taxi"><svg viewBox="0 0 24 24"><path d="M3 16h18l-2.2 4H5.2z"/><path d="M6 16l1.6-5h8.8L18 16"/><path d="M10 11V8.5h4V11"/></svg><b>Taxi</b><small id="tmTaxi">…</small></button>
       </div>
+      <div id="rbKiwi" class="hidden"></div>
       <div id="rbInfo" class="rb-info">Calcolo il percorso…</div>
       <div id="rbMore" class="hidden"></div>
       <div class="rb-btns"><button class="btn" id="rbGo">▶ Avvia</button><button class="btn ghost" id="rbX">✕</button></div>
@@ -1578,7 +1584,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.54</p>
+      <p class="sub">clickVenice · versione 3.55</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -1661,6 +1667,12 @@ const CONFIG = {
   // Numero WhatsApp che riceve gli ordini (formato internazionale senza +, es. "393401234567")
   ORDER_WHATSAPP: "",
   RIDER_SOGLIA: 5000,
+  // Kiwitaxi (Travelpayouts): taxi in auto tra Piazzale Roma e la terraferma / l'aeroporto
+  KIWITAXI: {
+    LINK: "",        // incolla qui il link affiliato generato su Travelpayouts per Kiwitaxi
+    SCONTO: "5%",    // sconto da mostrare ("" = non mostrarlo)
+    CODICE: ""       // eventuale codice sconto da copiare
+  },
   // Spedisci & Traslochi · PREZZI PROVVISORI da sostituire con quelli veri (euro)
   SPEDISCI: {
     WHATSAPP: "",            // numero che riceve le richieste, es. "393401234567"; vuoto = usa ORDER_WHATSAPP
@@ -4826,7 +4838,7 @@ async function showPlan(){
   PLAN.mode = PLAN.mode || store.get("ln_travel", null) || (activeBoat() ? "barca" : "piedi");
   ["tmPiedi", "tmBarca", "tmMezzi", "tmTaxi"].forEach(id => $("#" + id).textContent = "…");
   document.querySelectorAll("#rbModes [data-tm]").forEach(b => b.classList.toggle("on", b.dataset.tm === PLAN.mode));
-  $("#rbMore").classList.add("hidden"); $("#rbGo").disabled = true;
+  $("#rbMore").classList.add("hidden"); $("#rbGo").disabled = true; $("#rbKiwi").classList.add("hidden");
   if (!from){ $("#rbInfo").textContent = "Aspetto il GPS… oppure scegli un punto di partenza"; setTimeout(() => { if (PLAN && seq === planSeq && lastPos) showPlan(); }, 2500); return; }
   $("#rbInfo").textContent = "Calcolo il percorso…";
   if (!G.done) await loadGraph();
@@ -4834,6 +4846,7 @@ async function showPlan(){
   const R = computeRoute(from, PLAN.to); PLAN.Rb = R;
   $("#tmBarca").textContent = fmtMin(Math.max(1, Math.round(R.len / (12 / 3.6) / 60)));
   PLAN.tx = taxiEstimate(from, PLAN.to, 2); $("#tmTaxi").textContent = PLAN.tx.lo + "–" + PLAN.tx.hi + " €";
+  paintKiwi(from, PLAN.to);
   walkRoute(from, PLAN.to).then(W => { if (!PLAN || seq !== planSeq) return; PLAN.walk = W; $("#tmPiedi").textContent = fmtMin(walkMin(W)); if (PLAN.mode === "piedi") paintTravel(true); });
   tripActv(from, PLAN.to).then(j => { if (!PLAN || seq !== planSeq) return; PLAN.trip = j; $("#tmMezzi").textContent = j.err ? "—" : j.totMin ? fmtMin(j.totMin) : "arr. " + j.opzioni[0].arrivo; if (PLAN.mode === "mezzi") paintTravel(false); });
   paintTravel(true);
@@ -4876,6 +4889,31 @@ function fitFeats(F){
   if (!map || !F || !F.length) return; const b = new maplibregl.LngLatBounds();
   F.forEach(f => { const c = f.geometry.coordinates; if (f.geometry.type === "Point") b.extend(c); else c.forEach(x => b.extend(x)); });
   setFollow(false); map.fitBounds(b, { padding: { top: 290, bottom: 120, left: 50, right: 50 }, duration: 700, bearing: 0, pitch: 0, maxZoom: 17 });
+}
+/* Kiwitaxi: taxi in auto quando si va da Piazzale Roma alla terraferma (o all'aeroporto) e viceversa */
+const KW_PROMA = { lat: 45.4384, lng: 12.3185 };
+function kwZona(p){
+  if (!p || typeof p.lat !== "number") return "";
+  if (hav(p.lat, p.lng, KW_PROMA.lat, KW_PROMA.lng) < 650) return "proma";          // Piazzale Roma (con la stazione e il Tronchetto vicini)
+  if (p.lat > 45.488 && p.lng > 12.31 && p.lng < 12.385) return "aeroporto";        // Marco Polo e Tessera
+  if (p.lng < 12.296 && p.lat > 45.30) return "terraferma";                          // Mestre, Marghera, Campalto, entroterra
+  if (p.lat > 45.44 && p.lng > 12.43) return "terraferma";                           // Cavallino-Treporti, Jesolo
+  if (p.lat > 45.52 || p.lng < 12.2) return "terraferma";                            // più lontano: Treviso, Padova…
+  return "";
+}
+function kwLink(){
+  const K = CONFIG.KIWITAXI; return K.LINK || (isTropss() ? "https://kiwitaxi.com/" : "");   // senza link affiliato lo vede solo tropss, per provarlo
+}
+function paintKiwi(from, to){
+  const box = $("#rbKiwi"), K = CONFIG.KIWITAXI, a = kwZona(from), b = kwZona(to), link = kwLink();
+  const ok = link && ((a === "proma" && (b === "terraferma" || b === "aeroporto")) || (b === "proma" && (a === "terraferma" || a === "aeroporto")));
+  box.classList.toggle("hidden", !ok); if (!ok) return;
+  const aer = a === "aeroporto" || b === "aeroporto";
+  box.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16.5V12l2-5h12l2 5v4.5z"/><path d="M4 12h16M7.5 19.5v-3M16.5 19.5v-3"/><circle cx="7.5" cy="14.3" r=".8"/><circle cx="16.5" cy="14.3" r=".8"/></svg>
+    <span><b>Taxi in auto con Kiwitaxi</b><small>${aer ? "Aeroporto ↔ Piazzale Roma" : "Piazzale Roma ↔ terraferma"} · prenoti a prezzo fisso${K.CODICE ? " · codice " + esc(K.CODICE) : ""}${K.LINK ? "" : " · manca il link affiliato"}</small></span>
+    ${K.SCONTO ? `<em>-${esc(K.SCONTO.replace(/^-/, ""))}</em>` : ""}`;
+  box.onclick = () => { haptic(); if (K.CODICE){ try{ navigator.clipboard.writeText(K.CODICE); toast("Codice " + K.CODICE + " copiato"); }catch(e){} }
+    window.open(link, "_blank", "noopener"); };
 }
 // scelta del mezzo: a piedi, la tua barca, vaporetto o taxi
 function paintTravel(fit){
