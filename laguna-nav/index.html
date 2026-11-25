@@ -1043,6 +1043,10 @@
   .txo.on{background:#fff;border-color:#111}
   .txo svg{width:30px;height:30px;flex:0 0 30px;fill:none;stroke:#111;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
   .txo span{flex:1;display:flex;flex-direction:column;gap:1px;font-size:14px} .txo small{color:#666;font-size:12px}
+  .kwrow{display:flex;align-items:center;gap:8px;margin:0 0 8px;padding:8px 12px;background:#f4f5f6;border-radius:12px;font-size:14px;color:#111}
+  .kwrow span{flex:0 0 auto;color:#666} .kwrow b{min-width:18px;text-align:center}
+  .kwrow button{width:32px;height:32px;border-radius:50%;border:1px solid #ddd;background:#fff;font:inherit;font-size:18px;line-height:1;color:#111;cursor:pointer}
+  .kwrow input{margin-left:auto;font:inherit;font-size:14px;padding:6px 8px;border:1px solid #ddd;border-radius:10px;background:#fff;color:#111}
   .txo b.pz{font-size:15px;white-space:nowrap} .txo em{font-style:normal;font-weight:800;font-size:11px;background:#111;color:#ffd24a;border-radius:99px;padding:3px 7px;margin-left:6px}
   #rbGo:disabled{opacity:.45}
 </style>
@@ -1584,7 +1588,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.57</p>
+      <p class="sub">clickVenice · versione 3.58</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -4841,15 +4845,29 @@ async function showPlan(){
   $("#rbMore").classList.add("hidden"); $("#rbGo").disabled = true; PLAN.kw = null;
   if (!from){ $("#rbInfo").textContent = "Aspetto il GPS… oppure scegli un punto di partenza"; setTimeout(() => { if (PLAN && seq === planSeq && lastPos) showPlan(); }, 2500); return; }
   $("#rbInfo").textContent = "Calcolo il percorso…";
-  if (!G.done) await loadGraph();
-  if (!PLAN || seq !== planSeq) return;
-  const R = computeRoute(from, PLAN.to); PLAN.Rb = R;
-  $("#tmBarca").textContent = fmtMin(Math.max(1, Math.round(R.len / (12 / 3.6) / 60)));
-  PLAN.tx = taxiEstimate(from, PLAN.to, 2); PLAN.kw = kwInfo(from, PLAN.to);
-  $("#tmTaxi").textContent = !PLAN.kw ? PLAN.tx.lo + "–" + PLAN.tx.hi + " €" : PLAN.kw.terra ? "da " + PLAN.kw.price + " €" : "da " + Math.min(PLAN.tx.lo, PLAN.kw.price) + " €";
+  PLAN._rbGo = false; PLAN.kw = kwInfo(from, PLAN.to);
+  $("#tmBarca").textContent = "tocca"; $("#tmTaxi").textContent = PLAN.kw && PLAN.kw.terra ? "da " + PLAN.kw.price + " €" : "tocca";
   walkRoute(from, PLAN.to).then(W => { if (!PLAN || seq !== planSeq) return; PLAN.walk = W; $("#tmPiedi").textContent = fmtMin(walkMin(W)); if (PLAN.mode === "piedi") paintTravel(true); });
   tripActv(from, PLAN.to).then(j => { if (!PLAN || seq !== planSeq) return; PLAN.trip = j; $("#tmMezzi").textContent = j.err ? "—" : j.totMin ? fmtMin(j.totMin) : "arr. " + j.opzioni[0].arrivo; if (PLAN.mode === "mezzi") paintTravel(false); });
   paintTravel(true);
+  if (PLAN.mode === "barca" || PLAN.mode === "taxi") setTimeout(() => planBoat(seq), 80);
+}
+// rotta in barca e prezzo del taxi acqueo: si calcolano solo se scegli Barca o Taxi, dopo che il pannello è già aperto
+async function planBoat(seq){
+  if (!PLAN || seq !== planSeq || PLAN.Rb || PLAN._rbGo) return;
+  const from = planFrom(); if (!from) return;
+  PLAN._rbGo = true;
+  if (!G.done) await loadGraph();
+  await new Promise(r => setTimeout(r, 40));                     // lascia disegnare il pannello prima del calcolo
+  if (!PLAN || seq !== planSeq) return;
+  let R = null; try{ R = computeRoute(from, PLAN.to); }catch(e){}
+  if (!PLAN || seq !== planSeq) return;
+  if (!R){ PLAN._rbGo = false; $("#tmBarca").textContent = "—"; return; }
+  PLAN.Rb = R;
+  $("#tmBarca").textContent = fmtMin(Math.max(1, Math.round(R.len / (12 / 3.6) / 60)));
+  PLAN.tx = taxiEstimate(from, PLAN.to, 2, R);
+  $("#tmTaxi").textContent = !PLAN.kw ? PLAN.tx.lo + "–" + PLAN.tx.hi + " €" : PLAN.kw.terra ? "da " + PLAN.kw.price + " €" : "da " + Math.min(PLAN.tx.lo, PLAN.kw.price) + " €";
+  if (PLAN.mode === "barca" || PLAN.mode === "taxi") paintTravel(true);
 }
 function fitPlan(R){
   if (!R || !map) return; const b = new maplibregl.LngLatBounds(); R.pts.forEach(p => b.extend([p[1], p[0]]));
@@ -4924,12 +4942,18 @@ function kwInfo(from, to){
   if (K.LINK){ const m = String(K.LINK).match(/[?&]pap=([^&#]+)/); if (m) url += (url.includes("?") ? "&" : "?") + "pap=" + m[1]; }      // ID partner Kiwitaxi
   return { terra: a === "terraferma" || b === "terraferma", aer: a === "aeroporto" || b === "aeroporto", price, min: Math.max(15, Math.round(km * 1.6)), url };
 }
+const kwOggi = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+const kwPax = () => store.get("ln_kw_pax", 2);
+const kwDay = () => (PLAN && PLAN.kwDay) || kwOggi();
+const kwPrezzo = kw => kwPax() > 3 ? Math.round(kw.price * 1.3 / 5) * 5 : kw.price;   // oltre 3 persone serve un minivan
 function kwOpen(){
   const K = CONFIG.KIWITAXI, kw = PLAN && PLAN.kw; if (!kw) return;
   if (K.CODICE){ try{ navigator.clipboard.writeText(K.CODICE); toast("Codice sconto " + K.CODICE + " copiato"); }catch(e){} }
   // link affiliato Travelpayouts (tp.media…&u=destinazione): gli passo il tragitto come destinazione
   let url = kw.url;
   if (K.LINK && /[?&]u=/.test(K.LINK)) url = K.LINK.replace(/([?&]u=)[^&#]*/, "$1" + encodeURIComponent(kw.url));
+  const g = new Date(kwDay() + "T12:00").toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" });
+  toast(`Su Kiwitaxi scegli ${g} e ${kwPax()} ${kwPax() === 1 ? "passeggero" : "passeggeri"}`);
   window.open(url, "_blank", "noopener");
 }
 // scelta del mezzo: a piedi, la tua barca, vaporetto o taxi
@@ -4938,8 +4962,8 @@ function paintTravel(fit){
   document.querySelectorAll("#rbModes [data-tm]").forEach(b => b.classList.toggle("on", b.dataset.tm === m));
   more.classList.add("hidden"); more.innerHTML = ""; go.disabled = false;
   if (m === "barca" || m === "taxi"){
-    const R = PLAN.R = PLAN.Rb;
-    if (!R){ info.textContent = "Calcolo il percorso…"; go.disabled = true; }
+    const R = PLAN.R = PLAN.Rb, soloAuto = m === "taxi" && PLAN.kw && PLAN.kw.terra;
+    if (!R && !soloAuto){ info.textContent = m === "taxi" ? "Calcolo il prezzo del taxi…" : "Calcolo il percorso…"; go.disabled = true; }
     else if (m === "barca"){
       info.textContent = `${Math.max(1, Math.round(R.len / (12 / 3.6) / 60))} min · ${fmtDist(R.len)} · ` + (R.src === "lavoro" ? "tragitti abituali" : R.src === "rete" ? "rete dei canali" : "linea d'aria");
       go.textContent = "▶ Avvia in barca";
@@ -4957,11 +4981,14 @@ function paintTravel(fit){
         const carIc = '<path d="M4 16.5V12l2-5h12l2 5v4.5z"/><path d="M4 12h16M7.5 19.5v-3M16.5 19.5v-3"/><circle cx="7.5" cy="14.3" r=".8"/><circle cx="16.5" cy="14.3" r=".8"/>';
         more.innerHTML = `<div class="txopts">
           ${kw.terra ? "" : `<button class="txo${auto ? "" : " on"}" data-txk="barca"><svg viewBox="0 0 24 24">${boatIc}</svg><span><b>Taxi acqueo</b><small>Circa ${t.min} min · tassisti convenzionati</small></span><b class="pz">${t.lo}–${t.hi} €</b></button>`}
-          <button class="txo${auto ? " on" : ""}" data-txk="auto"><svg viewBox="0 0 24 24">${carIc}</svg><span><b>Taxi in auto${K.SCONTO ? `<em>-${esc(K.SCONTO.replace(/^-/, ""))}</em>` : ""}</b><small>Kiwitaxi · circa ${kw.min} min · prezzo fisso</small></span><b class="pz">da ${kw.price} €</b></button>
-        </div><p class="trnote" style="margin:0">${auto ? "Prezzo indicativo: quello esatto lo vedi su Kiwitaxi, con il tragitto già compilato." : "Prezzo indicativo per 2 persone. La richiesta arriva a tutti i tassisti convenzionati: il primo che accetta prende la corsa."}</p>`;
+          <button class="txo${auto ? " on" : ""}" data-txk="auto"><svg viewBox="0 0 24 24">${carIc}</svg><span><b>Taxi in auto${K.SCONTO ? `<em>-${esc(K.SCONTO.replace(/^-/, ""))}</em>` : ""}</b><small>Kiwitaxi · circa ${kw.min} min · prezzo fisso</small></span><b class="pz">da ${kwPrezzo(kw)} €</b></button>
+        </div>${auto ? `<div class="kwrow"><span>Passeggeri</span><button data-kwp="-1" aria-label="Meno">−</button><b>${kwPax()}</b><button data-kwp="1" aria-label="Più">+</button>
+          <input type="date" id="kwDay" min="${kwOggi()}" value="${esc(kwDay())}"></div>` : ""}<p class="trnote" style="margin:0">${auto ? "Prezzo indicativo: quello esatto lo vedi su Kiwitaxi." : "Prezzo indicativo per 2 persone. La richiesta arriva a tutti i tassisti convenzionati: il primo che accetta prende la corsa."}</p>`;
         more.classList.remove("hidden");
         more.querySelectorAll("[data-txk]").forEach(b => b.onclick = () => { PLAN.txKind = b.dataset.txk; store.set("ln_txkind", PLAN.txKind); haptic(); paintTravel(false); });
-        if (auto){ PLAN.R = null; info.textContent = `Da ${kw.price} € · circa ${kw.min} min in auto`; go.textContent = "🚗 Prenota su Kiwitaxi"; }
+        more.querySelectorAll("[data-kwp]").forEach(b => b.onclick = () => { store.set("ln_kw_pax", Math.min(16, Math.max(1, kwPax() + +b.dataset.kwp))); haptic(); paintTravel(false); });
+        if ($("#kwDay")) $("#kwDay").onchange = e => { PLAN.kwDay = e.target.value || kwOggi(); };
+        if (auto){ PLAN.R = null; info.textContent = `Da ${kwPrezzo(kw)} € · circa ${kw.min} min in auto · ${kwPax()} ${kwPax() === 1 ? "persona" : "persone"}`; go.textContent = "🚗 Prenota su Kiwitaxi"; }
         else { info.textContent = `${t.lo}–${t.hi} € · circa ${t.min} min`; go.textContent = "🚕 Chiama un taxi acqueo"; }
       }
     }
@@ -4988,6 +5015,7 @@ function paintTravel(fit){
 }
 document.querySelectorAll("#rbModes [data-tm]").forEach(b => b.onclick = () => {
   if (!PLAN) return; PLAN.mode = b.dataset.tm; store.set("ln_travel", PLAN.mode); paintTravel(true);
+  if (PLAN.mode === "barca" || PLAN.mode === "taxi") planBoat(planSeq);
 });
 function closePlan(){
   PLAN = null; planSeq++; $("#routeBox").classList.add("hidden"); $("#searchBox").classList.remove("hidden");
@@ -6987,9 +7015,9 @@ setTimeout(() => { if (appMode === "nautica" && (LY.actv || LY.alilaguna)){ if (
 let TX = { da: null, a: null, pax: 2, est: null }, txRide = store.get("ln_taxi_ride", null), txTimer = null, txBoard = null, txOn = store.get("ln_taxi_on", true), txSeen = [];
 const TX_AIRPORT = [45.5008, 12.3373], TX_LIDO = [45.4177, 12.3683], TX_MURANO = [45.4560, 12.3530];
 const near = (p, c, r) => hav(p.lat, p.lng, c[0], c[1]) < r;
-function taxiEstimate(da, a, pax){
+function taxiEstimate(da, a, pax, Rpre){
   let km = hav(da.lat, da.lng, a.lat, a.lng) / 1000 * 1.35;     // in linea d'aria i canali allungano il giro
-  try{ if (G.done){ const R = computeRoute(da, a); if (R && R.len) km = R.len / 1000; } }catch(e){}
+  try{ const R = Rpre || (G.done ? computeRoute(da, a) : null); if (R && R.len) km = R.len / 1000; }catch(e){}
   const min = Math.max(6, Math.round(km / 13 * 60));              // circa 13 km/h di media tra rii e laguna
   let p = 15 + 2 * min + 5;                                         // quota fissa + scatto al minuto + chiamata
   const ends = [da, a];
