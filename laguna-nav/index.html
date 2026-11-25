@@ -545,6 +545,17 @@
   .lightv .muted,.lightv .sub{color:#6f7a74}
   .lightv .pill{background:#f3e6e1;color:#b5533c}
   /* Spedisci & Traslochi */
+  .srvH{margin:16px 0 8px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#6f7a74}
+  .srvSoon{margin:18px 0 4px;border:1px dashed #d5dad7;border-radius:14px;padding:10px 12px;background:#fafbfa}
+  .srvSoon summary{cursor:pointer;font-weight:700;color:#333}
+  .srvOff{display:flex;align-items:center;gap:10px;width:100%;text-align:left;font:inherit;color:#555;background:none;border:0;border-top:1px solid #eceeed;padding:9px 2px;cursor:pointer}
+  .srvOff svg{width:22px;height:22px;flex:0 0 22px;fill:none;stroke:#9aa49f;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  .srvOff span{flex:1;font-size:14px} .srvOff em{font-style:normal;font-size:12px;font-weight:700;color:var(--c-ship)}
+  .shmine svg{width:26px;height:26px;flex:0 0 26px;fill:none;stroke:var(--c-ship);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  em.ps-pending{background:#fff4d6!important;color:#9a6b00!important} em.ps-approved{background:#e3f7ee!important;color:#0a8f4e!important}
+  em.ps-paused{background:#eef0ef!important;color:#555!important} em.ps-rejected{background:#fde8e8!important;color:#c8102e!important}
+  .prF .pill{border:1px solid #dcdfdd;background:#fff;color:#333;border-radius:99px;padding:5px 10px;font:inherit;font-size:12.5px;cursor:pointer}
+  .prF .pill.on{background:#111;color:#fff;border-color:#111}
   .spcard{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:#fff;border:1px solid #e6e9e7;border-radius:16px;padding:16px;margin:0 0 10px;color:#111;font:inherit;cursor:pointer}
   .spcard:active{background:#f4f6f5}
   .spcard svg{width:34px;height:34px;flex:0 0 34px;fill:none;stroke:var(--c-ship);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
@@ -1118,7 +1129,6 @@
   #tabs [data-pm="shop"].on{color:var(--c-shop)!important}
   #tabs [data-pm="sport"].on{color:var(--c-sport)!important}
   #tabs [data-pm="ship"].on{color:var(--c-ship)!important}
-  #tabs [data-pm="ship"].on svg path:not(.s){stroke:#fff}
   #tabs [data-pm="my"].on{color:var(--c-my)!important}
   #tabs button.on .c{stroke:#fff!important}
   /* Naviga: grigio quando non è premuto, nero quando è premuto */
@@ -1463,11 +1473,11 @@
     </div>
   </section>
 
-  <!-- SPEDISCI & TRASLOCHI -->
+  <!-- SERVIZI (prima: Spedisci) -->
   <section class="view hidden" id="v-ship">
     <div class="scroll lightv" id="shipScroll">
-      <div class="mchead igh"><h2>Spedisci</h2></div>
-      <p class="muted" style="margin:-4px 0 14px;line-height:1.45">Trasporti merci, traslochi e consegne veloci a Venezia. Scegli il servizio: ti facciamo qualche domanda, una alla volta.</p>
+      <div class="mchead igh"><h2>Servizi</h2></div>
+      <p class="muted" style="margin:-4px 0 14px;line-height:1.45">Professionisti di Venezia per trasporti, casa, media e barca. Scegli il servizio: ti facciamo qualche domanda, una alla volta.</p>
       <div id="shipTypes"></div>
       <div id="shipAdmin"></div>
       <h4 style="margin:22px 0 8px">Le tue richieste</h4>
@@ -1496,6 +1506,7 @@
       <div class="igtabs" id="pfSeg">
         <button data-pt="home" class="on" title="Home"><svg viewBox="0 0 24 24"><path d="M3.5 11L12 4l8.5 7v9h-5.5v-5.5h-6V20H3.5z"/></svg><span>Home</span></button>
         <button data-pt="work" title="Lavoro"><svg viewBox="0 0 24 24"><rect x="3.5" y="7.5" width="17" height="12" rx="2"/><path d="M9 7.5V5.5h6v2M3.5 12.5h17"/></svg><span>Lavoro</span></button>
+        <button data-pt="serv" title="Servizi"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span>Servizi</span></button>
       </div>
       <span id="pfMini" class="hidden" data-noico></span><i id="frBadge" class="hidden"></i>
 
@@ -1526,7 +1537,7 @@
 
       <div id="pt-work" class="hidden">
         <div class="field" style="margin-bottom:8px"><input id="wkQ" type="search" placeholder="🔍 Cerca lavoro, competenze, zona…"></div>
-        <div class="seg wkseg" id="wkSeg"><button data-wt="jobs" class="on">📋 Offerte</button><button data-wt="people">🧑‍🔧 Lavoratori</button><button data-wt="mine">⭐ Il mio spazio</button></div>
+        <div class="seg wkseg" id="wkSeg"><button data-wt="jobs" class="on">📋 Offerte</button><button data-wt="people">🧑‍🔧 Lavoratori</button><button data-wt="mine">⭐ Il mio spazio</button><button data-wt="pro">🤝 Lavora con noi</button></div>
         <div id="wkBody"><p class="muted">Carico la bacheca…</p></div>
       </div>
 
@@ -1588,7 +1599,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.59</p>
+      <p class="sub">clickVenice · versione 3.60</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -1684,7 +1695,7 @@ const CONFIG = {
     VOLUME: { piccolo: 0, bancali: 40, medio: 100, completo: 250 },
     FACCHINAGGIO: 40, URGENTE: 25,
     ANTICIPO_PCT: 20, ANTICIPO_MIN: 10,
-    CONDIZIONI: "L'anticipo blocca il mezzo e la pianificazione. Annullando almeno 24 ore prima l'anticipo viene restituito; dopo, o se il ritiro non è possibile per cause del cliente, l'anticipo resta trattenuto. Il prezzo è una stima: te lo confermiamo prima del servizio."
+    CONDIZIONI: "L'anticipo copre la pianificazione e blocca il professionista. Annullando almeno 24 ore prima l'anticipo viene restituito; dopo, o se il servizio non è possibile per cause del cliente, l'anticipo resta trattenuto. Il prezzo è una stima: te lo confermiamo prima del servizio. Il saldo lo paghi direttamente al professionista."
   },
   // Database Supabase "LAGUNA NAV" (separato da San Marco Barche)
   SUPABASE_URL: "https://lzqedhmiwywrgeypivbt.supabase.co",
@@ -1995,7 +2006,7 @@ const MODES = [
   { k: "market", ic: "🛥️", n: "Delivery", v: "map", am: "market" },
   { k: "shop", ic: "🛍️", n: "Marketplace", v: "shop" },
   { k: "nautica", ic: "⚓", n: "Naviga", v: "map", am: "nautica" },
-  { k: "ship", ic: "📦", n: "Spedisci", v: "ship" },
+  { k: "ship", ic: "🧰", n: "Servizi", v: "ship" },
   { k: "sport", ic: "🎲", n: "Gioca", v: "map", am: "sport", hidden: true },   // Gioca ora si apre da myClick
   { k: "my", ic: "👤", n: "myClick", v: "profile" }
 ];
@@ -2012,7 +2023,7 @@ const TAB_IC = {   // linea sottile · .s si riempie quando la scheda è selezio
   nautica: '<path class="s" d="M3 14.5h18l-2.6 5H5.6z"/><path d="M12 3.5v11"/><path class="s" d="M12 4.5l6 8h-6z"/>',
   market: '<path class="s" d="M2.5 13.5h16l-2 5H5.3z"/><path d="M8.5 13.5l1.7-3.6h4.2l1.3 3.6"/><path class="s" d="M18.8 9.6h2.6v4.6h-2.6z"/><path d="M20.1 14.2v3.6"/>',   // barchino a motore
   shop: '<path class="s" d="M5 8h14l-1.2 12H6.2z"/><path d="M9 10.5V6.8a3 3 0 0 1 6 0v3.7"/>',   // borsa della spesa
-  ship: '<path class="s" d="M3.5 8L12 4l8.5 4v8.5L12 20.5l-8.5-4z"/><path d="M3.5 8l8.5 4 8.5-4M12 12v8.5M7.7 6l8.6 4.1"/>',   // pacco
+  ship: '<rect class="s" x="3.5" y="3.5" width="7" height="7" rx="2"/><rect class="s" x="13.5" y="3.5" width="7" height="7" rx="2"/><rect class="s" x="3.5" y="13.5" width="7" height="7" rx="2"/><rect class="s" x="13.5" y="13.5" width="7" height="7" rx="2"/>',   // servizi
   sport: '<rect class="s" x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle class="c" cx="8.3" cy="8.3" r="1.2"/><circle class="c" cx="15.7" cy="15.7" r="1.2"/><circle class="c" cx="12" cy="12" r="1.2"/>',
   my: '<path class="s" d="M9.5 8.5l10 4.3-4.4 1.3-1.3 4.4z"/><path d="M6 4l1 2.1M3.3 7.6l2.2.8M10 3l-.2 2.3M4.3 12l1.9-1.1"/>'   // un clic
 };
@@ -2055,48 +2066,113 @@ document.addEventListener("click", e => {
   const bk = e.target.closest("[data-back]"); if (bk){ if (bk.dataset.back === "market"){ setMode("market"); return; } showView("profile"); }
 });
 /* =========================================================
-   SPEDISCI & TRASLOCHI · trasporti merci, traslochi e consegne veloci a Venezia
+   SERVIZI · catalogo (barra in basso e myClick) + prenotazione rapida: anticipo + saldo al professionista.
+   Un servizio compare solo se c'è almeno un professionista approvato in "Lavora con noi" (Lavoro → Lavora con noi).
    Una domanda alla volta (wizard) → riepilogo con prezzo → codice prenotazione → WhatsApp
    ========================================================= */
+const SRV_MACRO = [
+  { k: "media", n: "Media & Musica" }, { k: "trasporti", n: "Trasporti & Logistica" },
+  { k: "casa", n: "Casa & Ospitalità" }, { k: "nautica", n: "Laguna & Nautica" }
+];
+const SRV_IC = {
+  cam: '<rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3"/>',
+  mic: '<rect x="9" y="3.5" width="6" height="10" rx="3"/><path d="M6 11a6 6 0 0 0 12 0M12 17v3.5M8.5 20.5h7"/>',
+  pen: '<path d="M4 20l1-4L16 5l3 3L8 19z"/><path d="M14 7l3 3"/>',
+  boat: '<path d="M3 14.5h18l-2.6 5H5.6z"/><rect x="8" y="7.5" width="8" height="7" rx="1"/><path d="M12 7.5v7"/>',
+  sofa: '<path d="M5 11V8.5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2V11"/><path d="M3 12a1.5 1.5 0 0 1 3 0v2.5h12V12a1.5 1.5 0 0 1 3 0v6H3z"/><path d="M5 18v1.5M19 18v1.5"/>',
+  cart: '<path d="M6.5 4v13h12"/><rect x="9" y="8" width="7.5" height="7" rx="1"/><circle cx="8" cy="19.2" r="1.4"/><circle cx="17" cy="19.2" r="1.4"/>',
+  broom: '<path d="M14 3l-3 9M7 12h8l2 8H5z"/><path d="M9 16v4M13 16v4"/>',
+  drop: '<path d="M12 3.5s6 6.5 6 10.5a6 6 0 0 1-12 0c0-4 6-10.5 6-10.5z"/>',
+  bolt: '<path d="M13 3L5 13.5h6L10 21l8-10.5h-6z"/>',
+  key: '<circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M15.5 12v2"/>',
+  helm: '<circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.5"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>',
+  hull: '<path d="M3 13h18l-3 6H6z"/><path d="M7 16h3M12 16h2"/><path d="M12 13V5l5 6"/>'
+};
+// s = nome del servizio nel catalogo, pro = categoria per chi si candida; ask = domande specifiche; ship = usa il percorso di Spedisci
+const SRV = {
+  videomaker: { m: "media", ic: "cam", pro: "Videomaker & Fotografo", s: "Noleggia Videomaker & Fotografo", d: "Foto e video per eventi, attività e matrimoni", ore: true,
+    luogo: "Dove si fa il servizio?", ask: [{ k: "lavoro", q: "Che lavoro ti serve?", o: ["Foto", "Video", "Foto + Video"] }] },
+  studio: { m: "media", ic: "mic", pro: "Studio di Registrazione", s: "Registra in Studio", d: "Registrazione, voce, mix e master", ore: true, noLuogo: true,
+    ask: [{ k: "lavoro", q: "Cosa vuoi registrare?", o: ["Voce o podcast", "Una canzone", "Band", "Mix e master"] }] },
+  grafico: { m: "media", ic: "pen", pro: "Grafico / Social Media", s: "Grafica e Social Media", d: "Logo, grafiche e gestione dei social", noLuogo: true,
+    ask: [{ k: "lavoro", q: "Cosa ti serve?", o: ["Logo", "Grafiche per i social", "Gestione dei social", "Volantino o menù"] }] },
+  barca: { m: "trasporti", ic: "boat", pro: "Trasportatore Barca (targa RV)", s: "Trasporto merci in barca", d: "Bancali, attrezzature, forniture commerciali", ship: "barca" },
+  facchino: { m: "trasporti", ic: "sofa", pro: "Facchino / Traslochi", s: "Trasloco / Facchinaggio", d: "Mobili, elettrodomestici, appartamenti o negozi", ship: "trasloco" },
+  fattorino: { m: "trasporti", ic: "cart", pro: "Fattorino a piedi / Carrello", s: "Consegna veloce a piedi", d: "Pacchi e commissioni rapide in centro storico", ship: "piedi" },
+  pulizie: { m: "casa", ic: "broom", pro: "Pulizie / Turnover Airbnb", s: "Pulizie Case & Airbnb", d: "Pulizie di casa e cambio ospiti", ore: true,
+    ask: [{ k: "lavoro", q: "Che pulizia?", o: ["Casa", "Turnover Airbnb", "Pulizia a fondo", "Ufficio o negozio"] }] },
+  idraulico: { m: "casa", ic: "drop", pro: "Idraulico", s: "Chiama un Idraulico", d: "Perdite, scarichi, caldaie e sanitari",
+    ask: [{ k: "lavoro", q: "Che problema c'è?", chips: ["Perdita d'acqua", "Scarico intasato", "Caldaia", "Sanitari"] }] },
+  elettricista: { m: "casa", ic: "bolt", pro: "Elettricista", s: "Chiama un Elettricista", d: "Guasti, prese, luci e impianti",
+    ask: [{ k: "lavoro", q: "Che problema c'è?", chips: ["Salta la corrente", "Presa o interruttore", "Luci", "Impianto nuovo"] }] },
+  fabbro: { m: "casa", ic: "key", pro: "Fabbro / Tuttofare", s: "Fabbro & Tuttofare", d: "Serrature, porte e piccoli lavori",
+    ask: [{ k: "lavoro", q: "Cosa serve?", chips: ["Porta chiusa fuori", "Cambio serratura", "Montaggio mobili", "Piccole riparazioni"] }] },
+  skipper: { m: "nautica", ic: "helm", pro: "Skipper / Tour in barca", s: "Tour in barca con Skipper", d: "Giri in laguna, isole e tramonto", ore: true,
+    luogo: "Dove vi veniamo a prendere?", ask: [{ k: "persone", q: "Quante persone?", o: ["1–2", "3–4", "5–8", "9 o più"] }] },
+  meccanico: { m: "nautica", ic: "gear", pro: "Meccanico nautico", s: "Meccanico nautico", d: "Motori fuoribordo ed entrobordo",
+    luogo: "Dove si trova la barca?", ask: [{ k: "lavoro", q: "Che problema ha la barca?", chips: ["Non parte", "Perde potenza", "Tagliando", "Elica o piede"] }] },
+  carena: { m: "nautica", ic: "hull", pro: "Pulizia carena / Manutenzione barche", s: "Pulizia carena & Manutenzione", d: "Carena, antivegetativa e manutenzione",
+    luogo: "Dove si trova la barca?", ask: [{ k: "lunghezza", q: "Quanto è lunga la barca?", o: ["Fino a 6 m", "6–9 m", "9–12 m", "Oltre 12 m"] }] }
+};
 const SH_TIPI = {
-  barca: { n: "Trasporto merci in barca", d: "Bancali, attrezzature, forniture commerciali",
-    ic: '<path d="M3 14.5h18l-2.6 5H5.6z"/><rect x="8" y="7.5" width="8" height="7" rx="1"/><path d="M12 7.5v7"/>' },
-  trasloco: { n: "Trasloco / Facchinaggio", d: "Mobili, elettrodomestici, appartamenti o negozi",
-    ic: '<path d="M5 11V8.5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2V11"/><path d="M3 12a1.5 1.5 0 0 1 3 0v2.5h12V12a1.5 1.5 0 0 1 3 0v6H3z"/><path d="M5 18v1.5M19 18v1.5"/>' },
-  piedi: { n: "Consegna veloce a piedi / carrello", d: "Pacchi, scatoloni, commissioni rapide in centro storico",
-    ic: '<path d="M6.5 4v13h12"/><rect x="9" y="8" width="7.5" height="7" rx="1"/><circle cx="8" cy="19.2" r="1.4"/><circle cx="17" cy="19.2" r="1.4"/>' }
+  barca: { n: "Trasporto merci in barca", cat: "barca" },
+  trasloco: { n: "Trasloco / Facchinaggio", cat: "facchino" },
+  piedi: { n: "Consegna veloce a piedi / carrello", cat: "fattorino" }
 };
 const SH_VOL = { piccolo: "Piccolo, a mano o carrello", bancali: "1–2 bancali o un elettrodomestico", medio: "Carico medio, una stanza", completo: "Trasloco completo" };
 const SH_SERV = { trasporto: "Solo trasporto riva-riva / strada", facchinaggio: "Con facchinaggio, carico e scarico al piano" };
 const SH_FASCE = { urgente: "Urgente, entro 2 ore", mattina: "Mattina 08:00–12:00", pomeriggio: "Pomeriggio 14:00–18:00", flessibile: "Flessibile" };
 const SH_STATI = { nuova: "In attesa di conferma", confermata: "Confermata", fatta: "Completata", annullata: "Annullata" };
+const PRO_STATI = { pending: "In attesa di approvazione", approved: "Attivo", paused: "In pausa", rejected: "Non approvata" };
+const UNITA = { ora: "all'ora", servizio: "a servizio", giornata: "a giornata" };
+const ZONE = ["Venezia centro storico", "Lido", "Giudecca", "Murano", "Burano", "Mestre", "Marghera", "Tutta la laguna"];
 let shipMineCache = store.get("ln_ship", []);
+let SRV_ATT = store.get("ln_srv_att", null);   // { t, m: { categoria: { n, tariffa, unita } } }
+const srvNome = r => (SRV[r.categoria] && SRV[r.categoria].s) || (r.tipo && SH_TIPI[r.tipo] && SH_TIPI[r.tipo].n) || r.categoria || "Servizio";
+const proNome = x => x.categoria === "altro" ? (x.custom || "Altro") : (SRV[x.categoria] ? SRV[x.categoria].pro : x.categoria);
 const shEur = n => Number(n || 0).toLocaleString("it-IT", { style: "currency", currency: "EUR", minimumFractionDigits: Number(n) % 1 ? 2 : 0 });
 const shDay = (g, o) => { const d = new Date(g + "T12:00"); return isNaN(d) ? "" : d.toLocaleDateString("it-IT", o || { weekday: "long", day: "numeric", month: "long" }); };
 const shWaNum = t => { let d = String(t || "").replace(/\D/g, ""); if (d.startsWith("00")) d = d.slice(2); if (d.length <= 10) d = "39" + d; return d; };
+const srvIco = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${SRV_IC[(SRV[k] || {}).ic] || SRV_IC.gear}</svg>`;
 
-function shipPrice(v){
-  const P = CONFIG.SPEDISCI, r = [["Servizio base", P.BASE[v.tipo] || 0]];
-  if (P.VOLUME[v.volume]) r.push(["Volume del carico", P.VOLUME[v.volume]]);
-  if (v.servizio === "facchinaggio") r.push(["Facchinaggio al piano", P.FACCHINAGGIO]);
-  if (v.fascia === "urgente") r.push(["Urgenza entro 2 ore", P.URGENTE]);
-  const tot = r.reduce((a, x) => a + x[1], 0);
-  const ant = Math.min(tot, Math.max(P.ANTICIPO_MIN, Math.round(tot * P.ANTICIPO_PCT / 100)));
-  return { righe: r, totale: tot, anticipo: ant, saldo: tot - ant };
+// quali servizi sono attivi (almeno un professionista approvato)
+async function loadSrvAtt(force){
+  if (!force && SRV_ATT && Date.now() - SRV_ATT.t < 60000) return SRV_ATT;
+  try{ const r = await rpc("pro_attive", {}); if (r && Array.isArray(r.lista)){ const m = {}; r.lista.forEach(x => m[x.categoria] = { n: x.n, tariffa: x.tariffa != null ? +x.tariffa : null, unita: x.unita }); SRV_ATT = { t: Date.now(), m }; store.set("ln_srv_att", SRV_ATT); } }catch(e){}
+  return SRV_ATT;
 }
+const srvAtt = () => (SRV_ATT && SRV_ATT.m) || {};
 
-function renderShip(){
-  $("#shipTypes").innerHTML = Object.entries(SH_TIPI).map(([k, t]) => `<button class="spcard" data-sht="${k}"><svg viewBox="0 0 24 24" aria-hidden="true">${t.ic}</svg><span><b>${t.n}</b><small>${t.d}</small></span><i>›</i></button>`).join("");
-  document.querySelectorAll("#shipTypes [data-sht]").forEach(b => b.onclick = () => shipStart(b.dataset.sht));
-  loadShipMine();
+/* ---------- catalogo ---------- */
+async function renderShip(){
+  paintSrv(); loadShipMine();
   if (isTropss()) loadShipAdmin(); else $("#shipAdmin").innerHTML = "";
+  await loadSrvAtt(); paintSrv();
+}
+function paintSrv(){
+  const A = srvAtt(), on = Object.keys(SRV).filter(k => A[k]), off = Object.keys(SRV).filter(k => !A[k]);
+  const card = k => { const S = SRV[k], a = A[k]; return `<button class="spcard" data-srv="${k}">${srvIco(k)}<span><b>${S.s}</b><small>${S.d}${a && a.tariffa ? ` · da ${shEur(a.tariffa)}${a.unita === "ora" ? "/ora" : ""}` : ""}</small></span><i>›</i></button>`; };
+  let h = SRV_MACRO.map(M => { const L = on.filter(k => SRV[k].m === M.k); return L.length ? `<h4 class="srvH">${M.n}</h4>` + L.map(card).join("") : ""; }).join("");
+  if (!on.length) h = `<div class="card soonbox" style="text-align:center"><h3 style="margin:4px 0">Servizi in arrivo</h3><p class="muted" style="line-height:1.45">Stiamo cercando i primi professionisti di Venezia. Fai un lavoro qui sotto? Candidati e sblocca tu il servizio.</p></div>`;
+  if (off.length) h += `<details class="srvSoon"${on.length ? "" : " open"}><summary>Prossimamente · ${off.length} servizi</summary><p class="muted" style="margin:6px 0 8px;font-size:13px">Si attivano appena c'è almeno un professionista. Candidati per sbloccarli.</p>` +
+    off.map(k => `<button class="srvOff" data-soon="${k}">${srvIco(k)}<span>${SRV[k].s}</span><em>Candidati</em></button>`).join("") + `</details>`;
+  $("#shipTypes").innerHTML = h;
+  document.querySelectorAll("#shipTypes [data-srv]").forEach(b => b.onclick = () => { const S = SRV[b.dataset.srv]; S.ship ? shipStart(S.ship) : srvStart(b.dataset.srv); });
+  document.querySelectorAll("#shipTypes [data-soon]").forEach(b => b.onclick = () => goLavora(b.dataset.soon));
+}
+function goLavora(cat){
+  haptic(); setMode("my"); setPfTab("work"); wkTab = "pro";
+  document.querySelectorAll("#wkSeg [data-wt]").forEach(x => x.classList.toggle("on", x.dataset.wt === "pro")); paintWork();
+  if (cat) setTimeout(() => proStart({ macro: SRV[cat].m, categoria: cat }), 250);
 }
 
+/* ---------- prenotazione: trasporti (stesso percorso di Spedisci) ---------- */
 function shipStart(tipo, prev){
   haptic();
   const last = store.get("ln_ship_contatto", {});
   const oggi = new Date().toISOString().slice(0, 10);   // stesso formato dei giorni del wizard
-  wizard({ title: SH_TIPI[tipo].n, values: Object.assign({ tipo, nome: last.nome || "", tel: last.tel || "" }, prev || {}, { tipo }),
+  wizard({ title: SH_TIPI[tipo].n, values: Object.assign({ nome: last.nome || "", tel: last.tel || "" }, prev || {}, { tipo, ship: true, categoria: SH_TIPI[tipo].cat }),
     steps: [
       { k: "ritiro", q: "Dove ritiriamo?", hint: "Indirizzo e sestiere, oppure la riva di attracco", type: "place", hereLabel: "Usa posizione GPS attuale", hereName: "Posizione GPS del cliente", freeText: true, ph: "es. Cannaregio 4119 o Riva di Biasio" },
       { k: "consegna", q: "Dove consegniamo?", hint: "Indirizzo e sestiere, oppure la riva di attracco", type: "place", noHere: true, freeText: true, ph: "es. Dorsoduro 3246 o Zattere" },
@@ -2115,59 +2191,102 @@ function shipStart(tipo, prev){
       store.set("ln_ship_contatto", { nome: v.nome, tel: v.tel }); shipSummary(v);
     } });
 }
+/* ---------- prenotazione: tutti gli altri servizi ---------- */
+function srvStart(cat, prev){
+  haptic();
+  const S = SRV[cat], A = srvAtt()[cat] || {}, last = store.get("ln_ship_contatto", {}), oggi = new Date().toISOString().slice(0, 10);
+  const steps = [];
+  if (!S.noLuogo) steps.push({ k: "ritiro", q: S.luogo || "Dove?", hint: "Indirizzo e sestiere, oppure una riva", type: "place", hereLabel: "Usa posizione GPS attuale", hereName: "Posizione GPS del cliente", freeText: true, ph: "es. Cannaregio 4119" });
+  (S.ask || []).forEach(a => steps.push(a.o ? { k: a.k, q: a.q, type: "choice", options: a.o.map(x => [x, x]) }
+    : { k: a.k, q: a.q, hint: "Tocca quello che vale, oppure scrivi tu", type: "text", multi: true, max: 200, chips: a.chips, check: t => t.trim().length < 2 ? "Scrivi due parole." : "" }));
+  if (S.ore && (!A.unita || A.unita === "ora")) steps.push({ k: "ore", q: "Per quante ore?", type: "choice", options: [["1", "1 ora"], ["2", "2 ore"], ["3", "3 ore"], ["4", "4 ore"], ["8", "Giornata intera"]] });
+  steps.push(
+    { k: "note", q: "Vuoi aggiungere qualcosa?", type: "text", optional: true, skipLabel: "No, niente", max: 300, ph: "Dettagli utili per il professionista" },
+    { k: "giorno", q: "Che giorno?", type: "day", days: 30 },
+    { k: "fascia", q: "In che fascia oraria?", type: "choice", options: v => Object.entries(SH_FASCE).filter(([k]) => k !== "urgente" || v.giorno === oggi) },
+    { k: "nome", q: "Come ti chiami?", type: "text", max: 60, ph: "Nome e cognome", check: t => t.trim().length < 2 ? "Scrivi il tuo nome." : "" },
+    { k: "tel", q: "Il tuo numero WhatsApp o di telefono", type: "text", inputType: "tel", max: 20, ph: "es. 340 123 4567", check: t => t.replace(/\D/g, "").length < 8 ? "Controlla il numero." : "" });
+  wizard({ title: S.s, values: Object.assign({ nome: last.nome || "", tel: last.tel || "" }, prev || {}, { categoria: cat, ship: false }), steps,
+    onDone: v => { if (v.fascia === "urgente" && v.giorno !== oggi) v.fascia = "flessibile"; store.set("ln_ship_contatto", { nome: v.nome, tel: v.tel }); shipSummary(v); } });
+}
+
+// prezzo: tariffa più bassa tra i professionisti approvati della categoria (per i trasporti, se manca, il listino provvisorio)
+function shipPrice(v){
+  const P = CONFIG.SPEDISCI, A = srvAtt()[v.categoria] || {}, r = [];
+  if (v.ship){
+    r.push(["Servizio base", A.tariffa != null ? A.tariffa : (P.BASE[v.tipo] || 0)]);
+    if (P.VOLUME[v.volume]) r.push(["Volume del carico", P.VOLUME[v.volume]]);
+    if (v.servizio === "facchinaggio") r.push(["Facchinaggio al piano", P.FACCHINAGGIO]);
+  } else if (A.tariffa != null){
+    const q = A.unita === "ora" ? (+v.ore || 1) : 1;
+    r.push([A.unita === "ora" ? `Tariffa ${shEur(A.tariffa)}/ora × ${q}` : A.unita === "giornata" ? "Tariffa a giornata" : "Tariffa del servizio", A.tariffa * q]);
+  }
+  if (v.fascia === "urgente") r.push(["Urgenza entro 2 ore", P.URGENTE]);
+  const tot = r.reduce((a, x) => a + x[1], 0);
+  const ant = tot ? Math.min(tot, Math.max(P.ANTICIPO_MIN, Math.round(tot * P.ANTICIPO_PCT / 100))) : P.ANTICIPO_MIN;
+  return { righe: r, totale: tot, anticipo: ant, saldo: Math.max(0, tot - ant), concordare: !tot };
+}
+function srvDettagli(v){
+  const d = {};
+  if (v.ship){ d.volume = SH_VOL[v.volume]; d.servizio = SH_SERV[v.servizio]; }
+  else { (SRV[v.categoria].ask || []).forEach(a => { if (v[a.k]) d[a.k] = v[a.k]; }); if (v.ore) d.ore = v.ore; }
+  return d;
+}
+const DET_N = { volume: "Carico", servizio: "Tipo", lavoro: "Lavoro", persone: "Persone", lunghezza: "Barca", ore: "Ore" };
 
 function shipSummary(v){
-  const pr = shipPrice(v), P = CONFIG.SPEDISCI;
+  const pr = shipPrice(v), P = CONFIG.SPEDISCI, det = srvDettagli(v);
   const row = (a, b) => `<div class="shrow"><span>${a}</span><b>${b}</b></div>`;
   openSheet(`<h3>Riepilogo</h3>
-    <div class="shsum">${row("Servizio", esc(SH_TIPI[v.tipo].n))}${row("Ritiro", esc(v.ritiro.name))}${row("Consegna", esc(v.consegna.name))}
-      ${v.tipo !== "piedi" ? row("Carico", esc(SH_VOL[v.volume])) + row("Tipo", esc(SH_SERV[v.servizio])) : ""}
+    <div class="shsum">${row("Servizio", esc(srvNome(v)))}${v.ritiro ? row(v.ship ? "Ritiro" : "Dove", esc(v.ritiro.name)) : ""}${v.consegna ? row("Consegna", esc(v.consegna.name)) : ""}
+      ${Object.entries(det).map(([k, x]) => row(DET_N[k] || k, esc(x))).join("")}
       ${v.note ? row("Note", esc(v.note)) : ""}${row("Quando", esc(shDay(v.giorno)) + "<br>" + esc(SH_FASCE[v.fascia]))}${row("Contatto", esc(v.nome) + "<br>" + esc(v.tel))}</div>
     <div class="shsum">${pr.righe.map(([a, b]) => row(esc(a), shEur(b))).join("")}
-      <div class="shrow tot"><span>Totale servizio stimato</span><b>${shEur(pr.totale)}</b></div>
-      <div class="shrow"><span>Anticipo per confermare<br><small>Pianificazione logistica e blocco del mezzo</small></span><b>${shEur(pr.anticipo)}</b></div>
-      <div class="shrow"><span>Saldo al trasportatore alla consegna</span><b>${shEur(pr.saldo)}</b></div></div>
+      <div class="shrow tot"><span>${pr.concordare ? "Prezzo" : "Totale servizio stimato"}</span><b>${pr.concordare ? "da concordare" : shEur(pr.totale)}</b></div>
+      <div class="shrow"><span>Costo del servizio (anticipo)<br><small>Pianificazione e blocco del professionista</small></span><b>${shEur(pr.anticipo)}</b></div>
+      <div class="shrow"><span>Saldo diretto al professionista</span><b>${pr.concordare ? "da concordare" : shEur(pr.saldo)}</b></div></div>
     <p class="muted" style="font-size:13px;line-height:1.45;margin:0 0 10px">${esc(P.CONDIZIONI)}</p>
     <label class="check"><input type="checkbox" id="shAg"><span>Accetto le condizioni di cancellazione e rimborso dell'anticipo</span></label>
     <button class="btn" id="shGo" disabled style="opacity:.45;margin-top:12px">Invia richiesta</button>
     <button class="btn ghost" id="shEdit" style="margin-top:8px">Modifica</button>`);
   $("#shAg").onchange = e => { $("#shGo").disabled = !e.target.checked; $("#shGo").style.opacity = e.target.checked ? "" : ".45"; };
-  $("#shEdit").onclick = () => { closeSheet(); shipStart(v.tipo, v); };
+  $("#shEdit").onclick = () => { closeSheet(); v.ship ? shipStart(v.tipo, v) : srvStart(v.categoria, v); };
   $("#shGo").onclick = () => shipSend(v, pr);
 }
 
 async function shipSend(v, pr){
   const go = $("#shGo"); go.disabled = true; go.textContent = "Invio…";
-  const dati = { tipo: v.tipo, ritiro: v.ritiro, consegna: v.consegna, volume: v.volume, servizio: v.servizio, note: v.note || "", giorno: v.giorno, fascia: v.fascia,
+  const dati = { categoria: v.categoria, ritiro: v.ritiro || {}, consegna: v.consegna || null, dettagli: srvDettagli(v), note: v.note || "", giorno: v.giorno, fascia: v.fascia,
     nome: String(v.nome).trim(), tel: String(v.tel).trim(), totale: pr.totale, anticipo: pr.anticipo };
   const wa = CONFIG.SPEDISCI.WHATSAPP || CONFIG.ORDER_WHATSAPP;
   let codice = null, online = false;
   try{
-    const r = await rpc("spedizione_crea", { p_data: dati });
+    const r = await rpc("pren_crea", { p_data: dati });
     if (r && r.codice){ codice = r.codice; online = true; }
     else if (r && r.errore === "troppe"){ go.disabled = false; go.textContent = "Invia richiesta"; return toast("Hai inviato tante richieste oggi: riprova domani."); }
   }catch(e){}
   if (!online && !wa){ go.disabled = false; go.textContent = "Invia richiesta"; return toast("Non riesco a inviarla: controlla la connessione ed entra con il tuo account."); }
   if (!codice){ const d = new Date(); codice = "CV-" + String(d.getDate()).padStart(2, "0") + String(d.getMonth() + 1).padStart(2, "0") + "-" + Math.random().toString(36).slice(2, 6).toUpperCase(); }
-  const rec = Object.assign({ codice, stato: "nuova", creata: new Date().toISOString(), online }, dati);
+  const rec = Object.assign({ codice, stato: "nuova", creata: new Date().toISOString(), online, tipo: v.tipo }, dati);
   shipMineCache = [rec, ...shipMineCache.filter(x => x.codice !== codice)].slice(0, 30); store.set("ln_ship", shipMineCache);
   haptic(); shipDone(rec);
 }
 
 function shipText(r){
   const pos = p => p && typeof p.lat === "number" ? ` (https://maps.google.com/?q=${p.lat.toFixed(5)},${p.lng.toFixed(5)})` : "";
-  return [`*Richiesta clickVenice ${r.codice}*`, `Servizio: ${SH_TIPI[r.tipo] ? SH_TIPI[r.tipo].n : r.tipo}`,
-    `Ritiro: ${r.ritiro && r.ritiro.name}${pos(r.ritiro)}`, `Consegna: ${r.consegna && r.consegna.name}${pos(r.consegna)}`,
-    r.tipo !== "piedi" ? `Carico: ${SH_VOL[r.volume] || ""} · ${SH_SERV[r.servizio] || ""}` : "", r.note ? `Note: ${r.note}` : "",
+  const det = Object.entries(r.dettagli || {}).map(([k, x]) => `${DET_N[k] || k}: ${x}`);
+  return [`*Richiesta clickVenice ${r.codice}*`, `Servizio: ${srvNome(r)}`,
+    r.ritiro && r.ritiro.name ? `${r.consegna ? "Ritiro" : "Dove"}: ${r.ritiro.name}${pos(r.ritiro)}` : "", r.consegna && r.consegna.name ? `Consegna: ${r.consegna.name}${pos(r.consegna)}` : "",
+    ...det, r.note ? `Note: ${r.note}` : "",
     `Quando: ${shDay(r.giorno, { weekday: "short", day: "numeric", month: "short" })} · ${SH_FASCE[r.fascia] || ""}`, `Cliente: ${r.nome} · ${r.tel}`,
-    `Totale stimato ${shEur(r.totale)} · anticipo ${shEur(r.anticipo)} · saldo ${shEur(r.totale - r.anticipo)}`].filter(Boolean).join("\n");
+    +r.totale ? `Totale stimato ${shEur(r.totale)} · anticipo ${shEur(r.anticipo)} · saldo ${shEur(r.totale - r.anticipo)}` : `Prezzo da concordare · anticipo ${shEur(r.anticipo)}`].filter(Boolean).join("\n");
 }
 
 function shipDone(r, dalla_lista){
   const wa = CONFIG.SPEDISCI.WHATSAPP || CONFIG.ORDER_WHATSAPP, devo = !r.online;   // non salvata online: va mandata per forza su WhatsApp
   openSheet(`<div class="shok"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>
-    <h3>${dalla_lista ? esc(SH_STATI[r.stato] || r.stato) : devo ? "Quasi fatto" : "Richiesta inviata"}</h3><p class="muted" style="margin:0">Codice prenotazione</p><div class="shcode">${esc(r.codice)}</div>
-    <p class="muted" style="line-height:1.45">${devo && !dalla_lista ? "Tocca il tasto qui sotto per mandarci la richiesta su WhatsApp." : `Ti contattiamo al ${esc(r.tel)} per confermare il prezzo e l'anticipo di ${shEur(r.anticipo)}.`}</p></div>
+    <h3>${dalla_lista ? esc(SH_STATI[r.stato] || r.stato) : devo ? "Quasi fatto" : "Richiesta inviata"}</h3><p class="muted" style="margin:0">${esc(srvNome(r))} · codice prenotazione</p><div class="shcode">${esc(r.codice)}</div>
+    <p class="muted" style="line-height:1.45">${devo && !dalla_lista ? "Tocca il tasto qui sotto per mandarci la richiesta su WhatsApp." : `Ti contattiamo al ${esc(r.tel)} per confermare prezzo e anticipo di ${shEur(r.anticipo)}.`}</p></div>
     ${wa ? `<button class="btn" id="shWa">${devo ? "Invia su WhatsApp" : "Manda il riepilogo anche su WhatsApp"}</button>` : ""}
     <button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">Chiudi</button>`);
   if ($("#shWa")) $("#shWa").onclick = () => { window.location.href = `https://wa.me/${wa}?text=${encodeURIComponent(shipText(r))}`; };
@@ -2177,7 +2296,7 @@ function shipDone(r, dalla_lista){
 async function loadShipMine(){
   renderShipMine();
   try{
-    const r = await rpc("spedizioni_mie", {});
+    const r = await rpc("pren_mie", {});
     if (r && Array.isArray(r.lista)){
       const loc = shipMineCache.filter(x => !x.online && !r.lista.some(s => s.codice === x.codice));
       shipMineCache = [...r.lista.map(x => Object.assign(x, { online: true })), ...loc].slice(0, 30); store.set("ln_ship", shipMineCache); renderShipMine();
@@ -2186,17 +2305,17 @@ async function loadShipMine(){
 }
 function renderShipMine(){
   const box = $("#shipMine"); if (!box) return; const L = shipMineCache;
-  box.innerHTML = L.length ? L.map(r => `<button class="card shmine" data-shc="${esc(r.codice)}"><span><b>${esc(SH_TIPI[r.tipo] ? SH_TIPI[r.tipo].n : r.tipo)}</b>
+  box.innerHTML = L.length ? L.map(r => `<button class="card shmine" data-shc="${esc(r.codice)}"><span><b>${esc(srvNome(r))}</b>
       <small>${esc(r.codice)} · ${esc(shDay(r.giorno, { day: "numeric", month: "short" }))} · ${esc(SH_FASCE[r.fascia] || "")}</small></span><em class="st-${esc(r.stato)}">${esc(SH_STATI[r.stato] || r.stato)}</em></button>`).join("")
     : `<p class="muted">Nessuna richiesta per ora.</p>`;
   box.querySelectorAll("[data-shc]").forEach(b => b.onclick = () => { const r = L.find(x => x.codice === b.dataset.shc); if (r) shipDone(r, true); });
 }
 
-// pannello operativo: solo tropss vede tutte le richieste e ne cambia lo stato
+// pannello operativo delle prenotazioni: solo tropss
 async function loadShipAdmin(){
   const box = $("#shipAdmin"); box.innerHTML = `<h4 style="margin:22px 0 8px">Richieste ricevute</h4><p class="muted">Carico…</p>`;
   try{
-    const r = await rpc("spedizioni_tutte", {}); if (!r || !Array.isArray(r.lista)) throw 0;
+    const r = await rpc("pren_tutte", {}); if (!r || !Array.isArray(r.lista)) throw 0;
     const L = r.lista, nuove = L.filter(x => x.stato === "nuova").length;
     box.innerHTML = `<h4 style="margin:22px 0 8px">Richieste ricevute${nuove ? ` <span class="muted">· ${nuove} da confermare</span>` : ""}</h4>` + (L.length ? L.map(x => `<div class="card shadm">
       <div class="shrow" style="border:0;padding-top:0"><b style="text-align:left">${esc(x.codice)}</b><em class="st-${esc(x.stato)}">${esc(SH_STATI[x.stato] || x.stato)}</em></div>
@@ -2204,8 +2323,103 @@ async function loadShipAdmin(){
       <div class="row" style="gap:6px;flex-wrap:wrap"><a class="btn small ghost" href="https://wa.me/${shWaNum(x.tel)}" target="_blank" rel="noopener">WhatsApp</a><a class="btn small ghost" href="tel:${esc(String(x.tel).replace(/[^\d+]/g, ""))}">Chiama</a>
       ${x.stato === "nuova" ? `<button class="btn small" data-shs="confermata" data-id="${x.id}">Conferma</button>` : ""}${x.stato === "confermata" ? `<button class="btn small" data-shs="fatta" data-id="${x.id}">Fatta</button>` : ""}${x.stato === "nuova" || x.stato === "confermata" ? `<button class="btn small ghost" data-shs="annullata" data-id="${x.id}">Annulla</button>` : ""}</div></div>`).join("") : `<p class="muted">Nessuna richiesta.</p>`);
     box.querySelectorAll("[data-shs]").forEach(b => b.onclick = async () => {
-      try{ const j = await rpc("spedizione_stato", { p_id: +b.dataset.id, p_stato: b.dataset.shs }); if (j && j.errore) return toast("Non riuscito, riprova."); haptic(); loadShipAdmin(); }catch(e){ toast("Controlla la connessione."); } });
-  }catch(e){ box.innerHTML = `<p class="muted" style="margin-top:18px">Pannello richieste non attivo: va eseguito sql/spedizioni.sql su Supabase.</p>`; }
+      try{ const j = await rpc("pren_stato", { p_id: +b.dataset.id, p_stato: b.dataset.shs }); if (j && j.errore) return toast("Non riuscito, riprova."); haptic(); loadShipAdmin(); }catch(e){ toast("Controlla la connessione."); } });
+  }catch(e){ box.innerHTML = `<p class="muted" style="margin-top:18px">Pannello richieste non raggiungibile: controlla la connessione.</p>`; }
+}
+
+/* =========================================================
+   LAVORA CON NOI · candidature dei professionisti (Lavoro → Lavora con noi) e pannello di tropss
+   ========================================================= */
+async function paintPro(box){
+  box.innerHTML = `<div class="card"><h3 style="margin:0 0 6px">Lavora con noi</h3>
+      <p class="muted" style="line-height:1.45;margin:0 0 12px">Offri i tuoi servizi su clickVenice: videomaker, traslochi, pulizie, skipper e altro. Quando la candidatura è approvata il servizio compare in Servizi e ti giriamo le richieste su WhatsApp. Il lavoro lo fai in autonomia e lo incassi tu, con fattura o ricevuta al cliente.</p>
+      <button class="btn" id="proNew">Candidati</button></div>
+    <div id="proMine"></div><div id="proAdm"></div>`;
+  $("#proNew").onclick = () => proStart();
+  try{
+    const r = await rpc("pro_mie", {}); const L = (r && r.lista) || [];
+    if ($("#proMine") && L.length) $("#proMine").innerHTML = `<h4 style="margin:18px 0 8px">Le tue candidature</h4>` + L.map(x => `<button class="card shmine" data-pro="${x.id}">${srvIco(x.categoria)}<span><b>${esc(proNome(x))}</b>
+      <small>${esc(x.nome)}${x.tariffa != null ? " · " + shEur(x.tariffa) + " " + (UNITA[x.unita] || "") : ""}</small></span><em class="ps-${esc(x.stato)}">${esc(PRO_STATI[x.stato] || x.stato)}</em></button>`).join("");
+    document.querySelectorAll("#proMine [data-pro]").forEach(b => b.onclick = () => { const x = L.find(y => y.id === +b.dataset.pro); if (x) proStart(proToVals(x)); });
+  }catch(e){}
+  if (isTropss()) loadProAdmin();
+}
+const proToVals = x => ({ macro: x.categoria === "altro" ? "altro" : (SRV[x.categoria] || {}).m, categoria: x.categoria, custom: x.custom, nome: x.nome, zona: x.zona,
+  tariffa: x.tariffa != null ? String(x.tariffa) : "", unita: x.unita, bio: x.bio, wa: x.wa });
+
+function proStart(prev){
+  haptic();
+  const last = store.get("ln_ship_contatto", {});
+  wizard({ title: "Lavora con noi", values: Object.assign({ wa: last.tel || "" }, prev || {}),
+    steps: [
+      { k: "macro", q: "In che settore lavori?", type: "choice", options: [...SRV_MACRO.map(M => [M.k, M.n]), ["altro", "Altro"]] },
+      { k: "categoria", q: "Che servizio offri?", type: "choice", when: v => v.macro !== "altro",
+        options: v => [...Object.entries(SRV).filter(([, S]) => S.m === v.macro).map(([k, S]) => [k, S.pro]), ["altro", "Altro, scrivo io"]] },
+      { k: "custom", q: "Come si chiama il tuo servizio?", type: "text", max: 40, ph: "es. Restauro mobili", when: v => v.macro === "altro" || v.categoria === "altro",
+        check: t => t.trim().length < 3 ? "Scrivi almeno 3 lettere." : "" },
+      { k: "nome", q: "Il tuo nome o quello dell'attività", type: "text", max: 60, ph: "es. Marco Foto Venezia", check: t => t.trim().length < 2 ? "Scrivi il nome." : "" },
+      { k: "zona", q: "Dove lavori?", hint: "Tocca tutte le zone che vuoi", type: "text", multi: true, max: 160, chips: ZONE, check: t => t.trim().length < 2 ? "Scegli almeno una zona." : "" },
+      { k: "tariffa", q: "Tariffa indicativa in euro", hint: "Solo il numero, es. 25. Serve a stimare il prezzo per il cliente", type: "text", inputType: "number", max: 8, optional: true, skipLabel: "La concordo ogni volta",
+        check: t => t && !(+String(t).replace(",", ".") >= 0) ? "Scrivi solo il numero." : "" },
+      { k: "unita", q: "La tariffa è…", type: "choice", options: Object.entries(UNITA), when: v => !!v.tariffa },
+      { k: "bio", q: "Presentati in breve", hint: "Esperienza e attrezzatura", type: "text", max: 300, ph: "es. 10 anni di matrimoni, drone e luci", check: t => t.trim().length < 10 ? "Scrivi qualche parola in più." : "" },
+      { k: "wa", q: "Il tuo numero WhatsApp", hint: "Ti giriamo qui le richieste dei clienti", type: "text", inputType: "tel", max: 20, ph: "es. 340 123 4567", check: t => t.replace(/\D/g, "").length < 8 ? "Controlla il numero." : "" }
+    ],
+    onDone: v => { if (v.macro === "altro") v.categoria = "altro"; if (!v.tariffa) v.unita = "servizio"; proSummary(v); } });
+}
+function proSummary(v){
+  const row = (a, b) => `<div class="shrow"><span>${a}</span><b>${b}</b></div>`;
+  openSheet(`<h3>La tua candidatura</h3>
+    <div class="shsum">${row("Servizio", esc(proNome(v)))}${row("Nome", esc(v.nome))}${row("Zona", esc(v.zona))}
+      ${row("Tariffa", v.tariffa ? esc(shEur(+String(v.tariffa).replace(",", "."))) + " " + esc(UNITA[v.unita] || "") : "da concordare")}${row("WhatsApp", esc(v.wa))}</div>
+    <p class="muted" style="font-size:13px;line-height:1.45;margin:0 0 10px">${esc(v.bio)}</p>
+    <label class="check"><input type="checkbox" id="prAg"><span>Dichiaro di svolgere l'attività in autonomia e di rilasciare fattura o ricevuta direttamente al cliente. clickVenice mi mette in contatto con i clienti e trattiene solo l'anticipo come costo del servizio.</span></label>
+    <button class="btn" id="prGo" disabled style="opacity:.45;margin-top:12px">Invia candidatura</button>
+    <button class="btn ghost" id="prEdit" style="margin-top:8px">Modifica</button>`);
+  $("#prAg").onchange = e => { $("#prGo").disabled = !e.target.checked; $("#prGo").style.opacity = e.target.checked ? "" : ".45"; };
+  $("#prEdit").onclick = () => { closeSheet(); proStart(v); };
+  $("#prGo").onclick = async () => {
+    const b = $("#prGo"); b.disabled = true; b.textContent = "Invio…";
+    try{
+      const r = await rpc("pro_candida", { p_data: { categoria: v.categoria, custom: v.custom || "", nome: v.nome, zona: v.zona, tariffa: v.tariffa || "", unita: v.unita, bio: v.bio, wa: v.wa, termini: true } });
+      if (!r || r.errore){ b.disabled = false; b.textContent = "Invia candidatura"; return toast(r && r.errore === "non_autorizzato" ? "Entra con il tuo account per candidarti." : r && r.errore === "troppe" ? "Troppe modifiche oggi: riprova domani." : "Controlla i dati e riprova."); }
+      closeSheet(); haptic(); toast(r.stato === "approved" ? "Candidatura aggiornata ✓" : "Candidatura inviata: è in attesa di approvazione");
+      if (wkTab === "pro") paintWork();
+    }catch(e){ b.disabled = false; b.textContent = "Invia candidatura"; toast("Non inviata: controlla la connessione."); }
+  };
+}
+
+// pannello di tropss: candidature e stato con un tocco
+let proAdmF = "pending";
+async function loadProAdmin(){
+  const box = $("#proAdm"); if (!box) return;
+  box.innerHTML = `<h4 style="margin:22px 0 8px">Candidature ricevute</h4><p class="muted">Carico…</p>`;
+  let L = null; try{ const r = await rpc("pro_admin", {}); L = r && r.lista; }catch(e){}
+  if (!$("#proAdm")) return;
+  if (!Array.isArray(L)){ box.innerHTML = `<p class="muted" style="margin-top:18px">Pannello candidature non raggiungibile.</p>`; return; }
+  const cnt = k => L.filter(x => x.stato === k).length, F = L.filter(x => proAdmF === "tutte" || x.stato === proAdmF);
+  const att = srvAtt(), attivi = Object.keys(SRV).filter(k => att[k]).length;
+  box.innerHTML = `<h4 style="margin:22px 0 4px">Candidature ricevute</h4><p class="muted" style="margin:0 0 8px;font-size:13px">Servizi attivi in Servizi: ${attivi} su ${Object.keys(SRV).length}</p>
+    <div class="row prF" style="gap:6px;flex-wrap:wrap;margin-bottom:8px">${[["pending", "In attesa"], ["approved", "Attivi"], ["paused", "In pausa"], ["rejected", "Rifiutati"], ["tutte", "Tutte"]].map(([k, n]) =>
+      `<button class="pill${proAdmF === k ? " on" : ""}" data-prf="${k}">${n}${k !== "tutte" ? " " + cnt(k) : ""}</button>`).join("")}</div>` +
+    (F.length ? F.map(x => `<div class="card shadm">
+      <div class="shrow" style="border:0;padding-top:0"><b style="text-align:left">${esc(proNome(x))}</b><em class="ps-${esc(x.stato)}">${esc(PRO_STATI[x.stato] || x.stato)}</em></div>
+      <p style="margin:0 0 4px"><b>${esc(x.nome)}</b> <span class="muted">@${esc(x.utente || "")}</span></p>
+      <p class="muted" style="margin:0 0 4px;font-size:13px">${esc(x.zona)}${x.tariffa != null ? " · " + shEur(x.tariffa) + " " + (UNITA[x.unita] || "") : " · tariffa da concordare"}</p>
+      <p style="margin:0 0 8px;font-size:13px;line-height:1.4">${esc(x.bio)}</p>
+      <div class="row" style="gap:6px;flex-wrap:wrap"><a class="btn small ghost" href="https://wa.me/${shWaNum(x.wa)}" target="_blank" rel="noopener">WhatsApp</a>
+      ${x.stato !== "approved" ? `<button class="btn small" data-pst="approved" data-id="${x.id}">Approva</button>` : ""}
+      ${x.stato === "approved" ? `<button class="btn small ghost" data-pst="paused" data-id="${x.id}">Metti in pausa</button>` : ""}
+      ${x.stato === "pending" ? `<button class="btn small ghost" data-pst="rejected" data-id="${x.id}">Rifiuta</button>` : ""}</div></div>`).join("") : `<p class="muted">Nessuna candidatura qui.</p>`);
+  box.querySelectorAll("[data-prf]").forEach(b => b.onclick = () => { proAdmF = b.dataset.prf; loadProAdmin(); });
+  box.querySelectorAll("[data-pst]").forEach(b => b.onclick = async () => {
+    b.disabled = true;
+    try{ const j = await rpc("pro_stato", { p_id: +b.dataset.id, p_stato: b.dataset.pst }); if (!j || j.errore){ b.disabled = false; return toast("Non riuscito, riprova."); } }catch(e){ b.disabled = false; return toast("Controlla la connessione."); }
+    haptic(); await loadSrvAtt(true);
+    const x = L.find(y => y.id === +b.dataset.id), S = x && SRV[x.categoria];
+    toast(b.dataset.pst === "approved" ? (S ? `Attivo: «${S.s}» è in Servizi` : "Approvato (categoria personalizzata: non va nel catalogo)") : b.dataset.pst === "paused" ? "Messo in pausa" : "Rifiutata");
+    loadProAdmin();
+  });
 }
 
 // Gioca ora si apre da myClick
@@ -2281,6 +2495,7 @@ function setPfTab(t){ pfTab = t; document.querySelectorAll("#pfSeg [data-pt]").f
   $("#pfSeg").classList.toggle("hidden", t === "me" || t === "friends");   // il profilo si apre tenendo premuto myClick in basso
   if (t === "home"){ loadFeed(); loadPfStati(); } if (t === "work") loadJobs(); }
 document.querySelectorAll("#pfSeg [data-pt]").forEach(b => b.onclick = () => setPfTab(b.dataset.pt));
+$('#pfSeg [data-pt="serv"]').onclick = () => { haptic(); setMode("ship"); };   // stesso catalogo della barra in basso
 $("#pfLetBtn").onclick = () => openLetters(letUnread() ? "ricevute" : "scrivi");
 $("#pfRouBtn").onclick = () => openMeet("roulette");
 $("#pfSetBtn").onclick = () => { haptic(); setPfTab("me"); };
@@ -2428,7 +2643,7 @@ async function loadJobs(){
 $("#wkQ").addEventListener("input", () => { clearTimeout(wkTimer); wkTimer = setTimeout(loadJobs, 400); });
 document.querySelectorAll("#wkSeg [data-wt]").forEach(b => b.onclick = () => { wkTab = b.dataset.wt; document.querySelectorAll("#wkSeg [data-wt]").forEach(x => x.classList.toggle("on", x === b)); paintWork(); });
 function paintWork(){
-  const box = $("#wkBody"); if (!WK) return;
+  const box = $("#wkBody"); if (wkTab === "pro") return paintPro(box); if (!WK) return;
   const io = WK.io || {}, azienda = io.tipo === "azienda";
   if (wkTab === "jobs"){
     const of = WK.offerte || [];
