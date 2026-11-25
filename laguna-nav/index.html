@@ -1602,7 +1602,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.61</p>
+      <p class="sub">clickVenice · versione 3.62</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -1697,8 +1697,8 @@ const CONFIG = {
     BASE: { barca: 60, trasloco: 120, piedi: 15 },
     VOLUME: { piccolo: 0, bancali: 40, medio: 100, completo: 250 },
     FACCHINAGGIO: 40, URGENTE: 25,
-    ANTICIPO_PCT: 20, ANTICIPO_MIN: 10,
-    CONDIZIONI: "L'anticipo copre la pianificazione e blocca il professionista. Annullando almeno 24 ore prima l'anticipo viene restituito; dopo, o se il servizio non è possibile per cause del cliente, l'anticipo resta trattenuto. Il prezzo è una stima: te lo confermiamo prima del servizio. Il saldo lo paghi direttamente al professionista."
+    COMMISSIONE_PCT: 10, COMMISSIONE_MIN: 1,   // costo del servizio: si aggiunge al prezzo del professionista e si paga come anticipo
+    CONDIZIONI: "Il costo del servizio si paga in anticipo e blocca il professionista. Annullando almeno 24 ore prima viene restituito; dopo, o se il servizio non è possibile per cause del cliente, resta trattenuto. Il prezzo del professionista è una stima: te lo confermiamo prima del servizio e lo paghi direttamente a lui."
   },
   // Database Supabase "LAGUNA NAV" (separato da San Marco Barche)
   SUPABASE_URL: "https://lzqedhmiwywrgeypivbt.supabase.co",
@@ -2069,13 +2069,14 @@ document.addEventListener("click", e => {
   const bk = e.target.closest("[data-back]"); if (bk){ if (bk.dataset.back === "market"){ setMode("market"); return; } showView("profile"); }
 });
 /* =========================================================
-   SERVIZI · catalogo (barra in basso e myClick) + prenotazione rapida: anticipo + saldo al professionista.
+   SERVIZI · catalogo (barra in basso e myClick) + prenotazione rapida: prezzo del professionista + costo del servizio (commissione, in anticipo).
    Un servizio compare solo se c'è almeno un professionista approvato in "Lavora con noi" (Lavoro → Lavora con noi).
    Una domanda alla volta (wizard) → riepilogo con prezzo → codice prenotazione → WhatsApp
    ========================================================= */
 const SRV_MACRO = [
   { k: "media", n: "Media & Musica" }, { k: "trasporti", n: "Trasporti & Logistica" },
-  { k: "casa", n: "Casa & Ospitalità" }, { k: "nautica", n: "Laguna & Nautica" }
+  { k: "casa", n: "Casa & Ospitalità" }, { k: "nautica", n: "Laguna & Nautica" },
+  { k: "benessere", n: "Benessere & Bellezza" }, { k: "famiglia", n: "Famiglia & Animali" }, { k: "eventi", n: "Turismo & Eventi" }
 ];
 const SRV_IC = {
   cam: '<rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3"/>',
@@ -2090,7 +2091,19 @@ const SRV_IC = {
   key: '<circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M15.5 12v2"/>',
   helm: '<circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.5"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>',
   gear: '<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>',
-  hull: '<path d="M3 13h18l-3 6H6z"/><path d="M7 16h3M12 16h2"/><path d="M12 13V5l5 6"/>'
+  hull: '<path d="M3 13h18l-3 6H6z"/><path d="M7 16h3M12 16h2"/><path d="M12 13V5l5 6"/>',
+  spark: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M18.5 16.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/>',
+  scis: '<circle cx="6.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/><path d="M8.3 15.7L18 4M15.7 15.7L6 4"/>',
+  comb: '<rect x="3.5" y="9" width="17" height="4" rx="1.5"/><path d="M6 13v6M9 13v6M12 13v6M15 13v6M18 13v6"/>',
+  hands: '<path d="M7 20v-5l-2.5-4a1.5 1.5 0 0 1 2.6-1.5L9 12V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M12 11V4.5a1.5 1.5 0 0 1 3 0V11M15 8a1.5 1.5 0 0 1 3 0v5a7 7 0 0 1-3 6"/>',
+  dumb: '<path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/>',
+  baby: '<circle cx="12" cy="7.5" r="3.5"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/><path d="M10.5 7.5h.01M13.5 7.5h.01"/>',
+  paw: '<circle cx="7" cy="10" r="1.8"/><circle cx="10.5" cy="6.5" r="1.8"/><circle cx="14.5" cy="6.5" r="1.8"/><circle cx="18" cy="10" r="1.8"/><path d="M12.5 11.5c-3 0-5 3.5-5 5.5 0 1.5 1.2 2.5 2.7 2.2l2.3-.6 2.3.6c1.5.3 2.7-.7 2.7-2.2 0-2-2-5.5-5-5.5z"/>',
+  heart: '<path d="M12 20s-7-4.3-7-9.5A4 4 0 0 1 12 8a4 4 0 0 1 7 2.5C19 15.7 12 20 12 20z"/>',
+  book: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"/>',
+  flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+  chef: '<path d="M7 14.5a4 4 0 0 1-.8-7.9A5 5 0 0 1 15.8 5 4 4 0 1 1 17 14.5z"/><path d="M7 14.5V20h10v-5.5M7 17h10"/>',
+  phones: '<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3.5" y="14" width="4" height="6" rx="1.5"/><rect x="16.5" y="14" width="4" height="6" rx="1.5"/>'
 };
 // s = nome del servizio nel catalogo, pro = categoria per chi si candida; ask = domande specifiche; ship = usa il percorso di Spedisci
 const SRV = {
@@ -2116,7 +2129,31 @@ const SRV = {
   meccanico: { m: "nautica", ic: "gear", pro: "Meccanico nautico", s: "Meccanico nautico", d: "Motori fuoribordo ed entrobordo",
     luogo: "Dove si trova la barca?", ask: [{ k: "lavoro", q: "Che problema ha la barca?", chips: ["Non parte", "Perde potenza", "Tagliando", "Elica o piede"] }] },
   carena: { m: "nautica", ic: "hull", pro: "Pulizia carena / Manutenzione barche", s: "Pulizia carena & Manutenzione", d: "Carena, antivegetativa e manutenzione",
-    luogo: "Dove si trova la barca?", ask: [{ k: "lunghezza", q: "Quanto è lunga la barca?", o: ["Fino a 6 m", "6–9 m", "9–12 m", "Oltre 12 m"] }] }
+    luogo: "Dove si trova la barca?", ask: [{ k: "lunghezza", q: "Quanto è lunga la barca?", o: ["Fino a 6 m", "6–9 m", "9–12 m", "Oltre 12 m"] }] },
+  estetista: { m: "benessere", ic: "spark", pro: "Estetista a domicilio", s: "Estetista a domicilio", d: "Manicure, ceretta, trattamenti viso",
+    luogo: "Dove vieni trattato?", ask: [{ k: "lavoro", q: "Che trattamento?", o: ["Manicure o pedicure", "Ceretta", "Trattamento viso", "Trucco per evento"] }] },
+  barbiere: { m: "benessere", ic: "scis", pro: "Barbiere a domicilio", s: "Barbiere a domicilio", d: "Taglio e barba a casa tua",
+    luogo: "Dove ti raggiunge?", ask: [{ k: "lavoro", q: "Cosa ti serve?", o: ["Taglio", "Barba", "Taglio + barba", "Per più persone"] }] },
+  parrucchiere: { m: "benessere", ic: "comb", pro: "Parrucchiere a domicilio", s: "Parrucchiere a domicilio", d: "Piega, taglio e acconciature per eventi",
+    luogo: "Dove ti raggiunge?", ask: [{ k: "lavoro", q: "Cosa ti serve?", o: ["Piega", "Taglio", "Colore", "Acconciatura per evento"] }] },
+  massaggi: { m: "benessere", ic: "hands", pro: "Massaggiatore a domicilio", s: "Massaggio a domicilio", d: "Massaggi rilassanti e decontratturanti", ore: true,
+    luogo: "Dove fai il massaggio?", ask: [{ k: "lavoro", q: "Che massaggio?", o: ["Rilassante", "Decontratturante", "Sportivo", "Di coppia"] }] },
+  trainer: { m: "benessere", ic: "dumb", pro: "Personal trainer", s: "Personal trainer", d: "Allenamento a casa, in campo o all'aperto", ore: true,
+    luogo: "Dove ti alleni?", ask: [{ k: "lavoro", q: "Che allenamento?", o: ["Tonificazione", "Dimagrimento", "Corsa", "Ginnastica dolce"] }] },
+  babysitter: { m: "famiglia", ic: "baby", pro: "Babysitter", s: "Babysitter", d: "Bambini a casa o a spasso, anche la sera", ore: true,
+    luogo: "Dove?", ask: [{ k: "persone", q: "Quanti bambini?", o: ["1", "2", "3 o più"] }] },
+  dogsitter: { m: "famiglia", ic: "paw", pro: "Dog sitter / Dog walker", s: "Dog sitter", d: "Passeggiate e cura del tuo cane", ore: true,
+    luogo: "Dove passiamo a prendere il cane?", ask: [{ k: "lavoro", q: "Cosa ti serve?", o: ["Passeggiata", "Pensione per qualche giorno", "Visita a casa"] }] },
+  anziani: { m: "famiglia", ic: "heart", pro: "Assistenza anziani", s: "Assistenza anziani", d: "Compagnia, spesa e piccole commissioni", ore: true,
+    luogo: "Dove?", ask: [{ k: "lavoro", q: "Che aiuto serve?", o: ["Compagnia", "Spesa e commissioni", "Accompagnamento a visite", "Notte"] }] },
+  ripetizioni: { m: "famiglia", ic: "book", pro: "Ripetizioni / Insegnante privato", s: "Ripetizioni", d: "Lezioni private per scuola e università", ore: true,
+    luogo: "Dove si fa la lezione?", ask: [{ k: "lavoro", q: "Che materia?", chips: ["Matematica", "Inglese", "Italiano", "Fisica", "Lingue straniere"] }] },
+  guida: { m: "eventi", ic: "flag", pro: "Guida turistica", s: "Guida turistica", d: "Visite guidate di Venezia e delle isole", ore: true,
+    luogo: "Dove vi incontriamo?", ask: [{ k: "persone", q: "Quante persone?", o: ["1–2", "3–6", "7–15", "Più di 15"] }] },
+  chef: { m: "eventi", ic: "chef", pro: "Chef a domicilio", s: "Chef a domicilio", d: "Cena a casa tua, cucina veneziana e non solo",
+    luogo: "Dove si cucina?", ask: [{ k: "persone", q: "Per quante persone?", o: ["2", "3–6", "7–12", "Più di 12"] }] },
+  dj: { m: "eventi", ic: "phones", pro: "DJ per eventi", s: "DJ per feste ed eventi", d: "Musica e impianto per feste, compleanni, aperitivi", ore: true,
+    luogo: "Dov'è la festa?", ask: [{ k: "lavoro", q: "Che evento?", o: ["Compleanno", "Matrimonio", "Aperitivo o locale", "Festa privata"] }] }
 };
 const SH_TIPI = {
   barca: { n: "Trasporto merci in barca", cat: "barca" },
@@ -2225,9 +2262,9 @@ function shipPrice(v){
     r.push([A.unita === "ora" ? `Tariffa ${shEur(A.tariffa)}/ora × ${q}` : A.unita === "giornata" ? "Tariffa a giornata" : "Tariffa del servizio", A.tariffa * q]);
   }
   if (v.fascia === "urgente") r.push(["Urgenza entro 2 ore", P.URGENTE]);
-  const tot = r.reduce((a, x) => a + x[1], 0);
-  const ant = tot ? Math.min(tot, Math.max(P.ANTICIPO_MIN, Math.round(tot * P.ANTICIPO_PCT / 100))) : P.ANTICIPO_MIN;
-  return { righe: r, totale: tot, anticipo: ant, saldo: Math.max(0, tot - ant), concordare: !tot };
+  const pro = r.reduce((a, x) => a + x[1], 0);                                                     // va tutto al professionista
+  const comm = Math.max(P.COMMISSIONE_MIN, Math.round(pro * P.COMMISSIONE_PCT / 100 * 2) / 2);      // costo del servizio, arrotondato a 50 cent
+  return { righe: r, pro, anticipo: comm, saldo: pro, totale: pro ? pro + comm : 0, concordare: !pro };
 }
 function srvDettagli(v){
   const d = {};
@@ -2244,12 +2281,12 @@ function shipSummary(v){
     <div class="shsum">${row("Servizio", esc(srvNome(v)))}${v.ritiro ? row(v.ship ? "Ritiro" : "Dove", esc(v.ritiro.name)) : ""}${v.consegna ? row("Consegna", esc(v.consegna.name)) : ""}
       ${Object.entries(det).map(([k, x]) => row(DET_N[k] || k, esc(x))).join("")}
       ${v.note ? row("Note", esc(v.note)) : ""}${row("Quando", esc(shDay(v.giorno)) + "<br>" + esc(SH_FASCE[v.fascia]))}${row("Contatto", esc(v.nome) + "<br>" + esc(v.tel))}</div>
-    <div class="shsum">${pr.righe.map(([a, b]) => row(esc(a), shEur(b))).join("")}
-      <div class="shrow tot"><span>${pr.concordare ? "Prezzo" : "Totale servizio stimato"}</span><b>${pr.concordare ? "da concordare" : shEur(pr.totale)}</b></div>
-      <div class="shrow"><span>Costo del servizio (anticipo)<br><small>Pianificazione e blocco del professionista</small></span><b>${shEur(pr.anticipo)}</b></div>
-      <div class="shrow"><span>Saldo diretto al professionista</span><b>${pr.concordare ? "da concordare" : shEur(pr.saldo)}</b></div></div>
+    <div class="shsum">${pr.righe.length > 1 ? pr.righe.map(([a, b]) => row(esc(a), shEur(b))).join("") : ""}
+      <div class="shrow"><span>${pr.righe.length === 1 ? esc(pr.righe[0][0]) + " · al professionista" : "Al professionista"}<br><small>Lo paghi direttamente a lui</small></span><b>${pr.concordare ? "da concordare" : shEur(pr.saldo)}</b></div>
+      <div class="shrow"><span>Costo del servizio (${CONFIG.SPEDISCI.COMMISSIONE_PCT}%)<br><small>Si paga in anticipo per confermare</small></span><b>${shEur(pr.anticipo)}</b></div>
+      <div class="shrow tot"><span>Totale stimato</span><b>${pr.concordare ? "da concordare" : shEur(pr.totale)}</b></div></div>
     <p class="muted" style="font-size:13px;line-height:1.45;margin:0 0 10px">${esc(P.CONDIZIONI)}</p>
-    <label class="check"><input type="checkbox" id="shAg"><span>Accetto le condizioni di cancellazione e rimborso dell'anticipo</span></label>
+    <label class="check"><input type="checkbox" id="shAg"><span>Accetto le condizioni di cancellazione e rimborso del costo del servizio</span></label>
     <button class="btn" id="shGo" disabled style="opacity:.45;margin-top:12px">Invia richiesta</button>
     <button class="btn ghost" id="shEdit" style="margin-top:8px">Modifica</button>`);
   $("#shAg").onchange = e => { $("#shGo").disabled = !e.target.checked; $("#shGo").style.opacity = e.target.checked ? "" : ".45"; };
@@ -2282,14 +2319,14 @@ function shipText(r){
     r.ritiro && r.ritiro.name ? `${r.consegna ? "Ritiro" : "Dove"}: ${r.ritiro.name}${pos(r.ritiro)}` : "", r.consegna && r.consegna.name ? `Consegna: ${r.consegna.name}${pos(r.consegna)}` : "",
     ...det, r.note ? `Note: ${r.note}` : "",
     `Quando: ${shDay(r.giorno, { weekday: "short", day: "numeric", month: "short" })} · ${SH_FASCE[r.fascia] || ""}`, `Cliente: ${r.nome} · ${r.tel}`,
-    +r.totale ? `Totale stimato ${shEur(r.totale)} · anticipo ${shEur(r.anticipo)} · saldo ${shEur(r.totale - r.anticipo)}` : `Prezzo da concordare · anticipo ${shEur(r.anticipo)}`].filter(Boolean).join("\n");
+    +r.totale ? `Al professionista ${shEur(r.totale - r.anticipo)} · costo del servizio ${shEur(r.anticipo)} · totale ${shEur(r.totale)}` : `Prezzo da concordare · costo del servizio ${shEur(r.anticipo)}`].filter(Boolean).join("\n");
 }
 
 function shipDone(r, dalla_lista){
   const wa = CONFIG.SPEDISCI.WHATSAPP || CONFIG.ORDER_WHATSAPP, devo = !r.online;   // non salvata online: va mandata per forza su WhatsApp
   openSheet(`<div class="shok"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>
     <h3>${dalla_lista ? esc(SH_STATI[r.stato] || r.stato) : devo ? "Quasi fatto" : "Richiesta inviata"}</h3><p class="muted" style="margin:0">${esc(srvNome(r))} · codice prenotazione</p><div class="shcode">${esc(r.codice)}</div>
-    <p class="muted" style="line-height:1.45">${devo && !dalla_lista ? "Tocca il tasto qui sotto per mandarci la richiesta su WhatsApp." : `Ti contattiamo al ${esc(r.tel)} per confermare prezzo e anticipo di ${shEur(r.anticipo)}.`}</p></div>
+    <p class="muted" style="line-height:1.45">${devo && !dalla_lista ? "Tocca il tasto qui sotto per mandarci la richiesta su WhatsApp." : `Ti contattiamo al ${esc(r.tel)} per confermare il prezzo e il costo del servizio di ${shEur(r.anticipo)}.`}</p></div>
     ${wa ? `<button class="btn" id="shWa">${devo ? "Invia su WhatsApp" : "Manda il riepilogo anche su WhatsApp"}</button>` : ""}
     <button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">Chiudi</button>`);
   if ($("#shWa")) $("#shWa").onclick = () => { window.location.href = `https://wa.me/${wa}?text=${encodeURIComponent(shipText(r))}`; };
@@ -2376,7 +2413,7 @@ function proSummary(v){
     <div class="shsum">${row("Servizio", esc(proNome(v)))}${row("Nome", esc(v.nome))}${row("Zona", esc(v.zona))}
       ${row("Tariffa", v.tariffa ? esc(shEur(+String(v.tariffa).replace(",", "."))) + " " + esc(UNITA[v.unita] || "") : "da concordare")}${row("WhatsApp", esc(v.wa))}</div>
     <p class="muted" style="font-size:13px;line-height:1.45;margin:0 0 10px">${esc(v.bio)}</p>
-    <label class="check"><input type="checkbox" id="prAg"><span>Dichiaro di svolgere l'attività in autonomia e di rilasciare fattura o ricevuta direttamente al cliente. clickVenice mi mette in contatto con i clienti e trattiene solo l'anticipo come costo del servizio.</span></label>
+    <label class="check"><input type="checkbox" id="prAg"><span>Dichiaro di svolgere l'attività in autonomia e di rilasciare fattura o ricevuta direttamente al cliente. clickVenice mi mette in contatto con i clienti: il mio prezzo lo incasso tutto io, il costo del servizio lo paga il cliente a parte.</span></label>
     <button class="btn" id="prGo" disabled style="opacity:.45;margin-top:12px">Invia candidatura</button>
     <button class="btn ghost" id="prEdit" style="margin-top:8px">Modifica</button>`);
   $("#prAg").onchange = e => { $("#prGo").disabled = !e.target.checked; $("#prGo").style.opacity = e.target.checked ? "" : ".45"; };
