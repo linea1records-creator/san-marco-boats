@@ -595,11 +595,21 @@
   .aud .adel{width:34px;height:34px;border:0;background:none;cursor:pointer;padding:6px} .aud .adel svg{width:20px;height:20px;fill:none;stroke:#c8102e;stroke-width:1.6}
   .auprog{height:6px;border-radius:3px;background:rgba(127,127,127,.25);margin-top:10px;overflow:hidden} .auprog i{display:block;height:100%;width:0;background:var(--c-ship);transition:width .2s}
   .audbtn{width:100%;margin:-2px 0 10px}
+  #pk2{position:fixed;inset:0;z-index:6100;background:#fff;animation:obIn .25s ease}
+  #pk2Map{position:absolute;inset:0}
+  .pk2Top{position:absolute;left:10px;right:10px;top:calc(10px + var(--safe-t));display:flex;align-items:center;gap:10px;background:#fff;color:#111;border-radius:14px;padding:10px 12px;box-shadow:0 3px 12px rgba(0,0,0,.2);font-weight:800;font-size:16px}
+  .pk2Top button{width:34px;height:34px;border-radius:50%;border:0;background:#f1f2f4;font-size:16px;color:#111}
+  .pk2Bot{position:absolute;left:10px;right:10px;bottom:calc(12px + var(--safe-b));background:#fff;color:#111;border-radius:16px;padding:12px;box-shadow:0 3px 14px rgba(0,0,0,.25)}
+  .pk2Row{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:14.5px}
+  .pk2Row i{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:900;font-size:12px;color:#fff}
+  .pk2Row i.a, .pk2Pin.a{background:#111} .pk2Row i.b, .pk2Pin.b{background:#a8743f}
+  .pk2Btns{display:flex;gap:8px;margin-top:8px} .pk2Btns .btn{margin:0} .pk2Btns .btn.ghost{flex:0 0 96px}
+  .pk2Pin{width:30px;height:30px;border-radius:50%;color:#fff;font-weight:900;font-size:13px;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
   .srvH{margin:16px 0 8px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#6f7a74}
   .srvSoon{margin:18px 0 4px;border:1px dashed #d5dad7;border-radius:14px;padding:10px 12px;background:#fafbfa}
   .srvSoon summary{cursor:pointer;font-weight:700;color:#333}
   .srvOff{display:flex;align-items:center;gap:10px;width:100%;text-align:left;font:inherit;color:#555;background:none;border:0;border-top:1px solid #eceeed;padding:9px 2px;cursor:pointer}
-  .srvOff svg{width:22px;height:22px;flex:0 0 22px;fill:none;stroke:#9aa49f;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  .srvOff svg{width:22px;height:22px;flex:0 0 22px;fill:none;stroke:#9aa49f!important;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
   .srvOff span{flex:1;font-size:14px} .srvOff em{font-style:normal;font-size:12px;font-weight:700;color:var(--c-ship)}
   .shmine svg{width:26px;height:26px;flex:0 0 26px;fill:none;stroke:var(--c-ship);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
   em.ps-pending{background:#fff4d6!important;color:#9a6b00!important} em.ps-approved{background:#e3f7ee!important;color:#0a8f4e!important}
@@ -1736,7 +1746,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.70</p>
+      <p class="sub">clickVenice · versione 3.71</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -2322,7 +2332,8 @@ const proNome = x => x.categoria === "altro" ? (x.custom || "Altro") : (SRV[x.ca
 const shEur = n => Number(n || 0).toLocaleString("it-IT", { style: "currency", currency: "EUR", minimumFractionDigits: Number(n) % 1 ? 2 : 0 });
 const shDay = (g, o) => { const d = new Date(g + "T12:00"); return isNaN(d) ? "" : d.toLocaleDateString("it-IT", o || { weekday: "long", day: "numeric", month: "long" }); };
 const shWaNum = t => { let d = String(t || "").replace(/\D/g, ""); if (d.startsWith("00")) d = d.slice(2); if (d.length <= 10) d = "39" + d; return d; };
-const srvIco = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${SRV_IC[(SRV[k] || {}).ic] || SRV_IC.gear}</svg>`;
+const SRV_COL = { trasporti: "#a8743f" };   // colore delle icone per categoria (media e musica: il viola di Servizi); spedizioni: marrone cartone
+const srvIco = k => { const S = SRV[k] || {}, c = SRV_COL[S.m]; return `<svg viewBox="0 0 24 24" aria-hidden="true"${c ? ` style="stroke:${c}"` : ""}>${SRV_IC[S.ic] || SRV_IC.gear}</svg>`; };
 
 // quali servizi sono attivi (almeno un professionista approvato)
 async function loadSrvAtt(force){
@@ -2356,18 +2367,69 @@ function goLavora(cat){
 }
 
 /* ---------- prenotazione: trasporti (stesso percorso di Spedisci) ---------- */
+/* ---------- consegna veloce a piedi: partenza e arrivo con due tocchi sulla mappa ----------
+   al secondo tocco una linea tratteggiata ad arco (sale e poi scende) unisce ritiro e consegna */
+function pick2Map(onDone){
+  let o = document.getElementById("pk2"); if (o) o.remove();
+  o = document.createElement("div"); o.id = "pk2";
+  o.innerHTML = `<div id="pk2Map"></div>
+    <div class="pk2Top"><button id="pk2X" aria-label="Annulla">✕</button><span id="pk2T">Tocca dove ritiriamo</span></div>
+    <div class="pk2Bot"><div class="pk2Row"><i class="a">A</i><span id="pk2A">Ritiro: tocca la mappa</span></div><div class="pk2Row"><i class="b">B</i><span id="pk2B">Consegna</span></div>
+      <div class="pk2Btns"><button class="btn ghost" id="pk2R">Rifai</button><button class="btn" id="pk2Ok" disabled style="opacity:.4">Avanti</button></div></div>`;
+  document.body.appendChild(o);
+  const ctr = (typeof map !== "undefined" && map) ? map.getCenter() : { lng: 12.3326, lat: 45.4380 };
+  let M = null, A = null, B = null, mA = null, mB = null;
+  const nome = ll => { const cv = typeof civicoNear === "function" ? civicoNear(ll.lat, ll.lng) : null;
+    return cv && cv.d < 80 ? cv.k.replace(/\b\w/g, l => l.toUpperCase()) + " " + cv.h : "Punto sulla mappa"; };
+  const pin = (ll, t) => { const el = document.createElement("div"); el.className = "pk2Pin " + t; el.textContent = t.toUpperCase(); return new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([ll.lng, ll.lat]).addTo(M); };
+  // arco: curva di Bézier con il punto di controllo sopra la metà del tratto (verso l'alto dello schermo)
+  const arco = () => { if (!A || !B) return [];
+    const pa = M.project([A.lng, A.lat]), pb = M.project([B.lng, B.lat]), d = Math.hypot(pb.x - pa.x, pb.y - pa.y);
+    const c = { x: (pa.x + pb.x) / 2, y: Math.min(pa.y, pb.y) - Math.max(40, d * 0.45) }, L = [];
+    for (let i = 0; i <= 48; i++){ const t = i / 48, x = (1 - t) * (1 - t) * pa.x + 2 * (1 - t) * t * c.x + t * t * pb.x, y = (1 - t) * (1 - t) * pa.y + 2 * (1 - t) * t * c.y + t * t * pb.y;
+      const ll = M.unproject([x, y]); L.push([ll.lng, ll.lat]); }
+    return L; };
+  const draw = () => { if (!M || !M.getSource("pk2l")) return; const L = arco();
+    M.getSource("pk2l").setData({ type: "FeatureCollection", features: L.length ? [{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: L } }] : [] }); };
+  const paint = () => {
+    $("#pk2T").textContent = !A ? "Tocca dove ritiriamo" : !B ? "Ora tocca dove consegniamo" : "Tutto pronto: tocca Avanti";
+    $("#pk2A").textContent = A ? "Ritiro: " + A.name : "Ritiro: tocca la mappa"; $("#pk2B").textContent = B ? "Consegna: " + B.name : "Consegna";
+    const ok = $("#pk2Ok"); ok.disabled = !(A && B); ok.style.opacity = A && B ? "" : ".4"; draw(); };
+  const reset = () => { A = B = null; if (mA) mA.remove(); if (mB) mB.remove(); mA = mB = null; paint(); };
+  try{
+    M = new maplibregl.Map({ container: "pk2Map", style: STYLE_VECTOR, center: [ctr.lng, ctr.lat], zoom: 15.3, attributionControl: false, pitchWithRotate: false, dragRotate: false, touchPitch: false });
+    M.on("load", () => { M.addSource("pk2l", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+      M.addLayer({ id: "pk2l", type: "line", source: "pk2l", layout: { "line-cap": "round" }, paint: { "line-color": "#111", "line-width": 3.5, "line-dasharray": [1.2, 1.6] } }); draw(); });
+    M.on("styledata", () => { try{ M.getStyle().layers.forEach(l => { if (l.type === "fill-extrusion") M.setLayoutProperty(l.id, "visibility", "none");
+      else if (/water/i.test(l.id) && (l.type === "fill" || l.type === "line")) M.setPaintProperty(l.id, l.type + "-color", (typeof WATER_COL !== "undefined" && WATER_COL) || WATER_DEFAULT); }); }catch(e){} });
+    M.on("move", draw);
+    M.on("click", e => { const ll = { lat: +e.lngLat.lat.toFixed(6), lng: +e.lngLat.lng.toFixed(6) }; ll.name = nome(ll); haptic();
+      if (!A){ A = ll; mA = pin(A, "a"); }
+      else if (!B){ B = ll; mB = pin(B, "b");
+        try{ const b = new maplibregl.LngLatBounds([A.lng, A.lat], [A.lng, A.lat]).extend([B.lng, B.lat]); M.fitBounds(b, { padding: { top: 140, bottom: 220, left: 50, right: 50 }, maxZoom: 17, duration: 500 }); }catch(e){} }
+      else { B = ll; mB.setLngLat([B.lng, B.lat]); }   // terzo tocco: sposta la consegna
+      paint(); });
+  }catch(e){ o.remove(); return onDone({}); }   // mappa non disponibile: si torna alle domande scritte
+  try{ loadCivici().then(() => { if (A) A.name = nome(A); if (B) B.name = nome(B); paint(); }); }catch(e){}
+  $("#pk2X").onclick = () => { try{ M.remove(); }catch(e){} o.remove(); onDone(null); };
+  $("#pk2R").onclick = reset;
+  $("#pk2Ok").onclick = () => { if (!A || !B) return; try{ M.remove(); }catch(e){} o.remove(); onDone({ ritiro: A, consegna: B }); };
+  paint();
+}
 function shipStart(tipo, prev){
   haptic();
+  // consegna veloce a piedi: ritiro e consegna con due tocchi sulla mappa, poi le altre domande
+  if (tipo === "piedi" && !(prev && prev._mappa)){ return pick2Map(r => { if (r) shipStart(tipo, Object.assign({}, prev || {}, r, { _mappa: true })); }); }
   const last = store.get("ln_ship_contatto", {});
   const oggi = new Date().toISOString().slice(0, 10);   // stesso formato dei giorni del wizard
   wizard({ title: SH_TIPI[tipo].n, values: Object.assign({ nome: last.nome || "", tel: last.tel || "" }, prev || {}, { tipo, ship: true, categoria: SH_TIPI[tipo].cat }),
     steps: [
-      { k: "ritiro", q: "Dove ritiriamo?", hint: "Indirizzo e sestiere, oppure la riva di attracco", type: "place", hereLabel: "Usa posizione GPS attuale", hereName: "Posizione GPS del cliente", freeText: true, ph: "es. Cannaregio 4119 o Riva di Biasio" },
-      { k: "consegna", q: "Dove consegniamo?", hint: "Indirizzo e sestiere, oppure la riva di attracco", type: "place", noHere: true, freeText: true, ph: "es. Dorsoduro 3246 o Zattere" },
+      { k: "ritiro", q: "Dove ritiriamo?", hint: "Indirizzo e sestiere, oppure la riva di attracco", type: "place", hereLabel: "Usa posizione GPS attuale", hereName: "Posizione GPS del cliente", freeText: true, ph: "es. Cannaregio 4119 o Riva di Biasio", when: v => v.tipo !== "piedi" || !v.ritiro },
+      { k: "consegna", q: "Dove consegniamo?", hint: "Indirizzo e sestiere, oppure la riva di attracco", type: "place", noHere: true, freeText: true, ph: "es. Dorsoduro 3246 o Zattere", when: v => v.tipo !== "piedi" || !v.consegna },
       { k: "volume", q: "Quanto è grande il carico?", type: "choice", options: Object.entries(SH_VOL), when: v => v.tipo !== "piedi" },
       { k: "servizio", q: "Che servizio ti serve?", type: "choice", options: Object.entries(SH_SERV), when: v => v.tipo !== "piedi" },
       { k: "note", q: "C'è qualcosa da sapere?", hint: "Tocca tutto quello che vale, oppure scrivi tu", type: "text", multi: true, optional: true, skipLabel: "No, niente", max: 300,
-        chips: ["Ponti tra la riva e il civico", "Piano senza ascensore", "Merce fragile"] },
+        chips: ["Piano senza ascensore", "Merce fragile", "Molto pesante"] },   // i ponti li calcola l'app
       { k: "giorno", q: "Che giorno?", type: "day", days: 14 },
       { k: "fascia", q: "In che fascia oraria?", type: "choice", options: v => Object.entries(SH_FASCE).filter(([k]) => k !== "urgente" || v.giorno === oggi) },
       { k: "nome", q: "Come ti chiami?", type: "text", max: 60, ph: "Nome e cognome", check: t => t.trim().length < 2 ? "Scrivi il tuo nome." : "" },
@@ -2439,7 +2501,7 @@ function shipSummary(v){
     <button class="btn" id="shGo" disabled style="opacity:.45;margin-top:12px">Invia richiesta</button>
     <button class="btn ghost" id="shEdit" style="margin-top:8px">Modifica</button>`);
   $("#shAg").onchange = e => { $("#shGo").disabled = !e.target.checked; $("#shGo").style.opacity = e.target.checked ? "" : ".45"; };
-  $("#shEdit").onclick = () => { closeSheet(); v.ship ? shipStart(v.tipo, v) : srvStart(v.categoria, v); };
+  $("#shEdit").onclick = () => { closeSheet(); v.ship ? shipStart(v.tipo, Object.assign({}, v, { _mappa: false })) : srvStart(v.categoria, v); };
   $("#shGo").onclick = () => shipSend(v, pr);
 }
 
