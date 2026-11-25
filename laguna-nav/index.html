@@ -605,6 +605,21 @@
   .pk2Row i.a, .pk2Pin.a{background:#111} .pk2Row i.b, .pk2Pin.b{background:#a8743f}
   .pk2Btns{display:flex;gap:8px;margin-top:8px} .pk2Btns .btn{margin:0} .pk2Btns .btn.ghost{flex:0 0 96px}
   .pk2Pin{width:30px;height:30px;border-radius:50%;color:#fff;font-weight:900;font-size:13px;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+  .spro{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;color:#111;background:#f6f7f8;border:1px solid #e6e8ea;border-radius:16px;padding:12px;margin:0 0 8px;cursor:pointer}
+  .spro > span{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px} .spro > span small{color:#6b7078;font-size:12.5px} .spro > i{font-style:normal;color:#999;font-size:22px}
+  .spi{width:44px;height:44px;flex:0 0 44px;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center;font-size:19px}
+  .spi.big{width:56px;height:56px;flex-basis:56px;font-size:24px}
+  .sth{display:flex;align-items:center;gap:4px;font-style:normal;margin-top:4px} .sth img{width:52px;height:30px;object-fit:cover;border-radius:6px} .sth small{margin-left:4px}
+  .pback{border:0;background:none;color:#4f9fe6;font:inherit;font-weight:700;padding:0 0 8px}
+  .phd{display:flex;align-items:center;gap:12px}
+  .ytg{display:flex;flex-direction:column;gap:10px}
+  .ytl{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#000;cursor:pointer}
+  .ytl img{width:100%;height:100%;object-fit:cover;display:block}
+  .ytl i{position:absolute;left:50%;top:50%;width:62px;height:44px;margin:-22px 0 0 -31px;border-radius:12px;background:rgba(0,0,0,.72);display:grid;place-items:center}
+  .ytl i svg{width:26px;height:26px;fill:#fff}
+  .ytl span{position:absolute;left:0;right:0;bottom:0;padding:18px 10px 8px;background:linear-gradient(transparent,rgba(0,0,0,.75));color:#fff;font-size:13px;font-weight:700}
+  .ytl iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .ytw{display:flex;flex-direction:column;gap:6px} .yvDel{align-self:flex-end;border:0;background:none;color:#c8102e;font:inherit;font-weight:700;font-size:13px}
   .srvH{margin:16px 0 8px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#6f7a74}
   .srvSoon{margin:18px 0 4px;border:1px dashed #d5dad7;border-radius:14px;padding:10px 12px;background:#fafbfa}
   .srvSoon summary{cursor:pointer;font-weight:700;color:#333}
@@ -1746,7 +1761,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.71</p>
+      <p class="sub">clickVenice · versione 3.72</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -2260,7 +2275,7 @@ const SRV_IC = {
 };
 // s = nome del servizio nel catalogo, pro = categoria per chi si candida; ask = domande specifiche; ship = usa il percorso di Spedisci
 const SRV = {
-  videomaker: { m: "media", ic: "cam", pro: "Videomaker & Fotografo", s: "Noleggia Videomaker & Fotografo", d: "Foto e video per eventi, attività e matrimoni", ore: true,
+  videomaker: { m: "media", ic: "cam", pro: "Videomaker & Fotografo", s: "Noleggia Videomaker & Fotografo", d: "Foto e video per eventi, attività e matrimoni · guarda i lavori", ore: true, video: true,
     luogo: "Dove si fa il servizio?", ask: [{ k: "lavoro", q: "Che lavoro ti serve?", o: ["Foto", "Video", "Foto + Video"] }] },
   studio: { m: "media", ic: "mic", pro: "Studio di Registrazione", s: "Registra in Studio", d: "Registrazione, voce, mix e master · ascolta i lavori", ore: true, noLuogo: true, audio: "vetrina",
     ask: [{ k: "lavoro", q: "Cosa vuoi registrare?", o: ["Voce o podcast", "Una canzone", "Band", "Mix e master"] }] },
@@ -2357,7 +2372,7 @@ function paintSrv(){
   if (off.length) h += `<details class="srvSoon"${on.length ? "" : " open"}><summary>Prossimamente · ${off.length} servizi</summary><p class="muted" style="margin:6px 0 8px;font-size:13px">Si attivano appena c'è almeno un professionista. Candidati per sbloccarli.</p>` +
     off.map(k => `<button class="srvOff" data-soon="${k}">${srvIco(k)}<span>${SRV[k].s}</span><em>Candidati</em></button>`).join("") + `</details>`;
   $("#shipTypes").innerHTML = h;
-  document.querySelectorAll("#shipTypes [data-srv]").forEach(b => b.onclick = () => { const S = SRV[b.dataset.srv]; S.ship ? shipStart(S.ship) : S.audio ? srvVetrina(b.dataset.srv) : srvStart(b.dataset.srv); });
+  document.querySelectorAll("#shipTypes [data-srv]").forEach(b => b.onclick = () => { const S = SRV[b.dataset.srv]; S.ship ? shipStart(S.ship) : S.video ? srvPros(b.dataset.srv) : S.audio ? srvVetrina(b.dataset.srv) : srvStart(b.dataset.srv); });
   document.querySelectorAll("#shipTypes [data-soon]").forEach(b => b.onclick = () => goLavora(b.dataset.soon));
 }
 function goLavora(cat){
@@ -2489,7 +2504,7 @@ function shipSummary(v){
   const pr = shipPrice(v), P = CONFIG.SPEDISCI, det = srvDettagli(v);
   const row = (a, b) => `<div class="shrow"><span>${a}</span><b>${b}</b></div>`;
   openSheet(`<h3>Riepilogo</h3>
-    <div class="shsum">${row("Servizio", esc(srvNome(v)))}${v.ritiro ? row(v.ship ? "Ritiro" : "Dove", esc(v.ritiro.name)) : ""}${v.consegna ? row("Consegna", esc(v.consegna.name)) : ""}
+    <div class="shsum">${row("Servizio", esc(srvNome(v)))}${v.proNome ? row("Professionista", esc(v.proNome)) : ""}${v.ritiro ? row(v.ship ? "Ritiro" : "Dove", esc(v.ritiro.name)) : ""}${v.consegna ? row("Consegna", esc(v.consegna.name)) : ""}
       ${Object.entries(det).map(([k, x]) => row(DET_N[k] || k, esc(x))).join("")}
       ${v.note ? row("Note", esc(v.note)) : ""}${row("Quando", esc(shDay(v.giorno)) + "<br>" + esc(SH_FASCE[v.fascia]))}${row("Contatto", esc(v.nome) + "<br>" + esc(v.tel))}</div>
     <div class="shsum">${pr.righe.length > 1 ? pr.righe.map(([a, b]) => row(esc(a), shEur(b))).join("") : ""}
@@ -2507,7 +2522,7 @@ function shipSummary(v){
 
 async function shipSend(v, pr){
   const go = $("#shGo"); go.disabled = true; go.textContent = "Invio…";
-  const dati = { categoria: v.categoria, ritiro: v.ritiro || {}, consegna: v.consegna || null, dettagli: srvDettagli(v), note: v.note || "", giorno: v.giorno, fascia: v.fascia,
+  const dati = { categoria: v.categoria, pro: v.pro || null, ritiro: v.ritiro || {}, consegna: v.consegna || null, dettagli: srvDettagli(v), note: v.note || "", giorno: v.giorno, fascia: v.fascia,
     nome: String(v.nome).trim(), tel: String(v.tel).trim(), totale: pr.totale, anticipo: pr.anticipo };
   const wa = CONFIG.SPEDISCI.WHATSAPP || CONFIG.ORDER_WHATSAPP;
   let codice = null, online = false;
@@ -2518,7 +2533,7 @@ async function shipSend(v, pr){
   }catch(e){}
   if (!online && !wa){ go.disabled = false; go.textContent = "Invia richiesta"; return toast("Non riesco a inviarla: controlla la connessione ed entra con il tuo account."); }
   if (!codice){ const d = new Date(); codice = "CV-" + String(d.getDate()).padStart(2, "0") + String(d.getMonth() + 1).padStart(2, "0") + "-" + Math.random().toString(36).slice(2, 6).toUpperCase(); }
-  const rec = Object.assign({ codice, stato: "nuova", creata: new Date().toISOString(), online, tipo: v.tipo }, dati);
+  const rec = Object.assign({ codice, stato: "nuova", creata: new Date().toISOString(), online, tipo: v.tipo }, dati, { pro: v.proNome || null });
   shipMineCache = [rec, ...shipMineCache.filter(x => x.codice !== codice)].slice(0, 30); store.set("ln_ship", shipMineCache);
   haptic(); shipDone(rec);
 }
@@ -2526,7 +2541,7 @@ async function shipSend(v, pr){
 function shipText(r){
   const pos = p => p && typeof p.lat === "number" ? ` (https://maps.google.com/?q=${p.lat.toFixed(5)},${p.lng.toFixed(5)})` : "";
   const det = Object.entries(r.dettagli || {}).map(([k, x]) => `${DET_N[k] || k}: ${x}`);
-  return [`*Richiesta clickVenice ${r.codice}*`, `Servizio: ${srvNome(r)}`,
+  return [`*Richiesta clickVenice ${r.codice}*`, `Servizio: ${srvNome(r)}`, r.pro && typeof r.pro === "string" ? `Professionista scelto: ${r.pro}` : "",
     r.ritiro && r.ritiro.name ? `${r.consegna ? "Ritiro" : "Dove"}: ${r.ritiro.name}${pos(r.ritiro)}` : "", r.consegna && r.consegna.name ? `Consegna: ${r.consegna.name}${pos(r.consegna)}` : "",
     ...det, r.note ? `Note: ${r.note}` : "",
     `Quando: ${shDay(r.giorno, { weekday: "short", day: "numeric", month: "short" })} · ${SH_FASCE[r.fascia] || ""}`, `Cliente: ${r.nome} · ${r.tel}`,
@@ -2591,7 +2606,9 @@ async function paintPro(box){
     const r = await rpc("pro_mie", {}); const L = (r && r.lista) || [];
     if ($("#proMine") && L.length) $("#proMine").innerHTML = `<h4 style="margin:18px 0 8px">Le tue candidature</h4>` + L.map(x => `<button class="card shmine" data-pro="${x.id}">${srvIco(x.categoria)}<span><b>${esc(proNome(x))}</b>
       <small>${esc(x.nome)}${x.tariffa != null ? " · " + shEur(x.tariffa) + " " + (UNITA[x.unita] || "") : ""}</small></span><em class="ps-${esc(x.stato)}">${esc(PRO_STATI[x.stato] || x.stato)}</em></button>` +
+      (SRV[x.categoria] && SRV[x.categoria].video ? `<button class="btn small ghost audbtn" data-vid="${x.id}">I tuoi video YouTube (${(x.video || []).length})</button>` : "") +
       (SRV[x.categoria] && SRV[x.categoria].audio ? `<button class="btn small ghost audbtn" data-aud="${x.id}">${SRV[x.categoria].audio === "beat" ? "Cartella beat: carica e ascolta" : "Vetrina audio: carica e ascolta"}</button>` : "")).join("");
+    document.querySelectorAll("#proMine [data-vid]").forEach(b => b.onclick = () => { const x = L.find(y => y.id === +b.dataset.vid); if (x) proVideoSheet(x); });
     document.querySelectorAll("#proMine [data-aud]").forEach(b => b.onclick = () => { const x = L.find(y => y.id === +b.dataset.aud); if (x) proAudioSheet(x); });
     document.querySelectorAll("#proMine [data-pro]").forEach(b => b.onclick = () => { const x = L.find(y => y.id === +b.dataset.pro); if (x) proStart(proToVals(x)); });
   }catch(e){}
@@ -2765,6 +2782,71 @@ async function audUpload(pro, file, titolo, info, onProg){
   const g = await fn({ azione: "registra", path: f.path, titolo, info }); if (!g || !g.ok) throw (g && g.errore) || "registra";
 }
 
+/* =========================================================
+   VIDEO YouTube dei professionisti (videomaker): i lavori si guardano dentro clickVenice
+   In Servizi: tocchi Videomaker → scegli il professionista → vedi i suoi video → prenoti con lui
+   ========================================================= */
+function ytId(u){
+  const s = String(u || "").trim(); if (/^[A-Za-z0-9_-]{11}$/.test(s)) return s;
+  const m = s.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/|v\/))([A-Za-z0-9_-]{11})/); return m ? m[1] : null;
+}
+const ytThumb = id => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+// anteprima leggera: si carica il lettore di YouTube solo quando la tocchi
+function ytLite(v){ return `<div class="ytl" data-yt="${esc(v.id)}"><img loading="lazy" src="${ytThumb(v.id)}" alt=""><i><svg viewBox="0 0 24 24"><path d="M9 7v10l8-5z"/></svg></i>${v.t ? `<span>${esc(v.t)}</span>` : ""}</div>`; }
+function ytBind(root){
+  root.querySelectorAll(".ytl[data-yt]").forEach(el => el.onclick = () => { const id = el.dataset.yt; haptic();
+    el.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&playsinline=1&modestbranding=1" title="Video" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+    el.classList.add("on"); el.onclick = null; });
+}
+// clienti: scelta del professionista della categoria
+async function srvPros(cat){
+  const S = SRV[cat]; haptic();
+  openSheet(`<h3>${esc(S.s)}</h3><p class="muted" style="margin-top:-4px">Scegli il professionista e guarda i suoi lavori.</p><div id="spL"><p class="muted">Carico…</p></div>
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Chiudi</button>`, "light");
+  let L = null; try{ const r = await rpc("pro_lista", { p_cat: cat }); L = r && r.lista; }catch(e){}
+  const box = $("#spL"); if (!box) return;
+  if (!Array.isArray(L)){ box.innerHTML = `<p class="muted">Non riesco a caricare i professionisti: controlla la connessione.</p>`; return; }
+  if (!L.length){ box.innerHTML = `<p class="muted">Nessun professionista disponibile adesso.</p>`; return; }
+  box.innerHTML = L.map(x => `<button class="spro" data-spro="${x.id}"><b class="spi">${esc((x.nome || "?").slice(0, 1).toUpperCase())}</b>
+      <span><b>${esc(x.nome)}</b><small>${esc([x.zona, x.tariffa != null ? "da " + shEur(x.tariffa) + (x.unita === "ora" ? "/ora" : "") : ""].filter(Boolean).join(" · "))}</small>
+      ${(x.video || []).length ? `<em class="sth">${x.video.slice(0, 3).map(v => `<img loading="lazy" src="${ytThumb(v.id)}" alt="">`).join("")}<small>${x.video.length} ${x.video.length === 1 ? "video" : "video"}</small></em>` : `<small class="muted">Nessun video ancora</small>`}</span><i>›</i></button>`).join("");
+  box.querySelectorAll("[data-spro]").forEach(b => b.onclick = () => { const x = L.find(y => y.id === +b.dataset.spro); if (x) proPage(cat, x); });
+}
+function proPage(cat, x){
+  const S = SRV[cat]; haptic();
+  openSheet(`<button class="pback" id="ppBack">‹ ${esc(S.pro)}</button>
+    <div class="phd"><b class="spi big">${esc((x.nome || "?").slice(0, 1).toUpperCase())}</b><div><h3 style="margin:0">${esc(x.nome)}</h3><small class="muted">${esc([x.zona, x.tariffa != null ? "da " + shEur(x.tariffa) + (x.unita === "ora" ? "/ora" : "") : ""].filter(Boolean).join(" · "))}</small></div></div>
+    ${x.bio ? `<p style="line-height:1.45;margin:8px 0 12px">${esc(x.bio)}</p>` : ""}
+    <h4 style="margin:6px 0 8px">I suoi lavori</h4>
+    <div class="ytg">${(x.video || []).length ? x.video.map(ytLite).join("") : `<p class="muted">Non ha ancora caricato video.</p>`}</div>
+    <button class="btn" id="ppGo" style="margin-top:12px">Prenota con ${esc(x.nome)}</button>
+    <button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">Chiudi</button>`, "light");
+  ytBind($("#sheetIn"));
+  $("#ppBack").onclick = () => srvPros(cat);
+  $("#ppGo").onclick = () => { closeSheet(); srvStart(cat, { pro: x.id, proNome: x.nome }); };
+}
+// professionisti: i propri video YouTube (da Lavora con noi)
+function proVideoSheet(x){
+  let V = (x.video || []).slice();
+  const paint = () => {
+    openSheet(`<h3>I tuoi video YouTube</h3><p class="muted" style="margin-top:-4px;line-height:1.45">Incolla il link di un tuo lavoro su YouTube (anche Shorts). I clienti li guardano in Servizi quando scelgono te. Fino a 12 video.</p>
+      <div class="field"><input id="yvU" placeholder="https://youtu.be/…" inputmode="url"></div>
+      <div class="field" style="margin-top:8px"><input id="yvT" maxlength="80" placeholder="Titolo (facoltativo), es. Matrimonio a Burano"></div>
+      <button class="btn" id="yvAdd" style="margin-top:8px">Aggiungi video</button>
+      <div class="ytg" style="margin-top:14px">${V.length ? V.map((v, i) => `<div class="ytw">${ytLite(v)}<button class="yvDel" data-yvd="${i}">Togli</button></div>`).join("") : `<p class="muted">Ancora nessun video.</p>`}</div>
+      <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Fatto</button>`, "light");
+    ytBind($("#sheetIn"));
+    $("#yvAdd").onclick = async () => { const id = ytId($("#yvU").value); if (!id) return toast("Non è un link di YouTube valido.");
+      if (V.some(v => v.id === id)) return toast("Questo video c'è già."); if (V.length >= 12) return toast("Massimo 12 video: togline uno.");
+      V.unshift({ id, t: $("#yvT").value.trim() }); await save(); };
+    document.querySelectorAll("[data-yvd]").forEach(b => b.onclick = async () => { V.splice(+b.dataset.yvd, 1); await save(); });
+  };
+  const save = async () => {
+    try{ const r = await rpc("pro_video_set", { p_pro: x.id, p_video: V }); if (!r || !r.ok){ toast("Non salvato, riprova."); return; }
+      V = r.video; x.video = V; haptic(); toast("Salvato ✓"); paint(); }catch(e){ toast("Non salvato: controlla la connessione."); }
+  };
+  paint();
+}
 /* ---------- tropss: invito su WhatsApp a candidarsi e usare l'app ---------- */
 function proInvita(){
   const cats = Object.entries(SRV);

@@ -168,3 +168,7 @@ revoke all on function public.pro_candida(uuid, jsonb), public.pro_mie(uuid), pu
   public.pren_crea(uuid, jsonb), public.pren_mie(uuid), public.pren_tutte(uuid), public.pren_stato(uuid, bigint, text) from public;
 grant execute on function public.pro_candida(uuid, jsonb), public.pro_mie(uuid), public.pro_attive(uuid), public.pro_admin(uuid), public.pro_stato(uuid, bigint, text),
   public.pren_crea(uuid, jsonb), public.pren_mie(uuid), public.pren_tutte(uuid), public.pren_stato(uuid, bigint, text) to anon, authenticated;
+
+-- v3.72 · video YouTube dei professionisti e professionista scelto nella prenotazione (già applicato su LAGUNA NAV)
+alter table public.professionisti add column if not exists video jsonb not null default '[]'::jsonb;
+-- funzioni: pro_video_set(p_token, p_pro, p_video), pro_lista(p_token, p_cat); pren_crea accetta "pro" (id del professionista approvato della stessa categoria)
