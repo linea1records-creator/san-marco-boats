@@ -1064,7 +1064,27 @@
   .rb-modes small{font-size:10.5px;color:#6b7078;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
   .rb-modes button.on{background:#111;color:#fff;border-color:#111}
   .rb-modes button.on small{color:#c9ccd1}
-  #rbMore{max-height:36vh;overflow-y:auto;margin:0 0 8px}
+  #rbMore{max-height:46vh;overflow-y:auto;margin:0 0 8px;-webkit-overflow-scrolling:touch}
+  .rb-modes button.off{opacity:.4}
+  .rb-subs > div{display:flex;gap:6px;margin:6px 0 2px}
+  .rb-subs button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 4px;border-radius:10px;background:#fff;color:#3a3d42;border:1px solid #e1e3e6;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+  .rb-subs button small{font-size:10.5px;font-weight:500;color:#6b7078;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .rb-subs button.on{border-color:#111;box-shadow:inset 0 0 0 1px #111;color:#111}
+  .svc{border:1.5px solid #e1e3e6;border-radius:14px;background:#f7f8f9;overflow:hidden}
+  .svc.on{border-color:#111;background:#fff}
+  .svc .txo{background:none;border:0;border-radius:0}
+  .svc .pz s{display:block;font-size:11px;font-weight:500;color:#999;text-align:right}
+  .svc .tpw{display:none;padding:0 8px 8px;min-height:60px}
+  .svc.on .tpw{display:block}
+  .svc .tpw iframe{width:100%!important;max-width:100%!important;border:0}
+  .svc .svcSito{display:none;width:calc(100% - 16px);margin:0 8px 10px}
+  .svc.on .svcSito{display:block}
+  #extOv{position:fixed;inset:0;z-index:9500;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#111;
+    transform:translateY(100%);opacity:.6;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .5s}
+  #extOv.on{transform:none;opacity:1}
+  #extOv b{font-size:22px} #extOv small{color:#666}
+  #extOv i{width:34px;height:34px;border-radius:50%;border:3px solid #ddd;border-top-color:#111;animation:extSpin .8s linear infinite}
+  @keyframes extSpin{to{transform:rotate(360deg)}}
   .txopts{display:flex;flex-direction:column;gap:7px;margin:2px 0 8px}
   .txo{display:flex;align-items:center;gap:11px;width:100%;text-align:left;font:inherit;color:#111;background:#f4f5f6;border:1.5px solid transparent;border-radius:14px;padding:10px 12px;cursor:pointer}
   .txo.on{background:#fff;border-color:#111}
@@ -1237,9 +1257,12 @@
       <div class="rb-row"><span class="rb-l">A</span><button id="rbTo" class="rb-f">–</button></div>
       <div id="rbModes" class="rb-modes">
         <button data-tm="piedi"><svg viewBox="0 0 24 24"><circle cx="13" cy="4.5" r="1.8"/><path d="M9.5 21l2.2-6.5L14.5 17v4M8.5 12.5l1.6-4.6 3.6.4 2.3 3.4h2.5M11.7 14.5l-1.1-4.2"/></svg><b>A piedi</b><small id="tmPiedi">…</small></button>
-        <button data-tm="barca"><svg viewBox="0 0 24 24"><path d="M3 15.5h18l-2.6 4.5H5.6z"/><path d="M12 3v12.5M12 4.5l6 9h-6"/></svg><b>Barca</b><small id="tmBarca">…</small></button>
-        <button data-tm="mezzi"><svg viewBox="0 0 24 24"><path d="M3 16h18l-2.2 4H5.2z"/><rect x="6" y="9" width="12" height="7" rx="1.5"/><path d="M9.5 9V6.5h5V9M9 12.5h1.5M13.5 12.5H15"/></svg><b>Vaporetto</b><small id="tmMezzi">…</small></button>
-        <button data-tm="taxi"><svg viewBox="0 0 24 24"><path d="M3 16h18l-2.2 4H5.2z"/><path d="M6 16l1.6-5h8.8L18 16"/><path d="M10 11V8.5h4V11"/></svg><b>Taxi</b><small id="tmTaxi">…</small></button>
+        <button data-tm="barca"><svg viewBox="0 0 24 24"><path d="M3 15.5h18l-2.6 4.5H5.6z"/><path d="M12 3v12.5M12 4.5l6 9h-6"/></svg><b>Barca</b><small id="tmBoat">…</small></button>
+        <button data-tm="auto"><svg viewBox="0 0 24 24"><path d="M4 16.5V12l2-5h12l2 5v4.5z"/><path d="M4 12h16M7.5 19.5v-3M16.5 19.5v-3"/><circle cx="7.5" cy="14.3" r=".8"/><circle cx="16.5" cy="14.3" r=".8"/></svg><b>Auto</b><small id="tmAuto">…</small></button>
+      </div>
+      <div id="rbSubs" class="rb-subs">
+        <div data-sg="barca" class="hidden"><button data-sub="mia">Barca tua<small id="tmBarca">…</small></button><button data-sub="taxi">Taxi acqueo<small id="tmTaxi">…</small></button><button data-sub="vapo">Vaporetto<small id="tmMezzi">…</small></button></div>
+        <div data-sg="auto" class="hidden"><button data-sub="taxi">Taxi<small id="tmAutoTaxi">…</small></button><button data-sub="guida">Percorso in macchina<small id="tmGuida">…</small></button></div>
       </div>
       <div id="rbInfo" class="rb-info">Calcolo il percorso…</div>
       <div id="rbMore" class="hidden"></div>
@@ -1620,7 +1643,7 @@
     <div class="scroll">
       <div class="backbar" data-back="1">‹ myClick</div>
       <h2>Info</h2>
-      <p class="sub">clickVenice · versione 3.66</p>
+      <p class="sub">clickVenice · versione 3.67</p>
       <div class="card">
         <h4>📲 App sul telefono</h4>
         <button class="btn" id="instBtn">📲 Installa clickVenice</button>
@@ -1704,6 +1727,11 @@ const CONFIG = {
   ORDER_WHATSAPP: "",
   RIDER_SOGLIA: 5000,
   // Kiwitaxi (Travelpayouts): taxi in auto tra Piazzale Roma e la terraferma / l'aeroporto
+  // Welcome Pickups (Travelpayouts): widget con i prezzi dei transfer a Venezia
+  WELCOME: {
+    WIDGET: "https://tpembd.com/content?trs=606360&shmarker=811379&locale=en&city=Venice&show_header=false&no_bg=false&powered_by=true&campaign_id=627&promo_id=8951",
+    URL: "https://www.welcomepickups.com/venice/"
+  },
   KIWITAXI: {
     LINK: "",        // incolla qui il link affiliato generato su Travelpayouts per Kiwitaxi
     // widget di ricerca Kiwitaxi da Travelpayouts (marker 811379): si apre dentro l'app con il tragitto
@@ -4998,7 +5026,7 @@ function stopNav(){
 $("#stopNav").onclick = stopNav;
 function drawRoute(){
   if (!map || !map.getSource("route")) return;
-  if (map.getSource("tripv")){ const tg = (PLAN && PLAN.mode === "mezzi" && PLAN.tripGeo) || (NAV && NAV.tripGeo) || null;
+  if (map.getSource("tripv")){ const tg = (PLAN && effMode() === "mezzi" && PLAN.tripGeo) || (NAV && NAV.tripGeo) || null;
     map.getSource("tripv").setData({ type: "FeatureCollection", features: tg || [] }); }
   const R = NAV ? NAV.R : (PLAN && PLAN.R);
   const coords = R && R.src !== "aria" ? R.pts.slice(NAV && !NAV.pending ? Math.max(0, NAV.idx || 0) : 0).map(p => [p[1], p[0]]) : [];
@@ -5240,18 +5268,20 @@ async function showPlan(){
   if (PLAN.from){ const s = document.createElement("div"); s.className = "startpin"; startMarker = new maplibregl.Marker({ element: s }).setLngLat([PLAN.from.lng, PLAN.from.lat]).addTo(map); }
   const seq = ++planSeq, from = planFrom();
   PLAN.R = null; PLAN.Rb = null; PLAN.walk = null; PLAN.trip = null; PLAN.tx = null; PLAN.tripGeo = null; PLAN.tripGeoFor = null; drawRoute();
-  PLAN.mode = PLAN.mode || store.get("ln_travel", null) || (activeBoat() ? "barca" : "piedi");
-  ["tmPiedi", "tmBarca", "tmMezzi", "tmTaxi"].forEach(id => $("#" + id).textContent = "…");
+  if (!PLAN.mode){ let md = store.get("ln_travel", null); if (md === "mezzi" || md === "taxi") md = "barca"; PLAN.mode = ["piedi", "barca", "auto"].includes(md) ? md : (activeBoat() ? "barca" : "piedi"); }
+  ["tmPiedi", "tmBarca", "tmMezzi", "tmTaxi", "tmBoat", "tmAuto", "tmAutoTaxi", "tmGuida"].forEach(id => $("#" + id).textContent = "…");
   document.querySelectorAll("#rbModes [data-tm]").forEach(b => b.classList.toggle("on", b.dataset.tm === PLAN.mode));
   $("#rbMore").classList.add("hidden"); $("#rbGo").disabled = true; PLAN.kw = null;
   if (!from){ $("#rbInfo").textContent = "Aspetto il GPS… oppure scegli un punto di partenza"; setTimeout(() => { if (PLAN && seq === planSeq && lastPos) showPlan(); }, 2500); return; }
   $("#rbInfo").textContent = "Calcolo il percorso…";
   PLAN._rbGo = false; PLAN.kw = kwInfo(from, PLAN.to);
-  $("#tmBarca").textContent = "tocca"; $("#tmTaxi").textContent = PLAN.kw && PLAN.kw.terra ? "da " + PLAN.kw.price + " €" : "tocca";
+  $("#tmBarca").textContent = "tocca"; $("#tmTaxi").textContent = "tocca"; $("#tmBoat").textContent = "3 modi";
+  $("#tmAuto").textContent = PLAN.kw ? "da " + kwSconto(PLAN.kw.price) + " €" : "non arriva";
+  $("#tmAutoTaxi").textContent = PLAN.kw ? "da " + kwSconto(PLAN.kw.price) + " €" : ""; $("#tmGuida").textContent = PLAN.kw ? "circa " + PLAN.kw.min + " min" : "";
   walkRoute(from, PLAN.to).then(W => { if (!PLAN || seq !== planSeq) return; PLAN.walk = W; $("#tmPiedi").textContent = fmtMin(walkMin(W)); if (PLAN.mode === "piedi") paintTravel(true); });
-  tripActv(from, PLAN.to).then(j => { if (!PLAN || seq !== planSeq) return; PLAN.trip = j; $("#tmMezzi").textContent = j.err ? "—" : j.totMin ? fmtMin(j.totMin) : "arr. " + j.opzioni[0].arrivo; if (PLAN.mode === "mezzi") paintTravel(false); });
+  tripActv(from, PLAN.to).then(j => { if (!PLAN || seq !== planSeq) return; PLAN.trip = j; $("#tmMezzi").textContent = j.err ? "—" : j.totMin ? fmtMin(j.totMin) : "arr. " + j.opzioni[0].arrivo; if (effMode() === "mezzi") paintTravel(false); });
   paintTravel(true);
-  if (PLAN.mode === "barca" || PLAN.mode === "taxi") setTimeout(() => planBoat(seq), 80);
+  { const em = effMode(); if (em === "barca" || em === "taxi") setTimeout(() => planBoat(seq), 80); }
 }
 // rotta in barca e prezzo del taxi acqueo: si calcolano solo se scegli Barca o Taxi, dopo che il pannello è già aperto
 async function planBoat(seq){
@@ -5267,8 +5297,8 @@ async function planBoat(seq){
   PLAN.Rb = R;
   $("#tmBarca").textContent = fmtMin(Math.max(1, Math.round(R.len / (12 / 3.6) / 60)));
   PLAN.tx = taxiEstimate(from, PLAN.to, 2, R);
-  $("#tmTaxi").textContent = !PLAN.kw ? PLAN.tx.lo + "–" + PLAN.tx.hi + " €" : PLAN.kw.terra ? "da " + PLAN.kw.price + " €" : "da " + Math.min(PLAN.tx.lo, PLAN.kw.price) + " €";
-  if (PLAN.mode === "barca" || PLAN.mode === "taxi") paintTravel(true);
+  $("#tmTaxi").textContent = PLAN.kw && PLAN.kw.terra ? "non arriva" : PLAN.tx.lo + "–" + PLAN.tx.hi + " €";
+  { const em = effMode(); if (em === "barca" || em === "taxi") paintTravel(true); }
 }
 function fitPlan(R){
   if (!R || !map) return; const b = new maplibregl.LngLatBounds(); R.pts.forEach(p => b.extend([p[1], p[0]]));
@@ -5365,37 +5395,31 @@ async function kwRoute(seq){
   if (!R) R = { pts: [[kw.cf.lat, kw.cf.lng], [kw.ct.lat, kw.ct.lng]], len: hav(kw.cf.lat, kw.cf.lng, kw.ct.lat, kw.ct.lng) * 1.45, car: true, src: "dritta" };
   if (!PLAN || seq !== planSeq || PLAN.kw !== kw) return;
   kw.car = R; if (R.sec) kw.min = Math.max(5, Math.round(R.sec / 60));
-  if (PLAN.mode === "taxi" && PLAN.txKind === "auto") paintTravel(true);
+  $("#tmGuida").textContent = "circa " + kw.min + " min"; if (PLAN.mode === "auto") paintTravel(true);
 }
-const kwOggi = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
-const kwPax = () => store.get("ln_kw_pax", 2);
-const kwDay = () => (PLAN && PLAN.kwDay) || kwOggi();
-const kwPrezzo = kw => kwPax() > 3 ? Math.round(kw.price * 1.3 / 5) * 5 : kw.price;   // oltre 3 persone serve un minivan
-// il widget Kiwitaxi dentro clickVenice, in un pannello, con il tragitto di clickVenice
-function kwOpen(){
-  const K = CONFIG.KIWITAXI, kw = PLAN && PLAN.kw; if (!kw) return;
-  if (!K.WIDGET) return kwOpenSito();
-  const da = kwNome(kw.cf, kwZona(kw.cf)), a = kwNome(kw.ct, kwZona(kw.ct)), pax = kwPax();
-  const g = new Date(kwDay() + "T12:00").toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" });
-  openSheet(`<h3>Taxi in auto · Kiwitaxi</h3>
-    <div class="shsum"><div class="shrow"><span>Da</span><b>${esc(da)}</b></div><div class="shrow"><span>A</span><b>${esc(a)}</b></div>
-      <div class="shrow"><span>Quando</span><b>${esc(g)} · ${pax} ${pax === 1 ? "passeggero" : "passeggeri"}</b></div></div>
-    ${K.CODICE ? `<button class="kwPromo" id="kwPromo"><span>Codice sconto ${esc(K.SCONTO || "")}</span><b>${esc(K.CODICE)}</b><em>Copiato · incollalo al pagamento</em></button>` : ""}
-    <p class="muted" style="font-size:12.5px;margin:0 0 8px">Nel widget scegli ${pax} ${pax === 1 ? "passeggero" : "passeggeri"} e il giorno: Kiwitaxi non li prende da clickVenice.</p>
-    <div id="kwW" class="kwW"><p class="muted">Carico le offerte di Kiwitaxi…</p></div>
-    <button class="btn ghost" id="kwSito" style="margin-top:10px">Apri il sito di Kiwitaxi</button>
-    <button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">Chiudi</button>`);
-  $("#kwSito").onclick = () => kwOpenSito();
-  const cp = () => { try{ navigator.clipboard.writeText(K.CODICE); }catch(e){} };
-  if (K.CODICE){ cp(); $("#kwPromo").onclick = () => { cp(); haptic(); toast("Codice " + K.CODICE + " copiato"); }; }
-  // il widget accetta "from" e "to" in testo libero (come nel configuratore di Travelpayouts: "piazzale roma", "marco polo")
-  const wn = (p, z) => z === "aeroporto" ? "marco polo" : z === "proma" ? "piazzale roma" : z === "tronchetto" ? "tronchetto" : kwNome(p, z).replace(/, Venezia$/, "") ;
-  const enc = t => encodeURIComponent(t).replace(/'/g, "%27");    // spazi come %20 (con "+" il widget scrive "piazzale+roma")
-  const q = "from=" + enc(wn(kw.cf, kwZona(kw.cf))) + "&to=" + enc(wn(kw.ct, kwZona(kw.ct)));
-  const sc = document.createElement("script"); sc.async = true; sc.charset = "utf-8"; sc.src = K.WIDGET + "&" + q;
-  sc.onerror = () => { const w = $("#kwW"); if (w) w.innerHTML = `<p class="muted">Il widget di Kiwitaxi non si carica: usa il tasto qui sotto.</p>`; };
-  const box = $("#kwW"); box.appendChild(sc);
-  setTimeout(() => { const w = $("#kwW"); if (w && w.children.length > 1){ const m = w.querySelector("p.muted"); if (m) m.remove(); } }, 2500);
+const kwSconto = p => { const s = parseFloat(String(CONFIG.KIWITAXI.SCONTO || "0")) || 0; return Math.round(p * (100 - s) / 100); };
+// pagina esterna a schermo intero: prima la transizione (0,5 s), poi si apre il sito del servizio
+function extOpen(url, nome){
+  let o = document.getElementById("extOv"); if (o) o.remove();
+  o = document.createElement("div"); o.id = "extOv"; o.innerHTML = `<i></i><b>${esc(nome || "Apro il servizio")}</b><small>${/maps/i.test(nome || "") ? "Apro la navigazione…" : "Apro la pagina di prenotazione…"}</small>`;
+  document.body.appendChild(o); void o.offsetWidth; o.classList.add("on"); haptic();
+  setTimeout(() => { window.location.href = url; }, 500);
+  setTimeout(() => { const x = document.getElementById("extOv"); if (x) x.remove(); }, 8000);
+}
+window.addEventListener("pageshow", () => { const x = document.getElementById("extOv"); if (x) x.remove(); });
+// i widget di Travelpayouts aprono i loro link con window.open: mentre sono a schermo li faccio passare dalla transizione
+let EXT_HOOK = null; const _winOpen = window.open.bind(window);
+window.open = function(u, ...r){ if (EXT_HOOK && typeof u === "string" && /^https?:/i.test(u)){ extOpen(u, EXT_HOOK); return null; } return _winOpen(u, ...r); };
+// widget montati una volta sola per tragitto e spostati tra un disegno e l'altro (non si ricaricano)
+const TPW = {};
+function tpMount(slot, key, src, nome){
+  let el = TPW[key];
+  if (!el){ el = TPW[key] = document.createElement("div"); el.className = "tpwIn";
+    el.addEventListener("click", e => { const a = e.target.closest && e.target.closest("a[href]"); if (a && /^https?:/i.test(a.href)){ e.preventDefault(); e.stopPropagation(); extOpen(a.href, nome); } }, true);
+    const sc = document.createElement("script"); sc.async = true; sc.charset = "utf-8"; sc.src = src;
+    sc.onerror = () => { el.innerHTML = `<p class="trnote" style="margin:6px 4px">I prezzi di ${esc(nome)} non si caricano adesso: usa il tasto qui sotto.</p>`; };
+    el.appendChild(sc); }
+  slot.appendChild(el);
 }
 function kwOpenSito(){
   const K = CONFIG.KIWITAXI, kw = PLAN && PLAN.kw; if (!kw) return;
@@ -5403,46 +5427,66 @@ function kwOpenSito(){
   // link affiliato Travelpayouts (tp.media…&u=destinazione): gli passo il tragitto come destinazione
   let url = kw.url;
   if (K.LINK && /[?&]u=/.test(K.LINK)) url = K.LINK.replace(/([?&]u=)[^&#]*/, "$1" + encodeURIComponent(kw.url));
-  const g = new Date(kwDay() + "T12:00").toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" });
-  toast(`Su Kiwitaxi scegli ${g} e ${kwPax()} ${kwPax() === 1 ? "passeggero" : "passeggeri"}`);
-  window.open(url, "_blank", "noopener");
+  extOpen(url, "Kiwitaxi");
 }
 // scelta del mezzo: a piedi, la tua barca, vaporetto o taxi
+// tre modi: a piedi · barca (barca tua, taxi acqueo, vaporetto) · auto (taxi, percorso in macchina)
+function effMode(p){
+  p = p || PLAN; if (!p) return ""; const s = (p.sub || {})[p.mode];
+  if (p.mode === "barca") return s === "taxi" ? "taxi" : s === "vapo" ? "mezzi" : "barca";
+  if (p.mode === "auto") return s === "guida" ? "autoguida" : "autotaxi";
+  return "piedi";
+}
 function paintTravel(fit){
-  if (!PLAN) return; const m = PLAN.mode, info = $("#rbInfo"), more = $("#rbMore"), go = $("#rbGo");
-  document.querySelectorAll("#rbModes [data-tm]").forEach(b => b.classList.toggle("on", b.dataset.tm === m));
-  more.classList.add("hidden"); more.innerHTML = ""; go.disabled = false;
-  if (m === "barca" || m === "taxi"){
-    const R = PLAN.R = PLAN.Rb, soloAuto = m === "taxi" && PLAN.kw && PLAN.kw.terra;
-    if (!R && !soloAuto){ info.textContent = m === "taxi" ? "Calcolo il prezzo del taxi…" : "Calcolo il percorso…"; go.disabled = true; }
+  if (!PLAN) return;
+  if (!PLAN.sub) PLAN.sub = Object.assign({ barca: activeBoat() ? "mia" : "vapo", auto: "taxi" }, store.get("ln_sub", {}));
+  if (PLAN.mode === "auto" && !PLAN.kw) PLAN.mode = "piedi";
+  const m = effMode(), info = $("#rbInfo"), more = $("#rbMore"), go = $("#rbGo");
+  document.querySelectorAll("#rbModes [data-tm]").forEach(b => { b.classList.toggle("on", b.dataset.tm === PLAN.mode); if (b.dataset.tm === "auto") b.classList.toggle("off", !PLAN.kw); });
+  document.querySelectorAll("#rbSubs [data-sg]").forEach(g => { g.classList.toggle("hidden", g.dataset.sg !== PLAN.mode);
+    g.querySelectorAll("[data-sub]").forEach(b => b.classList.toggle("on", PLAN.sub[g.dataset.sg] === b.dataset.sub)); });
+  more.classList.add("hidden"); more.innerHTML = ""; go.disabled = false; go.classList.remove("hidden"); EXT_HOOK = null;
+  if (m === "autotaxi" || m === "autoguida"){
+    const kw = PLAN.kw, hub = kw.hub ? (kw.resto.prima ? ` · da ${kw.hub}` : ` fino a ${kw.hub}, poi ${kw.restoMin} min a piedi`) : "";
+    PLAN.R = kw.car || null; if (!kw.car) kwRoute(planSeq); else if (fit) try{ fitPlan(kw.car); }catch(e){}
+    if (m === "autoguida"){
+      info.textContent = kw.car ? `${kw.min} min · ${fmtDist(kw.car.len)} in macchina${hub}` : "Calcolo il percorso in macchina…";
+      go.textContent = "▶ Apri la navigazione in auto";
+    } else {
+      go.classList.add("hidden"); EXT_HOOK = "Prenotazione taxi";
+      const K = CONFIG.KIWITAXI, W = CONFIG.WELCOME, p0 = kw.price, pk = kwSconto(p0), pw = Math.round(p0 * 1.1 / 5) * 5;
+      const carIc = '<path d="M4 16.5V12l2-5h12l2 5v4.5z"/><path d="M4 12h16M7.5 19.5v-3M16.5 19.5v-3"/><circle cx="7.5" cy="14.3" r=".8"/><circle cx="16.5" cy="14.3" r=".8"/>';
+      const sel = PLAN.svc || "";
+      info.textContent = `Circa ${kw.min} min in auto${hub}`;
+      more.innerHTML = `<div class="txopts">
+        <div class="svc${sel === "kiwi" ? " on" : ""}" data-svc="kiwi"><button class="txo"><svg viewBox="0 0 24 24">${carIc}</svg><span><b>Kiwitaxi${K.SCONTO ? `<em>-${esc(K.SCONTO.replace(/^-/, ""))}</em>` : ""}</b><small>Prezzo fisso${K.CODICE ? " · codice " + esc(K.CODICE) + " copiato" : ""}</small></span><b class="pz">da ${pk} €${pk !== p0 ? `<s>${p0} €</s>` : ""}</b></button>
+          <div class="tpw" id="tpwKiwi"></div><button class="btn small ghost svcSito" data-sito="kiwi">Apri il sito di Kiwitaxi</button></div>
+        <div class="svc${sel === "welcome" ? " on" : ""}" data-svc="welcome"><button class="txo"><svg viewBox="0 0 24 24">${carIc}</svg><span><b>Welcome Pickups</b><small>Autista che ti aspetta con il cartello</small></span><b class="pz">da ~${pw} €</b></button>
+          <div class="tpw" id="tpwWelcome"></div><button class="btn small ghost svcSito" data-sito="welcome">Apri il sito di Welcome Pickups</button></div>
+        </div><p class="trnote" style="margin:0">Prezzi indicativi: tocca un servizio per vedere le sue offerte e prenotare. Data e passeggeri li scegli nella pagina del servizio.</p>`;
+      more.classList.remove("hidden");
+      const wn = (pt, z) => z === "aeroporto" ? "marco polo" : z === "proma" ? "piazzale roma" : z === "tronchetto" ? "tronchetto" : kwNome(pt, z).replace(/, Venezia$/, "");
+      const enc = t => encodeURIComponent(t).replace(/'/g, "%27");
+      const fq = wn(kw.cf, kwZona(kw.cf)), tq = wn(kw.ct, kwZona(kw.ct));
+      if (sel === "kiwi") tpMount($("#tpwKiwi"), "kiwi|" + fq + "|" + tq, K.WIDGET + "&from=" + enc(fq) + "&to=" + enc(tq), "Kiwitaxi");
+      if (sel === "welcome") tpMount($("#tpwWelcome"), "welcome", W.WIDGET, "Welcome Pickups");
+      more.querySelectorAll("[data-svc] > .txo").forEach(b => b.onclick = () => { const k = b.parentNode.dataset.svc; PLAN.svc = PLAN.svc === k ? "" : k; haptic();
+        if (PLAN.svc === "kiwi" && K.CODICE){ try{ navigator.clipboard.writeText(K.CODICE); }catch(e){} }
+        paintTravel(false); });
+      more.querySelectorAll("[data-sito]").forEach(b => b.onclick = () => b.dataset.sito === "kiwi" ? kwOpenSito() : extOpen(W.URL, "Welcome Pickups"));
+    }
+  } else if (m === "barca" || m === "taxi"){
+    const R = PLAN.R = PLAN.Rb;
+    if (m === "taxi" && PLAN.kw && PLAN.kw.terra){ info.textContent = "Il taxi acqueo non arriva in terraferma: scegli Auto → Taxi."; go.disabled = true; }
+    else if (!R){ info.textContent = m === "taxi" ? "Calcolo il prezzo del taxi…" : "Calcolo il percorso…"; go.disabled = true; }
     else if (m === "barca"){
       info.textContent = `${Math.max(1, Math.round(R.len / (12 / 3.6) / 60))} min · ${fmtDist(R.len)} · ` + (R.src === "lavoro" ? "tragitti abituali" : R.src === "rete" ? "rete dei canali" : "linea d'aria");
       go.textContent = "▶ Avvia in barca";
       if (R.riva){ more.innerHTML = `<p class="trnote" style="margin-top:0">Arrivo alla riva per la sosta del diporto: <b>${esc(R.riva.n)}</b> (${esc(R.riva.rio)})</p>`; more.classList.remove("hidden"); }
       if (!activeBoat()){ more.innerHTML = `<p class="trnote" style="margin-top:0">Imposta la tua barca (cruscotto → La mia barca) per avere fondali e acqua sotto il piede.</p>`; more.classList.remove("hidden"); }
     } else {
-      const t = PLAN.tx, kw = PLAN.kw, K = CONFIG.KIWITAXI;
-      if (!kw){ info.textContent = `${t.lo}–${t.hi} € · circa ${t.min} min`; go.textContent = "🚕 Chiama un taxi";
-        more.innerHTML = `<p class="trnote" style="margin-top:0">Prezzo indicativo per 2 persone. La richiesta arriva a tutti i tassisti convenzionati: il primo che accetta prende la corsa.</p>`; more.classList.remove("hidden"); }
-      else {
-        if (kw.terra) PLAN.txKind = "auto";                                     // in terraferma la barca non ci arriva
-        else if (!PLAN.txKind) PLAN.txKind = store.get("ln_txkind", "auto");
-        const auto = PLAN.txKind === "auto";
-        const boatIc = '<path d="M3 15.5h18l-2.6 4.5H5.6z"/><path d="M7 15.5l1.5-4.5h7L17 15.5"/><path d="M10 11V8.5h4V11"/>';
-        const carIc = '<path d="M4 16.5V12l2-5h12l2 5v4.5z"/><path d="M4 12h16M7.5 19.5v-3M16.5 19.5v-3"/><circle cx="7.5" cy="14.3" r=".8"/><circle cx="16.5" cy="14.3" r=".8"/>';
-        more.innerHTML = `<div class="txopts">
-          ${kw.terra ? "" : `<button class="txo${auto ? "" : " on"}" data-txk="barca"><svg viewBox="0 0 24 24">${boatIc}</svg><span><b>Taxi acqueo</b><small>Circa ${t.min} min · tassisti convenzionati</small></span><b class="pz">${t.lo}–${t.hi} €</b></button>`}
-          <button class="txo${auto ? " on" : ""}" data-txk="auto"><svg viewBox="0 0 24 24">${carIc}</svg><span><b>Taxi in auto${K.SCONTO ? `<em>-${esc(K.SCONTO.replace(/^-/, ""))}</em>` : ""}</b><small>Kiwitaxi${kw.hub ? (kw.resto.prima ? " da " : " fino a ") + kw.hub : ""} · circa ${kw.min} min · prezzo fisso</small></span><b class="pz">da ${kwPrezzo(kw)} €</b></button>
-        </div>${auto ? `<div class="kwrow"><span>Passeggeri</span><button data-kwp="-1" aria-label="Meno">−</button><b>${kwPax()}</b><button data-kwp="1" aria-label="Più">+</button>
-          <input type="date" id="kwDay" min="${kwOggi()}" value="${esc(kwDay())}"></div>` : ""}<p class="trnote" style="margin:0">${auto ? "Prezzo indicativo: quello esatto lo vedi su Kiwitaxi." : "Prezzo indicativo per 2 persone. La richiesta arriva a tutti i tassisti convenzionati: il primo che accetta prende la corsa."}</p>`;
-        more.classList.remove("hidden");
-        more.querySelectorAll("[data-txk]").forEach(b => b.onclick = () => { PLAN.txKind = b.dataset.txk; store.set("ln_txkind", PLAN.txKind); haptic(); paintTravel(false); });
-        more.querySelectorAll("[data-kwp]").forEach(b => b.onclick = () => { store.set("ln_kw_pax", Math.min(16, Math.max(1, kwPax() + +b.dataset.kwp))); haptic(); paintTravel(false); });
-        if ($("#kwDay")) $("#kwDay").onchange = e => { PLAN.kwDay = e.target.value || kwOggi(); };
-        if (auto){ PLAN.R = kw.car || null; if (!kw.car) kwRoute(planSeq); else if (fit) try{ fitPlan(kw.car); }catch(e){}
-          info.textContent = `Da ${kwPrezzo(kw)} € · circa ${kw.min} min in auto${kw.hub ? (kw.resto.prima ? ` · da ${kw.hub}` : ` fino a ${kw.hub}, poi ${kw.restoMin} min a piedi`) : ""}`; go.textContent = "🚗 Prenota su Kiwitaxi"; }
-        else { info.textContent = `${t.lo}–${t.hi} € · circa ${t.min} min`; go.textContent = "🚕 Chiama un taxi acqueo"; }
-      }
+      const t = PLAN.tx; info.textContent = `${t.lo}–${t.hi} € · circa ${t.min} min`; go.textContent = "🚕 Chiama un taxi acqueo";
+      more.innerHTML = `<p class="trnote" style="margin-top:0">Prezzo indicativo per 2 persone. La richiesta arriva a tutti i tassisti convenzionati: il primo che accetta prende la corsa.</p>`; more.classList.remove("hidden");
     }
   } else if (m === "piedi"){
     const R = PLAN.R = PLAN.walk;
@@ -5458,7 +5502,7 @@ function paintTravel(fit){
       more.classList.remove("hidden");
       go.textContent = "🚶 Vai alla fermata";
       { const st = strikeToday(); if (st) more.insertAdjacentHTML("beforeend", `<p class="trnote" style="color:#e8710a;font-weight:700">\u26a0\ufe0e Oggi ${esc(strikeName(st).toLowerCase())}: questa corsa potrebbe non esserci se è fuori dalle fasce garantite.</p>`); }
-      if (!PLAN.tripGeo && PLAN.tripGeoFor !== j){ PLAN.tripGeoFor = j; const pl = PLAN; tripPreview(j, planFrom(), PLAN.to).then(F => { if (PLAN !== pl || pl.trip !== j) return; pl.tripGeo = F; drawRoute(); if (pl.mode === "mezzi") fitFeats(F); }); }
+      if (!PLAN.tripGeo && PLAN.tripGeoFor !== j){ PLAN.tripGeoFor = j; const pl = PLAN; tripPreview(j, planFrom(), PLAN.to).then(F => { if (PLAN !== pl || pl.trip !== j) return; pl.tripGeo = F; drawRoute(); if (effMode(pl) === "mezzi") fitFeats(F); }); }
       else if (fit && PLAN.tripGeo) fitFeats(PLAN.tripGeo);
     }
   }
@@ -5466,11 +5510,17 @@ function paintTravel(fit){
   if (fit && PLAN.R) fitPlan(PLAN.R);
 }
 document.querySelectorAll("#rbModes [data-tm]").forEach(b => b.onclick = () => {
-  if (!PLAN) return; PLAN.mode = b.dataset.tm; store.set("ln_travel", PLAN.mode); paintTravel(true);
-  if (PLAN.mode === "barca" || PLAN.mode === "taxi") planBoat(planSeq);
+  if (!PLAN) return;
+  if (b.dataset.tm === "auto" && !PLAN.kw){ toast("In auto si arriva solo a Piazzale Roma o al Tronchetto: questo tragitto è tutto dentro Venezia."); return; }
+  PLAN.mode = b.dataset.tm; store.set("ln_travel", PLAN.mode); paintTravel(true);
+  const em = effMode(); if (em === "barca" || em === "taxi") planBoat(planSeq);
+});
+document.querySelectorAll("#rbSubs [data-sub]").forEach(b => b.onclick = () => {
+  if (!PLAN) return; const g = b.parentNode.dataset.sg; PLAN.sub[g] = b.dataset.sub; store.set("ln_sub", PLAN.sub); haptic(); paintTravel(true);
+  const em = effMode(); if (em === "barca" || em === "taxi") planBoat(planSeq);
 });
 function closePlan(){
-  PLAN = null; planSeq++; $("#routeBox").classList.add("hidden"); $("#searchBox").classList.remove("hidden");
+  PLAN = null; planSeq++; EXT_HOOK = null; $("#routeBox").classList.add("hidden"); $("#searchBox").classList.remove("hidden");
   if (addMode === "pickfrom"){ addMode = null; $("#modeHint").classList.add("hidden"); }
   if (destMarker){ destMarker.remove(); destMarker = null; } if (startMarker){ startMarker.remove(); startMarker = null; }
   drawRoute();
@@ -5497,8 +5547,10 @@ $("#rbSwap").onclick = () => {
 };
 $("#rbGo").onclick = () => {
   if (!PLAN) return;
-  const p = PLAN, m = p.mode || "barca"; if (!p.from && !lastPos){ toast("Aspetto il GPS: un attimo, oppure scegli un punto di partenza."); return; }
-  if (m === "taxi" && p.kw && p.txKind === "auto"){ haptic(); kwOpen(); return; }
+  const p = PLAN, m = effMode(p) || "barca"; if (!p.from && !lastPos){ toast("Aspetto il GPS: un attimo, oppure scegli un punto di partenza."); return; }
+  if (m === "autotaxi") return;
+  if (m === "autoguida"){ const kw = p.kw;   // navigazione in auto con Google Maps (fino a Piazzale Roma o Tronchetto se si va a Venezia)
+    extOpen(`https://www.google.com/maps/dir/?api=1&origin=${kw.cf.lat},${kw.cf.lng}&destination=${kw.ct.lat},${kw.ct.lng}&travelmode=driving`, "Google Maps"); return; }
   if (m === "taxi"){
     const f = planFrom();
     taxiAsk({ da: { name: p.from ? p.from.name : "La mia posizione", lat: f.lat, lng: f.lng }, a: { name: p.to.name, lat: p.to.lat, lng: p.to.lng } });
