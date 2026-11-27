@@ -6883,7 +6883,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
 
 
   /* ---------- Aggiornamento automatico: se è uscita una versione nuova dell'app, si ricarica da sola ---------- */
-  var APP_V = '2026-11-27vx';
+  var APP_V = '2026-11-27vx2';
   var UPDL = 0;
   function updCheck() {
     if (Date.now() - UPDL < 60000) return; UPDL = Date.now();
@@ -8790,7 +8790,9 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     Promise.all([cl('rpc_velox_get', {}), cvVelox()]).then(function (a) { VX.busy = false; var r = a[0], cv = a[1]; if (!(r && r.marks)) return;
       if (Array.isArray(cv) && cv.length) {
         var old = {}; r.marks.forEach(function (m) { old[m.id] = m; });
-        r.marks = cv.map(function (v) { var o = old[v.id] || {}; return { id: v.id, state: v.stato, note: v.note || o.note || null, at: v.agg, by: 'clickVenice', live: o.live, liveby: o.liveby, col: v.colore, kmh: v.kmh, cvlat: v.lat, cvlng: v.lng, cvname: v.nome }; });
+        // grigio = rotto, arancione = funziona, rosso = funziona con la spia accesa (deciso da tropss o segnalato da qualcuno nelle ultime 3 ore)
+        r.marks = cv.map(function (v) { var o = old[v.id] || {}; return { id: v.id, state: v.stato, note: v.note || o.note || null, at: v.agg, by: 'clickVenice',
+          live: v.colore === 'r' ? (o.live || v.live || v.agg) : o.live, liveby: o.liveby || (v.colore === 'r' ? 'clickVenice' : null), col: v.colore, cvlat: v.lat, cvlng: v.lng, cvname: v.nome }; });
         VX.cv = true; }
       VX.d = r; VX.M = {}; r.marks.forEach(function (m) { VX.M[m.id] = m; }); vxRender(); }).catch(function () { VX.busy = false; }); }
   function vxMark(id) { return VX.M && VX.M[id]; }
@@ -8984,6 +8986,7 @@ button.ogt{cursor:pointer}.ogt>span:nth-child(2){flex:1;min-width:0;display:flex
     else if (a === 'vxlive') {
       var lid2 = el.getAttribute('data-id'), mk = vxMark(lid2); if (!mk) return; var on = !mk.live;
       mk.live = on ? new Date().toISOString() : null; mk.liveby = on && SESSION ? SESSION.name : null; if (on && mk.state === 'check') mk.state = 'ok';
+      if (on) fetch(CV_URL + '/rest/v1/rpc/velox_live', { method: 'POST', headers: { apikey: CV_KEY, Authorization: 'Bearer ' + CV_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_id: lid2 }) }).catch(function () {});   // la spia accesa vale anche su clickVenice
       cl('rpc_velox_live', { p_stop: lid2, p_on: on }).then(function (r) { if (r && r.ok) toast(on ? '🔴 Segnalato: velox acceso' : 'Luce rossa tolta'); else toast('Non salvato'); });
       if (VX.open) vxRender(); else { var al = $('nvAlert'); if (al) nvVelox(nvPos()); }
     }
